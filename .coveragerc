@@ -1,0 +1,7 @@
+[run]
+source= diffhtwo/
+
+omit =
+    diffhtwo/__init__.py
+    diffhtwo/_version.py
+    diffhtwo/tests/*.py

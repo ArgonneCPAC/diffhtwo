@@ -1,0 +1,8 @@
+numpy
+scipy
+jax
+astropy
+h5py
+dsps
+diffstar
+diffmah
