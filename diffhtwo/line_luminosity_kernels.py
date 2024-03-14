@@ -14,7 +14,6 @@ LGQH_MIN = 48.0  # log10(photon/s)
 LGQH_MAX = 52.0  # log10(photon/s)
 
 SANTORO22_ALPHA = -1.73
-LGMET_SCATTER = 0.20
 NPHOTONS_SINGLE_OSTAR = 10**LGQH_MIN
 
 
