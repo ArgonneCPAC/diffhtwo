@@ -23,8 +23,6 @@ def test_ab_filter_flux_factor_from_precomputed():
     assert np.all(np.isfinite(filter_flux_ab0))
     ab_flux = ab_flux_factor * line_lum_cgs
     assert np.all(np.isfinite(ab_flux))
-    # return (args, ab_flux)
-    # assert np.all(np.isfinite(ab_flux)), ab_flux
 
 
 def test_ab_flux_line():
@@ -37,4 +35,10 @@ def test_ab_flux_line():
     ab_line_flux = lpk._ab_flux_line(*args)
     assert ab_line_flux.shape == ()
     assert np.all(np.isfinite(ab_line_flux))
-    assert False, ab_line_flux
+
+    t_line = np.interp(halpha_wave_aa_obs, tcurve_wave, tcurve_trans)
+    t_ab = lpk._filter_flux_ab0_at_10pc_order_unity(tcurve_wave, tcurve_trans)
+
+    factor = (halpha_wave_aa_obs * line_lum_cgs) / (lpk.L_AB * lpk.C_ANGSTROMS)
+    x = factor * t_line / t_ab
+    assert np.allclose(x, ab_line_flux)
