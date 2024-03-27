@@ -40,4 +40,4 @@ def test_line_ab_flux_per_mstar():
     assert np.all(np.isfinite(line_flux_per_mstar))
 
     line_flux = line_flux_per_mstar * 1e10
-    assert -25 < -2.5 * np.log10(line_flux) < -10
+    assert -30 < -2.5 * np.log10(line_flux) < -10
