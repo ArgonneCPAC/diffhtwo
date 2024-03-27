@@ -5,10 +5,10 @@ import numpy as np
 from dsps.utils import triweight_gaussian
 
 from ..line_photometry_kernels import _filter_flux_ab0_at_10pc_order_unity
-from ..pred_line_photometry import emission_line_photflux_per_mstar
+from ..pred_line_photometry import emission_line_restframe_photflux_per_mstar
 
 
-def test_emission_line_photflux_per_mstar():
+def test_emission_line_restframe_photflux_per_mstar():
     n_met, n_age = 6, 100
 
     ssp_line_ltot_scaled_table = 10 ** np.random.uniform(-4, 4, n_met * n_age)
@@ -34,7 +34,7 @@ def test_emission_line_photflux_per_mstar():
         filter_flux_ab0,
         line_trans,
     )
-    flux_per_mstar = emission_line_photflux_per_mstar(*args)
+    flux_per_mstar = emission_line_restframe_photflux_per_mstar(*args)
     assert flux_per_mstar.shape == ()
     assert np.isfinite(flux_per_mstar)
 
