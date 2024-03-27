@@ -1,5 +1,6 @@
 """"""
 
+# flake8: noqa
 from diffsky.burstpop import calc_bursty_age_weights_from_diffburstpop_params
 from diffsky.dustpop.avpop_flex import get_av_from_avpop_params_singlegal
 from diffsky.dustpop.deltapop import get_delta_from_deltapop_params
