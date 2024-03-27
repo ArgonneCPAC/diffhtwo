@@ -33,7 +33,9 @@ def _ab_flux_line(line_angstrom, line_lum_cgs, tcurve_wave_aa, tcurve_trans):
 
 
 @jjit
-def _ab_flux_line_kern(line_wave_aa, line_trans, line_ltot_scaled, mstar, f_ab):
-    x = line_wave_aa * line_trans * line_ltot_scaled * mstar / f_ab
-    filter_flux = x * LINE_FLUX_NORM
-    return filter_flux
+def _line_ab_flux_per_mstar(
+    line_wave_aa, line_trans, line_ltot_scaled, filter_flux_ab0
+):
+    x = line_wave_aa * line_trans * line_ltot_scaled / filter_flux_ab0
+    flux_per_mstar = x * LINE_FLUX_NORM
+    return flux_per_mstar

@@ -26,18 +26,18 @@ def test_filter_flux_ab0_at_10pc_order_unity():
     assert np.allclose(x, ab_line_flux)
 
 
-def test_ab_flux_line_kern():
+def test_line_ab_flux_per_mstar():
     halpha_wave_aa_obs = 6565.0
     tcurve_wave = np.linspace(3_000, 7_000, 1_000)
     tcurve_trans = triweight_gaussian(tcurve_wave, 6250.0, 300.0) * 500
 
     line_trans = np.interp(halpha_wave_aa_obs, tcurve_wave, tcurve_trans)
     line_ltot_scaled = 1.0
-    mstar = 1e10
     f_ab = lpk._filter_flux_ab0_at_10pc_order_unity(tcurve_wave, tcurve_trans)
-    args = (halpha_wave_aa_obs, line_trans, line_ltot_scaled, mstar, f_ab)
-    line_flux = lpk._ab_flux_line_kern(*args)
-    assert line_flux.shape == ()
-    assert np.all(np.isfinite(line_flux))
+    args = (halpha_wave_aa_obs, line_trans, line_ltot_scaled, f_ab)
+    line_flux_per_mstar = lpk._line_ab_flux_per_mstar(*args)
+    assert line_flux_per_mstar.shape == ()
+    assert np.all(np.isfinite(line_flux_per_mstar))
 
+    line_flux = line_flux_per_mstar * 1e10
     assert -25 < -2.5 * np.log10(line_flux) < -10
