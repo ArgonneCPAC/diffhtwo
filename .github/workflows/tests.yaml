@@ -1,10 +1,14 @@
-name: Test for Warnings
+name: tests
 
 on:
   workflow_dispatch: null
   schedule:
-    # Runs "First of every month at 3:15am Central"
-    - cron: '15 8 1 * *'
+    # Runs "every Monday & Thursday at 3:05am Central"
+    - cron: '5 8 * * 1,4'
+  push:
+    branches:
+      - main
+  pull_request: null
 
 jobs:
   tests:
@@ -23,7 +27,6 @@ jobs:
           channel-priority: strict
           show-channel-urls: true
           miniforge-version: latest
-          miniforge-variant: Mambaforge
           use-mamba: true
 
       - name: configure conda and install code
@@ -46,8 +49,34 @@ jobs:
             flake8-pyproject
           python -m pip install --no-build-isolation --no-deps -e .
 
-      - name: test that no warnings are raised
+      - name: test
         shell: bash -l {0}
         run: |
-          export PYTHONWARNINGS=error
           pytest -v diffhtwo --cov --cov-report=xml
+
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v3
+
+      - name: test versions
+        shell: bash -el {0}
+        run: |
+          pip uninstall diffhtwo --yes
+          [[ $(python setup.py --version) != "0.0.0" ]] || exit 1
+
+          rm -rf dist/*
+          python setup.py sdist
+          pip install --no-deps --no-build-isolation dist/*.tar.gz
+          pushd ..
+          python -c "import diffhtwo; assert diffhtwo.__version__ != '0.0.0'"
+          popd
+          pip uninstall diffhtwo --yes
+
+          rm -rf dist/*
+          python -m build --sdist . --outdir dist
+          pip install --no-deps --no-build-isolation dist/*.tar.gz
+          pushd ..
+          python -c "import diffhtwo; assert diffhtwo.__version__ != '0.0.0'"
+          popd
+          pip uninstall diffhtwo --yes
+
+          python -m pip install -v --no-deps --no-build-isolation -e .
