@@ -1,25 +1,17 @@
 from .. import halpha_luminosity as halphaL
-from dsps import load_ssp_templates
 from dsps.cosmology import age_at_z, DEFAULT_COSMOLOGY
-import h5py
 import numpy as np
 import jax.numpy as jnp
-import os
 
 z_obs = 0.5
 t_obs = age_at_z(z_obs, *DEFAULT_COSMOLOGY)  # age of the universe in Gyr at z_obs
 
-halpha_file = os.path.join(os.path.dirname(__file__), "halpha_fsps_v3.2.h5")
 
-ssp_file = os.path.join(os.path.dirname(__file__), "fsps_v3.2.h5")
-
-with h5py.File(halpha_file, "r") as f:
-    print("Keys in file:", list(f.keys()))  # list top-level groups/datasets
-    ssp_halpha_line_luminosity = f["ssp_halpha_line_luminosity"][...]
-
-ssp_data = load_ssp_templates(fn=ssp_file)
-ssp_lgmet = ssp_data.ssp_lgmet
-ssp_lg_age_gyr = ssp_data.ssp_lg_age_gyr
+ssp_lgmet = np.linspace(-5.0, 1.0, 12)
+ssp_lg_age_gyr = np.linspace(-4.0, 1.3, 107)
+ssp_halpha_line_luminosity = np.random.uniform(
+    0.0, 40.0, (ssp_lgmet.size, ssp_lg_age_gyr.size)
+)
 
 
 def test_get_Lhalpha_vmap():
