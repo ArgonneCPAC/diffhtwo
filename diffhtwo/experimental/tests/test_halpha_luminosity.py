@@ -14,7 +14,7 @@ ssp_halpha_line_luminosity = np.random.uniform(
 )
 
 
-def test_get_Lhalpha_vmap():
+def test_halpha_luminosity():
     N = 10000
     lg_sfr_draws = np.random.uniform(-2, 2, N)
 
@@ -38,3 +38,12 @@ def test_get_Lhalpha_vmap():
     )
     assert jnp.all(jnp.isfinite(L_halpha_cgs))
     assert jnp.all(jnp.isfinite(L_halpha_unit))
+
+    weights = jnp.ones_like(L_halpha_cgs)
+    lgL_bin_edges, tw_hist_weighted = halphaL.get_halpha_luminosity_func(
+        L_halpha_cgs, weights, sig=0.0
+    )
+
+    np_histogram = np.histogram(np.log10(L_halpha_cgs), bins=lgL_bin_edges)[0]
+
+    assert np.allclose(tw_hist_weighted, np_histogram)
