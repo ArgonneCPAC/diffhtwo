@@ -12,7 +12,7 @@ Installation
 To install diffhtwo into your environment from the source code::
 
     $ cd /path/to/root/diffhtwo
-    $ pip install .
+    $ pip install -e .
 
 Testing
 -------
