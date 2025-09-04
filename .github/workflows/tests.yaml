@@ -40,6 +40,9 @@ jobs:
             "setuptools_scm>=7,<8" \
             scipy \
             python-build
+          pip uninstall diffsky --yes
+          pip install --no-deps git+https://github.com/ArgonneCPAC/diffsky.git
+
           python -m pip install --no-build-isolation --no-deps -e .
 
       - name: test
