@@ -1,5 +1,5 @@
-import bimodal_sfh_opt as bsfh_opt
-import pop_sfh
+from .. import bimodal_sfh_opt as bsfh_opt
+from .. import pop_sfh
 import numpy as np
 from jax import random
 import jax.numpy as jnp
