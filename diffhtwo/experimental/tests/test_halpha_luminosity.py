@@ -1,4 +1,4 @@
-import halpha_luminosity as halphaL
+from .. import halpha_luminosity as halphaL
 from dsps.cosmology import age_at_z, DEFAULT_COSMOLOGY
 import numpy as np
 import jax.numpy as jnp
