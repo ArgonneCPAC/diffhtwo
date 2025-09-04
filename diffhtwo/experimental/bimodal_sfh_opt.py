@@ -2,7 +2,6 @@ import jax
 from jax import grad
 import jax.numpy as jnp
 from jax import jit as jjit
-from tqdm.autonotebook import tqdm
 import pop_sfh
 
 jax.config.update("jax_debug_nans", True)
@@ -67,7 +66,7 @@ def _model_optimization_loop(
     losses = []
     grads = []
 
-    for i in tqdm(range(n_steps)):
+    for i in range(n_steps):
         grad = dloss(
             theta,
             LF_SF_true,
