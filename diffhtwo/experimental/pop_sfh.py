@@ -1,4 +1,4 @@
-import halpha_luminosity as halphaL
+from . import halpha_luminosity as halphaL
 import jax.numpy as jnp
 from jax import random
 import jax.nn as nn
