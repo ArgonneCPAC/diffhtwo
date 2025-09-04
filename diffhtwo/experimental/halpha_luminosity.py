@@ -1,15 +1,13 @@
 from dsps import calc_ssp_weights_sfh_table_lognormal_mdf
-from dsps.sed.stellar_age_weights import _calc_logsm_table_from_sfh_table
-from dsps.constants import SFR_MIN
+from dsps.utils import cumulative_mstar_formed
 from diffsky import diffndhist
 
 from jax import jit as jjit
 from jax import vmap
 import jax.numpy as jnp
 
-from astropy.constants import L_sun
-
-L_SUN_CGS = jnp.array(L_sun.cgs.value)
+# copied from astropy.constants.L_sun.cgs.value
+L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
 
 def get_L_halpha(
@@ -34,12 +32,12 @@ def get_L_halpha(
     # get mass
     lgt_obs = jnp.log10(t_obs)
     lgt_table = jnp.log10(gal_t_table)
-    logsm_table = _calc_logsm_table_from_sfh_table(gal_t_table, gal_sfr_table, SFR_MIN)
+    logsm_table = cumulative_mstar_formed(gal_t_table, gal_sfr_table)
     logsm_obs = jnp.interp(lgt_obs, lgt_table, logsm_table)
     mstar_obs = jnp.power(10, logsm_obs)
 
     # convert luminosity [Lsun/Msun] ---> [erg/s]
-    L_halpha_Lsun_per_Msun = (ssp_halpha_line_luminosity * weights).sum()
+    L_halpha_Lsun_per_Msun = jnp.sum(ssp_halpha_line_luminosity * weights)
     L_halpha_erg_per_sec = L_halpha_Lsun_per_Msun * (L_SUN_CGS * mstar_obs)
 
     return L_halpha_erg_per_sec, L_halpha_Lsun_per_Msun
@@ -55,7 +53,7 @@ get_L_halpha_vmap = jjit(
 
 
 def get_halpha_luminosity_func(
-    L_halpha_cgs, weights, sig=0.001, dlgL_bin=0.2, lgL_min=40.0, lgL_max=45.0
+    L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=40.0, lgL_max=45.0
 ):
     lg_L_halpha_cgs = jnp.log10(L_halpha_cgs)
 

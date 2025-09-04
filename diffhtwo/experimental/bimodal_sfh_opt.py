@@ -31,9 +31,17 @@ def _mseloss(
     ssp_lg_age_gyr,
     ssp_halpha_line_luminosity,
     t_obs,
+    k_SF,
+    k_Q,
 ):
     _, _, LF_SF_pred, LF_Q_pred, _ = pop_sfh.pop_bimodal(
-        theta, ssp_lgmet, ssp_lg_age_gyr, ssp_halpha_line_luminosity, t_obs
+        theta,
+        ssp_lgmet,
+        ssp_lg_age_gyr,
+        ssp_halpha_line_luminosity,
+        t_obs,
+        k_SF,
+        k_Q,
     )
     return _mse(LF_SF_true, LF_SF_pred, LF_Q_true, LF_Q_pred)
 
@@ -49,6 +57,8 @@ def _model_optimization_loop(
     ssp_lg_age_gyr,
     ssp_halpha_line_luminosity,
     t_obs,
+    k_SF,
+    k_Q,
     loss=_mseloss,
     dloss=_dmseloss,
     n_steps=1000,
@@ -66,6 +76,8 @@ def _model_optimization_loop(
             ssp_lg_age_gyr,
             ssp_halpha_line_luminosity,
             t_obs,
+            k_SF,
+            k_Q,
         )
         grads.append(grad)
 
@@ -80,6 +92,8 @@ def _model_optimization_loop(
                 ssp_lg_age_gyr,
                 ssp_halpha_line_luminosity,
                 t_obs,
+                k_SF,
+                k_Q,
             )
         )
 
