@@ -66,7 +66,7 @@ ssp_halpha_line_luminosity = [
     for _ in range(ssp_lgmet.size)
 ]
 zeros = np.zeros(ssp_lg_age_gyr.size - len(arr))
-ssp_halpha_line_luminosity = [np.append(arr, zeros) for _ in ssp_halpha_line_luminosity]
+ssp_halpha_line_luminosity = [np.append(_, zeros) for _ in ssp_halpha_line_luminosity]
 ssp_halpha_line_luminosity = jnp.array(ssp_halpha_line_luminosity)
 
 
