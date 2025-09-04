@@ -1,12 +1,15 @@
 import jax
-from jax import grad
-import jax.numpy as jnp
-from jax import jit as jjit
-from . import pop_sfh
 
+jax.config.update("jax_enable_x64", True)
 jax.config.update("jax_debug_nans", True)
 jax.config.update("jax_debug_infs", True)
-jax.config.update("jax_enable_x64", True)
+
+
+import jax.numpy as jnp
+from jax import grad
+from jax import jit as jjit
+
+from . import pop_sfh
 
 
 def _mse(
