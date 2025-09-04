@@ -1,15 +1,15 @@
+import jax.numpy as jnp
+from diffsky import diffndhist
 from dsps import calc_ssp_weights_sfh_table_lognormal_mdf
 from dsps.utils import cumulative_mstar_formed
-from diffsky import diffndhist
-
 from jax import jit as jjit
 from jax import vmap
-import jax.numpy as jnp
 
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
 
+@jjit
 def get_L_halpha(
     gal_sfr_table,
     gal_lgmet,
@@ -52,6 +52,7 @@ get_L_halpha_vmap = jjit(
 )
 
 
+@jjit
 def get_halpha_luminosity_func(
     L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=40.0, lgL_max=45.0
 ):
