@@ -32,7 +32,7 @@ def get_L_halpha(
     # get mass
     lgt_obs = jnp.log10(t_obs)
     lgt_table = jnp.log10(gal_t_table)
-    logsm_table = cumulative_mstar_formed(gal_t_table, gal_sfr_table)
+    logsm_table = jnp.log10(cumulative_mstar_formed(gal_t_table, gal_sfr_table))
     logsm_obs = jnp.interp(lgt_obs, lgt_table, logsm_table)
     mstar_obs = jnp.power(10, logsm_obs)
 

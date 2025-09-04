@@ -1,4 +1,4 @@
-from .. import halpha_luminosity as halphaL
+import halpha_luminosity as halphaL
 from dsps.cosmology import age_at_z, DEFAULT_COSMOLOGY
 import numpy as np
 import jax.numpy as jnp
@@ -72,7 +72,7 @@ ssp_halpha_line_luminosity = jnp.array(ssp_halpha_line_luminosity)
 
 def test_halpha_luminosity():
     N = 10000
-    lg_sfr_draws = np.random.uniform(-2, 1.5, N)
+    lg_sfr_draws = np.random.uniform(-2, 2, N)
 
     gal_t_table = jnp.linspace(0.05, 13.8, 100)  # age of the universe in Gyr
     gal_sfr_tables = jnp.ones((gal_t_table.size, N)) * (
@@ -92,6 +92,7 @@ def test_halpha_luminosity():
         ssp_halpha_line_luminosity,
         t_obs,
     )
+    print(jnp.all(jnp.isfinite(L_halpha_cgs)), jnp.all(jnp.isfinite(L_halpha_unit)))
     assert jnp.all(jnp.isfinite(L_halpha_cgs))
     assert jnp.all(jnp.isfinite(L_halpha_unit))
 
