@@ -18,7 +18,7 @@ def pop_model(
     lg_sfr_var=0.1,
     N=10000,
     gal_lgmet=-1.0,
-    gal_lgmet_scatter=0,
+    gal_lgmet_scatter=0.1,
 ):
     lg_sfr_mean = theta["lg_sfr_mean"]
     key = random.PRNGKey(1000)
@@ -75,7 +75,7 @@ def pop_bimodal(
     k_SF,
     k_Q,
     gal_lgmet=-1.0,
-    gal_lgmet_scatter=0,
+    gal_lgmet_scatter=0.1,
     N=10000,
 ):
     lg_sfr_draws, SF_weights = bimodal_SF_Q_draws(theta, N, k_SF, k_Q)

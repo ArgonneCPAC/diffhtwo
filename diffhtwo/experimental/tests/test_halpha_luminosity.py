@@ -58,66 +58,6 @@ arr = jnp.array(
         0.22578957,
         0.14377021,
         0.09140591,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
     ]
 )
 noise_std = 2
@@ -125,6 +65,8 @@ ssp_halpha_line_luminosity = [
     np.clip(arr + np.random.normal(0, noise_std, size=arr.shape), a_min=0, a_max=None)
     for _ in range(ssp_lgmet.size)
 ]
+zeros = np.zeros(ssp_lg_age_gyr.size - len(arr))
+ssp_halpha_line_luminosity = [np.append(arr, zeros) for _ in ssp_halpha_line_luminosity]
 ssp_halpha_line_luminosity = jnp.array(ssp_halpha_line_luminosity)
 
 
@@ -138,7 +80,7 @@ def test_halpha_luminosity():
     )  # SFR in Msun/yr
     gal_sfr_tables = gal_sfr_tables.T
     gal_lgmet = -1.0
-    gal_lgmet_scatter = 0
+    gal_lgmet_scatter = 0.1
 
     L_halpha_cgs, L_halpha_unit = halphaL.get_L_halpha_vmap(
         gal_sfr_tables,
