@@ -5,9 +5,6 @@ import jax.nn as nn
 from jax import jit as jjit
 from functools import partial
 
-# copied from astropy.constants.L_sun.cgs.value
-L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
-
 
 def pop_model(
     theta,
