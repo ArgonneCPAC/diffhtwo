@@ -12,6 +12,7 @@ from jax import jit as jjit
 from . import pop_sfh
 
 
+@jjit
 def _mse(
     LF_SF_true: jnp.ndarray,
     LF_SF_pred: jnp.ndarray,
