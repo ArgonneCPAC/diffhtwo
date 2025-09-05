@@ -57,9 +57,12 @@ def bimodal_SF_Q_draws(theta, N, k_SF, k_Q, dex_var=0.1):
     i = jnp.arange(N) + 0.5
     SF_weight = nn.sigmoid((N * frac_SF - i))
 
-    lgsfr_draws = SF_weight * lgsfr_SF_draws + (1.0 - SF_weight) * lgsfr_Q_draws
+    # lgsfr_draws = SF_weight * lgsfr_SF_draws + (1.0 - SF_weight) * lgsfr_Q_draws
 
-    return lgsfr_draws, SF_weight
+    # lgsfr_SF_draws_weighted = SF_weight * lgsfr_SF_draws
+    # lgsfr_Q_draws_weighted = (1.0 - SF_weight) * lgsfr_Q_draws
+
+    return lgsfr_SF_draws, lgsfr_Q_draws, SF_weight
 
 
 @jjit
@@ -75,16 +78,22 @@ def pop_bimodal(
     gal_lgmet_scatter=0.1,
     N=10000,
 ):
-    lg_sfr_draws, SF_weights = bimodal_SF_Q_draws(theta, N, k_SF, k_Q)
+    lgsfr_SF_draws, lgsfr_Q_draws, SF_weights = bimodal_SF_Q_draws(theta, N, k_SF, k_Q)
 
     gal_t_table = jnp.linspace(0.05, 13.8, 100)  # age of the universe in Gyr
-    gal_sfr_tables = jnp.ones((gal_t_table.size, N)) * (
-        10**lg_sfr_draws
-    )  # SFR in Msun/yr
-    gal_sfr_tables = gal_sfr_tables.T
 
-    L_halpha_cgs, L_halpha_unit = halphaL.get_L_halpha_vmap(
-        gal_sfr_tables,
+    gal_sfr_SF_tables = jnp.ones((gal_t_table.size, N)) * (
+        10**lgsfr_SF_draws
+    )  # SFR in Msun/yr
+    gal_sfr_SF_tables = gal_sfr_SF_tables.T
+
+    gal_sfr_Q_tables = jnp.ones((gal_t_table.size, N)) * (
+        10**lgsfr_Q_draws
+    )  # SFR in Msun/yr
+    gal_sfr_Q_tables = gal_sfr_Q_tables.T
+
+    L_halpha_cgs_SF, L_halpha_unit_SF = halphaL.get_L_halpha_vmap(
+        gal_sfr_SF_tables,
         gal_lgmet,
         gal_lgmet_scatter,
         gal_t_table,
@@ -94,16 +103,29 @@ def pop_bimodal(
         t_obs,
     )
 
-    Q_weights = 1 - SF_weights
+    L_halpha_cgs_Q, L_halpha_unit_Q = halphaL.get_L_halpha_vmap(
+        gal_sfr_Q_tables,
+        gal_lgmet,
+        gal_lgmet_scatter,
+        gal_t_table,
+        ssp_lgmet,
+        ssp_lg_age_gyr,
+        ssp_halpha_line_luminosity,
+        t_obs,
+    )
 
     lgL_bin_edges, tw_hist_weighted_SF = halphaL.get_halpha_luminosity_func(
-        L_halpha_cgs, SF_weights
+        L_halpha_cgs_SF, SF_weights
     )
-    _, tw_hist_weighted_Q = halphaL.get_halpha_luminosity_func(L_halpha_cgs, Q_weights)
+
+    _, tw_hist_weighted_Q = halphaL.get_halpha_luminosity_func(
+        L_halpha_cgs_Q, 1 - SF_weights
+    )
 
     return (
         lgL_bin_edges,
-        L_halpha_cgs,
+        L_halpha_cgs_SF,
+        L_halpha_cgs_Q,
         tw_hist_weighted_SF,
         tw_hist_weighted_Q,
         SF_weights,
