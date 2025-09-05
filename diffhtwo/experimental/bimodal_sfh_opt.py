@@ -67,7 +67,7 @@ def _model_optimization_loop(
     loss=_mseloss,
     dloss=_dmseloss,
     n_steps=1000,
-    step_size=1e-9,
+    step_size=1e-8,
 ):
     losses = []
     grads = []

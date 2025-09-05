@@ -85,7 +85,8 @@ def test_bimodal_sfh_opt():
 
     (
         lgL_bin_edges,
-        L_halpha_cgs_true,
+        L_halpha_cgs_SF_true,
+        L_halpha_cgs_Q_true,
         LF_SF_true,
         LF_Q_true,
         SF_weights_true,
@@ -107,7 +108,7 @@ def test_bimodal_sfh_opt():
     frac_SF_rand = np.random.uniform(0, 1)  # true at 0.7
     lgsfr_Q_mean_rand = np.random.uniform(-0.2, 0.2)  # true at 0
 
-    _, _, LF_SF_rand, LF_Q_rand, _ = pop_sfh.pop_bimodal(
+    _, _, _, LF_SF_rand, LF_Q_rand, _ = pop_sfh.pop_bimodal(
         dict(
             lgsfr_SF_mean=lgsfr_SF_mean_rand,
             frac_SF=frac_SF_rand,
