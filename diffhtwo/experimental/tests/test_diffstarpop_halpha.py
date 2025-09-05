@@ -4,7 +4,7 @@ from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.metallicity import umzr
-from jax import random as jran
+
 
 from diffsky.experimental import mc_lightcone_halos as mclh
 from .. import diffstarpop_halpha
@@ -14,8 +14,11 @@ from diffsky.param_utils import spspop_param_utils as spspu
 # from diffsky.ssp_err_model import ssp_err_model
 
 import jax.numpy as jnp
+from jax import random as jran
+from jax import jit as jjit
 
 
+@jjit
 def diffstarpop_halpha_kern():
     ssp_lgmet = jnp.linspace(-5.0, 1.0, 12)
     ssp_lg_age_gyr = jnp.linspace(-4.0, 1.3, 107)
