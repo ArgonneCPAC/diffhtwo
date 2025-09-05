@@ -44,8 +44,7 @@ def diffstarpop_halpha_kern(
     mah_params,
     logmp0,
     t_table,
-    ssp_lgmet,
-    ssp_lg_age_gyr,
+    ssp_data,
     ssp_halpha_luminosity,
     diffstarpop_params,
     mzr_params,
@@ -61,11 +60,11 @@ def diffstarpop_halpha_kern(
 
     # get age weights
     smooth_age_weights_ms = calc_age_weights_from_sfh_table_vmap(
-        t_table, diffstar_galpop.sfh_ms, ssp_lg_age_gyr, t_obs
+        t_table, diffstar_galpop.sfh_ms, ssp_data.ssp_lg_age_gyr, t_obs
     )
 
     smooth_age_weights_q = calc_age_weights_from_sfh_table_vmap(
-        t_table, diffstar_galpop.sfh_q, ssp_lg_age_gyr, t_obs
+        t_table, diffstar_galpop.sfh_q, ssp_data.ssp_lg_age_gyr, t_obs
     )
 
     # get metallicity weights
@@ -73,9 +72,11 @@ def diffstarpop_halpha_kern(
     lgmet_med_q = umzr.mzr_model(diffstar_galpop.logsm_obs_q, t_obs, *mzr_params)
 
     lgmet_weights_ms = _calc_lgmet_weights_galpop(
-        lgmet_med_ms, LGMET_SCATTER, ssp_lgmet
+        lgmet_med_ms, LGMET_SCATTER, ssp_data.ssp_lgmet
     )
-    lgmet_weights_q = _calc_lgmet_weights_galpop(lgmet_med_q, LGMET_SCATTER, ssp_lgmet)
+    lgmet_weights_q = _calc_lgmet_weights_galpop(
+        lgmet_med_q, LGMET_SCATTER, ssp_data.ssp_lgmet
+    )
 
     # age weights * metallicity weights
     _w_age_q = smooth_age_weights_q.reshape((n_gals, 1, n_age))

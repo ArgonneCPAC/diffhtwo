@@ -1,9 +1,12 @@
 import numpy as np
 from diffstar.defaults import T_TABLE_MIN
+
 from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.metallicity import umzr
+from dsps.data_loaders import retrieve_fake_fsps_data
 
 
 from diffsky.experimental import mc_lightcone_halos as mclh
@@ -20,8 +23,9 @@ from jax import jit as jjit
 
 @jjit
 def diffstarpop_halpha_kern():
-    ssp_lgmet = jnp.linspace(-5.0, 1.0, 12)
-    ssp_lg_age_gyr = jnp.linspace(-4.0, 1.3, 107)
+    ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
+
+    # get fake ssp_halpha_luminosity
     arr = jnp.array(
         [
             18.99350973,
@@ -78,9 +82,9 @@ def diffstarpop_halpha_kern():
         np.clip(
             arr + np.random.normal(0, noise_std, size=arr.shape), a_min=0, a_max=None
         )
-        for _ in range(ssp_lgmet.size)
+        for _ in range(ssp_data.ssp_lgmet.size)
     ]
-    zeros = np.zeros(ssp_lg_age_gyr.size - len(arr))
+    zeros = np.zeros(ssp_data.ssp_lg_age_gyr.size - len(arr))
     ssp_halpha_luminosity = [np.append(_, zeros) for _ in ssp_halpha_luminosity]
     ssp_halpha_luminosity = jnp.array(ssp_halpha_luminosity)
 
@@ -117,8 +121,7 @@ def diffstarpop_halpha_kern():
         mah_params,
         logmp0,
         t_table,
-        ssp_lgmet,
-        ssp_lg_age_gyr,
+        ssp_data,
         ssp_halpha_luminosity,
         DEFAULT_DIFFSTARPOP_PARAMS,
         mzr_params,
