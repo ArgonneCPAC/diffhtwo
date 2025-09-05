@@ -39,7 +39,7 @@ def _mseloss(
     k_SF,
     k_Q,
 ):
-    _, _, LF_SF_pred, LF_Q_pred, _ = pop_sfh.pop_bimodal(
+    _, _, _, LF_SF_pred, LF_Q_pred, _ = pop_sfh.pop_bimodal(
         theta,
         ssp_lgmet,
         ssp_lg_age_gyr,
