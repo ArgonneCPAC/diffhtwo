@@ -134,4 +134,4 @@ def test_bimodal_sfh_opt():
         step_size=1e-8,
     )
 
-    assert np.allclose(theta_true, theta_fit, atol=1e-2)
+    assert np.allclose(theta_true, theta_fit, atol=1e-4)
