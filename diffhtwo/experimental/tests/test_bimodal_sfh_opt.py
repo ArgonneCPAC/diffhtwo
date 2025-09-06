@@ -5,11 +5,13 @@ from jax import random
 import jax.numpy as jnp
 from collections import namedtuple
 from dsps.cosmology import age_at_z, DEFAULT_COSMOLOGY
+from dsps.data_loaders import retrieve_fake_fsps_data
 
 
 def test_bimodal_sfh_opt():
-    ssp_lgmet = jnp.linspace(-5.0, 1.0, 12)
-    ssp_lg_age_gyr = jnp.linspace(-4.0, 1.3, 107)
+    ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
+    ssp_lgmet = ssp_data.ssp_lgmet
+    ssp_lg_age_gyr = ssp_data.ssp_lg_age_gyr
     arr = jnp.array(
         [
             18.99350973,
