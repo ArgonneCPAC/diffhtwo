@@ -3,6 +3,7 @@ from .. import pop_sfh
 import numpy as np
 from jax import random
 import jax.numpy as jnp
+from collections import namedtuple
 from dsps.cosmology import age_at_z, DEFAULT_COSMOLOGY
 
 
@@ -82,6 +83,8 @@ def test_bimodal_sfh_opt():
     lgsfr_SF_mean_true = 1
     frac_SF_true = 0.7
     lgsfr_Q_mean_true = 0
+    theta = namedtuple("theta", ["lgsfr_SF_mean", "frac_SF", "lgsfr_Q_mean"])
+    theta_true = theta(lgsfr_SF_mean_true, frac_SF_true, lgsfr_Q_mean_true)
 
     (
         lgL_bin_edges,
@@ -91,11 +94,7 @@ def test_bimodal_sfh_opt():
         LF_Q_true,
         SF_weights_true,
     ) = pop_sfh.pop_bimodal(
-        dict(
-            lgsfr_SF_mean=lgsfr_SF_mean_true,
-            frac_SF=frac_SF_true,
-            lgsfr_Q_mean=lgsfr_Q_mean_true,
-        ),
+        theta_true,
         ssp_lgmet,
         ssp_lg_age_gyr,
         ssp_halpha_line_luminosity,
@@ -107,13 +106,10 @@ def test_bimodal_sfh_opt():
     lgsfr_SF_mean_rand = np.random.uniform(0.8, 1.2)  # true at 1
     frac_SF_rand = np.random.uniform(0, 1)  # true at 0.7
     lgsfr_Q_mean_rand = np.random.uniform(-0.2, 0.2)  # true at 0
+    theta_rand = theta(lgsfr_SF_mean_rand, frac_SF_rand, lgsfr_Q_mean_rand)
 
     _, _, _, LF_SF_rand, LF_Q_rand, _ = pop_sfh.pop_bimodal(
-        dict(
-            lgsfr_SF_mean=lgsfr_SF_mean_rand,
-            frac_SF=frac_SF_rand,
-            lgsfr_Q_mean=lgsfr_Q_mean_rand,
-        ),
+        theta_rand,
         ssp_lgmet,
         ssp_lg_age_gyr,
         ssp_halpha_line_luminosity,
@@ -122,12 +118,8 @@ def test_bimodal_sfh_opt():
         k_Q,
     )
 
-    losses, grads, theta = bsfh_opt._model_optimization_loop(
-        dict(
-            lgsfr_SF_mean=lgsfr_SF_mean_rand,
-            frac_SF=frac_SF_rand,
-            lgsfr_Q_mean=lgsfr_Q_mean_rand,
-        ),
+    losses, grads, theta_fit = bsfh_opt._model_optimization_loop(
+        theta_rand,
         LF_SF_true,
         LF_Q_true,
         ssp_lgmet,
@@ -140,7 +132,4 @@ def test_bimodal_sfh_opt():
         step_size=1e-8,
     )
 
-    true = np.array([lgsfr_SF_mean_true, frac_SF_true, lgsfr_Q_mean_true])
-    fit = np.array([theta["lgsfr_SF_mean"], theta["frac_SF"], theta["lgsfr_Q_mean"]])
-
-    assert np.allclose(true, fit, atol=1e-2)
+    assert np.allclose(theta_true, theta_fit, atol=1e-2)
