@@ -86,8 +86,7 @@ def _model_optimization_loop(
         )
         grads.append(grad)
 
-        theta._make([t - step_size * g for t, g in zip(theta, grad)])
-        # theta = {k: v - step_size * grad[k] for k, v in theta.items()}
+        theta = theta._make([t - step_size * g for t, g in zip(theta, grad)])
 
         losses.append(
             _mseloss(
