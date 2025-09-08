@@ -54,50 +54,50 @@ def _loss_kern(
     )
 
 
-loss_and_grad_func = jjit(value_and_grad(_loss_kern))
+# loss_and_grad_func = jjit(value_and_grad(_loss_kern))
 
 
-def fit_diffstarpop(
-    theta_init,
-    lf_smooth_ms_true,
-    lf_q_true,
-    ran_key,
-    t_obs,
-    mah_params,
-    logmp0,
-    t_table,
-    ssp_data,
-    ssp_halpha_luminosity,
-    mzr_params,
-    spspop_params,
-    n_steps=1000,
-    step_size=1e-2,
-):
-    opt_init, opt_update, get_params = jax_opt.adam(step_size)
-    opt_state = opt_init(theta_init)
-    theta = get_params(opt_state)
-    loss_collector = []
+# def fit_diffstarpop(
+#     theta_init,
+#     lf_smooth_ms_true,
+#     lf_q_true,
+#     ran_key,
+#     t_obs,
+#     mah_params,
+#     logmp0,
+#     t_table,
+#     ssp_data,
+#     ssp_halpha_luminosity,
+#     mzr_params,
+#     spspop_params,
+#     n_steps=1000,
+#     step_size=1e-2,
+# ):
+#     opt_init, opt_update, get_params = jax_opt.adam(step_size)
+#     opt_state = opt_init(theta_init)
+#     theta = get_params(opt_state)
+#     loss_collector = []
 
-    for i in range(n_steps):
-        loss, grads = loss_and_grad_func(
-            theta,
-            lf_smooth_ms_true,
-            lf_q_true,
-            ran_key,
-            t_obs,
-            mah_params,
-            logmp0,
-            t_table,
-            ssp_data,
-            ssp_halpha_luminosity,
-            mzr_params,
-            spspop_params,
-        )
+#     for i in range(n_steps):
+#         loss, grads = loss_and_grad_func(
+#             theta,
+#             lf_smooth_ms_true,
+#             lf_q_true,
+#             ran_key,
+#             t_obs,
+#             mah_params,
+#             logmp0,
+#             t_table,
+#             ssp_data,
+#             ssp_halpha_luminosity,
+#             mzr_params,
+#             spspop_params,
+#         )
 
-        opt_state = opt_update(i, grads, opt_state)
-        loss_collector.append(loss)
+#         opt_state = opt_update(i, grads, opt_state)
+#         loss_collector.append(loss)
 
-    loss_arr = np.array(loss_collector)
-    theta_best_fit = get_params(opt_state)
+#     loss_arr = np.array(loss_collector)
+#     theta_best_fit = get_params(opt_state)
 
-    return loss_arr, theta_best_fit
+#     return loss_arr, theta_best_fit
