@@ -4,6 +4,7 @@ from jax import value_and_grad
 from jax.example_libraries import optimizers as jax_opt
 from diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha
 import numpy as np
+from jax import debug
 
 
 @jjit
@@ -49,7 +50,7 @@ def _loss_kern(
     lf_smooth_ms_pred = halpha_lf_pred.halpha_L_cgs_smooth_ms
     lf_q_pred = halpha_lf_pred.halpha_L_cgs_q
 
-    print(_mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred))
+    print(debug.print(_mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)))
     return (
         _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred),
         lf_smooth_ms_pred,
