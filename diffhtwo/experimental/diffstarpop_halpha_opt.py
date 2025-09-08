@@ -31,11 +31,11 @@ def _loss_kern(
     t_table,
     ssp_data,
     ssp_halpha_luminosity,
-    diffstarpop_params,
     mzr_params,
     spspop_params,
 ):
     halpha_lf_pred = dpop_halpha(
+        theta,
         ran_key,
         t_obs,
         mah_params,
@@ -43,7 +43,6 @@ def _loss_kern(
         t_table,
         ssp_data,
         ssp_halpha_luminosity,
-        diffstarpop_params,
         mzr_params,
         spspop_params,
     )
