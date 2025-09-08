@@ -3,7 +3,6 @@ from jax import jit as jjit
 from jax import value_and_grad
 from jax.example_libraries import optimizers as jax_opt
 from diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha
-import numpy as np
 
 
 @jjit
@@ -99,7 +98,7 @@ def fit_diffstarpop(
         opt_state = opt_update(i, grads, opt_state)
         loss_collector.append(loss)
 
-    loss_arr = np.array(loss_collector)
+    loss_arr = jnp.array(loss_collector)
     theta_best_fit = get_params(opt_state)
 
     return loss_arr, theta_best_fit
