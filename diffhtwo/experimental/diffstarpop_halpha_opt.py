@@ -48,7 +48,9 @@ def _loss_kern(
     lf_smooth_ms_pred = halpha_lf_pred.halpha_L_cgs_smooth_ms
     lf_q_pred = halpha_lf_pred.halpha_L_cgs_q
 
-    return _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)
+    loss = _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)
+
+    return loss
 
 
 loss_and_grad_func = jjit(value_and_grad(_loss_kern))
