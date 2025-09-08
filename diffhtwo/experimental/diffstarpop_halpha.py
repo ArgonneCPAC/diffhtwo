@@ -36,7 +36,6 @@ calc_age_weights_from_sfh_table_vmap = jjit(
 )
 
 
-@jjit
 def diffstarpop_halpha_kern(
     diffstarpop_params,
     ran_key,

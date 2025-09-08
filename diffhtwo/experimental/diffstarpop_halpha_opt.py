@@ -6,7 +6,6 @@ from diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha
 import numpy as np
 
 
-@jjit
 def _mse(
     lf_smooth_ms_true: jnp.ndarray,
     lf_smooth_ms_pred: jnp.ndarray,
@@ -19,7 +18,6 @@ def _mse(
     )
 
 
-@jjit
 def _loss_kern(
     theta,
     lf_smooth_ms_true,
