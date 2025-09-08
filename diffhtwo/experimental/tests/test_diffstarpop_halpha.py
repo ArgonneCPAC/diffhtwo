@@ -116,6 +116,7 @@ def diffstarpop_halpha_kern():
     # ssp_err_pop_params = ssp_err_model.DEFAULT_SSPERR_PARAMS
 
     args = (
+        DEFAULT_DIFFSTARPOP_PARAMS,
         ran_key,
         t_obs,
         mah_params,
@@ -123,7 +124,6 @@ def diffstarpop_halpha_kern():
         t_table,
         ssp_data,
         ssp_halpha_luminosity,
-        DEFAULT_DIFFSTARPOP_PARAMS,
         mzr_params,
         spspop_params,
     )
