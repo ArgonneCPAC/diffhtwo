@@ -9,7 +9,6 @@ from jax import random as jran
 from jax import jit as jjit
 from jax import vmap
 
-import numpy as np
 from collections import namedtuple
 from dsps.metallicity import umzr
 from diffsky.experimental.lc_phot_kern import diffstarpop_lc_cen_wrapper
