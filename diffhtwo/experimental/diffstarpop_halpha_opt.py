@@ -19,7 +19,6 @@ def _mse(
     )
 
 
-@jjit
 def _loss_kern(
     theta,
     lf_smooth_ms_true,
