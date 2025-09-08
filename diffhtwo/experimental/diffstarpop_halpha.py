@@ -92,11 +92,13 @@ def diffstarpop_halpha_kern(
     _w_smooth_ms = ssp_weights_smooth_ms.reshape((n_gals, 1, n_met, n_age))
     _w_q = ssp_weights_q.reshape((n_gals, 1, n_met, n_age))
 
-    halpha_L_Lsun_per_Msun_smooth_ms = jnp.sum(ssp_halpha_luminosity * _w_smooth_ms)
-    halpha_L_cgs_smooth_ms = halpha_L_Lsun_per_Msun_smooth_ms * (L_SUN_CGS * _mstar_ms)
+    integrand_smooth_ms = ssp_halpha_luminosity * _w_smooth_ms
+    halpha_L_cgs_smooth_ms = jnp.sum(integrand_smooth_ms, axis=(2, 3)) * (
+        L_SUN_CGS * _mstar_ms
+    )
 
-    halpha_L_Lsun_per_Msun_q = jnp.sum(ssp_halpha_luminosity * _w_q)
-    halpha_L_cgs_q = halpha_L_Lsun_per_Msun_q * (L_SUN_CGS * _mstar_q)
+    integrand_q = ssp_halpha_luminosity * _w_q
+    halpha_L_cgs_q = jnp.sum(integrand_q, axis=(2, 3)) * (L_SUN_CGS * _mstar_q)
 
     weights_q = diffstar_galpop.frac_q
     weights_smooth_ms = 1 - diffstar_galpop.frac_q
