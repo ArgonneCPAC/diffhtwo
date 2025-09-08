@@ -6,6 +6,7 @@ from diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha
 import numpy as np
 
 
+@jjit
 def _mse(
     lf_smooth_ms_true: jnp.ndarray,
     lf_smooth_ms_pred: jnp.ndarray,
@@ -13,15 +14,12 @@ def _mse(
     lf_q_pred: jnp.ndarray,
 ) -> jnp.float64:
     """Mean squared error function."""
-    print(
-        jnp.mean(jnp.power(lf_smooth_ms_true - lf_smooth_ms_pred, 2))
-        + jnp.mean(jnp.power(lf_q_true - lf_q_pred, 2))
-    )
     return jnp.mean(jnp.power(lf_smooth_ms_true - lf_smooth_ms_pred, 2)) + jnp.mean(
         jnp.power(lf_q_true - lf_q_pred, 2)
     )
 
 
+@jjit
 def _loss_kern(
     theta,
     lf_smooth_ms_true,
@@ -50,12 +48,6 @@ def _loss_kern(
     )
     lf_smooth_ms_pred = halpha_lf_pred.halpha_L_cgs_smooth_ms
     lf_q_pred = halpha_lf_pred.halpha_L_cgs_q
-
-    print(
-        _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred),
-        lf_smooth_ms_pred,
-        lf_q_pred,
-    )
 
     return (
         _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred),
