@@ -49,15 +49,11 @@ def _loss_kern(
     lf_smooth_ms_pred = halpha_lf_pred.halpha_L_cgs_smooth_ms
     lf_q_pred = halpha_lf_pred.halpha_L_cgs_q
 
-    a_true = lf_smooth_ms_true.reshape(lf_smooth_ms_true.size)
-    a_pred = lf_smooth_ms_pred.reshape(lf_smooth_ms_pred.size)
-    b_true = lf_q_true.reshape(lf_q_true.size)
-    b_pred = lf_q_pred.reshape(lf_q_pred.size)
-
-    print(np.allclose(a_true, a_pred))
-    print(np.allclose(b_true, b_pred))
-
-    return _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)
+    return (
+        _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred),
+        lf_smooth_ms_pred,
+        lf_q_pred,
+    )
 
 
 loss_and_grad_func = jjit(value_and_grad(_loss_kern))
