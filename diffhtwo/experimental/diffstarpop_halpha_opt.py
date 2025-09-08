@@ -66,7 +66,6 @@ def fit_diffstarpop(
     t_table,
     ssp_data,
     ssp_halpha_luminosity,
-    diffstarpop_params,
     mzr_params,
     spspop_params,
     n_steps=1000,
@@ -89,7 +88,6 @@ def fit_diffstarpop(
             t_table,
             ssp_data,
             ssp_halpha_luminosity,
-            diffstarpop_params,
             mzr_params,
             spspop_params,
         )
