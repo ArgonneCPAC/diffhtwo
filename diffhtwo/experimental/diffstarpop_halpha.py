@@ -101,15 +101,6 @@ def diffstarpop_halpha_kern(
     integrand_q = ssp_halpha_luminosity * _w_q
     halpha_L_cgs_q = jnp.sum(integrand_q, axis=(2, 3)) * (L_SUN_CGS * _mstar_q)
 
-    jax.debug.print(
-        "ms cgs min/max: {}/{}",
-        jnp.min(halpha_L_cgs_smooth_ms),
-        jnp.max(halpha_L_cgs_smooth_ms),
-    )
-    jax.debug.print(
-        "q  cgs min/max: {}/{}", jnp.min(halpha_L_cgs_q), jnp.max(halpha_L_cgs_q)
-    )
-
     weights_q = diffstar_galpop.frac_q
     weights_smooth_ms = 1 - diffstar_galpop.frac_q
 
