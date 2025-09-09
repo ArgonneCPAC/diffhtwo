@@ -16,7 +16,6 @@ from diffsky.experimental.lc_phot_kern import diffstarpop_lc_cen_wrapper
 from diffsky.experimental.lc_phot_kern import _calc_lgmet_weights_galpop
 from dsps.sed.stellar_age_weights import calc_age_weights_from_sfh_table
 
-
 LGMET_SCATTER = 0.2
 
 # copied from astropy.constants.L_sun.cgs.value
@@ -110,5 +109,17 @@ def diffstarpop_halpha_kern(
         weights_smooth_ms=weights_smooth_ms,
         weights_q=weights_q,
     )
+
+    # jax.debug.print("halpha_L_cgs_smooth_ms={}", halpha_L_cgs_smooth_ms)
+    # jax.debug.print("halpha_L_cgs_q={}", halpha_L_cgs_q)
+    # jax.debug.print(
+    #     "2: _mse Inside _loss_kern and Inside diffstarpop_halpha_kern w/ its pred as both pred and true={}",
+    #     _mse(
+    #         halpha_L_cgs_smooth_ms,
+    #         halpha_L_cgs_smooth_ms,
+    #         halpha_L_cgs_q,
+    #         halpha_L_cgs_q,
+    #     ),
+    # )
 
     return halpha_L
