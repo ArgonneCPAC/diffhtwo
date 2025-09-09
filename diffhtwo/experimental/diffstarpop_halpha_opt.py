@@ -53,8 +53,23 @@ def _loss_kern(
         mzr_params,
         spspop_params,
     )
+
+    jax.debug.print(
+        "_mse = {}",
+        _mse(
+            lf_smooth_ms_true,
+            halpha_lf_pred.halpha_L_cgs_smooth_ms,
+            lf_q_true,
+            halpha_lf_pred.halpha_L_cgs_q,
+        ),
+    )
+
     lf_smooth_ms_pred = halpha_lf_pred.halpha_L_cgs_smooth_ms
     lf_q_pred = halpha_lf_pred.halpha_L_cgs_q
+
+    jax.debug.print(
+        "_mse = {}", _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)
+    )
 
     lf_smooth_ms_pred = lf_smooth_ms_pred.reshape(lf_smooth_ms_true.shape)
     lf_q_pred = lf_q_pred.reshape(lf_q_true.shape)
