@@ -9,6 +9,7 @@ from jax import random as jran
 from jax import jit as jjit
 from jax import vmap
 import jax
+from diffstarpop_halpha_opt import _mse
 
 from collections import namedtuple
 from dsps.metallicity import umzr
@@ -39,7 +40,11 @@ calc_age_weights_from_sfh_table_vmap = jjit(
 
 def diffstarpop_halpha_kern(
     diffstarpop_params,
-    sfh_key,
+    lf_smooth_ms_true,
+    lf_q_true,
+    lf_smooth_ms_pred_mine,
+    lf_q_pred_mine,
+    ran_key,
     t_obs,
     mah_params,
     logmp0,
@@ -49,10 +54,14 @@ def diffstarpop_halpha_kern(
     mzr_params,
     spspop_params,
 ):
+    jax.debug.print(
+        "_mse = {}",
+        _mse(lf_smooth_ms_true, lf_smooth_ms_pred_mine, lf_q_true, lf_q_pred_mine),
+    )
     n_met, n_age = ssp_halpha_luminosity.shape
     n_gals = logmp0.size
 
-    # ran_key, sfh_key = jran.split(ran_key, 2)
+    ran_key, sfh_key = jran.split(ran_key, 2)
     diffstar_galpop = diffstarpop_lc_cen_wrapper(
         diffstarpop_params, sfh_key, mah_params, logmp0, t_table, t_obs
     )
