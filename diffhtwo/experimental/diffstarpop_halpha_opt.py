@@ -50,6 +50,10 @@ def _loss_kern(
 
     halpha_lf_pred = dpop_halpha(
         theta,
+        lf_smooth_ms_true,
+        lf_q_true,
+        lf_smooth_ms_pred_mine,
+        lf_q_pred_mine,
         ran_key,
         t_obs,
         mah_params,
