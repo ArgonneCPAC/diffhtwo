@@ -51,7 +51,15 @@ def _loss_kern(
     lf_smooth_ms_pred = lf_smooth_ms_pred.reshape(lf_smooth_ms_true.shape)
     lf_q_pred = lf_q_pred.reshape(lf_q_true.shape)
 
-    return _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)
+    base = _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)
+
+    # force-use some otherwise-unused stochastic field
+    force = jnp.sum(
+        halpha_lf_pred.weights_smooth_ms
+    )  # or any other latent that triggers splits
+    return base + jnp.zeros((), base.dtype) * force  # value unchanged
+
+    # return _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)
 
 
 loss_and_grad_func = jjit(value_and_grad(_loss_kern))
