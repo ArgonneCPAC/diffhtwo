@@ -39,7 +39,7 @@ calc_age_weights_from_sfh_table_vmap = jjit(
 
 def diffstarpop_halpha_kern(
     diffstarpop_params,
-    ran_key,
+    sfh_key,
     t_obs,
     mah_params,
     logmp0,
@@ -52,7 +52,7 @@ def diffstarpop_halpha_kern(
     n_met, n_age = ssp_halpha_luminosity.shape
     n_gals = logmp0.size
 
-    ran_key, sfh_key = jran.split(ran_key, 2)
+    # ran_key, sfh_key = jran.split(ran_key, 2)
     diffstar_galpop = diffstarpop_lc_cen_wrapper(
         diffstarpop_params, sfh_key, mah_params, logmp0, t_table, t_obs
     )
