@@ -60,7 +60,7 @@ def diffstarpop_halpha_kern(
         "_mse = {}",
         dpop_halpha_opt._mse(
             lf_smooth_ms_true,
-            lf_smooth_ms_pred_mine
+            lf_smooth_ms_pred_mine,
             lf_q_true,
             lf_q_pred_mine,
         ),
