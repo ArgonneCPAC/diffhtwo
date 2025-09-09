@@ -52,17 +52,6 @@ def _loss_kern(
     lf_smooth_ms_pred = lf_smooth_ms_pred.reshape(lf_smooth_ms_true.shape)
     lf_q_pred = lf_q_pred.reshape(lf_q_true.shape)
 
-    jax.debug.print("ms_pred shape {}", lf_smooth_ms_pred.shape)
-    jax.debug.print("q_pred  shape {}", lf_q_pred.shape)
-    jax.debug.print("ms_true shape {}", lf_smooth_ms_true.shape)
-    jax.debug.print("q_true  shape {}", lf_q_true.shape)
-    jax.debug.print(
-        "ms_pred min/max {} / {}",
-        jnp.min(lf_smooth_ms_pred),
-        jnp.max(lf_smooth_ms_pred),
-    )
-    jax.debug.print("q_pred  min/max {} / {}", jnp.min(lf_q_pred), jnp.max(lf_q_pred))
-
     return _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)
 
 
