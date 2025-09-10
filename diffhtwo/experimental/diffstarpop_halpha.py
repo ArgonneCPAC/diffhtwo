@@ -15,6 +15,7 @@ from dsps.metallicity import umzr
 from diffsky.experimental.lc_phot_kern import diffstarpop_lc_cen_wrapper
 from diffsky.experimental.lc_phot_kern import _calc_lgmet_weights_galpop
 from dsps.sed.stellar_age_weights import calc_age_weights_from_sfh_table
+import halpha_luminosity
 
 LGMET_SCATTER = 0.2
 
@@ -78,6 +79,7 @@ def diffstarpop_halpha_kern(
     )
 
     # age weights * metallicity weights
+    # The shape of axis=1 is 1, below. It is just a placeholder for other lines to be added in the future.
     _w_age_q = smooth_age_weights_q.reshape((n_gals, 1, n_age))
     _w_lgmet_q = lgmet_weights_q.reshape((n_gals, n_met, 1))
     ssp_weights_q = _w_lgmet_q * _w_age_q
@@ -110,16 +112,23 @@ def diffstarpop_halpha_kern(
         weights_q=weights_q,
     )
 
-    # jax.debug.print("halpha_L_cgs_smooth_ms={}", halpha_L_cgs_smooth_ms)
-    # jax.debug.print("halpha_L_cgs_q={}", halpha_L_cgs_q)
-    # jax.debug.print(
-    #     "2: _mse Inside _loss_kern and Inside diffstarpop_halpha_kern w/ its pred as both pred and true={}",
-    #     _mse(
-    #         halpha_L_cgs_smooth_ms,
-    #         halpha_L_cgs_smooth_ms,
-    #         halpha_L_cgs_q,
-    #         halpha_L_cgs_q,
-    #     ),
-    # )
-
     return halpha_L
+
+
+@jjit
+def diffstarpop_halpha_lf_weighted(halpha_L_tuple):
+    halpha_L_cgs_smooth_ms = halpha_L_tuple.halpha_L_cgs_smooth_ms
+    weights_smooth_ms = halpha_L_tuple.weights_smooth_ms
+
+    lgL_bin_edges, tw_hist_smooth_ms = halpha_luminosity.get_halpha_luminosity_func(
+        halpha_L_cgs_smooth_ms, weights_smooth_ms
+    )
+
+    halpha_L_cgs_q = halpha_L_tuple.halpha_L_cgs_q
+    weights_q = halpha_L_tuple.weights_q
+
+    _, tw_hist_q = halpha_luminosity.get_halpha_luminosity_func(
+        halpha_L_cgs_q, weights_q
+    )
+
+    return lgL_bin_edges, tw_hist_smooth_ms, tw_hist_q

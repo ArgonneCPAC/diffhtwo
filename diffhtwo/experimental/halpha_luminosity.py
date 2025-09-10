@@ -54,7 +54,7 @@ get_L_halpha_vmap = jjit(
 
 @jjit
 def get_halpha_luminosity_func(
-    L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=40.0, lgL_max=45.0
+    L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=38.0, lgL_max=45.0
 ):
     lg_L_halpha_cgs = jnp.log10(L_halpha_cgs)
 

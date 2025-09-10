@@ -11,60 +11,19 @@ from jax import jit as jjit
 from jax import value_and_grad
 from jax.example_libraries import optimizers as jax_opt
 from diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha
+from diffstarpop_halpha import diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted
 
 
 @jjit
-def _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred):
-    # 1) Make shapes & dtypes explicit and identical
-    lf_smooth_ms_true = jnp.asarray(lf_smooth_ms_true, jnp.float64).reshape(-1)
-    lf_smooth_ms_pred = jnp.asarray(lf_smooth_ms_pred, jnp.float64).reshape(
-        lf_smooth_ms_true.shape
-    )
-    lf_q_true = jnp.asarray(lf_q_true, jnp.float64).reshape(-1)
-    lf_q_pred = jnp.asarray(lf_q_pred, jnp.float64).reshape(lf_q_true.shape)
-
-    # jax.debug.print(
-    #     "shapes(ms_true, ms_pred, q_true, q_pred) = {}, {}, {}, {}",
-    #     lf_smooth_ms_true.shape,
-    #     lf_smooth_ms_pred.shape,
-    #     lf_q_true.shape,
-    #     lf_q_pred.shape,
-    # )
-    # jax.debug.print(
-    #     "sizes(ms_true, ms_pred, q_true, q_pred) = {}, {}, {}, {}",
-    #     lf_smooth_ms_true.size,
-    #     lf_smooth_ms_pred.size,
-    #     lf_q_true.size,
-    #     lf_q_pred.size,
-    # )
-    # 2) Compute residuals first (avoid huge intermediates)
-    diff_smooth_ms = lf_smooth_ms_true - lf_smooth_ms_pred
-    diff_q = lf_q_true - lf_q_pred
-
-    # jax.debug.print(
-    #     "any large residuals in smooth_ms = {}", jnp.any(~jnp.isfinite(diff_smooth_ms))
-    # )
-
-    # jax.debug.print("any large residuals in q = {}", jnp.any(~jnp.isfinite(diff_q)))
-
-    # 3) Guard non-finite *after* residual is formed (so we don't evaluate logs/squares on bad values)
-    diff_smooth_ms = jnp.where(jnp.isfinite(diff_smooth_ms), diff_smooth_ms, 0.0)
-    diff_q = jnp.where(jnp.isfinite(diff_q), diff_q, 0.0)
-
-    # 4) Use stable reduction (accumulate in fp64)
-    # mse_ms = jnp.mean(jnp.square(diff_smooth_ms), dtype=jnp.float64)
-    # mse_q = jnp.mean(jnp.square(diff_q), dtype=jnp.float64)
-
-    return jnp.mean(jnp.square(diff_smooth_ms)) + jnp.mean(jnp.square(diff_q))
+def _mse(halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_pred):
+    diff = halpha_lf_weighted_composite_true - halpha_lf_weighted_composite_pred
+    return jnp.mean(jnp.square(diff))
 
 
 @jjit
 def _loss_kern(
     theta,
-    lf_smooth_ms_true,
-    lf_q_true,
-    # lf_smooth_ms_pred_mine,
-    # lf_q_pred_mine,
+    halpha_lf_weighted_composite_true,
     ran_key,
     t_obs,
     mah_params,
@@ -75,11 +34,6 @@ def _loss_kern(
     mzr_params,
     spspop_params,
 ):
-    # jax.debug.print(
-    #     "1: _mse Inside _loss_kern BEFORE running diffstarpop_halpha_kern w/ my input pred= {}",
-    #     _mse(lf_smooth_ms_true, lf_smooth_ms_pred_mine, lf_q_true, lf_q_pred_mine),
-    # )
-
     halpha_lf_pred = dpop_halpha(
         theta,
         ran_key,
@@ -92,24 +46,18 @@ def _loss_kern(
         mzr_params,
         spspop_params,
     )
-    lf_smooth_ms_pred = halpha_lf_pred.halpha_L_cgs_smooth_ms
-    lf_q_pred = halpha_lf_pred.halpha_L_cgs_q
 
-    # Both of these have to be printed to make loss=0
-    jax.debug.print(
-        "jnp.allclose(lf_smooth_ms_true, lf_smooth_ms_pred) = {}",
-        jnp.allclose(lf_smooth_ms_true, lf_smooth_ms_pred),
+    (
+        lgL_bin_edges,
+        halpha_lf_weighted_smooth_ms_pred,
+        halpha_lf_weighted_q_pred,
+    ) = dpop_halpha_lf_weighted(halpha_lf_pred)
+
+    halpha_lf_weighted_composite_pred = (
+        halpha_lf_weighted_smooth_ms_pred + halpha_lf_weighted_q_pred
     )
-    jax.debug.print(
-        "jnp.allclose(lf_q_true, lf_q_pred) = {}", jnp.allclose(lf_q_true, lf_q_pred)
-    )
 
-    # jax.debug.print(
-    #     "3: _mse Inside _loss_kern AFTER running diffstarpop_halpha_kern using its output pred= {}",
-    #     _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred),
-    # )
-
-    return _mse(lf_smooth_ms_true, lf_smooth_ms_pred, lf_q_true, lf_q_pred)
+    return _mse(halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_pred)
 
 
 loss_and_grad_func = jjit(value_and_grad(_loss_kern))
@@ -129,8 +77,8 @@ def fit_diffstarpop(
     ssp_halpha_luminosity,
     mzr_params,
     spspop_params,
-    n_steps=1000,
-    step_size=1e-2,
+    n_steps=10,
+    step_size=1e-4,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(theta_init)
@@ -156,7 +104,7 @@ def fit_diffstarpop(
         opt_state = opt_update(i, grads, opt_state)
         loss_collector.append(loss)
 
-    loss_arr = jnp.array(loss_collector)
+    # loss_arr = np.array(loss_collector)
     theta_best_fit = get_params(opt_state)
 
-    return loss_arr, theta_best_fit
+    return loss_collector, theta_best_fit
