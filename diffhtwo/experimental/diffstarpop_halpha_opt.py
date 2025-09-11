@@ -12,6 +12,7 @@ from jax import value_and_grad
 from jax.example_libraries import optimizers as jax_opt
 from diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha
 from diffstarpop_halpha import diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted
+from tqdm.autonotebook import tqdm
 
 
 @jjit
@@ -24,6 +25,8 @@ def _mse(halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_pred):
 def _loss_kern(
     theta,
     halpha_lf_weighted_composite_true,
+    A,
+    B,
     ran_key,
     t_obs,
     mah_params,
@@ -36,6 +39,8 @@ def _loss_kern(
 ):
     halpha_lf_pred = dpop_halpha(
         theta,
+        A,
+        B,
         ran_key,
         t_obs,
         mah_params,
@@ -66,8 +71,9 @@ loss_and_grad_func = jjit(value_and_grad(_loss_kern))
 @jjit
 def fit_diffstarpop(
     theta_init,
-    lf_smooth_ms_true,
-    lf_q_true,
+    halpha_lf_weighted_composite_true,
+    A,
+    B,
     ran_key,
     t_obs,
     mah_params,
@@ -85,11 +91,12 @@ def fit_diffstarpop(
     theta = get_params(opt_state)
     loss_collector = []
 
-    for i in range(n_steps):
+    for i in tqdm(range(n_steps)):
         loss, grads = loss_and_grad_func(
             theta,
-            lf_smooth_ms_true,
-            lf_q_true,
+            halpha_lf_weighted_composite_true,
+            A,
+            B,
             ran_key,
             t_obs,
             mah_params,
