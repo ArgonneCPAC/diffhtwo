@@ -16,7 +16,6 @@ from diffsky.experimental.lc_phot_kern import diffstarpop_lc_cen_wrapper
 from diffsky.experimental.lc_phot_kern import _calc_lgmet_weights_galpop
 from dsps.sed.stellar_age_weights import calc_age_weights_from_sfh_table
 import halpha_luminosity
-from jax.debug import print
 
 LGMET_SCATTER = 0.2
 
@@ -38,43 +37,9 @@ calc_age_weights_from_sfh_table_vmap = jjit(
 )
 
 
-def unmerge_diffstarpop_params(merged, A_cls, B_cls):
-    """
-    merged : a namedtuple instance created by merge_namedtuples
-    A_cls  : the original first namedtuple class (e.g., QseqParams)
-    B_cls  : the original second namedtuple class (e.g., SatQuenchPopParams)
-    """
-    mfields = set(merged._fields)
-
-    # Validate required fields exist
-    missing_a = [f for f in A_cls._fields if f not in mfields]
-    missing_b = [f for f in B_cls._fields if f not in mfields]
-    if missing_a or missing_b:
-        raise ValueError(
-            f"Missing fields in merged tuple. "
-            f"A missing: {missing_a}, B missing: {missing_b}"
-        )
-
-    # Pull values by name and rebuild instances
-    a_vals = [getattr(merged, f) for f in A_cls._fields]
-    b_vals = [getattr(merged, f) for f in B_cls._fields]
-
-    DiffstarPopParams = namedtuple(
-        "DiffstarPopParams", ["sfh_pdf_cens_params", "satquench_params"]
-    )
-    # DiffstarPopParams.sfh_pdf_cens_params = A_cls._make(a_vals)
-    # DiffstarPopParams.satquench_params = B_cls._make(b_vals)
-
-    return DiffstarPopParams(
-        sfh_pdf_cens_params=A_cls._make(a_vals), satquench_params=B_cls._make(b_vals)
-    )
-
-
 @jjit
 def diffstarpop_halpha_kern(
-    diffstarpop_params_merged,
-    A,
-    B,
+    diffstarpop_params,
     ran_key,
     t_obs,
     mah_params,
@@ -88,9 +53,8 @@ def diffstarpop_halpha_kern(
     n_met, n_age = ssp_halpha_luminosity.shape
     n_gals = logmp0.size
 
-    diffstarpop_params = unmerge_diffstarpop_params(diffstarpop_params_merged, A, B)
-
     ran_key, sfh_key = jran.split(ran_key, 2)
+    # diffstarpop_params = unmerge_diffstarpop_params(diffstarpop_params_merged, A, B)
     diffstar_galpop = diffstarpop_lc_cen_wrapper(
         diffstarpop_params, sfh_key, mah_params, logmp0, t_table, t_obs
     )

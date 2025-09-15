@@ -53,6 +53,11 @@ get_L_halpha_vmap = jjit(
 )
 
 
+def safe_log10(x):
+    EPS = 1e-12
+    return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
+
+
 @jjit
 def get_halpha_luminosity_func(
     L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=38.0, lgL_max=45.0
@@ -82,17 +87,16 @@ def get_halpha_luminosity_func(
 
     # safe log10: put invalids far below the underflow bin (won't matter b/c weight=0)
     lg_floor = lgL_min - 10.0
-    lgL_halpha = jnp.where(valid, jnp.log10(L_halpha), lg_floor)
+    lgL_halpha = jnp.where(valid, safe_log10(L_halpha), lg_floor)
 
     # weights: zero-out invalids
-    w = weights.reshape(
-        n_L,
-    )
     w = jnp.where(
         valid.reshape(
             n_L,
         ),
-        w,
+        weights.reshape(
+            n_L,
+        ),
         0.0,
     )
 
