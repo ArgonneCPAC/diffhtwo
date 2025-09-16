@@ -17,7 +17,8 @@ from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
 from jax import lax
 from functools import partial
 
-_, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
+theta0, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
+idx = jnp.arange(65)
 
 
 @jjit
@@ -26,10 +27,21 @@ def _mse(halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_pred):
     return jnp.mean(jnp.square(diff))
 
 
-def make_loss(unravel_fn):
+def make_subspace_loss(unravel_fn, theta_default_flat, idx):
+    """
+    Build a loss that optimizes ONLY the parameters at flat indices `idx`.
+    - unravel_fn: from ravel_pytree(template)
+    - theta_default_flat: 1D base vector (others stay fixed to these values)
+    - idx: 1D array/list of flat indices to vary (static for the compiled fn)
+
+    Notes: The only thing you should not do is use namedtuple._replace() / ._asdict()
+            inside @jjit. Those are Python-side and will slow/break JIT.
+    """
+    idx = jnp.asarray(idx, dtype=jnp.int32)  # capture in closure
+
     @jjit
-    def _loss_kern(
-        theta,
+    def _loss_kern_subspace(
+        theta_var,  # only the selected subset: shape (len(idx),)
         halpha_lf_weighted_composite_true,
         ran_key,
         t_obs,
@@ -41,7 +53,12 @@ def make_loss(unravel_fn):
         mzr_params,
         spspop_params,
     ):
-        diffstarpop_params = unravel_fn(theta)
+        # scatter the subset into the full flat vector
+        theta_full = theta_default_flat.at[idx].set(theta_var)
+
+        # back to structured params and do the usual
+        diffstarpop_params = unravel_fn(theta_full)
+
         halpha_lf_pred = dpop_halpha(
             diffstarpop_params,
             ran_key,
@@ -69,11 +86,11 @@ def make_loss(unravel_fn):
             halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_pred
         )
 
-    return _loss_kern
+    return _loss_kern_subspace
 
 
-loss_kern = make_loss(unravel_fn)
-loss_and_grad_func = jjit(value_and_grad(loss_kern))
+loss_kern = make_subspace_loss(unravel_fn, theta0, idx)
+loss_and_grad_fn = jjit(value_and_grad(loss_kern))
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
@@ -108,13 +125,13 @@ def fit_diffstarpop(
         spspop_params,
     )
 
-    def body_fn(opt_state, i):
+    def _opt_update(opt_state, i):
         theta = get_params(opt_state)
-        loss, grads = loss_and_grad_func(theta, *other)
+        loss, grads = loss_and_grad_fn(theta, *other)
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
 
-    opt_state, loss_hist = lax.scan(body_fn, opt_state, jnp.arange(n_steps))
+    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
 
     theta_best_fit = get_params(opt_state)
 

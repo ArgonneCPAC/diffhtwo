@@ -15,7 +15,7 @@ from dsps.metallicity import umzr
 from diffsky.experimental.lc_phot_kern import diffstarpop_lc_cen_wrapper
 from diffsky.experimental.lc_phot_kern import _calc_lgmet_weights_galpop
 from dsps.sed.stellar_age_weights import calc_age_weights_from_sfh_table
-import halpha_luminosity
+from . import halpha_luminosity
 
 LGMET_SCATTER = 0.2
 
