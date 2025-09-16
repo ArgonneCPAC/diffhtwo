@@ -85,8 +85,6 @@ def pop_bimodal(
 
     return (
         lgL_bin_edges,
-        L_halpha_cgs_SF,
-        L_halpha_cgs_Q,
         tw_hist_weighted_SF,
         tw_hist_weighted_Q,
         SF_weights,

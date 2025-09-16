@@ -16,22 +16,17 @@ from . import pop_sfh
 
 @jjit
 def _mse(
-    LF_SF_true: jnp.ndarray,
-    LF_SF_pred: jnp.ndarray,
-    LF_Q_true: jnp.ndarray,
-    LF_Q_pred: jnp.ndarray,
+    LF_true: jnp.ndarray,
+    LF_pred: jnp.ndarray,
 ) -> jnp.float64:
     """Mean squared error function."""
-    return jnp.mean(jnp.power(LF_SF_true - LF_SF_pred, 2)) + jnp.mean(
-        jnp.power(LF_Q_true - LF_Q_pred, 2)
-    )
+    return jnp.mean(jnp.power(LF_true - LF_pred, 2))
 
 
 @jjit
 def _mseloss(
     theta,
-    LF_SF_true,
-    LF_Q_true,
+    LF_true,
     ssp_lgmet,
     ssp_lg_age_gyr,
     ssp_halpha_line_luminosity,
@@ -39,7 +34,7 @@ def _mseloss(
     k_SF,
     k_Q,
 ):
-    _, _, _, LF_SF_pred, LF_Q_pred, _ = pop_sfh.pop_bimodal(
+    _, LF_SF_pred, LF_Q_pred, _ = pop_sfh.pop_bimodal(
         theta,
         ssp_lgmet,
         ssp_lg_age_gyr,
@@ -48,8 +43,9 @@ def _mseloss(
         k_SF,
         k_Q,
     )
+    LF_pred = LF_SF_pred + LF_Q_pred
     # use LFs and their weights to get composite LF and forward to _mse. Change _mse accordingly
-    return _mse(LF_SF_true, LF_SF_pred, LF_Q_true, LF_Q_pred)
+    return _mse(LF_true, LF_pred)
 
 
 _dmseloss = grad(_mseloss)
@@ -57,8 +53,7 @@ _dmseloss = grad(_mseloss)
 
 def _model_optimization_loop(
     theta,
-    LF_SF_true,
-    LF_Q_true,
+    LF_true,
     ssp_lgmet,
     ssp_lg_age_gyr,
     ssp_halpha_line_luminosity,
@@ -76,8 +71,7 @@ def _model_optimization_loop(
     for i in range(n_steps):
         grad = dloss(
             theta,
-            LF_SF_true,
-            LF_Q_true,
+            LF_true,
             ssp_lgmet,
             ssp_lg_age_gyr,
             ssp_halpha_line_luminosity,
@@ -92,8 +86,7 @@ def _model_optimization_loop(
         losses.append(
             _mseloss(
                 theta,
-                LF_SF_true,
-                LF_Q_true,
+                LF_true,
                 ssp_lgmet,
                 ssp_lg_age_gyr,
                 ssp_halpha_line_luminosity,

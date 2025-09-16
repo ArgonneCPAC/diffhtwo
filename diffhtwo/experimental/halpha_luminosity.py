@@ -4,7 +4,6 @@ from dsps import calc_ssp_weights_sfh_table_lognormal_mdf
 from dsps.utils import cumulative_mstar_formed
 from jax import jit as jjit
 from jax import vmap
-from jax.debug import print
 
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
