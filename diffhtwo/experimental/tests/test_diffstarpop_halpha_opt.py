@@ -1,5 +1,3 @@
-from numbers import Real
-
 import jax.numpy as jnp
 import numpy as np
 from diffsky.experimental import mc_lightcone_halos as mclh
@@ -23,84 +21,7 @@ from ..diffstarpop_halpha_opt import fit_diffstarpop
 
 
 theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
-idx = jnp.array([1, 8, 16])
-
-
-def _jitter_value(v, s, rng):
-    if isinstance(v, Real):
-        eps = s * (abs(v) if v != 0 else 1.0)
-        return v + rng.normal(0.0, eps)
-    return v
-
-
-def perturb_namedtuple(nt, scale=0.01, rng=None, bounds=None, per_field_scale=None):
-    """
-    Perturb a namedtuple's numeric fields with small Gaussian noise.
-
-    - scale: default fractional std for all numeric fields
-    - per_field_scale: dict(field -> scale) to override per field
-    - bounds: dict(field -> (lo, hi)) to clamp after jitter
-    """
-    if rng is None:
-        rng = np.random.default_rng()
-
-    updates = {}
-    for f in nt._fields:
-        v = getattr(nt, f)
-
-        # Recurse if nested namedtuple
-        if hasattr(v, "_fields"):
-            updates[f] = perturb_namedtuple(
-                v, scale=scale, rng=rng, bounds=bounds, per_field_scale=per_field_scale
-            )
-            continue
-
-        s = per_field_scale.get(f, scale) if per_field_scale else scale
-        v2 = _jitter_value(v, s, rng)
-
-        if bounds and f in bounds:
-            lo, hi = bounds[f]
-            v2 = float(np.clip(v2, lo, hi))
-
-        updates[f] = v2
-
-    return nt._replace(**updates)
-
-
-def perturb_diffstarpop(params, scale=0.01, rng=None):
-    """
-    Convenience wrapper for your DiffstarPopParams-like namedtuple,
-    with sensible default bounds for probability-like params and stds.
-    """
-    # Heuristic bounds for common fields (edit to taste)
-    bnds = {}
-    # Anything that looks like a fraction or ylo/yhi: clamp to [0, 1]
-    for f in getattr(params.sfh_pdf_cens_params, "_fields", []):
-        if f.startswith("frac_") or f.endswith("_ylo") or f.endswith("_yhi"):
-            bnds[f] = (0.0, 1.0)
-        if f.startswith("std_"):
-            bnds[f] = (-0.5, 4)  # stds positive
-
-    for f in getattr(params.satquench_params, "_fields", []):
-        if f.startswith("lgmu_") or f.endswith("_crit"):
-            # leave unbounded by default; adjust if you have prior knowledge
-            pass
-
-    # Example per-field tweaks (optional): smaller noise on thresholds/slopes
-    per_scale = {
-        # e.g., keep critical points tighter than others
-        "qp_lgmh_crit": 0.005,
-        "td_lgmhc": 0.005,
-        "td_mlo": 0.01,
-        "td_mhi": 0.01,
-    }
-
-    # Apply to sub-nt’s and stitch back
-    sq = perturb_namedtuple(params.sfh_pdf_cens_params, scale, rng, bnds, per_scale)
-    sat = perturb_namedtuple(params.satquench_params, scale, rng, bnds, per_scale)
-
-    # Outer container is also a namedtuple → use _replace
-    return params._replace(sfh_pdf_cens_params=sq, satquench_params=sat)
+IDX = jnp.array([1, 8, 16])
 
 
 def test_bimodal_sfh_opt():
@@ -171,13 +92,15 @@ def test_bimodal_sfh_opt():
     ]
     ssp_halpha_line_luminosity = jnp.array(ssp_halpha_line_luminosity)
 
+    ran_key = jran.key(0)
+
     # generate lightcone
-    lc_ran_key = jran.key(0)
+    ran_key, lc_key = jran.split(ran_key, 2)
     lgmp_min = 12.0
     z_min, z_max = 0.1, 0.5
     sky_area_degsq = 1.0
 
-    args = (lc_ran_key, lgmp_min, z_min, z_max, sky_area_degsq)
+    args = (lc_key, lgmp_min, z_min, z_max, sky_area_degsq)
 
     lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*args)
 
@@ -196,9 +119,10 @@ def test_bimodal_sfh_opt():
     # scatter_params = DEFAULT_SCATTER_PARAMS
     # ssp_err_pop_params = ssp_err_model.DEFAULT_SSPERR_PARAMS
 
+    ran_key, dpop_halpha_true_key = jran.split(ran_key, 2)
     args = (
         DEFAULT_DIFFSTARPOP_PARAMS,
-        jran.key(1),
+        dpop_halpha_true_key,
         t_obs,
         mah_params,
         logmp0,
@@ -220,18 +144,17 @@ def test_bimodal_sfh_opt():
         halpha_lf_weighted_smooth_ms_true + halpha_lf_weighted_q_true
     )
 
-    rng = np.random.default_rng(123)
-    # one perturbed draw (~1% fractional jitter)
-    perturbed_params = perturb_diffstarpop(
-        DEFAULT_DIFFSTARPOP_PARAMS, scale=0.1, rng=rng
+    noise_scale = 0.01
+    ran_key, perturb_key = jran.split(ran_key, 2)
+    theta_perturbed = theta_default + noise_scale * jran.normal(
+        perturb_key, shape=theta_default.shape
     )
 
-    theta_perturbed, _ = ravel_pytree(perturbed_params)
-
+    ran_key, dpop_halpha_perturbed_key = jran.split(ran_key, 2)
     fit_args = (
-        theta_perturbed[idx],
+        theta_perturbed[IDX],
         halpha_lf_weighted_composite_true,
-        jran.key(1),
+        dpop_halpha_perturbed_key,
         t_obs,
         mah_params,
         logmp0,
@@ -244,6 +167,6 @@ def test_bimodal_sfh_opt():
 
     loss_hist, theta_best_fit = fit_diffstarpop(*fit_args, n_steps=1000, step_size=1e-2)
 
-    theta_fit = theta_default.at[idx].set(theta_best_fit)
+    theta_fit = theta_default.at[IDX].set(theta_best_fit)
 
     assert np.allclose(theta_default, theta_fit, atol=0.5)
