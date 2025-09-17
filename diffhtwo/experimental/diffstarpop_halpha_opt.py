@@ -10,12 +10,14 @@ import jax.numpy as jnp
 from jax import jit as jjit
 from jax import value_and_grad
 from jax.example_libraries import optimizers as jax_opt
-from diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha
-from diffstarpop_halpha import diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted
 from jax.flatten_util import ravel_pytree
 from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
 from jax import lax
 from functools import partial
+from .diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha
+from .diffstarpop_halpha import (
+    diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,
+)
 
 theta0, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
 idx = jnp.arange(65)

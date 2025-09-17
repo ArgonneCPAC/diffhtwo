@@ -18,11 +18,6 @@ def bimodal_SF_Q_draws(theta, N, k_SF, k_Q, dex_var=0.1):
     i = jnp.arange(N) + 0.5
     SF_weight = nn.sigmoid((N * theta.frac_SF - i))
 
-    # lgsfr_draws = SF_weight * lgsfr_SF_draws + (1.0 - SF_weight) * lgsfr_Q_draws
-
-    # lgsfr_SF_draws_weighted = SF_weight * lgsfr_SF_draws
-    # lgsfr_Q_draws_weighted = (1.0 - SF_weight) * lgsfr_Q_draws
-
     return lgsfr_SF_draws, lgsfr_Q_draws, SF_weight
 
 
