@@ -22,7 +22,7 @@ from ..diffstarpop_halpha_opt import fit_diffstarpop
 
 
 theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
-idx = jnp.array([0, 8, 16])
+idx = jnp.array([1, 8, 16])
 
 
 def _jitter_value(v, s, rng):
