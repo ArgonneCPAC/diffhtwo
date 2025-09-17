@@ -20,7 +20,7 @@ from .diffstarpop_halpha import (
 )
 
 theta0, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
-idx = jnp.arange(65)
+idx = jnp.array([0, 8, 16])
 
 
 @jjit

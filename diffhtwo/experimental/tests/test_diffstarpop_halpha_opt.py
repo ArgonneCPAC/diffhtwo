@@ -20,8 +20,9 @@ from ..diffstarpop_halpha_opt import fit_diffstarpop
 # from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 # from diffsky.ssp_err_model import ssp_err_model
 
-idx = jnp.array([0, 8, 16])
+
 theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
+idx = jnp.array([0, 8, 16])
 
 
 def _jitter_value(v, s, rng):
