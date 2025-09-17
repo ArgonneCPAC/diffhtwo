@@ -109,17 +109,6 @@ def test_bimodal_sfh_opt():
     lgsfr_Q_mean_rand = np.random.uniform(-0.2, 0.2)  # true at 0
     theta_rand = theta(lgsfr_SF_mean_rand, frac_SF_rand, lgsfr_Q_mean_rand)
 
-    _, LF_SF_rand, LF_Q_rand, _ = pop_sfh.pop_bimodal(
-        theta_rand,
-        ssp_lgmet,
-        ssp_lg_age_gyr,
-        ssp_halpha_line_luminosity,
-        t_obs,
-        k_SF,
-        k_Q,
-    )
-    LF_rand = LF_SF_rand + LF_Q_rand
-
     losses, grads, theta_fit = bsfh_opt._model_optimization_loop(
         theta_rand,
         LF_true,
