@@ -11,9 +11,11 @@ from dsps.cosmology import flat_wcdm
 from dsps.metallicity import umzr
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.param_utils import spspop_param_utils as spspu
-from diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha_L
-from diffstarpop_halpha import diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted
-from diffstarpop_halpha_opt import fit_diffstarpop
+from ..diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha_L
+from ..diffstarpop_halpha import (
+    diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,
+)
+from ..diffstarpop_halpha_opt import fit_diffstarpop
 
 # from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 # from diffsky.ssp_err_model import ssp_err_model
