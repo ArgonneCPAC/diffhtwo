@@ -21,7 +21,7 @@ from .diffstarpop_halpha import (
 )
 
 theta0, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
-IDX = IDX = jnp.arange(8, 56, 1)
+IDX = jnp.arange(8, 56, 1)
 
 
 @jjit
@@ -98,7 +98,7 @@ loss_and_grad_fn = jjit(value_and_grad(loss_kern))
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_diffstarpop(
-    theta_init,
+    theta_init,  # only the selected subset: shape (len(IDX),)
     halpha_lf_weighted_composite_true,
     ran_key,
     t_obs,

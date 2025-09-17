@@ -57,7 +57,6 @@ def diffstarpop_halpha_kern(
     n_gals = logmp0.size
 
     ran_key, sfh_key = jran.split(ran_key, 2)
-    # diffstarpop_params = unmerge_diffstarpop_params(diffstarpop_params_merged, A, B)
     diffstar_galpop = diffstarpop_lc_cen_wrapper(
         diffstarpop_params, sfh_key, mah_params, logmp0, t_table, t_obs
     )
