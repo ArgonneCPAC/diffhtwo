@@ -1,16 +1,17 @@
-import numpy as np
-import jax.numpy as jnp
-from jax import random as jran
-from dsps.cosmology import DEFAULT_COSMOLOGY
-from dsps.data_loaders import retrieve_fake_fsps_data
-from jax.flatten_util import ravel_pytree
 from numbers import Real
-from diffstar.defaults import T_TABLE_MIN
-from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
-from dsps.cosmology import flat_wcdm
-from dsps.metallicity import umzr
+
+import jax.numpy as jnp
+import numpy as np
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.param_utils import spspop_param_utils as spspu
+from diffstar.defaults import T_TABLE_MIN
+from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+from dsps.cosmology import DEFAULT_COSMOLOGY, flat_wcdm
+from dsps.data_loaders import retrieve_fake_fsps_data
+from dsps.metallicity import umzr
+from jax import random as jran
+from jax.flatten_util import ravel_pytree
+
 from ..diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha_L
 from ..diffstarpop_halpha import (
     diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,

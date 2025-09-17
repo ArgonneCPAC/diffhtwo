@@ -1,9 +1,11 @@
-from . import halpha_luminosity as halphaL
-import jax.numpy as jnp
-from jax import random
-import jax.nn as nn
-from jax import jit as jjit
 from functools import partial
+
+import jax.nn as nn
+import jax.numpy as jnp
+from jax import jit as jjit
+from jax import random
+
+from . import halpha_luminosity as halphaL
 
 
 @partial(jjit, static_argnames=["N"])

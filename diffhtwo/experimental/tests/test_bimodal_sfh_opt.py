@@ -1,11 +1,13 @@
+from collections import namedtuple
+
+import jax.numpy as jnp
+import numpy as np
+from dsps.cosmology import DEFAULT_COSMOLOGY, age_at_z
+from dsps.data_loaders import retrieve_fake_fsps_data
+from jax import random
+
 from .. import bimodal_sfh_opt as bsfh_opt
 from .. import pop_sfh
-import numpy as np
-from jax import random
-import jax.numpy as jnp
-from collections import namedtuple
-from dsps.cosmology import age_at_z, DEFAULT_COSMOLOGY
-from dsps.data_loaders import retrieve_fake_fsps_data
 
 
 def test_bimodal_sfh_opt():
