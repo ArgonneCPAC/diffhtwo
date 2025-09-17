@@ -44,7 +44,6 @@ def _mseloss(
         k_Q,
     )
     LF_pred = LF_SF_pred + LF_Q_pred
-    # use LFs and their weights to get composite LF and forward to _mse. Change _mse accordingly
     return _mse(LF_true, LF_pred)
 
 

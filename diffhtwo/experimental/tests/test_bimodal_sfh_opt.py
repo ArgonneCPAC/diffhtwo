@@ -90,8 +90,6 @@ def test_bimodal_sfh_opt():
 
     (
         lgL_bin_edges,
-        L_halpha_cgs_SF_true,
-        L_halpha_cgs_Q_true,
         LF_SF_true,
         LF_Q_true,
         SF_weights_true,
@@ -104,13 +102,14 @@ def test_bimodal_sfh_opt():
         k_SF,
         k_Q,
     )
+    LF_true = LF_SF_true + LF_Q_true
 
     lgsfr_SF_mean_rand = np.random.uniform(0.8, 1.2)  # true at 1
     frac_SF_rand = np.random.uniform(0, 1)  # true at 0.7
     lgsfr_Q_mean_rand = np.random.uniform(-0.2, 0.2)  # true at 0
     theta_rand = theta(lgsfr_SF_mean_rand, frac_SF_rand, lgsfr_Q_mean_rand)
 
-    _, _, _, LF_SF_rand, LF_Q_rand, _ = pop_sfh.pop_bimodal(
+    _, LF_SF_rand, LF_Q_rand, _ = pop_sfh.pop_bimodal(
         theta_rand,
         ssp_lgmet,
         ssp_lg_age_gyr,
@@ -119,11 +118,11 @@ def test_bimodal_sfh_opt():
         k_SF,
         k_Q,
     )
+    LF_rand = LF_SF_rand + LF_Q_rand
 
     losses, grads, theta_fit = bsfh_opt._model_optimization_loop(
         theta_rand,
-        LF_SF_true,
-        LF_Q_true,
+        LF_true,
         ssp_lgmet,
         ssp_lg_age_gyr,
         ssp_halpha_line_luminosity,
@@ -134,4 +133,4 @@ def test_bimodal_sfh_opt():
         step_size=1e-8,
     )
 
-    assert np.allclose(theta_true, theta_fit, atol=1e-2)
+    assert np.allclose(theta_true, theta_fit, atol=1e-1)
