@@ -21,7 +21,7 @@ from .diffstarpop_halpha import (
 )
 
 theta0, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
-idx = jnp.array([1, 8, 16])
+IDX = IDX = jnp.arange(8, 56, 1)
 
 
 @jjit
@@ -30,21 +30,21 @@ def _mse(halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_pred):
     return jnp.mean(jnp.square(diff))
 
 
-def make_subspace_loss(unravel_fn, theta_default_flat, idx):
+def make_subspace_loss(unravel_fn, theta_default_flat, IDX):
     """
-    Build a loss that optimizes ONLY the parameters at flat indices `idx`.
+    Build a loss that optimizes ONLY the parameters at flat indices `IDX`.
     - unravel_fn: from ravel_pytree(template)
     - theta_default_flat: 1D base vector (others stay fixed to these values)
-    - idx: 1D array/list of flat indices to vary (static for the compiled fn)
+    - IDX: 1D array/list of flat indices to vary (static for the compiled fn)
 
     Notes: The only thing you should not do is use namedtuple._replace() / ._asdict()
             inside @jjit. Those are Python-side and will slow/break JIT.
     """
-    idx = jnp.asarray(idx, dtype=jnp.int32)  # capture in closure
+    IDX = jnp.asarray(IDX, dtype=jnp.int32)  # capture in closure
 
     @jjit
     def _loss_kern_subspace(
-        theta_var,  # only the selected subset: shape (len(idx),)
+        theta_var,  # only the selected subset: shape (len(IDX),)
         halpha_lf_weighted_composite_true,
         ran_key,
         t_obs,
@@ -57,7 +57,7 @@ def make_subspace_loss(unravel_fn, theta_default_flat, idx):
         spspop_params,
     ):
         # scatter the subset into the full flat vector
-        theta_full = theta_default_flat.at[idx].set(theta_var)
+        theta_full = theta_default_flat.at[IDX].set(theta_var)
 
         # back to structured params and do the usual
         diffstarpop_params = unravel_fn(theta_full)
@@ -92,7 +92,7 @@ def make_subspace_loss(unravel_fn, theta_default_flat, idx):
     return _loss_kern_subspace
 
 
-loss_kern = make_subspace_loss(unravel_fn, theta0, idx)
+loss_kern = make_subspace_loss(unravel_fn, theta0, IDX)
 loss_and_grad_fn = jjit(value_and_grad(loss_kern))
 
 

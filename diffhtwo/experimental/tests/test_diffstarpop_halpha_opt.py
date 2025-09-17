@@ -21,7 +21,7 @@ from ..diffstarpop_halpha_opt import fit_diffstarpop
 
 
 theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
-IDX = jnp.array([1, 8, 16])
+IDX = jnp.arange(8, 56, 1)
 
 
 def test_bimodal_sfh_opt():
