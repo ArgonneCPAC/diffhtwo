@@ -1,16 +1,25 @@
-from .. import bimodal_sfh_opt as bsfh_opt
-from .. import pop_sfh
 import numpy as np
-from jax import random
 import jax.numpy as jnp
-from collections import namedtuple
-from dsps.cosmology import age_at_z, DEFAULT_COSMOLOGY
+from jax import random as jran
+from dsps.cosmology import DEFAULT_COSMOLOGY
 from dsps.data_loaders import retrieve_fake_fsps_data
 from jax.flatten_util import ravel_pytree
 from numbers import Real
+from diffstar.defaults import T_TABLE_MIN
+from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+from dsps.cosmology import flat_wcdm
+from dsps.metallicity import umzr
+from diffsky.experimental import mc_lightcone_halos as mclh
+from diffsky.param_utils import spspop_param_utils as spspu
+from diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha_L
+from diffstarpop_halpha import diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted
+from diffstarpop_halpha_opt import fit_diffstarpop
+
+# from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
+# from diffsky.ssp_err_model import ssp_err_model
 
 idx = jnp.arange(65)
-# theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
+theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
 
 
 def _jitter_value(v, s, rng):
@@ -168,7 +177,7 @@ def test_bimodal_sfh_opt():
 
     lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*args)
 
-    z_obs = lc_halopop["z_obs"]
+    # z_obs = lc_halopop["z_obs"]
     t_obs = lc_halopop["t_obs"]
     mah_params = lc_halopop["mah_params"]
     logmp0 = lc_halopop["logmp0"]
@@ -180,8 +189,8 @@ def test_bimodal_sfh_opt():
     mzr_params = umzr.DEFAULT_MZR_PARAMS
 
     spspop_params = spspu.DEFAULT_SPSPOP_PARAMS
-    scatter_params = DEFAULT_SCATTER_PARAMS
-    ssp_err_pop_params = ssp_err_model.DEFAULT_SSPERR_PARAMS
+    # scatter_params = DEFAULT_SCATTER_PARAMS
+    # ssp_err_pop_params = ssp_err_model.DEFAULT_SSPERR_PARAMS
 
     args = (
         DEFAULT_DIFFSTARPOP_PARAMS,
@@ -191,44 +200,26 @@ def test_bimodal_sfh_opt():
         logmp0,
         t_table,
         ssp_data,
-        ssp_halpha_luminosity,
+        ssp_halpha_line_luminosity,
         mzr_params,
         spspop_params,
     )
     halpha_L_true = dpop_halpha_L(*args)
+
     (
         lgL_bin_edges,
         halpha_lf_weighted_smooth_ms_true,
         halpha_lf_weighted_q_true,
     ) = dpop_halpha_lf_weighted(halpha_L_true)
+
     halpha_lf_weighted_composite_true = (
         halpha_lf_weighted_smooth_ms_true + halpha_lf_weighted_q_true
     )
 
     rng = np.random.default_rng(123)
     # one perturbed draw (~1% fractional jitter)
-    perturbed_params = perturb_diffstarpop(params, scale=0.1, rng=rng)
-
-    rand_args = (
-        perturbed_params,
-        jran.key(1),
-        t_obs,
-        mah_params,
-        logmp0,
-        t_table,
-        ssp_data,
-        ssp_halpha_luminosity,
-        mzr_params,
-        spspop_params,
-    )
-    halpha_L_rand = dpop_halpha_L(*rand_args)
-    (
-        _,
-        halpha_lf_weighted_smooth_ms_rand,
-        halpha_lf_weighted_q_rand,
-    ) = dpop_halpha_lf_weighted(halpha_L_rand)
-    halpha_lf_weighted_composite_rand = (
-        halpha_lf_weighted_smooth_ms_rand + halpha_lf_weighted_q_rand
+    perturbed_params = perturb_diffstarpop(
+        DEFAULT_DIFFSTARPOP_PARAMS, scale=0.1, rng=rng
     )
 
     theta_perturbed, _ = ravel_pytree(perturbed_params)
@@ -242,13 +233,38 @@ def test_bimodal_sfh_opt():
         logmp0,
         t_table,
         ssp_data,
-        ssp_halpha_luminosity,
+        ssp_halpha_line_luminosity,
         mzr_params,
         spspop_params,
     )
 
     loss_hist, theta_best_fit = fit_diffstarpop(*fit_args, n_steps=1000, step_size=1e-3)
+
     theta_full_best = theta_default.at[idx].set(theta_best_fit)
+    fit_params = unravel_fn(theta_full_best)
+
+    args = (
+        fit_params,
+        jran.key(1),
+        t_obs,
+        mah_params,
+        logmp0,
+        t_table,
+        ssp_data,
+        ssp_halpha_line_luminosity,
+        mzr_params,
+        spspop_params,
+    )
+    halpha_L_fit = dpop_halpha_L(*args)
+    (
+        _,
+        halpha_lf_weighted_smooth_ms_fit,
+        halpha_lf_weighted_q_fit,
+    ) = dpop_halpha_lf_weighted(halpha_L_fit)
+
+    halpha_lf_weighted_composite_fit = (
+        halpha_lf_weighted_smooth_ms_fit + halpha_lf_weighted_q_fit
+    )
 
     assert np.allclose(
         halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_fit, atol=1
