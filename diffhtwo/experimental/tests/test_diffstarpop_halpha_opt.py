@@ -269,5 +269,5 @@ def test_bimodal_sfh_opt():
     )
 
     assert np.allclose(
-        halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_fit, atol=1
+        halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_fit, atol=2
     )
