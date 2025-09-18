@@ -144,7 +144,7 @@ def test_bimodal_sfh_opt():
         halpha_lf_weighted_smooth_ms_true + halpha_lf_weighted_q_true
     )
 
-    noise_scale = 0.01
+    noise_scale = 0.1
     ran_key, perturb_key = jran.split(ran_key, 2)
     theta_perturbed = theta_default + noise_scale * jran.normal(
         perturb_key, shape=theta_default.shape
@@ -165,7 +165,7 @@ def test_bimodal_sfh_opt():
         spspop_params,
     )
 
-    loss_hist, theta_best_fit = fit_diffstarpop(*fit_args, n_steps=100, step_size=1e-3)
+    loss_hist, theta_best_fit = fit_diffstarpop(*fit_args, n_steps=200, step_size=1e-3)
 
     theta_fit = theta_default.at[IDX].set(theta_best_fit)
 

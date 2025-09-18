@@ -1,24 +1,20 @@
+import jax.numpy as jnp
 import numpy as np
+from diffsky.experimental import mc_lightcone_halos as mclh
+from diffsky.param_utils import spspop_param_utils as spspu
 from diffstar.defaults import T_TABLE_MIN
-
 from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
-
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
-from dsps.metallicity import umzr
 from dsps.data_loaders import retrieve_fake_fsps_data
+from dsps.metallicity import umzr
+from jax import jit as jjit
+from jax import random as jran
 
-
-from diffsky.experimental import mc_lightcone_halos as mclh
 from .. import diffstarpop_halpha
-from diffsky.param_utils import spspop_param_utils as spspu
 
 # from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 # from diffsky.ssp_err_model import ssp_err_model
-
-import jax.numpy as jnp
-from jax import random as jran
-from jax import jit as jjit
 
 
 @jjit
@@ -93,7 +89,8 @@ def diffstarpop_halpha_kern():
     z_min, z_max = 0.1, 0.5
     sky_area_degsq = 1.0
 
-    args = (ran_key, lgmp_min, z_min, z_max, sky_area_degsq)
+    ran_key, lc_key = jran.split(ran_key, 2)
+    args = (lc_key, lgmp_min, z_min, z_max, sky_area_degsq)
 
     lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*args)
 
@@ -115,9 +112,10 @@ def diffstarpop_halpha_kern():
     # scatter_params = DEFAULT_SCATTER_PARAMS
     # ssp_err_pop_params = ssp_err_model.DEFAULT_SSPERR_PARAMS
 
+    ran_key, diffstarpop_key = jran.split(ran_key, 2)
     args = (
         DEFAULT_DIFFSTARPOP_PARAMS,
-        ran_key,
+        diffstarpop_key,
         t_obs,
         mah_params,
         logmp0,
