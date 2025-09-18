@@ -9,7 +9,10 @@ jax.config.update("jax_debug_infs", True)
 from functools import partial
 
 import jax.numpy as jnp
-from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+from diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
+    DEFAULT_DIFFSTARPOP_U_PARAMS,
+    get_bounded_diffstarpop_params,
+)
 from jax import jit as jjit
 from jax import lax, value_and_grad
 from jax.example_libraries import optimizers as jax_opt
@@ -20,7 +23,7 @@ from .diffstarpop_halpha import (
     diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,
 )
 
-theta0, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
+theta0, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
 IDX = jnp.arange(8, 13, 1)
 
 
@@ -60,7 +63,10 @@ def make_subspace_loss(unravel_fn, theta_default_flat, IDX):
         theta_full = theta_default_flat.at[IDX].set(theta_var)
 
         # back to structured params and do the usual
-        diffstarpop_params = unravel_fn(theta_full)
+        diffstarpop_u_params = unravel_fn(theta_full)
+
+        # convert back to bounded params
+        diffstarpop_params = get_bounded_diffstarpop_params(diffstarpop_u_params)
 
         halpha_lf_pred = dpop_halpha(
             diffstarpop_params,

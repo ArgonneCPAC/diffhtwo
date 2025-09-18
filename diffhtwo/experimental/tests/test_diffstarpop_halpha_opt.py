@@ -3,7 +3,11 @@ import numpy as np
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.param_utils import spspop_param_utils as spspu
 from diffstar.defaults import T_TABLE_MIN
-from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+from diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
+    DEFAULT_DIFFSTARPOP_PARAMS,
+    DEFAULT_DIFFSTARPOP_U_PARAMS,
+    get_bounded_diffstarpop_params,
+)
 from dsps.cosmology import DEFAULT_COSMOLOGY, flat_wcdm
 from dsps.data_loaders import retrieve_fake_fsps_data
 from dsps.metallicity import umzr
@@ -20,7 +24,7 @@ from ..diffstarpop_halpha_opt import IDX, fit_diffstarpop
 # from diffsky.ssp_err_model import ssp_err_model
 
 
-theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
+theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
 
 
 def test_bimodal_sfh_opt():
