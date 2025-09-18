@@ -24,7 +24,8 @@ from ..diffstarpop_halpha_opt import IDX, fit_diffstarpop
 # from diffsky.ssp_err_model import ssp_err_model
 
 
-theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
+u_theta_default, u_unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
+theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
 
 
 def test_bimodal_sfh_opt():
@@ -149,13 +150,13 @@ def test_bimodal_sfh_opt():
 
     noise_scale = 0.1
     ran_key, perturb_key = jran.split(ran_key, 2)
-    theta_perturbed = theta_default + noise_scale * jran.normal(
-        perturb_key, shape=theta_default.shape
+    u_theta_perturbed = u_theta_default + noise_scale * jran.normal(
+        perturb_key, shape=u_theta_default.shape
     )
 
     ran_key, dpop_halpha_perturbed_key = jran.split(ran_key, 2)
     fit_args = (
-        theta_perturbed[IDX],
+        u_theta_perturbed[IDX],
         halpha_lf_weighted_composite_true,
         dpop_halpha_perturbed_key,
         t_obs,
@@ -168,8 +169,14 @@ def test_bimodal_sfh_opt():
         spspop_params,
     )
 
-    loss_hist, theta_best_fit = fit_diffstarpop(*fit_args, n_steps=200, step_size=0.005)
+    loss_hist, u_theta_fit_sub = fit_diffstarpop(
+        *fit_args, n_steps=200, step_size=0.005
+    )
 
-    theta_fit = theta_default.at[IDX].set(theta_best_fit)
+    u_theta_fit_full = u_theta_default.at[IDX].set(u_theta_fit_sub)
+    u_diffstarpop_params_fit = u_unravel_fn(u_theta_fit_full)
+    diffstarpop_params_best = get_bounded_diffstarpop_params(u_diffstarpop_params_fit)
+    theta_fit, _ = ravel_pytree(diffstarpop_params_best)
 
+    # compare true and fitted in bounded space
     assert np.allclose(theta_default, theta_fit, atol=1e-1)
