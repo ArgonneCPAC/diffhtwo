@@ -14,14 +14,13 @@ from ..diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha_L
 from ..diffstarpop_halpha import (
     diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,
 )
-from ..diffstarpop_halpha_opt import fit_diffstarpop
+from ..diffstarpop_halpha_opt import IDX, fit_diffstarpop
 
 # from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 # from diffsky.ssp_err_model import ssp_err_model
 
 
 theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
-IDX = jnp.arange(8, 56, 1)
 
 
 def test_bimodal_sfh_opt():

@@ -21,7 +21,7 @@ from .diffstarpop_halpha import (
 )
 
 theta0, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
-IDX = jnp.arange(8, 56, 1)
+IDX = jnp.arange(8, 13, 1)
 
 
 @jjit
