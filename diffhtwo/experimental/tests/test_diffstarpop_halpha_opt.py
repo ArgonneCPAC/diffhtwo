@@ -165,7 +165,7 @@ def test_bimodal_sfh_opt():
         spspop_params,
     )
 
-    loss_hist, theta_best_fit = fit_diffstarpop(*fit_args, n_steps=200, step_size=1e-3)
+    loss_hist, theta_best_fit = fit_diffstarpop(*fit_args, n_steps=200, step_size=0.005)
 
     theta_fit = theta_default.at[IDX].set(theta_best_fit)
 
