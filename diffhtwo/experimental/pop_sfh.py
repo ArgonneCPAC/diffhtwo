@@ -1,9 +1,11 @@
-from . import halpha_luminosity as halphaL
-import jax.numpy as jnp
-from jax import random
-import jax.nn as nn
-from jax import jit as jjit
 from functools import partial
+
+import jax.nn as nn
+import jax.numpy as jnp
+from jax import jit as jjit
+from jax import random
+
+from . import halpha_luminosity as halphaL
 
 
 @partial(jjit, static_argnames=["N"])
@@ -17,11 +19,6 @@ def bimodal_SF_Q_draws(theta, N, k_SF, k_Q, dex_var=0.1):
 
     i = jnp.arange(N) + 0.5
     SF_weight = nn.sigmoid((N * theta.frac_SF - i))
-
-    # lgsfr_draws = SF_weight * lgsfr_SF_draws + (1.0 - SF_weight) * lgsfr_Q_draws
-
-    # lgsfr_SF_draws_weighted = SF_weight * lgsfr_SF_draws
-    # lgsfr_Q_draws_weighted = (1.0 - SF_weight) * lgsfr_Q_draws
 
     return lgsfr_SF_draws, lgsfr_Q_draws, SF_weight
 
@@ -85,8 +82,6 @@ def pop_bimodal(
 
     return (
         lgL_bin_edges,
-        L_halpha_cgs_SF,
-        L_halpha_cgs_Q,
         tw_hist_weighted_SF,
         tw_hist_weighted_Q,
         SF_weights,

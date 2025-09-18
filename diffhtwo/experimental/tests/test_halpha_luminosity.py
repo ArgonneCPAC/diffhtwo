@@ -1,8 +1,9 @@
-from .. import halpha_luminosity as halphaL
-from dsps.cosmology import age_at_z, DEFAULT_COSMOLOGY
-from dsps.data_loaders import retrieve_fake_fsps_data
-import numpy as np
 import jax.numpy as jnp
+import numpy as np
+from dsps.cosmology import DEFAULT_COSMOLOGY, age_at_z
+from dsps.data_loaders import retrieve_fake_fsps_data
+
+from .. import halpha_luminosity as halphaL
 
 z_obs = 0.5
 t_obs = age_at_z(z_obs, *DEFAULT_COSMOLOGY)  # age of the universe in Gyr at z_obs

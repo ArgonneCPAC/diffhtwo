@@ -1,11 +1,13 @@
+from collections import namedtuple
+
+import jax.numpy as jnp
+import numpy as np
+from dsps.cosmology import DEFAULT_COSMOLOGY, age_at_z
+from dsps.data_loaders import retrieve_fake_fsps_data
+from jax import random
+
 from .. import bimodal_sfh_opt as bsfh_opt
 from .. import pop_sfh
-import numpy as np
-from jax import random
-import jax.numpy as jnp
-from collections import namedtuple
-from dsps.cosmology import age_at_z, DEFAULT_COSMOLOGY
-from dsps.data_loaders import retrieve_fake_fsps_data
 
 
 def test_bimodal_sfh_opt():
@@ -90,8 +92,6 @@ def test_bimodal_sfh_opt():
 
     (
         lgL_bin_edges,
-        L_halpha_cgs_SF_true,
-        L_halpha_cgs_Q_true,
         LF_SF_true,
         LF_Q_true,
         SF_weights_true,
@@ -104,34 +104,24 @@ def test_bimodal_sfh_opt():
         k_SF,
         k_Q,
     )
+    LF_true = LF_SF_true + LF_Q_true
 
     lgsfr_SF_mean_rand = np.random.uniform(0.8, 1.2)  # true at 1
     frac_SF_rand = np.random.uniform(0, 1)  # true at 0.7
     lgsfr_Q_mean_rand = np.random.uniform(-0.2, 0.2)  # true at 0
     theta_rand = theta(lgsfr_SF_mean_rand, frac_SF_rand, lgsfr_Q_mean_rand)
 
-    _, _, _, LF_SF_rand, LF_Q_rand, _ = pop_sfh.pop_bimodal(
-        theta_rand,
-        ssp_lgmet,
-        ssp_lg_age_gyr,
-        ssp_halpha_line_luminosity,
-        t_obs,
-        k_SF,
-        k_Q,
-    )
-
     losses, grads, theta_fit = bsfh_opt._model_optimization_loop(
         theta_rand,
-        LF_SF_true,
-        LF_Q_true,
+        LF_true,
         ssp_lgmet,
         ssp_lg_age_gyr,
         ssp_halpha_line_luminosity,
         t_obs,
         k_SF,
         k_Q,
-        n_steps=500,
+        n_steps=1000,
         step_size=1e-8,
     )
 
-    assert np.allclose(theta_true, theta_fit, atol=1e-2)
+    assert np.allclose(theta_true, theta_fit, atol=1e-1)

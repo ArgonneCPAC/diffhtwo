@@ -53,19 +53,61 @@ get_L_halpha_vmap = jjit(
 
 
 @jjit
-def get_halpha_luminosity_func(
-    L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=40.0, lgL_max=45.0
-):
-    lg_L_halpha_cgs = jnp.log10(L_halpha_cgs)
+def safe_log10(x):
+    EPS = 1e-12
+    return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
 
-    sig = jnp.zeros_like(lg_L_halpha_cgs) + sig
+
+@jjit
+def get_halpha_luminosity_func(
+    L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=38.0, lgL_max=45.0
+):
+    """
+    Parameters
+    ----------
+    L_halpha_cgs : array of shape (n,) or (n, 1)
+        h-alpha Luminosities in [erg/s]
+
+    weights : array of shape (n,)
+        weights to multiply with L_halpha_cgs
+
+    Returns
+    -------
+    lgL_bin_edges : array of luminosity function bin edges in log10-space
+        defined using default arguments of this function.
+    tw_hist_weighted:
+        luminosity function - weighted histogram counts using diffsky.diffndhist
+    """
+
+    n_L = L_halpha_cgs.size
+    L_halpha = L_halpha_cgs.reshape(n_L, 1)
+
+    # mask: valid (strictly positive & finite)
+    valid = jnp.isfinite(L_halpha) & (L_halpha > 0)
+
+    # safe log10: put invalids far below the underflow bin (won't matter b/c weight=0)
+    lg_floor = lgL_min - 10.0
+    lgL_halpha = jnp.where(valid, safe_log10(L_halpha), lg_floor)
+
+    # weights: zero-out invalids
+    w = jnp.where(
+        valid.reshape(
+            n_L,
+        ),
+        weights.reshape(
+            n_L,
+        ),
+        0.0,
+    )
+
+    sig_arr = jnp.zeros_like(lgL_halpha) + sig
 
     lgL_bin_edges = jnp.arange(lgL_min, lgL_max, dlgL_bin)
     lgL_bin_lo = lgL_bin_edges[:-1].reshape(lgL_bin_edges[:-1].size, 1)
     lgL_bin_hi = lgL_bin_edges[1:].reshape(lgL_bin_edges[1:].size, 1)
 
     tw_hist_weighted = diffndhist.tw_ndhist_weighted(
-        lg_L_halpha_cgs, sig, weights, lgL_bin_lo, lgL_bin_hi
+        lgL_halpha, sig_arr, w, lgL_bin_lo, lgL_bin_hi
     )
 
     return lgL_bin_edges, tw_hist_weighted
