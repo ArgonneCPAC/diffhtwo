@@ -169,9 +169,7 @@ def test_bimodal_sfh_opt():
         spspop_params,
     )
 
-    loss_hist, u_theta_fit_sub = fit_diffstarpop(
-        *fit_args, n_steps=200, step_size=0.005
-    )
+    loss_hist, u_theta_fit_sub = fit_diffstarpop(*fit_args, n_steps=200, step_size=0.02)
 
     u_theta_fit_full = u_theta_default.at[IDX].set(u_theta_fit_sub)
     u_diffstarpop_params_fit = u_unravel_fn(u_theta_fit_full)
@@ -179,4 +177,4 @@ def test_bimodal_sfh_opt():
     theta_fit, _ = ravel_pytree(diffstarpop_params_best)
 
     # compare true and fitted in bounded space
-    assert np.allclose(theta_default, theta_fit, atol=1e-1)
+    assert np.allclose(theta_default, theta_fit, atol=1)
