@@ -2,7 +2,7 @@ import jax.numpy as jnp
 import numpy as np
 
 
-def load_fake_ssp_halpha_data():
+def load_fake_ssp_halpha():
     arr = jnp.array(
         [
             18.99350973,

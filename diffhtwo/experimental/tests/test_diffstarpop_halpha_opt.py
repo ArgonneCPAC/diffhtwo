@@ -10,10 +10,11 @@ from diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
 from dsps.cosmology import DEFAULT_COSMOLOGY, flat_wcdm
 from dsps.data_loaders import retrieve_fake_fsps_data
 from dsps.metallicity import umzr
+from jax import jit as jjit
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from ..data_loaders import retrieve_fake_fsps_halpha_data
+from ..data_loaders import retrieve_fake_fsps_halpha
 from ..diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha_L
 from ..diffstarpop_halpha import (
     diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,
@@ -27,13 +28,12 @@ from ..diffstarpop_halpha_opt import IDX, fit_diffstarpop
 u_theta_default, u_unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
 theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
 
+ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
+ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 
+
+@jjit
 def test_diffstarpop_halpha_opt():
-    ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
-    ssp_halpha_line_luminosity = (
-        retrieve_fake_fsps_halpha_data.load_fake_ssp_halpha_data()
-    )
-
     ran_key = jran.key(0)
 
     # generate lightcone
