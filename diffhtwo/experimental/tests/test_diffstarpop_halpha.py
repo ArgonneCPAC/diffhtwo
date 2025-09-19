@@ -18,7 +18,7 @@ from .. import diffstarpop_halpha
 
 
 @jjit
-def diffstarpop_halpha_kern():
+def test_diffstarpop_halpha_kern():
     ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
     # get fake ssp_halpha_luminosity

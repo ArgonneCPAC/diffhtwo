@@ -28,7 +28,7 @@ u_theta_default, u_unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
 theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
 
 
-def test_bimodal_sfh_opt():
+def test_diffstarpop_halpha_opt():
     ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
     ssp_lgmet = ssp_data.ssp_lgmet
     ssp_lg_age_gyr = ssp_data.ssp_lg_age_gyr
@@ -140,12 +140,15 @@ def test_bimodal_sfh_opt():
 
     (
         lgL_bin_edges,
-        halpha_lf_weighted_smooth_ms_true,
         halpha_lf_weighted_q_true,
+        halpha_lf_weighted_smooth_ms_true,
+        halpha_lf_weighted_bursty_ms_true,
     ) = dpop_halpha_lf_weighted(halpha_L_true)
 
     halpha_lf_weighted_composite_true = (
-        halpha_lf_weighted_smooth_ms_true + halpha_lf_weighted_q_true
+        halpha_lf_weighted_q_true
+        + halpha_lf_weighted_smooth_ms_true
+        + halpha_lf_weighted_bursty_ms_true
     )
 
     noise_scale = 0.1

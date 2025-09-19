@@ -156,18 +156,25 @@ def diffstarpop_halpha_kern(
 
 @jjit
 def diffstarpop_halpha_lf_weighted(halpha_L_tuple):
-    halpha_L_cgs_smooth_ms = halpha_L_tuple.halpha_L_cgs_smooth_ms
-    weights_smooth_ms = halpha_L_tuple.weights_smooth_ms
-
-    lgL_bin_edges, tw_hist_smooth_ms = halpha_luminosity.get_halpha_luminosity_func(
-        halpha_L_cgs_smooth_ms, weights_smooth_ms
-    )
-
+    # get q halpha L_cgs histogram
     halpha_L_cgs_q = halpha_L_tuple.halpha_L_cgs_q
-    weights_q = halpha_L_tuple.weights_q
-
-    _, tw_hist_q = halpha_luminosity.get_halpha_luminosity_func(
-        halpha_L_cgs_q, weights_q
+    w_q = halpha_L_tuple.weights_q
+    lgL_bin_edges, tw_hist_q = halpha_luminosity.get_halpha_luminosity_func(
+        halpha_L_cgs_q, w_q
     )
 
-    return lgL_bin_edges, tw_hist_smooth_ms, tw_hist_q
+    # get smooth_ms halpha L_cgs histogram
+    halpha_L_cgs_smooth_ms = halpha_L_tuple.halpha_L_cgs_smooth_ms
+    w_smooth_ms = halpha_L_tuple.weights_smooth_ms
+    _, tw_hist_smooth_ms = halpha_luminosity.get_halpha_luminosity_func(
+        halpha_L_cgs_smooth_ms, w_smooth_ms
+    )
+
+    # get bursty_ms halpha L_cgs histogram
+    halpha_L_cgs_bursty_ms = halpha_L_tuple.halpha_L_cgs_bursty_ms
+    w_bursty_ms = halpha_L_tuple.weights_bursty_ms
+    _, tw_hist_bursty_ms = halpha_luminosity.get_halpha_luminosity_func(
+        halpha_L_cgs_bursty_ms, w_bursty_ms
+    )
+
+    return lgL_bin_edges, tw_hist_q, tw_hist_smooth_ms, tw_hist_bursty_ms
