@@ -10,7 +10,6 @@ from diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
 from dsps.cosmology import DEFAULT_COSMOLOGY, flat_wcdm
 from dsps.data_loaders import retrieve_fake_fsps_data
 from dsps.metallicity import umzr
-from jax import jit as jjit
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
@@ -32,7 +31,6 @@ ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 
 
-@jjit
 def test_diffstarpop_halpha_opt():
     ran_key = jran.key(0)
 

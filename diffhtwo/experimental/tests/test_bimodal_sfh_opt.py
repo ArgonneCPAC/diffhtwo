@@ -3,7 +3,6 @@ from collections import namedtuple
 import numpy as np
 from dsps.cosmology import DEFAULT_COSMOLOGY, age_at_z
 from dsps.data_loaders import retrieve_fake_fsps_data
-from jax import jit as jjit
 from jax import random
 
 from .. import bimodal_sfh_opt as bsfh_opt
@@ -16,7 +15,6 @@ ssp_lg_age_gyr = ssp_data.ssp_lg_age_gyr
 ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 
 
-@jjit
 def test_bimodal_sfh_opt():
     z_obs = 0.5
     t_obs = age_at_z(z_obs, *DEFAULT_COSMOLOGY)  # age of the universe in Gyr at z_obs
