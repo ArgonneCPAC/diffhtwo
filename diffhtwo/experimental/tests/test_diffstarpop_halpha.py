@@ -7,7 +7,6 @@ from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders import retrieve_fake_fsps_data
 from dsps.metallicity import umzr
-from jax import jit as jjit
 from jax import random as jran
 
 from .. import diffstarpop_halpha
@@ -20,7 +19,6 @@ ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 
 
-@jjit
 def test_diffstarpop_halpha_kern():
     ran_key = jran.key(0)
     lgmp_min = 12.0
