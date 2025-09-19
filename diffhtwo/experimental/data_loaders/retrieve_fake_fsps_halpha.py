@@ -1,5 +1,13 @@
 import jax.numpy as jnp
 import numpy as np
+from dsps.data_loaders import retrieve_fake_fsps_data
+
+ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
+ssp_lgmet = ssp_data.ssp_lgmet
+ssp_lg_age_gyr = ssp_data.ssp_lg_age_gyr
+
+n_met = ssp_lgmet.size
+n_age = ssp_lg_age_gyr.size
 
 
 def load_fake_ssp_halpha():
@@ -59,9 +67,9 @@ def load_fake_ssp_halpha():
         np.clip(
             arr + np.random.normal(0, noise_std, size=arr.shape), a_min=0, a_max=None
         )
-        for _ in range(ssp_lgmet.size)
+        for _ in range(n_met)
     ]
-    zeros = np.zeros(ssp_lg_age_gyr.size - len(arr))
+    zeros = np.zeros(n_age - len(arr))
     ssp_halpha_line_luminosity = [
         np.append(_, zeros) for _ in ssp_halpha_line_luminosity
     ]
