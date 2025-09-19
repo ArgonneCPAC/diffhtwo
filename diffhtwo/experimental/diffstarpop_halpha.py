@@ -8,11 +8,9 @@ from collections import namedtuple
 
 import jax
 import jax.numpy as jnp
-from diffsky.experimental.lc_phot_kern import (
-    _calc_lgmet_weights_galpop,
-    diffstarpop_lc_cen_wrapper,
-)
+from diffsky.experimental.lc_phot_kern import diffstarpop_lc_cen_wrapper
 from dsps.metallicity import umzr
+from dsps.sed import metallicity_weights as zmetw
 from dsps.sed.stellar_age_weights import calc_age_weights_from_sfh_table
 from jax import jit as jjit
 from jax import random as jran
@@ -33,6 +31,13 @@ _LCLINE_RET_KEYS = (
 )
 LCLine = namedtuple("LCLine", _LCLINE_RET_KEYS)
 LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
+
+
+_M = (0, None, None)
+_calc_lgmet_weights_galpop = jjit(
+    vmap(zmetw.calc_lgmet_weights_from_lognormal_mdf, in_axes=_M)
+)
+
 
 _AGEPOP = (None, 0, None, 0)
 calc_age_weights_from_sfh_table_vmap = jjit(
