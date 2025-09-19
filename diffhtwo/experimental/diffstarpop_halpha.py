@@ -25,10 +25,12 @@ LGMET_SCATTER = 0.2
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
 _LCLINE_RET_KEYS = (
-    "halpha_L_cgs_smooth_ms",
     "halpha_L_cgs_q",
-    "weights_smooth_ms",
+    "halpha_L_cgs_smooth_ms",
+    "halpha_L_cgs_bursty_ms",
     "weights_q",
+    "weights_smooth_ms",
+    "weights_bursty_ms",
 )
 LCLine = namedtuple("LCLine", _LCLINE_RET_KEYS)
 LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
