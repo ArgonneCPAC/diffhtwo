@@ -83,12 +83,15 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
 
         (
             lgL_bin_edges,
-            halpha_lf_weighted_smooth_ms_pred,
             halpha_lf_weighted_q_pred,
+            halpha_lf_weighted_smooth_ms_pred,
+            halpha_lf_weighted_bursty_ms_pred,
         ) = dpop_halpha_lf_weighted(halpha_lf_pred)
 
         halpha_lf_weighted_composite_pred = (
-            halpha_lf_weighted_smooth_ms_pred + halpha_lf_weighted_q_pred
+            halpha_lf_weighted_q_pred
+            + halpha_lf_weighted_smooth_ms_pred
+            + halpha_lf_weighted_bursty_ms_pred
         )
 
         return _mse(
