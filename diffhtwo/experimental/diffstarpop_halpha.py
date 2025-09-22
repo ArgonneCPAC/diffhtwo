@@ -9,6 +9,7 @@ from collections import namedtuple
 import jax
 import jax.numpy as jnp
 from diffsky.burstpop import diffqburstpop_mono, freqburst_mono
+from diffsky.dustpop import tw_dustpop_mono_noise
 from diffsky.experimental.lc_phot_kern import diffstarpop_lc_cen_wrapper
 from dsps.metallicity import umzr
 from dsps.sed import metallicity_weights as zmetw
@@ -23,17 +24,6 @@ LGMET_SCATTER = 0.2
 
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
-
-_LCLINE_RET_KEYS = (
-    "halpha_L_cgs_q",
-    "halpha_L_cgs_smooth_ms",
-    "halpha_L_cgs_bursty_ms",
-    "weights_q",
-    "weights_smooth_ms",
-    "weights_bursty_ms",
-)
-LCLine = namedtuple("LCLine", _LCLINE_RET_KEYS)
-LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
 
 
 _M = (0, None, None)
@@ -52,6 +42,32 @@ _AGEPOP = (None, 0, None, 0)
 calc_age_weights_from_sfh_table_vmap = jjit(
     vmap(calc_age_weights_from_sfh_table, in_axes=_AGEPOP)
 )
+
+interp_vmap = jjit(vmap(jnp.interp, in_axes=(0, None, 0)))
+_B = (None, None, 1)
+interp_vmap2 = jjit(vmap(jnp.interp, in_axes=_B, out_axes=1))
+
+
+_D = (None, 0, None, None, None, None, None, None, None, None)
+vmap_kern1 = jjit(
+    vmap(
+        tw_dustpop_mono_noise.calc_ftrans_singlegal_singlewave_from_dustpop_params,
+        in_axes=_D,
+    )
+)
+_E = (None, 0, 0, 0, 0, None, 0, 0, 0, None)
+calc_dust_ftrans_vmap = jjit(vmap(vmap_kern1, in_axes=_E))
+
+_LCLINE_RET_KEYS = (
+    "halpha_L_cgs_q",
+    "halpha_L_cgs_smooth_ms",
+    "halpha_L_cgs_bursty_ms",
+    "weights_q",
+    "weights_smooth_ms",
+    "weights_bursty_ms",
+)
+LCLine = namedtuple("LCLine", _LCLINE_RET_KEYS)
+LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
 
 
 @jjit
@@ -123,6 +139,45 @@ def diffstarpop_halpha_kern(
 
     _w_age_bursty_ms = bursty_age_weights_ms.reshape((n_gals, 1, n_age))
     ssp_weights_bursty_ms = _w_lgmet_ms * _w_age_bursty_ms
+
+    wave_eff_galpop = interp_vmap2(z_obs, z_phot_table, wave_eff_table)
+
+    # get ftrans due to dust
+    ran_key, dust_key = jran.split(ran_key, 2)
+    av_key, delta_key, funo_key = jran.split(dust_key, 3)
+    uran_av = jran.uniform(av_key, shape=(n_gals,))
+    uran_delta = jran.uniform(delta_key, shape=(n_gals,))
+    uran_funo = jran.uniform(funo_key, shape=(n_gals,))
+
+    ftrans_args_q = (
+        spspop_params.dustpop_params,
+        wave_eff_galpop,
+        diffstar_galpop.logsm_obs_q,
+        diffstar_galpop.logssfr_obs_q,
+        z_obs,
+        ssp_data.ssp_lg_age_gyr,
+        uran_av,
+        uran_delta,
+        uran_funo,
+        scatter_params,
+    )
+    _res = calc_dust_ftrans_vmap(*ftrans_args_q)
+    ftrans_q = _res[1]
+
+    ftrans_args_ms = (
+        spspop_params.dustpop_params,
+        wave_eff_galpop,
+        diffstar_galpop.logsm_obs_ms,
+        diffstar_galpop.logssfr_obs_ms,
+        z_obs,
+        ssp_data.ssp_lg_age_gyr,
+        uran_av,
+        uran_delta,
+        uran_funo,
+        scatter_params,
+    )
+    _res = calc_dust_ftrans_vmap(*ftrans_args_ms)
+    ftrans_ms = _res[1]
 
     _mstar_q = 10**diffstar_galpop.logsm_obs_q
     _mstar_ms = 10**diffstar_galpop.logsm_obs_ms
