@@ -74,14 +74,18 @@ LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
 def diffstarpop_halpha_kern(
     diffstarpop_params,
     ran_key,
+    z_obs,
     t_obs,
     mah_params,
     logmp0,
     t_table,
     ssp_data,
     ssp_halpha_luminosity,
+    z_phot_table,
+    wave_eff_table,
     mzr_params,
     spspop_params,
+    scatter_params,
 ):
     n_met, n_age = ssp_halpha_luminosity.shape
     n_gals = logmp0.size
