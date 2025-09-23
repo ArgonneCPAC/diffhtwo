@@ -25,6 +25,9 @@ LGMET_SCATTER = 0.2
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
+# halpha rest wavelength center in fsps
+HALPHA_CENTER_AA = 6564.5131
+
 
 _M = (0, None, None)
 _calc_lgmet_weights_galpop = jjit(
@@ -68,6 +71,13 @@ _LCLINE_RET_KEYS = (
 )
 LCLine = namedtuple("LCLine", _LCLINE_RET_KEYS)
 LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
+
+
+def get_halpha_wave_eff_table(z_phot_table):
+    return HALPHA_CENTER_AA / (1 + z_phot_table)
+
+
+wave_eff_table = get_halpha_wave_eff_table(z_phot_table)
 
 
 @jjit
