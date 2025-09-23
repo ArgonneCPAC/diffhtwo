@@ -50,14 +50,18 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
         u_theta_sub,  # only the selected subset: shape (len(IDX),)
         halpha_lf_weighted_composite_true,
         ran_key,
+        z_obs,
         t_obs,
         mah_params,
         logmp0,
         t_table,
         ssp_data,
         ssp_halpha_luminosity,
+        z_phot_table,
+        wave_eff_table,
         mzr_params,
         spspop_params,
+        scatter_params,
     ):
         # scatter the subset into the full flat vector
         u_theta_full = u_theta_default.at[IDX].set(u_theta_sub)
@@ -71,14 +75,18 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
         halpha_lf_pred = dpop_halpha(
             diffstarpop_params,
             ran_key,
+            z_obs,
             t_obs,
             mah_params,
             logmp0,
             t_table,
             ssp_data,
             ssp_halpha_luminosity,
+            z_phot_table,
+            wave_eff_table,
             mzr_params,
             spspop_params,
+            scatter_params,
         )
 
         (
@@ -110,14 +118,18 @@ def fit_diffstarpop(
     u_theta_init_sub,  # only the selected subset: shape (len(IDX),)
     halpha_lf_weighted_composite_true,
     ran_key,
+    z_obs,
     t_obs,
     mah_params,
     logmp0,
     t_table,
     ssp_data,
     ssp_halpha_luminosity,
+    z_phot_table,
+    wave_eff_table,
     mzr_params,
     spspop_params,
+    scatter_params,
     n_steps=10,
     step_size=1e-2,
 ):
@@ -127,14 +139,18 @@ def fit_diffstarpop(
     other = (
         halpha_lf_weighted_composite_true,
         ran_key,
+        z_obs,
         t_obs,
         mah_params,
         logmp0,
         t_table,
         ssp_data,
         ssp_halpha_luminosity,
+        z_phot_table,
+        wave_eff_table,
         mzr_params,
         spspop_params,
+        scatter_params,
     )
 
     def _opt_update(opt_state, i):

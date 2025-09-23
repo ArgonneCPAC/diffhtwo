@@ -1,5 +1,6 @@
 import numpy as np
 from diffsky.experimental import mc_lightcone_halos as mclh
+from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 from diffsky.param_utils import spspop_param_utils as spspu
 from diffstar.defaults import T_TABLE_MIN
 from diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
@@ -17,6 +18,9 @@ from ..data_loaders import retrieve_fake_fsps_halpha
 from ..diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha_L
 from ..diffstarpop_halpha import (
     diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,
+)
+from ..diffstarpop_halpha import (
+    get_halpha_wave_eff_table,
 )
 from ..diffstarpop_halpha_opt import IDX, fit_diffstarpop
 
@@ -44,7 +48,11 @@ def test_diffstarpop_halpha_opt():
 
     lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*args)
 
-    # z_obs = lc_halopop["z_obs"]
+    n_z_phot_table = 15
+    z_phot_table = np.linspace(z_min, z_max, n_z_phot_table)
+    wave_eff_table = get_halpha_wave_eff_table(z_phot_table)
+
+    z_obs = lc_halopop["z_obs"]
     t_obs = lc_halopop["t_obs"]
     mah_params = lc_halopop["mah_params"]
     logmp0 = lc_halopop["logmp0"]
@@ -56,21 +64,25 @@ def test_diffstarpop_halpha_opt():
     mzr_params = umzr.DEFAULT_MZR_PARAMS
 
     spspop_params = spspu.DEFAULT_SPSPOP_PARAMS
-    # scatter_params = DEFAULT_SCATTER_PARAMS
+    scatter_params = DEFAULT_SCATTER_PARAMS
     # ssp_err_pop_params = ssp_err_model.DEFAULT_SSPERR_PARAMS
 
     ran_key, dpop_halpha_true_key = jran.split(ran_key, 2)
     args = (
         DEFAULT_DIFFSTARPOP_PARAMS,
         dpop_halpha_true_key,
+        z_obs,
         t_obs,
         mah_params,
         logmp0,
         t_table,
         ssp_data,
         ssp_halpha_line_luminosity,
+        z_phot_table,
+        wave_eff_table,
         mzr_params,
         spspop_params,
+        scatter_params,
     )
     halpha_L_true = dpop_halpha_L(*args)
 
@@ -98,14 +110,18 @@ def test_diffstarpop_halpha_opt():
         u_theta_perturbed[IDX],
         halpha_lf_weighted_composite_true,
         dpop_halpha_perturbed_key,
+        z_obs,
         t_obs,
         mah_params,
         logmp0,
         t_table,
         ssp_data,
         ssp_halpha_line_luminosity,
+        z_phot_table,
+        wave_eff_table,
         mzr_params,
         spspop_params,
+        scatter_params,
     )
 
     loss_hist, u_theta_fit_sub = fit_diffstarpop(*fit_args, n_steps=200, step_size=0.02)
