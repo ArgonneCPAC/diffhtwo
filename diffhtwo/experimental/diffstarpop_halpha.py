@@ -54,8 +54,7 @@ calc_dust_ftrans_vmap = jjit(
         in_axes=_D,
     )
 )
-# _E = (None, 0, 0, 0, 0, None, 0, 0, 0, None)
-# calc_dust_ftrans_vmap = jjit(vmap(vmap_kern1, in_axes=_E))
+
 
 _LCLINE_RET_KEYS = (
     "halpha_L_cgs_q",
