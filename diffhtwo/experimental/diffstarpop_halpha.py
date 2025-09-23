@@ -46,17 +46,16 @@ calc_age_weights_from_sfh_table_vmap = jjit(
     vmap(calc_age_weights_from_sfh_table, in_axes=_AGEPOP)
 )
 
-# interp_vmap = jjit(vmap(jnp.interp, in_axes=(0, None, None)))
 
-_D = (None, 0, None, None, None, None, None, None, None, None)
-vmap_kern1 = jjit(
+_D = (None, 0, 0, 0, 0, None, 0, 0, 0, None)
+calc_dust_ftrans_vmap = jjit(
     vmap(
         tw_dustpop_mono_noise.calc_ftrans_singlegal_singlewave_from_dustpop_params,
         in_axes=_D,
     )
 )
-_E = (None, 0, 0, 0, 0, None, 0, 0, 0, None)
-calc_dust_ftrans_vmap = jjit(vmap(vmap_kern1, in_axes=_E))
+# _E = (None, 0, 0, 0, 0, None, 0, 0, 0, None)
+# calc_dust_ftrans_vmap = jjit(vmap(vmap_kern1, in_axes=_E))
 
 _LCLINE_RET_KEYS = (
     "halpha_L_cgs_q",
