@@ -46,7 +46,7 @@ calc_age_weights_from_sfh_table_vmap = jjit(
     vmap(calc_age_weights_from_sfh_table, in_axes=_AGEPOP)
 )
 
-interp_vmap = jjit(vmap(jnp.interp, in_axes=(0, None, None)))
+# interp_vmap = jjit(vmap(jnp.interp, in_axes=(0, None, None)))
 
 _D = (None, 0, None, None, None, None, None, None, None, None)
 vmap_kern1 = jjit(
@@ -148,7 +148,7 @@ def diffstarpop_halpha_kern(
     _w_age_bursty_ms = bursty_age_weights_ms.reshape((n_gals, 1, n_age))
     ssp_weights_bursty_ms = _w_lgmet_ms * _w_age_bursty_ms
 
-    wave_eff_galpop = interp_vmap(z_obs, z_phot_table, wave_eff_table)
+    wave_eff_galpop = jnp.interp(z_obs, z_phot_table, wave_eff_table)
 
     # get ftrans due to dust
     ran_key, dust_key = jran.split(ran_key, 2)
