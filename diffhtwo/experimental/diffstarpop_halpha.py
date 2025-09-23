@@ -77,9 +77,6 @@ def get_halpha_wave_eff_table(z_phot_table):
     return HALPHA_CENTER_AA / (1 + z_phot_table)
 
 
-wave_eff_table = get_halpha_wave_eff_table(z_phot_table)
-
-
 @jjit
 def diffstarpop_halpha_kern(
     diffstarpop_params,
