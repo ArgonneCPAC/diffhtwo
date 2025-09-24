@@ -186,11 +186,11 @@ def diffstarpop_halpha_kern(
     _res = calc_dust_ftrans_vmap(*ftrans_args_ms)
     ftrans_ms = _res[1]
 
-    _mstar_q = 10**diffstar_galpop.logsm_obs_q
-    _mstar_ms = 10**diffstar_galpop.logsm_obs_ms
-
     _ftrans_q = ftrans_q.reshape((n_gals, 1, n_age))
     _ftrans_ms = ftrans_ms.reshape((n_gals, 1, n_age))
+
+    _mstar_q = 10**diffstar_galpop.logsm_obs_q
+    _mstar_ms = 10**diffstar_galpop.logsm_obs_ms
 
     integrand_q = ssp_halpha_luminosity * ssp_weights_q * _ftrans_q
     halpha_L_cgs_q = jnp.sum(integrand_q, axis=(1, 2)) * (L_SUN_CGS * _mstar_q)
