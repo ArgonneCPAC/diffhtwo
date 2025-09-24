@@ -17,6 +17,7 @@ from dsps.sed.stellar_age_weights import calc_age_weights_from_sfh_table
 from jax import jit as jjit
 from jax import random as jran
 from jax import vmap
+from jax.debug import print
 
 from . import halpha_luminosity
 
@@ -47,7 +48,7 @@ calc_age_weights_from_sfh_table_vmap = jjit(
 )
 
 
-_D = (None, 0, 0, 0, 0, None, 0, 0, 0, None)
+_D = (None, None, 0, 0, 0, None, 0, 0, 0, None)
 calc_dust_ftrans_vmap = jjit(
     vmap(
         tw_dustpop_mono_noise.calc_ftrans_singlegal_singlewave_from_dustpop_params,
@@ -157,7 +158,7 @@ def diffstarpop_halpha_kern(
 
     ftrans_args_q = (
         spspop_params.dustpop_params,
-        wave_eff_galpop,
+        HALPHA_CENTER_AA,
         diffstar_galpop.logsm_obs_q,
         diffstar_galpop.logssfr_obs_q,
         z_obs,
@@ -169,10 +170,11 @@ def diffstarpop_halpha_kern(
     )
     _res = calc_dust_ftrans_vmap(*ftrans_args_q)
     ftrans_q = _res[1]
+    print("ftrans_q.shape:{}", ftrans_q.shape)
 
     ftrans_args_ms = (
         spspop_params.dustpop_params,
-        wave_eff_galpop,
+        HALPHA_CENTER_AA,
         diffstar_galpop.logsm_obs_ms,
         diffstar_galpop.logssfr_obs_ms,
         z_obs,
@@ -184,6 +186,7 @@ def diffstarpop_halpha_kern(
     )
     _res = calc_dust_ftrans_vmap(*ftrans_args_ms)
     ftrans_ms = _res[1]
+    print("ftrans_ms.shape:{}", ftrans_ms.shape)
 
     _mstar_q = 10**diffstar_galpop.logsm_obs_q
     _mstar_ms = 10**diffstar_galpop.logsm_obs_ms
