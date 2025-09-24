@@ -147,8 +147,6 @@ def diffstarpop_halpha_kern(
     _w_age_bursty_ms = bursty_age_weights_ms.reshape((n_gals, 1, n_age))
     ssp_weights_bursty_ms = _w_lgmet_ms * _w_age_bursty_ms
 
-    wave_eff_galpop = jnp.interp(z_obs, z_phot_table, wave_eff_table)
-
     # get ftrans due to dust
     ran_key, dust_key = jran.split(ran_key, 2)
     av_key, delta_key, funo_key = jran.split(dust_key, 3)
