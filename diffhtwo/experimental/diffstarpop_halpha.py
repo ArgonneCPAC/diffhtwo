@@ -9,6 +9,7 @@ from collections import namedtuple
 import jax
 import jax.numpy as jnp
 from diffsky.burstpop import diffqburstpop_mono, freqburst_mono
+from diffsky.dustpop import tw_dustpop_mono_noise
 from diffsky.experimental.lc_phot_kern import diffstarpop_lc_cen_wrapper
 from dsps.metallicity import umzr
 from dsps.sed import metallicity_weights as zmetw
@@ -16,6 +17,7 @@ from dsps.sed.stellar_age_weights import calc_age_weights_from_sfh_table
 from jax import jit as jjit
 from jax import random as jran
 from jax import vmap
+from jax.debug import print
 
 from . import halpha_luminosity
 
@@ -24,16 +26,8 @@ LGMET_SCATTER = 0.2
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
-_LCLINE_RET_KEYS = (
-    "halpha_L_cgs_q",
-    "halpha_L_cgs_smooth_ms",
-    "halpha_L_cgs_bursty_ms",
-    "weights_q",
-    "weights_smooth_ms",
-    "weights_bursty_ms",
-)
-LCLine = namedtuple("LCLine", _LCLINE_RET_KEYS)
-LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
+# halpha rest wavelength center in fsps
+HALPHA_CENTER_AA = 6564.5131
 
 
 _M = (0, None, None)
@@ -54,18 +48,47 @@ calc_age_weights_from_sfh_table_vmap = jjit(
 )
 
 
+_D = (None, None, 0, 0, 0, None, 0, 0, 0, None)
+calc_dust_ftrans_vmap = jjit(
+    vmap(
+        tw_dustpop_mono_noise.calc_ftrans_singlegal_singlewave_from_dustpop_params,
+        in_axes=_D,
+    )
+)
+
+
+_LCLINE_RET_KEYS = (
+    "halpha_L_cgs_q",
+    "halpha_L_cgs_smooth_ms",
+    "halpha_L_cgs_bursty_ms",
+    "weights_q",
+    "weights_smooth_ms",
+    "weights_bursty_ms",
+)
+LCLine = namedtuple("LCLine", _LCLINE_RET_KEYS)
+LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
+
+
+def get_halpha_wave_eff_table(z_phot_table):
+    return HALPHA_CENTER_AA / (1 + z_phot_table)
+
+
 @jjit
 def diffstarpop_halpha_kern(
     diffstarpop_params,
     ran_key,
+    z_obs,
     t_obs,
     mah_params,
     logmp0,
     t_table,
     ssp_data,
     ssp_halpha_luminosity,
+    z_phot_table,
+    wave_eff_table,
     mzr_params,
     spspop_params,
+    scatter_params,
 ):
     n_met, n_age = ssp_halpha_luminosity.shape
     n_gals = logmp0.size
@@ -124,18 +147,58 @@ def diffstarpop_halpha_kern(
     _w_age_bursty_ms = bursty_age_weights_ms.reshape((n_gals, 1, n_age))
     ssp_weights_bursty_ms = _w_lgmet_ms * _w_age_bursty_ms
 
+    # get ftrans due to dust
+    ran_key, dust_key = jran.split(ran_key, 2)
+    av_key, delta_key, funo_key = jran.split(dust_key, 3)
+    uran_av = jran.uniform(av_key, shape=(n_gals,))
+    uran_delta = jran.uniform(delta_key, shape=(n_gals,))
+    uran_funo = jran.uniform(funo_key, shape=(n_gals,))
+
+    ftrans_args_q = (
+        spspop_params.dustpop_params,
+        HALPHA_CENTER_AA,
+        diffstar_galpop.logsm_obs_q,
+        diffstar_galpop.logssfr_obs_q,
+        z_obs,
+        ssp_data.ssp_lg_age_gyr,
+        uran_av,
+        uran_delta,
+        uran_funo,
+        scatter_params,
+    )
+    _res = calc_dust_ftrans_vmap(*ftrans_args_q)
+    ftrans_q = _res[1]
+
+    ftrans_args_ms = (
+        spspop_params.dustpop_params,
+        HALPHA_CENTER_AA,
+        diffstar_galpop.logsm_obs_ms,
+        diffstar_galpop.logssfr_obs_ms,
+        z_obs,
+        ssp_data.ssp_lg_age_gyr,
+        uran_av,
+        uran_delta,
+        uran_funo,
+        scatter_params,
+    )
+    _res = calc_dust_ftrans_vmap(*ftrans_args_ms)
+    ftrans_ms = _res[1]
+
+    _ftrans_q = ftrans_q.reshape((n_gals, 1, n_age))
+    _ftrans_ms = ftrans_ms.reshape((n_gals, 1, n_age))
+
     _mstar_q = 10**diffstar_galpop.logsm_obs_q
     _mstar_ms = 10**diffstar_galpop.logsm_obs_ms
 
-    integrand_q = ssp_halpha_luminosity * ssp_weights_q
+    integrand_q = ssp_halpha_luminosity * ssp_weights_q * _ftrans_q
     halpha_L_cgs_q = jnp.sum(integrand_q, axis=(1, 2)) * (L_SUN_CGS * _mstar_q)
 
-    integrand_smooth_ms = ssp_halpha_luminosity * ssp_weights_smooth_ms
+    integrand_smooth_ms = ssp_halpha_luminosity * ssp_weights_smooth_ms * _ftrans_ms
     halpha_L_cgs_smooth_ms = jnp.sum(integrand_smooth_ms, axis=(1, 2)) * (
         L_SUN_CGS * _mstar_ms
     )
 
-    integrand_bursty_ms = ssp_halpha_luminosity * ssp_weights_bursty_ms
+    integrand_bursty_ms = ssp_halpha_luminosity * ssp_weights_bursty_ms * _ftrans_ms
     halpha_L_cgs_bursty_ms = jnp.sum(integrand_bursty_ms, axis=(1, 2)) * (
         L_SUN_CGS * _mstar_ms
     )

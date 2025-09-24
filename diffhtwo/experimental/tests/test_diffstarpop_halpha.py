@@ -1,5 +1,6 @@
 import numpy as np
 from diffsky.experimental import mc_lightcone_halos as mclh
+from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 from diffsky.param_utils import spspop_param_utils as spspu
 from diffstar.defaults import T_TABLE_MIN
 from diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
@@ -11,8 +12,10 @@ from jax import random as jran
 
 from .. import diffstarpop_halpha
 from ..data_loaders import retrieve_fake_fsps_halpha
+from ..diffstarpop_halpha import (
+    get_halpha_wave_eff_table,
+)
 
-# from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 # from diffsky.ssp_err_model import ssp_err_model
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
@@ -30,10 +33,11 @@ def test_diffstarpop_halpha_kern():
 
     lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*args)
 
-    # n_z_phot_table = 15
-    # z_phot_table = np.linspace(z_min, z_max, n_z_phot_table)
+    n_z_phot_table = 15
+    z_phot_table = np.linspace(z_min, z_max, n_z_phot_table)
+    wave_eff_table = get_halpha_wave_eff_table(z_phot_table)
 
-    # z_obs = lc_halopop["z_obs"]
+    z_obs = lc_halopop["z_obs"]
     t_obs = lc_halopop["t_obs"]
     mah_params = lc_halopop["mah_params"]
     logmp0 = lc_halopop["logmp0"]
@@ -45,21 +49,25 @@ def test_diffstarpop_halpha_kern():
     mzr_params = umzr.DEFAULT_MZR_PARAMS
 
     spspop_params = spspu.DEFAULT_SPSPOP_PARAMS
-    # scatter_params = DEFAULT_SCATTER_PARAMS
+    scatter_params = DEFAULT_SCATTER_PARAMS
     # ssp_err_pop_params = ssp_err_model.DEFAULT_SSPERR_PARAMS
 
     ran_key, diffstarpop_key = jran.split(ran_key, 2)
     args = (
         DEFAULT_DIFFSTARPOP_PARAMS,
         diffstarpop_key,
+        z_obs,
         t_obs,
         mah_params,
         logmp0,
         t_table,
         ssp_data,
         ssp_halpha_line_luminosity,
+        z_phot_table,
+        wave_eff_table,
         mzr_params,
         spspop_params,
+        scatter_params,
     )
     halpha_L = diffstarpop_halpha.diffstarpop_halpha_kern(*args)
 
