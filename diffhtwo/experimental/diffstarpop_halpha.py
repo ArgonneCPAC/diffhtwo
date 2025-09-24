@@ -170,7 +170,6 @@ def diffstarpop_halpha_kern(
     )
     _res = calc_dust_ftrans_vmap(*ftrans_args_q)
     ftrans_q = _res[1]
-    print("ftrans_q.shape:{}", ftrans_q.shape)
 
     ftrans_args_ms = (
         spspop_params.dustpop_params,
@@ -186,21 +185,24 @@ def diffstarpop_halpha_kern(
     )
     _res = calc_dust_ftrans_vmap(*ftrans_args_ms)
     ftrans_ms = _res[1]
-    print("ftrans_ms.shape:{}", ftrans_ms.shape)
 
     _mstar_q = 10**diffstar_galpop.logsm_obs_q
     _mstar_ms = 10**diffstar_galpop.logsm_obs_ms
 
-    integrand_q = ssp_halpha_luminosity * ssp_weights_q
+    _ftrans_q = ftrans_q.reshape((n_gals, 1, n_age))
+    _ftrans_ms = ftrans_ms.reshape((n_gals, 1, n_age))
+
+    integrand_q = ssp_halpha_luminosity * ssp_weights_q * _ftrans_q
+    print("integrand_q.shape={}", integrand_q.shape)
     halpha_L_cgs_q = jnp.sum(integrand_q, axis=(1, 2)) * (L_SUN_CGS * _mstar_q)
 
-    integrand_smooth_ms = ssp_halpha_luminosity * ssp_weights_smooth_ms
+    integrand_smooth_ms = ssp_halpha_luminosity * ssp_weights_smooth_ms * _ftrans_ms
+    print("integrand_smooth_ms.shape={}", integrand_smooth_ms.shape)
     halpha_L_cgs_smooth_ms = jnp.sum(integrand_smooth_ms, axis=(1, 2)) * (
         L_SUN_CGS * _mstar_ms
     )
-    print("ssp_halpha_luminosity.shape={}", ssp_halpha_luminosity.shape)
-    print("ssp_weights_bursty_ms.shape={}", ssp_weights_bursty_ms.shape)
-    integrand_bursty_ms = ssp_halpha_luminosity * ssp_weights_bursty_ms
+
+    integrand_bursty_ms = ssp_halpha_luminosity * ssp_weights_bursty_ms * _ftrans_ms
     halpha_L_cgs_bursty_ms = jnp.sum(integrand_bursty_ms, axis=(1, 2)) * (
         L_SUN_CGS * _mstar_ms
     )
