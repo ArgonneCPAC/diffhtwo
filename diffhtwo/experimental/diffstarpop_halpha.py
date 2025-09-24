@@ -193,11 +193,9 @@ def diffstarpop_halpha_kern(
     _ftrans_ms = ftrans_ms.reshape((n_gals, 1, n_age))
 
     integrand_q = ssp_halpha_luminosity * ssp_weights_q * _ftrans_q
-    print("integrand_q.shape={}", integrand_q.shape)
     halpha_L_cgs_q = jnp.sum(integrand_q, axis=(1, 2)) * (L_SUN_CGS * _mstar_q)
 
     integrand_smooth_ms = ssp_halpha_luminosity * ssp_weights_smooth_ms * _ftrans_ms
-    print("integrand_smooth_ms.shape={}", integrand_smooth_ms.shape)
     halpha_L_cgs_smooth_ms = jnp.sum(integrand_smooth_ms, axis=(1, 2)) * (
         L_SUN_CGS * _mstar_ms
     )
