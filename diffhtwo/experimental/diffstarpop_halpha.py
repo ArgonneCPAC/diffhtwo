@@ -198,7 +198,8 @@ def diffstarpop_halpha_kern(
     halpha_L_cgs_smooth_ms = jnp.sum(integrand_smooth_ms, axis=(1, 2)) * (
         L_SUN_CGS * _mstar_ms
     )
-
+    print("ssp_halpha_luminosity.shape={}", ssp_halpha_luminosity.shape)
+    print("ssp_weights_bursty_ms.shape={}", ssp_weights_bursty_ms.shape)
     integrand_bursty_ms = ssp_halpha_luminosity * ssp_weights_bursty_ms
     halpha_L_cgs_bursty_ms = jnp.sum(integrand_bursty_ms, axis=(1, 2)) * (
         L_SUN_CGS * _mstar_ms
