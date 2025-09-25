@@ -32,18 +32,18 @@ def _quad_continuum_model(theta, wave):
     return (c2 * wave * wave) + (c1 * wave) + c0
 
 
-def _mse(flux_true: jnp.ndarray, flux_pred: jnp.ndarray) -> jnp.float64:
+def _mse(L_true: jnp.ndarray, L_pred: jnp.ndarray) -> jnp.float64:
     """Mean squared error function."""
-    return jnp.mean(jnp.power(flux_true - flux_pred, 2))
+    return jnp.mean(jnp.power(L_true - L_pred, 2))
 
 
-def _mseloss(theta, model, wave, flux_true):
-    flux_pred = model(theta, wave)
-    return _mse(flux_true, flux_pred)
+def _mseloss(theta, model, wave, L_true):
+    L_pred = model(theta, wave)
+    return _mse(L_true, L_pred)
 
 
 def _model_optimization_loop(
-    theta, model, loss, wave, flux_true, n_steps=1000, step_size=1e-18
+    theta, model, loss, wave, L_true, n_steps=1000, step_size=1e-18
 ):
     dloss = grad(loss)
 
@@ -55,7 +55,7 @@ def _model_optimization_loop(
     losses = []
     for i in range(n_steps):
         grads = dloss(
-            dict(c0=theta["c0"], c1=theta["c1"], c2=theta["c2"]), model, wave, flux_true
+            dict(c0=theta["c0"], c1=theta["c1"], c2=theta["c2"]), model, wave, L_true
         )
 
         theta["c0"] = theta["c0"] - step_size * grads["c0"]
@@ -67,7 +67,7 @@ def _model_optimization_loop(
                 dict(c0=theta["c0"], c1=theta["c1"], c2=theta["c2"]),
                 model,
                 wave,
-                flux_true,
+                L_true,
             )
         )
 
