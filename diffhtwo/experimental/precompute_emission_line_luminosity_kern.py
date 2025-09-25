@@ -3,7 +3,7 @@ import numpy as np
 import numpy.ma as ma
 from jax import grad
 
-# copied c from from astropy.constants
+# copied from astropy.constants.c.value
 C = 299792458.0
 
 
