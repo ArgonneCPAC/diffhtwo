@@ -69,10 +69,6 @@ LCLine = namedtuple("LCLine", _LCLINE_RET_KEYS)
 LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
 
 
-def get_halpha_wave_eff_table(z_phot_table):
-    return HALPHA_CENTER_AA / (1 + z_phot_table)
-
-
 @jjit
 def diffstarpop_halpha_kern(
     diffstarpop_params,
@@ -85,7 +81,6 @@ def diffstarpop_halpha_kern(
     ssp_data,
     ssp_halpha_luminosity,
     z_phot_table,
-    wave_eff_table,
     mzr_params,
     spspop_params,
     scatter_params,
