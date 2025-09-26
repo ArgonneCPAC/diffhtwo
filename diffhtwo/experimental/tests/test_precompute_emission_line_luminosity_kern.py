@@ -43,6 +43,7 @@ def test_precompute_fsps_halpha_luminosity(
         HALPHA_LINE_CENTER,
         HALPHA_LINE_DELTA,
     )
+    assert np.all(sed_dict["line_sed"] == 0.0)
     assert sed_dict["line_integrated_luminosity"] == 0.0
 
     for i in range(5):
