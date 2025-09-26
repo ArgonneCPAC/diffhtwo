@@ -12,9 +12,6 @@ from jax import random as jran
 
 from .. import diffstarpop_halpha
 from ..data_loaders import retrieve_fake_fsps_halpha
-from ..diffstarpop_halpha import (
-    get_halpha_wave_eff_table,
-)
 
 # from diffsky.ssp_err_model import ssp_err_model
 
@@ -35,7 +32,6 @@ def test_diffstarpop_halpha_kern():
 
     n_z_phot_table = 15
     z_phot_table = np.linspace(z_min, z_max, n_z_phot_table)
-    wave_eff_table = get_halpha_wave_eff_table(z_phot_table)
 
     z_obs = lc_halopop["z_obs"]
     t_obs = lc_halopop["t_obs"]
@@ -64,7 +60,6 @@ def test_diffstarpop_halpha_kern():
         ssp_data,
         ssp_halpha_line_luminosity,
         z_phot_table,
-        wave_eff_table,
         mzr_params,
         spspop_params,
         scatter_params,

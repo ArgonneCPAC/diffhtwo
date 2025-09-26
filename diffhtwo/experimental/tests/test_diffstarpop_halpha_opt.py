@@ -19,9 +19,6 @@ from ..diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha_L
 from ..diffstarpop_halpha import (
     diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,
 )
-from ..diffstarpop_halpha import (
-    get_halpha_wave_eff_table,
-)
 from ..diffstarpop_halpha_opt import IDX, fit_diffstarpop
 
 # from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
@@ -50,7 +47,6 @@ def test_diffstarpop_halpha_opt():
 
     n_z_phot_table = 15
     z_phot_table = np.linspace(z_min, z_max, n_z_phot_table)
-    wave_eff_table = get_halpha_wave_eff_table(z_phot_table)
 
     z_obs = lc_halopop["z_obs"]
     t_obs = lc_halopop["t_obs"]
@@ -79,7 +75,6 @@ def test_diffstarpop_halpha_opt():
         ssp_data,
         ssp_halpha_line_luminosity,
         z_phot_table,
-        wave_eff_table,
         mzr_params,
         spspop_params,
         scatter_params,
@@ -118,7 +113,6 @@ def test_diffstarpop_halpha_opt():
         ssp_data,
         ssp_halpha_line_luminosity,
         z_phot_table,
-        wave_eff_table,
         mzr_params,
         spspop_params,
         scatter_params,
