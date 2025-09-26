@@ -3,7 +3,7 @@ import numpy as np
 import numpy.ma as ma
 from jax import grad
 
-# copied from astropy.constants.c.value
+# copied from astropy.constants.c.value in m/s
 C = 299792458.0
 
 
