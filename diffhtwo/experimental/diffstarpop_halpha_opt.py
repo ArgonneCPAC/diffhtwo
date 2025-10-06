@@ -62,9 +62,9 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
         scatter_params,
     ):
         # scatter the subset into the full flat vector
-        print("u_theta_sub:{}", u_theta_sub)
+        # print("u_theta_sub:{}", u_theta_sub)
         u_theta_full = u_theta_default.at[IDX].set(u_theta_sub)
-        print("u_theta_full:{}", u_theta_full)
+        # print("u_theta_full:{}", u_theta_full)
 
         # back to structured params and do the usual
         u_diffstarpop_params = u_unravel_fn(u_theta_full)
