@@ -9,10 +9,8 @@ jax.config.update("jax_debug_infs", True)
 from functools import partial
 
 import jax.numpy as jnp
-from diffstar.diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
-    DEFAULT_DIFFSTARPOP_U_PARAMS,
-    get_bounded_diffstarpop_params,
-)
+from diffstar.diffstarpop import get_bounded_diffstarpop_params
+from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from jax import jit as jjit
 from jax import lax, value_and_grad
 from jax.example_libraries import optimizers as jax_opt
