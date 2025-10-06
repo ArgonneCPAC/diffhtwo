@@ -152,6 +152,7 @@ def fit_diffstarpop(
         u_theta_sub = get_params(opt_state)
         print("u_theta_sub:{}", u_theta_sub)
         loss, grads = loss_and_grad_fn(u_theta_sub, *other)
+        print("grads:{}", grads)
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
 
