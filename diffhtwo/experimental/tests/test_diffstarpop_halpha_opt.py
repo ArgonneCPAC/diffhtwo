@@ -3,10 +3,10 @@ from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 from diffsky.param_utils import spspop_param_utils as spspu
 from diffstar.defaults import T_TABLE_MIN
-from diffstar.diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
+from diffstar.diffstarpop import get_bounded_diffstarpop_params
+from diffstar.diffstarpop.defaults import (
     DEFAULT_DIFFSTARPOP_PARAMS,
     DEFAULT_DIFFSTARPOP_U_PARAMS,
-    get_bounded_diffstarpop_params,
 )
 from dsps.cosmology import DEFAULT_COSMOLOGY, flat_wcdm
 from dsps.data_loaders import retrieve_fake_fsps_data
