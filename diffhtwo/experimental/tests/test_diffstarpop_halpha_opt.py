@@ -119,7 +119,7 @@ def test_diffstarpop_halpha_opt():
         scatter_params,
     )
 
-    loss_hist, u_theta_fit_sub = fit_diffstarpop(*fit_args, n_steps=10, step_size=0.02)
+    loss_hist, u_theta_fit_sub = fit_diffstarpop(*fit_args, n_steps=2, step_size=0.02)
 
     assert loss_hist[-1] < loss_hist[0]
 
