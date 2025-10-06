@@ -13,6 +13,7 @@ from diffstar.diffstarpop import get_bounded_diffstarpop_params
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from jax import jit as jjit
 from jax import lax, value_and_grad
+from jax.debug import print
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
@@ -149,6 +150,7 @@ def fit_diffstarpop(
 
     def _opt_update(opt_state, i):
         u_theta_sub = get_params(opt_state)
+        print("u_theta_sub:{}", u_theta_sub)
         loss, grads = loss_and_grad_fn(u_theta_sub, *other)
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
