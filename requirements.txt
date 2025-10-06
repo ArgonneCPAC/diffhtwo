@@ -7,4 +7,3 @@ dsps
 diffstar
 diffmah
 diffsky
-diffstarpop

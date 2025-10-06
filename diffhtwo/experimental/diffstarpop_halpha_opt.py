@@ -9,7 +9,7 @@ jax.config.update("jax_debug_infs", True)
 from functools import partial
 
 import jax.numpy as jnp
-from diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
+from diffstar.diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
     DEFAULT_DIFFSTARPOP_U_PARAMS,
     get_bounded_diffstarpop_params,
 )

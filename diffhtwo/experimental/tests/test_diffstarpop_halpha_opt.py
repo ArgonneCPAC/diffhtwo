@@ -3,7 +3,7 @@ from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 from diffsky.param_utils import spspop_param_utils as spspu
 from diffstar.defaults import T_TABLE_MIN
-from diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
+from diffstar.diffstarpop.kernels.defaults_tpeak_line_sepms_satfrac import (
     DEFAULT_DIFFSTARPOP_PARAMS,
     DEFAULT_DIFFSTARPOP_U_PARAMS,
     get_bounded_diffstarpop_params,
