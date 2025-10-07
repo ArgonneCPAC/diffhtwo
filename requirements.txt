@@ -3,8 +3,7 @@ scipy
 jax
 astropy
 h5py
-dsps
-diffstar
-diffmah
-diffsky
-diffstarpop
+diffmah>=0.7.2
+diffstar>=1.0.0
+dsps>=0.4.5
+diffsky>=0.3.0
