@@ -17,7 +17,6 @@ from dsps.sed.stellar_age_weights import calc_age_weights_from_sfh_table
 from jax import jit as jjit
 from jax import random as jran
 from jax import vmap
-from jax.debug import print
 
 from . import halpha_luminosity
 
