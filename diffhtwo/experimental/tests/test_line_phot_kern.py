@@ -13,46 +13,89 @@ D_L = COSMO.luminosity_distance(REDSHIFT).to("cm").value  # Mpc to cm
 
 
 SXDS_z_tcurve = retrieve_tcurves.SXDS_z
-SXDS_z_tcurve_wave_aa = SXDS_z_tcurve[:, 0]
-SXDS_z_tcurve_trans = SXDS_z_tcurve[:, 1]
+HSC_NB921_tcurve = retrieve_tcurves.HSC_NB921
 
 
-def test_line_phot_kern():
+def test_line_phot_kern(
+	BB_tcurve=SXDS_z_tcurve,
+	NB_tcurve=HSC_NB921_tcurve
+):
+	BB_tcurve_wave_aa = BB_tcurve[:, 0]
+	BB_tcurve_trans = BB_tcurve[:, 1]
+
+	NB_tcurve_wave_aa = NB_tcurve[:, 0]
+	NB_tcurve_trans = NB_tcurve[:, 1]
+
+	
     halpha_flux_app_cgs = line_phot_kern._flux_app_from_luminosity(
         HALPHA_LUMINOSITY_CGS, REDSHIFT, D_L
     )
     assert np.isfinite(halpha_flux_app_cgs)
     assert halpha_flux_app_cgs < HALPHA_LUMINOSITY_CGS
 
-    SXDS_z_equivalent_width_aa = line_phot_kern._tcurve_equivalent_width(
-        SXDS_z_tcurve_wave_aa, SXDS_z_tcurve_trans
-    )
-    assert np.isfinite(SXDS_z_equivalent_width_aa)
 
-    halpha_flux_density_filter_aa = line_phot_kern.flux_density_filter_aa(
+    # BB equivalent_width
+    BB_equivalent_width_aa = line_phot_kern._tcurve_equivalent_width(
+        BB_tcurve_wave_aa, BB_tcurve_trans
+    )
+    assert np.isfinite(BB_equivalent_width_aa)
+
+    # NB equivalent_width
+    NB_equivalent_width_aa = line_phot_kern._tcurve_equivalent_width(
+        NB_tcurve_wave_aa, NB_tcurve_trans
+    )
+    assert np.isfinite(NB_equivalent_width_aa)
+
+
+    # BB flux_density_aa
+    BB_flux_density_filter_aa = line_phot_kern.flux_density_filter_aa(
         HALPHA_OBS_AA,
         halpha_flux_app_cgs,
-        SXDS_z_tcurve_wave_aa,
-        SXDS_z_tcurve_trans,
-        SXDS_z_equivalent_width_aa,
+        BB_tcurve_wave_aa,
+        BB_tcurve_trans,
+        BB_equivalent_width_aa,
     )
-    assert np.isfinite(halpha_flux_density_filter_aa)
+    assert np.isfinite(BB_flux_density_filter_aa)
 
-    halpha_flux_density_filter_hz = line_phot_kern._flux_density_aa_to_hz(
-        halpha_flux_density_filter_aa, HALPHA_OBS_AA
+    # NB flux_density_aa
+    NB_flux_density_filter_aa = line_phot_kern.flux_density_filter_aa(
+        HALPHA_OBS_AA,
+        halpha_flux_app_cgs,
+        NB_tcurve_wave_aa,
+        NB_tcurve_trans,
+        NB_equivalent_width_aa,
     )
-    assert np.isfinite(halpha_flux_density_filter_hz)
+    assert np.isfinite(NB_flux_density_filter_aa)
 
-    mag_ab = line_phot_kern._flux_density_hz_to_mag_ab(halpha_flux_density_filter_hz)
-    assert mag_ab > 15
+
+    # BB flux_density_hz
+    BB_flux_density_filter_hz = line_phot_kern._flux_density_aa_to_hz(
+        BB_flux_density_filter_aa, HALPHA_OBS_AA
+    )
+    assert np.isfinite(BB_flux_density_filter_hz)
+
+    # NB flux_density_hz
+    NB_flux_density_filter_hz = line_phot_kern._flux_density_aa_to_hz(
+        NB_flux_density_filter_aa, HALPHA_OBS_AA
+    )
+    assert np.isfinite(NB_flux_density_filter_hz)
+
+
+    # BB mag_ab
+    BB_mag_ab = line_phot_kern._flux_density_hz_to_mag_ab(BB_flux_density_filter_hz)
+    assert BB_mag_ab > 15
+
+    # NB mag_ab
+    NB_mag_ab = line_phot_kern._flux_density_hz_to_mag_ab(NB_flux_density_filter_hz)
+    assert NB_mag_ab > 15
 
     # calculate mag_ab with minimal use of line_phot_kern.py functions
     d_L = COSMO.luminosity_distance(REDSHIFT).to("cm").value  # Mpc to cm
-    T = np.interp(HALPHA_OBS_AA, SXDS_z_tcurve_wave_aa, SXDS_z_tcurve_trans)
+    T = np.interp(HALPHA_OBS_AA, BB_tcurve_wave_aa, BB_tcurve_trans)
     assert (T >= 0) & (T <= 1)
     F_halpha = HALPHA_LUMINOSITY_CGS / (4 * np.pi * (d_L**2))
     numerator = T * F_halpha * (HALPHA_OBS_AA**2)
-    denominator = SXDS_z_equivalent_width_aa * C_ANGSTROMS
-    mag_ab_check = -2.5 * np.log10(numerator / denominator) - 48.6
+    denominator = BB_equivalent_width_aa * C_ANGSTROMS
+    BB_mag_ab_check = -2.5 * np.log10(numerator / denominator) - 48.6
 
-    assert np.isclose(mag_ab, mag_ab_check)
+    assert np.isclose(BB_mag_ab, BB_mag_ab_check)

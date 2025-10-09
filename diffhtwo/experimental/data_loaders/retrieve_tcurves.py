@@ -1,4 +1,9 @@
 import jax.numpy as jnp
+from dsps.utils import triweight_gaussian
+
+HSC_NB921_wave = jnp.linspace(9000, 9500, 1000)
+HSC_NB921_trans = triweight_gaussian(HSC_NB921_wave, 9213.2, 40.0) * 110
+HSC_NB921 = jnp.column_stack((HSC_NB921_wave, HSC_NB921_trans))
 
 SXDS_z = jnp.array(
     [
