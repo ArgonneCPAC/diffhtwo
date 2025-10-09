@@ -1,8 +1,7 @@
 import jax.numpy as jnp
 from jax import jit as jjit
 
-C = 299792458.0  # copied from astropy.constants.c.value in m/s
-C_ANGSTROMS = 1e10 * C  # angstrom/s
+from ..defaults import C_ANGSTROMS
 
 
 @jjit
