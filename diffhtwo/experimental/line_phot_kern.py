@@ -1,7 +1,7 @@
 import jax.numpy as jnp
 from jax import jit as jjit
 
-from ..defaults import C_ANGSTROMS
+from .defaults import C_ANGSTROMS
 
 
 @jjit
