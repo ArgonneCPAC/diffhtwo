@@ -1,10 +1,12 @@
+from functools import partial
+
 import jax.numpy as jnp
 from jax import jit as jjit
 
 from .defaults import C_ANGSTROMS
 
 
-@jjit
+@partial(jjit, static_argnames=["cosmo"])
 def _flux_app_from_luminosity(luminosity_cgs, redshift, cosmo):
     d_L = cosmo.luminosity_distance(redshift).to("cm").value  # Mpc to cm
     return luminosity_cgs / (4 * jnp.pi * d_L * d_L)
