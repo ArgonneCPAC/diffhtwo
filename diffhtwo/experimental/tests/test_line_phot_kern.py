@@ -1,6 +1,5 @@
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
-from jax.debug import print
 
 from .. import line_phot_kern
 from ..data_loaders import retrieve_tcurves
@@ -56,6 +55,4 @@ def test_line_phot_kern():
     denominator = SXDS_z_equivalent_width_aa * C_ANGSTROMS
     mag_ab_check = -2.5 * np.log10(numerator / denominator) - 48.6
 
-    print("mag_ab={}", mag_ab)
-    print("mag_ab_check={}", mag_ab_check)
     assert np.isclose(mag_ab, mag_ab_check)
