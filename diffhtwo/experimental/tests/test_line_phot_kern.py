@@ -16,23 +16,18 @@ SXDS_z_tcurve = retrieve_tcurves.SXDS_z
 HSC_NB921_tcurve = retrieve_tcurves.HSC_NB921
 
 
-def test_line_phot_kern(
-	BB_tcurve=SXDS_z_tcurve,
-	NB_tcurve=HSC_NB921_tcurve
-):
-	BB_tcurve_wave_aa = BB_tcurve[:, 0]
-	BB_tcurve_trans = BB_tcurve[:, 1]
+def test_line_phot_kern(BB_tcurve=SXDS_z_tcurve, NB_tcurve=HSC_NB921_tcurve):
+    BB_tcurve_wave_aa = BB_tcurve[:, 0]
+    BB_tcurve_trans = BB_tcurve[:, 1]
 
-	NB_tcurve_wave_aa = NB_tcurve[:, 0]
-	NB_tcurve_trans = NB_tcurve[:, 1]
+    NB_tcurve_wave_aa = NB_tcurve[:, 0]
+    NB_tcurve_trans = NB_tcurve[:, 1]
 
-	
     halpha_flux_app_cgs = line_phot_kern._flux_app_from_luminosity(
         HALPHA_LUMINOSITY_CGS, REDSHIFT, D_L
     )
     assert np.isfinite(halpha_flux_app_cgs)
     assert halpha_flux_app_cgs < HALPHA_LUMINOSITY_CGS
-
 
     # BB equivalent_width
     BB_equivalent_width_aa = line_phot_kern._tcurve_equivalent_width(
@@ -45,7 +40,6 @@ def test_line_phot_kern(
         NB_tcurve_wave_aa, NB_tcurve_trans
     )
     assert np.isfinite(NB_equivalent_width_aa)
-
 
     # BB flux_density_aa
     BB_flux_density_filter_aa = line_phot_kern.flux_density_filter_aa(
@@ -67,7 +61,6 @@ def test_line_phot_kern(
     )
     assert np.isfinite(NB_flux_density_filter_aa)
 
-
     # BB flux_density_hz
     BB_flux_density_filter_hz = line_phot_kern._flux_density_aa_to_hz(
         BB_flux_density_filter_aa, HALPHA_OBS_AA
@@ -79,7 +72,6 @@ def test_line_phot_kern(
         NB_flux_density_filter_aa, HALPHA_OBS_AA
     )
     assert np.isfinite(NB_flux_density_filter_hz)
-
 
     # BB mag_ab
     BB_mag_ab = line_phot_kern._flux_density_hz_to_mag_ab(BB_flux_density_filter_hz)
