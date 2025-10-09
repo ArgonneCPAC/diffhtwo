@@ -1,4 +1,3 @@
-import jax.numpy as jnp
 import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 from jax.debug import print
