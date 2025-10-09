@@ -17,10 +17,10 @@ SXDS_z_tcurve_trans = SXDS_z_tcurve[:, 1]
 
 
 def test_line_phot_kern(
-    HALPHA_LUMINOSITY_CGS,
-    REDSHIFT,
-    HALPHA_OBS_AA,
-    COSMO,
+    HALPHA_LUMINOSITY_CGS=HALPHA_LUMINOSITY_CGS,
+    REDSHIFT=REDSHIFT,
+    HALPHA_OBS_AA=HALPHA_OBS_AA,
+    COSMO=COSMO,
 ):
     halpha_flux_app_cgs = line_phot_kern._flux_app_from_luminosity(
         HALPHA_LUMINOSITY_CGS, REDSHIFT, COSMO
@@ -48,4 +48,5 @@ def test_line_phot_kern(
     assert np.isfinite(halpha_flux_density_filter_hz)
 
     mag_ab = line_phot_kern._flux_density_hz_to_mag_ab(halpha_flux_density_filter_hz)
+
     assert mag_ab > 15
