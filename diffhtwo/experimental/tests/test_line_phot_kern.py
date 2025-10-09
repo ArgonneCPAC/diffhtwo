@@ -10,6 +10,7 @@ HALPHA_LUMINOSITY_CGS = 1e42
 REDSHIFT = 0.40  # redshift at which halpha lands at SXDS_z filter
 HALPHA_OBS_AA = HALPHA_CENTER_AA * (1 + REDSHIFT)
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3, Ob0=0.0474, Tcmb0=2.7255)
+D_L = COSMO.luminosity_distance(REDSHIFT).to("cm").value  # Mpc to cm
 
 
 SXDS_z_tcurve = retrieve_tcurves.SXDS_z
@@ -21,10 +22,10 @@ def test_line_phot_kern(
     HALPHA_LUMINOSITY_CGS=HALPHA_LUMINOSITY_CGS,
     REDSHIFT=REDSHIFT,
     HALPHA_OBS_AA=HALPHA_OBS_AA,
-    COSMO=COSMO,
+    D_L=D_L,
 ):
     halpha_flux_app_cgs = line_phot_kern._flux_app_from_luminosity(
-        HALPHA_LUMINOSITY_CGS, REDSHIFT, COSMO
+        HALPHA_LUMINOSITY_CGS, REDSHIFT, D_L
     )
     assert np.isfinite(halpha_flux_app_cgs)
     assert halpha_flux_app_cgs < HALPHA_LUMINOSITY_CGS
