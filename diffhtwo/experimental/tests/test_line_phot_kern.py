@@ -18,12 +18,7 @@ SXDS_z_tcurve_wave_aa = SXDS_z_tcurve[:, 0]
 SXDS_z_tcurve_trans = SXDS_z_tcurve[:, 1]
 
 
-def test_line_phot_kern(
-    HALPHA_LUMINOSITY_CGS=HALPHA_LUMINOSITY_CGS,
-    REDSHIFT=REDSHIFT,
-    HALPHA_OBS_AA=HALPHA_OBS_AA,
-    D_L=D_L,
-):
+def test_line_phot_kern():
     halpha_flux_app_cgs = line_phot_kern._flux_app_from_luminosity(
         HALPHA_LUMINOSITY_CGS, REDSHIFT, D_L
     )
@@ -63,4 +58,4 @@ def test_line_phot_kern(
 
     print("mag_ab={}", mag_ab)
     print("mag_ab_check={}", mag_ab_check)
-    assert np.close(mag_ab, mag_ab_check)
+    assert np.isclose(mag_ab, mag_ab_check)
