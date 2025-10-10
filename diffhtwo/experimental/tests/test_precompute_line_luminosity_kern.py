@@ -3,7 +3,7 @@ import numpy as np
 from dsps.data_loaders import retrieve_fake_fsps_data
 
 from ..data_loaders import retrieve_fake_fsps_halpha
-from ..precompute_emission_line_luminosity_kern import (
+from ..precompute_line_luminosity_kern import (
     get_emission_line_luminosity,
 )
 
