@@ -1,6 +1,5 @@
 import jax.numpy as jnp
 from jax import jit as jjit
-from jax.debug import print
 
 from .defaults import C_ANGSTROMS
 
@@ -34,7 +33,6 @@ def flux_density_filter_aa(
     tcurve_equivalent_width_aa,
 ):
     trans_at_line = jnp.interp(line_obs_aa, tcurve_wave_aa, tcurve_trans)
-    print("trans_at_line:{}", trans_at_line)
     line_app_flux_band_cgs = trans_at_line * line_app_flux_cgs
 
     return line_app_flux_band_cgs / tcurve_equivalent_width_aa
