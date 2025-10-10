@@ -2,11 +2,17 @@ import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 
 from .. import line_phot_kern
-from ..data_loaders import retrieve_tcurves
+from ..data_loaders import retrieve_fake_fsps_halpha, retrieve_tcurves
 from ..defaults import C_ANGSTROMS, HALPHA_CENTER_AA
 
+ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
+
 HALPHA_LUMINOSITY_CGS = 1e42
-REDSHIFT = 0.40  # redshift at which halpha lands at SXDS_z filter
+
+# Redshift from which HALPHA_CENTER_AA emitted
+# lands at NB921 filter peak transmission at 9213.2 Å
+REDSHIFT = 0.4035
+
 HALPHA_OBS_AA = HALPHA_CENTER_AA * (1 + REDSHIFT)
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3, Ob0=0.0474, Tcmb0=2.7255)
 D_L = COSMO.luminosity_distance(REDSHIFT).to("cm").value  # Mpc to cm
