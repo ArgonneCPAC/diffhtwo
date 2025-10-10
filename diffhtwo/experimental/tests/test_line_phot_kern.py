@@ -87,8 +87,8 @@ def test_line_phot_kern(BB_tcurve=SXDS_z_tcurve, NB_tcurve=HSC_NB921_tcurve):
     NB_mag_ab = line_phot_kern._flux_density_hz_to_mag_ab(NB_flux_density_filter_hz)
     assert NB_mag_ab > 15
 
-    # should be brighter in narrow-band vs. broad-band because
-    # h-alpha signal gets diluted in broad-band due to much larger
+    # mag should be brighter in narrow-band vs. broad-band because
+    # emission line signal gets diluted in broad-band due to much larger
     # equivalent width
     assert NB_mag_ab < BB_mag_ab
 
