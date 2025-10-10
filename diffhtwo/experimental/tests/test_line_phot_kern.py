@@ -10,7 +10,7 @@ ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 HALPHA_LUMINOSITY_CGS = 1e42
 
 # Redshift from which HALPHA_CENTER_AA emitted
-# lands at NB921 filter peak transmission at 9213.2 Å
+# lands at HSC_NB921 filter peak transmission at 9213.2 Å
 REDSHIFT = 0.4035
 
 HALPHA_OBS_AA = HALPHA_CENTER_AA * (1 + REDSHIFT)
@@ -86,6 +86,9 @@ def test_line_phot_kern(BB_tcurve=SXDS_z_tcurve, NB_tcurve=HSC_NB921_tcurve):
     # NB mag_ab
     NB_mag_ab = line_phot_kern._flux_density_hz_to_mag_ab(NB_flux_density_filter_hz)
     assert NB_mag_ab > 15
+
+    # brighter in narrow-band vs. broad-band
+    assert NB_mag_ab < BB_mag_ab
 
     # calculate mag_ab with minimal use of line_phot_kern.py functions
     d_L = COSMO.luminosity_distance(REDSHIFT).to("cm").value  # Mpc to cm
