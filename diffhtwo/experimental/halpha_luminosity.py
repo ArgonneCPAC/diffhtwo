@@ -5,6 +5,8 @@ from dsps.utils import cumulative_mstar_formed
 from jax import jit as jjit
 from jax import vmap
 
+from .utils import safe_log10
+
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
@@ -50,12 +52,6 @@ get_L_halpha_vmap = jjit(
         out_axes=(0, 0),
     )
 )
-
-
-@jjit
-def safe_log10(x):
-    EPS = 1e-12
-    return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
 
 
 @jjit

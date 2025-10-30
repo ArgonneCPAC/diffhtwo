@@ -3,6 +3,7 @@ from jax import jit as jjit
 from jax import vmap
 
 from .defaults import C_ANGSTROMS
+from .utils import safe_log10
 
 
 @jjit
@@ -22,7 +23,7 @@ def _flux_density_aa_to_hz(flux_density_aa, wave_obs_aa):
 
 @jjit
 def _flux_density_hz_to_mag_ab(flux_density_hz):
-    return -2.5 * jnp.log10(flux_density_hz) - 48.6
+    return -2.5 * safe_log10(flux_density_hz) - 48.6
 
 
 @jjit
