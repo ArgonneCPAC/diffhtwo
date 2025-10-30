@@ -1,7 +1,6 @@
 import jax.numpy as jnp
 from jax import jit as jjit
 from jax import vmap
-from jax.debug import print
 
 from .defaults import C_ANGSTROMS
 
@@ -59,8 +58,6 @@ def line_mag(line_obs_aa, line_L_cgs, redshift, d_L, tcurve_wave_aa, tcurve_tran
 
     # flux_density_hz
     flux_density_filter_hz = _flux_density_aa_to_hz(flux_density_filter_AA, line_obs_aa)
-
-    print("flux_density_filter_hz:{}", flux_density_filter_hz)
 
     # mag_ab
     mag_ab = _flux_density_hz_to_mag_ab(flux_density_filter_hz)
