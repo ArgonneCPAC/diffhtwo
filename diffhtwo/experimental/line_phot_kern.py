@@ -23,7 +23,9 @@ def _flux_density_aa_to_hz(flux_density_aa, wave_obs_aa):
 
 @jjit
 def _flux_density_hz_to_mag_ab(flux_density_hz):
-    return -2.5 * safe_log10(flux_density_hz) - 48.6
+    valid = flux_density_hz > 0.0
+    flux_density_mag_ab = jnp.where(valid, -2.5 * jnp.log10(flux_density_hz) - 48.6, 0)
+    return flux_density_mag_ab
 
 
 @jjit
