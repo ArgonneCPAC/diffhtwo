@@ -1,11 +1,11 @@
 from collections import namedtuple
 
 import jax.numpy as jnp
+from diffsky import diffndhist
 from jax import jit as jjit
 from jax import vmap
 
 from .defaults import C_ANGSTROMS
-from .utils import safe_log10
 
 
 @jjit
@@ -123,3 +123,28 @@ def get_band_mag_ab_from_luminosity(
     )
 
     return band_mag_ab
+
+
+@jjit
+def band_mag_hist_weighted(mag_ab_tuple, sig, L_tuple, nhalos, mag_lo, mag_hi):
+    band_mag_weighted_q = diffndhist.tw_ndhist_weighted(
+        mag_ab_tuple.band_mag_ab_q, sig, L_tuple.weights_q * nhalos, mag_lo, mag_hi
+    )
+
+    band_mag_weighted_smooth_ms = diffndhist.tw_ndhist_weighted(
+        mag_ab_tuple.band_mag_ab_smooth_ms,
+        sig,
+        L_tuple.weights_smooth_ms * nhalos,
+        mag_lo,
+        mag_hi,
+    )
+
+    band_mag_weighted_bursty_ms = diffndhist.tw_ndhist_weighted(
+        mag_ab_tuple.band_mag_ab_bursty_ms,
+        sig,
+        L_tuple.weights_bursty_ms * nhalos,
+        mag_lo,
+        mag_hi,
+    )
+
+    return band_mag_weighted_q, band_mag_weighted_smooth_ms, band_mag_weighted_bursty_ms
