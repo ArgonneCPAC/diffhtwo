@@ -93,6 +93,7 @@ BAND_MAG_EMPTY = BAND_MAG._make([None] * len(BAND_MAG._fields))
 def get_band_mag_ab_from_luminosity(
     obs_aa, L_tuple, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
 ):
+    ngals = obs_aa.size
     band_mag_ab_q = line_mag_vmap(
         obs_aa, L_tuple.halpha_L_cgs_q, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
     )
@@ -116,9 +117,9 @@ def get_band_mag_ab_from_luminosity(
     )
 
     band_mag_ab = BAND_MAG_EMPTY._replace(
-        band_mag_ab_q=band_mag_ab_q,
-        band_mag_ab_smooth_ms=band_mag_ab_smooth_ms,
-        band_mag_ab_bursty_ms=band_mag_ab_bursty_ms,
+        band_mag_ab_q=band_mag_ab_q.reshape(ngals, 1),
+        band_mag_ab_smooth_ms=band_mag_ab_smooth_ms.reshape(ngals, 1),
+        band_mag_ab_bursty_ms=band_mag_ab_bursty_ms.reshape(ngals, 1),
     )
 
     return band_mag_ab
