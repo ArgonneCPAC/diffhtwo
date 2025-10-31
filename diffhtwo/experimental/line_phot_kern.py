@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import jax.numpy as jnp
 from jax import jit as jjit
 from jax import vmap
@@ -78,16 +80,24 @@ line_mag_vmap = jjit(
     )
 )
 
+_BAND_MAG_RET_KEYS = (
+    "band_mag_ab_q",
+    "band_mag_ab_smooth_ms",
+    "band_mag_ab_bursty_ms",
+)
+BAND_MAG = namedtuple("BAND_MAG", _BAND_MAG_RET_KEYS)
+BAND_MAG_EMPTY = BAND_MAG._make([None] * len(BAND_MAG._fields))
+
 
 @jjit
-def get_band_mag_from_luminosity(
+def get_band_mag_ab_from_luminosity(
     obs_aa, L_tuple, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
 ):
-    band_mag_q = line_mag_vmap(
+    band_mag_ab_q = line_mag_vmap(
         obs_aa, L_tuple.halpha_L_cgs_q, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
     )
 
-    band_mag_smooth_ms = line_mag_vmap(
+    band_mag_ab_smooth_ms = line_mag_vmap(
         obs_aa,
         L_tuple.halpha_L_cgs_smooth_ms,
         z_obs,
@@ -96,7 +106,7 @@ def get_band_mag_from_luminosity(
         tcurve_trans,
     )
 
-    band_mag_bursty_ms = line_mag_vmap(
+    band_mag_ab_bursty_ms = line_mag_vmap(
         obs_aa,
         L_tuple.halpha_L_cgs_bursty_ms,
         z_obs,
@@ -105,4 +115,10 @@ def get_band_mag_from_luminosity(
         tcurve_trans,
     )
 
-    return band_mag_q, band_mag_smooth_ms, band_mag_bursty_ms
+    band_mag_ab = BAND_MAG_EMPTY._replace(
+        band_mag_ab_q=band_mag_ab_q,
+        band_mag_ab_smooth_ms=band_mag_ab_smooth_ms,
+        band_mag_ab_bursty_ms=band_mag_ab_bursty_ms,
+    )
+
+    return band_mag_ab
