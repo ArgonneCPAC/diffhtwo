@@ -1,5 +1,9 @@
+from collections import namedtuple
+
 import jax.numpy as jnp
+from diffsky import diffndhist
 from jax import jit as jjit
+from jax import vmap
 
 from .defaults import C_ANGSTROMS
 
@@ -21,7 +25,11 @@ def _flux_density_aa_to_hz(flux_density_aa, wave_obs_aa):
 
 @jjit
 def _flux_density_hz_to_mag_ab(flux_density_hz):
-    return -2.5 * jnp.log10(flux_density_hz) - 48.6
+    valid = flux_density_hz > 0.0
+    flux_density_mag_ab = jnp.where(
+        valid, -2.5 * jnp.log10(flux_density_hz) - 48.6, 999
+    )
+    return flux_density_mag_ab
 
 
 @jjit
@@ -36,3 +44,107 @@ def flux_density_filter_aa(
     line_app_flux_band_cgs = trans_at_line * line_app_flux_cgs
 
     return line_app_flux_band_cgs / tcurve_equivalent_width_aa
+
+
+@jjit
+def line_mag(line_obs_aa, line_L_cgs, redshift, d_L, tcurve_wave_aa, tcurve_trans):
+    # forward model line flux
+    line_flux_app_cgs = _flux_app_from_luminosity(line_L_cgs, redshift, d_L)
+
+    # equivalent_width
+    equivalent_width_aa = _tcurve_equivalent_width(tcurve_wave_aa, tcurve_trans)
+
+    # flux_density_aa
+    flux_density_filter_AA = flux_density_filter_aa(
+        line_obs_aa,
+        line_flux_app_cgs,
+        tcurve_wave_aa,
+        tcurve_trans,
+        equivalent_width_aa,
+    )
+
+    # flux_density_hz
+    flux_density_filter_hz = _flux_density_aa_to_hz(flux_density_filter_AA, line_obs_aa)
+
+    # mag_ab
+    mag_ab = _flux_density_hz_to_mag_ab(flux_density_filter_hz)
+
+    return mag_ab
+
+
+_M = (0, 0, 0, 0, None, None)
+line_mag_vmap = jjit(
+    vmap(
+        line_mag,
+        in_axes=_M,
+    )
+)
+
+_BAND_MAG_RET_KEYS = (
+    "band_mag_ab_q",
+    "band_mag_ab_smooth_ms",
+    "band_mag_ab_bursty_ms",
+)
+BAND_MAG = namedtuple("BAND_MAG", _BAND_MAG_RET_KEYS)
+BAND_MAG_EMPTY = BAND_MAG._make([None] * len(BAND_MAG._fields))
+
+
+@jjit
+def get_band_mag_ab_from_luminosity(
+    obs_aa, L_tuple, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
+):
+    ngals = obs_aa.size
+    band_mag_ab_q = line_mag_vmap(
+        obs_aa, L_tuple.halpha_L_cgs_q, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
+    )
+
+    band_mag_ab_smooth_ms = line_mag_vmap(
+        obs_aa,
+        L_tuple.halpha_L_cgs_smooth_ms,
+        z_obs,
+        d_L_cm,
+        tcurve_wave_aa,
+        tcurve_trans,
+    )
+
+    band_mag_ab_bursty_ms = line_mag_vmap(
+        obs_aa,
+        L_tuple.halpha_L_cgs_bursty_ms,
+        z_obs,
+        d_L_cm,
+        tcurve_wave_aa,
+        tcurve_trans,
+    )
+
+    band_mag_ab = BAND_MAG_EMPTY._replace(
+        band_mag_ab_q=band_mag_ab_q.reshape(ngals, 1),
+        band_mag_ab_smooth_ms=band_mag_ab_smooth_ms.reshape(ngals, 1),
+        band_mag_ab_bursty_ms=band_mag_ab_bursty_ms.reshape(ngals, 1),
+    )
+
+    return band_mag_ab
+
+
+@jjit
+def band_mag_hist_weighted(mag_ab_tuple, sig, L_tuple, nhalos, mag_lo, mag_hi):
+    band_mag_weighted_q = diffndhist.tw_ndhist_weighted(
+        mag_ab_tuple.band_mag_ab_q, sig, L_tuple.weights_q * nhalos, mag_lo, mag_hi
+    )
+
+    band_mag_weighted_smooth_ms = diffndhist.tw_ndhist_weighted(
+        mag_ab_tuple.band_mag_ab_smooth_ms,
+        sig,
+        L_tuple.weights_smooth_ms * nhalos,
+        mag_lo,
+        mag_hi,
+    )
+
+    band_mag_weighted_bursty_ms = diffndhist.tw_ndhist_weighted(
+        mag_ab_tuple.band_mag_ab_bursty_ms,
+        sig,
+        L_tuple.weights_bursty_ms * nhalos,
+        mag_lo,
+        mag_hi,
+    )
+
+    return band_mag_weighted_q, band_mag_weighted_smooth_ms, band_mag_weighted_bursty_ms

@@ -1,10 +1,27 @@
+import jax.numpy as jnp
 import numpy as np
+from astropy import units as u
 from astropy.cosmology import FlatLambdaCDM
+from diffsky.experimental import mc_lightcone_halos as mclh
+from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
+from diffsky.param_utils import spspop_param_utils as spspu
+from diffstar.defaults import T_TABLE_MIN
+from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+from dsps.cosmology import flat_wcdm
+from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
+from dsps.data_loaders import retrieve_fake_fsps_data
+from dsps.metallicity import umzr
+from jax import random as jran
 
 from .. import line_phot_kern
 from ..data_loaders import retrieve_fake_fsps_halpha, retrieve_tcurves
 from ..defaults import C_ANGSTROMS, HALPHA_CENTER_AA
+from ..diffstarpop_halpha import (
+    diffstarpop_halpha_kern,
+    diffstarpop_halpha_lf_weighted_lc_weighted,
+)
 
+ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 
 HALPHA_LUMINOSITY_CGS = 1e42
@@ -16,6 +33,9 @@ REDSHIFT = 0.4035
 HALPHA_OBS_AA = HALPHA_CENTER_AA * (1 + REDSHIFT)
 COSMO = FlatLambdaCDM(H0=70, Om0=0.3, Ob0=0.0474, Tcmb0=2.7255)
 D_L = COSMO.luminosity_distance(REDSHIFT).to("cm").value  # Mpc to cm
+
+DISTANCE_MPC = 1 * u.Mpc
+MPC_TO_CM = DISTANCE_MPC.to(u.cm).value
 
 
 SXDS_z_tcurve = retrieve_tcurves.SXDS_z
@@ -102,3 +122,77 @@ def test_line_phot_kern(BB_tcurve=SXDS_z_tcurve, NB_tcurve=HSC_NB921_tcurve):
     BB_mag_ab_check = -2.5 * np.log10(numerator / denominator) - 48.6
 
     assert np.isclose(BB_mag_ab, BB_mag_ab_check)
+
+
+def test_line_mag_vmap():
+    ran_key = jran.key(0)
+    ran_key, lc_key = jran.split(ran_key, 2)
+
+    lgmp_min = 12.0
+    z_min, z_max = 0.2, 0.5
+    sky_area_degsq = 1
+
+    """weighted mc lightcone"""
+    num_halos = 500
+    lgmp_max = 15.0
+    args = (lc_key, num_halos, z_min, z_max, lgmp_min, lgmp_max, sky_area_degsq)
+    lc_halopop = mclh.mc_weighted_halo_lightcone(*args)
+
+    n_z_phot_table = 15
+    z_phot_table = np.linspace(z_min, z_max, n_z_phot_table)
+
+    z_obs = jnp.array(lc_halopop["z_obs"])
+    t_obs = lc_halopop["t_obs"]
+    mah_params = lc_halopop["mah_params"]
+    # logmp0 = lc_halopop["logmp0"]
+    logmp0 = lc_halopop["logmp0"]
+    nhalos = lc_halopop["nhalos"]
+    t_0 = flat_wcdm.age_at_z0(*DEFAULT_COSMOLOGY)
+    lgt0 = np.log10(t_0)
+
+    t_table = np.linspace(T_TABLE_MIN, 10**lgt0, 100)
+
+    mzr_params = umzr.DEFAULT_MZR_PARAMS
+
+    spspop_params = spspu.DEFAULT_SPSPOP_PARAMS
+    scatter_params = DEFAULT_SCATTER_PARAMS
+
+    ran_key, dpop_halpha_true_key = jran.split(ran_key, 2)
+    args = (
+        DEFAULT_DIFFSTARPOP_PARAMS,
+        dpop_halpha_true_key,
+        z_obs,
+        t_obs,
+        mah_params,
+        logmp0,
+        t_table,
+        ssp_data,
+        ssp_halpha_line_luminosity,
+        z_phot_table,
+        mzr_params,
+        spspop_params,
+        scatter_params,
+    )
+    halpha_L_true = diffstarpop_halpha_kern(*args)
+
+    (
+        lgL_bin_edges,
+        halpha_lf_weighted_q_true,
+        halpha_lf_weighted_smooth_ms_true,
+        halpha_lf_weighted_bursty_ms_true,
+    ) = diffstarpop_halpha_lf_weighted_lc_weighted(halpha_L_true, nhalos)
+
+    halpha_obs_aa = HALPHA_CENTER_AA * (1 + z_obs)
+    d_L_Mpc = COSMO.luminosity_distance(z_obs)
+    d_L_cm = d_L_Mpc * MPC_TO_CM
+
+    SXDS_z_wave_aa = SXDS_z_tcurve[:, 0]
+    SXDS_z_trans = SXDS_z_tcurve[:, 1]
+
+    SXDS_z_mag_ab = line_phot_kern.get_band_mag_ab_from_luminosity(
+        halpha_obs_aa, halpha_L_true, z_obs, d_L_cm, SXDS_z_wave_aa, SXDS_z_trans
+    )
+
+    assert np.isfinite(SXDS_z_mag_ab.band_mag_ab_q).all()
+    assert np.isfinite(SXDS_z_mag_ab.band_mag_ab_smooth_ms).all()
+    assert np.isfinite(SXDS_z_mag_ab.band_mag_ab_bursty_ms).all()
