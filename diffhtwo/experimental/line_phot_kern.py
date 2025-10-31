@@ -77,3 +77,32 @@ line_mag_vmap = jjit(
         in_axes=_M,
     )
 )
+
+
+@jjit
+def get_band_mag_from_luminosity(
+    obs_aa, L_tuple, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
+):
+    band_mag_q = line_mag_vmap(
+        obs_aa, L_tuple.halpha_L_cgs_q, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
+    )
+
+    band_mag_smooth_ms = line_mag_vmap(
+        obs_aa,
+        L_tuple.halpha_L_cgs_smooth_ms,
+        z_obs,
+        d_L_cm,
+        tcurve_wave_aa,
+        tcurve_trans,
+    )
+
+    band_mag_bursty_ms = line_mag_vmap(
+        obs_aa,
+        L_tuple.halpha_L_cgs_bursty_ms,
+        z_obs,
+        d_L_cm,
+        tcurve_wave_aa,
+        tcurve_trans,
+    )
+
+    return band_mag_q, band_mag_smooth_ms, band_mag_bursty_ms
