@@ -183,7 +183,7 @@ def test_line_mag_vmap():
     ) = diffstarpop_halpha_lf_weighted_lc_weighted(halpha_L_true, nhalos)
 
     halpha_obs_aa = HALPHA_CENTER_AA * (1 + z_obs)
-    d_L_Mpc = DEFAULT_COSMOLOGY.luminosity_distance(z_obs)
+    d_L_Mpc = COSMO.luminosity_distance(z_obs)
     d_L_cm = d_L_Mpc * MPC_TO_CM
 
     SXDS_z_wave_aa = SXDS_z_tcurve[:, 0]
