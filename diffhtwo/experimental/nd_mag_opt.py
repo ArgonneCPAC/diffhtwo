@@ -1,6 +1,10 @@
 from functools import partial
 
 import jax.numpy as jnp
+from diffsky.param_utils.spspop_param_utils import (
+    DEFAULT_SPSPOP_U_PARAMS,
+    get_bounded_spspop_params_tw_dust,
+)
 from diffstar.diffstarpop import get_bounded_diffstarpop_params
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from jax import jit as jjit
@@ -10,7 +14,10 @@ from jax.flatten_util import ravel_pytree
 
 from .nd_mag import nd_mag_kern
 
-u_theta_default, u_unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
+u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
+    DEFAULT_DIFFSTARPOP_U_PARAMS
+)
+u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
 
 
 @jjit
@@ -21,6 +28,7 @@ def _mse(nd_pred, nd_target):
 @jjit
 def _loss_kern(
     u_diffstarpop_theta,
+    u_spspop_theta,
     nd_target,
     ran_key,
     lc_halopop,
@@ -30,20 +38,22 @@ def _loss_kern(
     z_phot_table,
     wave_eff_table,
     mzr_params,
-    spspop_params,
     scatter_params,
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
 ):
-    # back to structured params and do the usual
-    u_diffstarpop_params = u_unravel_fn(u_diffstarpop_theta)
-
-    # convert to bounded params
+    # back to diffstarpop namedtuple u_params and then convert to bounded params
+    u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
     diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+    # back to spspop namedtuple u_params and then convert to bounded params
+    u_spspop_params = u_spspop_unravel(u_spspop_theta)
+    spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
     nd_model = nd_mag_kern(
         diffstarpop_params,
+        spspop_params,
         ran_key,
         lc_halopop,
         t_table,
@@ -52,7 +62,6 @@ def _loss_kern(
         z_phot_table,
         wave_eff_table,
         mzr_params,
-        spspop_params,
         scatter_params,
         ssp_err_pop_params,
         tcurves,
@@ -68,6 +77,7 @@ loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
 @partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_nd(
     u_diffstarpop_theta_init,
+    u_spspop_theta_init,
     nd_target,
     ran_key,
     lc_halopop,
@@ -77,7 +87,6 @@ def fit_nd(
     z_phot_table,
     wave_eff_table,
     mzr_params,
-    spspop_params,
     scatter_params,
     ssp_err_pop_params,
     tcurves,
@@ -86,7 +95,8 @@ def fit_nd(
     step_size=0.1,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
-    opt_state = opt_init(u_diffstarpop_theta_init)
+    u_theta_init = (u_diffstarpop_theta_init, u_spspop_theta_init)
+    opt_state = opt_init(u_theta_init)
 
     other = (
         nd_target,
@@ -98,7 +108,6 @@ def fit_nd(
         z_phot_table,
         wave_eff_table,
         mzr_params,
-        spspop_params,
         scatter_params,
         ssp_err_pop_params,
         tcurves,
@@ -106,18 +115,20 @@ def fit_nd(
     )
 
     def _opt_update(opt_state, i):
-        u_diffstarpop_theta = get_params(opt_state)
-        loss, grads = loss_and_grad_fn(u_diffstarpop_theta, *other)
+        u_diffstarpop_theta, u_spspop_theta = get_params(opt_state)
+        loss, grads = loss_and_grad_fn(u_diffstarpop_theta, u_spspop_theta, *other)
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
 
     opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
-    u_diffstarpop_theta_fit = get_params(opt_state)
+    u_diffstarpop_theta_fit, u_spspop_theta_fit = get_params(opt_state)
 
     # back to structured params and do the usual
-    u_diffstarpop_params_fit = u_unravel_fn(u_diffstarpop_theta_fit)
+    u_diffstarpop_params_fit = u_diffstarpop_unravel(u_diffstarpop_theta_fit)
+    u_spspop_params_fit = u_spspop_unravel(u_spspop_theta_fit)
 
     # convert to bounded params
     diffstarpop_params_fit = get_bounded_diffstarpop_params(u_diffstarpop_params_fit)
+    spspop_params_fit = get_bounded_spspop_params_tw_dust(u_spspop_params_fit)
 
-    return loss_hist, diffstarpop_params_fit
+    return loss_hist, diffstarpop_params_fit, spspop_params_fit

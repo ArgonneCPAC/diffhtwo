@@ -7,6 +7,7 @@ from jax import jit as jjit
 @jjit
 def nd_mag_kern(
     diffstarpop_params,
+    spspop_params,
     ran_key,
     lc_halopop,
     t_table,
@@ -15,7 +16,6 @@ def nd_mag_kern(
     z_phot_table,
     wave_eff_table,
     mzr_params,
-    spspop_params,
     scatter_params,
     ssp_err_pop_params,
     tcurves,
@@ -53,6 +53,10 @@ def nd_mag_kern(
         diffstarpop_params,  # Diffstarpop params
         mzr_params,
         spspop_params,
+        # spspop_params:
+        # Diffburstpop = DiffburstPopParams(freqburst_params,
+        #                   fburstpop_params, tburstpop_params)
+        # Dustpop =
         scatter_params,
         ssp_err_pop_params,
     )
