@@ -93,6 +93,7 @@ def fit_nd(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
+    dmag,
     n_steps=2,
     step_size=0.1,
 ):
@@ -113,6 +114,7 @@ def fit_nd(
         ssp_err_pop_params,
         tcurves,
         lh_centroids,
+        dmag,
     )
 
     def _opt_update(opt_state, i):
