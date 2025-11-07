@@ -77,7 +77,7 @@ def _loss_kern(
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
 
 
-@partial(jjit, static_argnames=["n_steps", "step_size"])
+@partial(jjit, static_argnames=["dmag", "n_steps", "step_size"])
 def fit_nd(
     u_theta_init,
     nd_target,
