@@ -93,7 +93,7 @@ def fit_nd(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
-    dmag,
+    dmag=0.2,
     n_steps=2,
     step_size=0.1,
 ):
