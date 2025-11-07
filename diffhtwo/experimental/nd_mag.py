@@ -6,7 +6,7 @@ from diffsky.experimental import lc_phot_kern
 from jax import jit as jjit
 
 
-@partial(jjit, static_argnames=["dmag"])
+@jjit
 def nd_mag_kern(
     diffstarpop_params,
     spspop_params,

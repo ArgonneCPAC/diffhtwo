@@ -25,7 +25,7 @@ def _mse(nd_pred, nd_target):
     return jnp.mean(jnp.square(nd_pred - nd_target))
 
 
-@partial(jjit, static_argnames=["dmag"])
+@jjit
 def _loss_kern(
     u_theta,
     nd_target,
@@ -77,7 +77,7 @@ def _loss_kern(
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
 
 
-@partial(jjit, static_argnames=["dmag", "n_steps", "step_size"])
+@partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_nd(
     u_theta_init,
     nd_target,
@@ -93,7 +93,7 @@ def fit_nd(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
-    dmag=0.2,
+    dmag,
     n_steps=2,
     step_size=0.1,
 ):
