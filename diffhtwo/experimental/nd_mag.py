@@ -1,10 +1,12 @@
+from functools import partial
+
 import jax.numpy as jnp
 from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
 from jax import jit as jjit
 
 
-@jjit
+@partial(jjit, static_argnames=["dmag"])
 def nd_mag_kern(
     diffstarpop_params,
     spspop_params,
@@ -20,6 +22,7 @@ def nd_mag_kern(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
+    dmag=0.1,
 ):
     """Kernel for calculating number density in 4D mag space based on diffstarpop/bursty/dust parameters
 
@@ -50,7 +53,7 @@ def nd_mag_kern(
         precomputed_ssp_mag_table,
         z_phot_table,
         wave_eff_table,
-        diffstarpop_params,  # Diffstarpop params
+        diffstarpop_params,
         mzr_params,
         spspop_params,
         # spspop_params:
@@ -67,24 +70,24 @@ def nd_mag_kern(
         lc_phot.obs_mags_q,
         sig,
         lc_phot.weights_q * lc_halopop["nhalos"],
-        lh_centroids - 0.1,
-        lh_centroids + 0.1,
+        lh_centroids - (dmag / 2),
+        lh_centroids + (dmag / 2),
     )
 
     nd_smooth_ms = diffndhist.tw_ndhist_weighted(
         lc_phot.obs_mags_smooth_ms,
         sig,
         lc_phot.weights_smooth_ms * lc_halopop["nhalos"],
-        lh_centroids - 0.1,
-        lh_centroids + 0.1,
+        lh_centroids - (dmag / 2),
+        lh_centroids + (dmag / 2),
     )
 
     nd_bursty_ms = diffndhist.tw_ndhist_weighted(
         lc_phot.obs_mags_bursty_ms,
         sig,
         lc_phot.weights_bursty_ms * lc_halopop["nhalos"],
-        lh_centroids - 0.1,
-        lh_centroids + 0.1,
+        lh_centroids - (dmag / 2),
+        lh_centroids + (dmag / 2),
     )
 
     nd_model = nd_q + nd_smooth_ms + nd_bursty_ms
