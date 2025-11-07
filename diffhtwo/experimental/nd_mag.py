@@ -1,5 +1,3 @@
-from functools import partial
-
 import jax.numpy as jnp
 from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
@@ -66,28 +64,32 @@ def nd_mag_kern(
     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
 
     sig = jnp.zeros(lc_phot.obs_mags_q.shape) + 0.01
+
+    lh_centroids_lo = lh_centroids - (dmag / 2)
+    lh_centroids_hi = lh_centroids + (dmag / 2)
+
     nd_q = diffndhist.tw_ndhist_weighted(
         lc_phot.obs_mags_q,
         sig,
         lc_phot.weights_q * lc_halopop["nhalos"],
-        lh_centroids - (dmag / 2),
-        lh_centroids + (dmag / 2),
+        lh_centroids_lo,
+        lh_centroids_hi,
     )
 
     nd_smooth_ms = diffndhist.tw_ndhist_weighted(
         lc_phot.obs_mags_smooth_ms,
         sig,
         lc_phot.weights_smooth_ms * lc_halopop["nhalos"],
-        lh_centroids - (dmag / 2),
-        lh_centroids + (dmag / 2),
+        lh_centroids_lo,
+        lh_centroids_hi,
     )
 
     nd_bursty_ms = diffndhist.tw_ndhist_weighted(
         lc_phot.obs_mags_bursty_ms,
         sig,
         lc_phot.weights_bursty_ms * lc_halopop["nhalos"],
-        lh_centroids - (dmag / 2),
-        lh_centroids + (dmag / 2),
+        lh_centroids_lo,
+        lh_centroids_hi,
     )
 
     nd_model = nd_q + nd_smooth_ms + nd_bursty_ms
