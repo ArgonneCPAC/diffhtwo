@@ -59,6 +59,7 @@ def _loss_kern(
         spspop_params,
         ran_key,
         lc_halopop,
+        lc_vol,
         t_table,
         ssp_data,
         precomputed_ssp_mag_table,
@@ -71,7 +72,6 @@ def _loss_kern(
         lh_centroids,
         dmag,
     )
-    nd_model = nd_model / lc_vol
 
     return _mse(nd_model, nd_target)
 
