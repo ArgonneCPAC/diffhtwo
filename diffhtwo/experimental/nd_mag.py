@@ -25,19 +25,19 @@ def nd_mag_kern(
 ):
     """Kernel for calculating number density in 4D mag space based on diffstarpop/bursty/dust parameters
 
-     Parameters
-     ----------
+    Parameters
+    ----------
     lc_halopop : dict of halo lightcone output of
                  diffsky.experimental.mc_lightcone_halos.mc_weighted_halo_lightcone()
 
-     tcurves : list of dsps.data_loaders.defaults.TransmissionCurve objects
+    tcurves : list of dsps.data_loaders.defaults.TransmissionCurve objects
 
-     lh_centroids: Latin Hypercube centroids in 4D mag space based on data
+    lh_centroids: Latin Hypercube centroids in 4D mag space based on data
                      array with shape (n_centroids, n_dim)
 
-     Returns
-     -------
-     nd : array of number counts weighted by pop fracs and nhalos in n_centroids bins centered on lh_centroids
+    Returns
+    -------
+    nd : array of number counts weighted by pop fracs and nhalos in n_centroids bins centered on lh_centroids
              shape (n_centroids,)
     """
 
@@ -63,6 +63,30 @@ def nd_mag_kern(
         ssp_err_pop_params,
     )
     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
+
+    lc_phot.obs_mag_q[1] = lc_phot.obs_mag_q[0] - lc_phot.obs_mag_q[1]
+    lc_phot.obs_mag_q[2] = lc_phot.obs_mag_q[0] - lc_phot.obs_mag_q[2]
+    lc_phot.obs_mag_q[3] = lc_phot.obs_mag_q[0] - lc_phot.obs_mag_q[3]
+
+    lc_phot.obs_mag_smooth_ms[1] = (
+        lc_phot.obs_mag_smooth_ms[0] - lc_phot.obs_mag_smooth_ms[1]
+    )
+    lc_phot.obs_mag_smooth_ms[2] = (
+        lc_phot.obs_mag_smooth_ms[0] - lc_phot.obs_mag_smooth_ms[2]
+    )
+    lc_phot.obs_mag_smooth_ms[3] = (
+        lc_phot.obs_mag_smooth_ms[0] - lc_phot.obs_mag_smooth_ms[3]
+    )
+
+    lc_phot.obs_mag_bursty_ms[1] = (
+        lc_phot.obs_mag_bursty_ms[0] - lc_phot.obs_mag_bursty_ms[1]
+    )
+    lc_phot.obs_mag_bursty_ms[2] = (
+        lc_phot.obs_mag_bursty_ms[0] - lc_phot.obs_mag_bursty_ms[2]
+    )
+    lc_phot.obs_mag_bursty_ms[3] = (
+        lc_phot.obs_mag_bursty_ms[0] - lc_phot.obs_mag_bursty_ms[3]
+    )
 
     sig = jnp.zeros(lc_phot.obs_mags_q.shape) + 0.01
 
