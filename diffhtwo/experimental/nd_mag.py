@@ -10,6 +10,7 @@ def nd_mag_kern(
     spspop_params,
     ran_key,
     lc_halopop,
+    lc_vol,
     t_table,
     ssp_data,
     precomputed_ssp_mag_table,
@@ -92,6 +93,6 @@ def nd_mag_kern(
         lh_centroids_hi,
     )
 
-    nd_model = nd_q + nd_smooth_ms + nd_bursty_ms
+    nd_model = (nd_q + nd_smooth_ms + nd_bursty_ms) / lc_vol
 
     return nd_model
