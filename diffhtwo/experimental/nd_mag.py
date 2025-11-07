@@ -1,8 +1,10 @@
 import jax.numpy as jnp
 from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
+from jax import jit as jjit
 
 
+@jjit
 def nd_mag_kern(
     diffstarpop_params,
     ran_key,
