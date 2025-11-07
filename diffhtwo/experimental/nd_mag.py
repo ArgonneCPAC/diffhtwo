@@ -22,7 +22,7 @@ def nd_mag_kern(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
-    dmag=0.1,
+    dmag,
 ):
     """Kernel for calculating number density in 4D mag space based on diffstarpop/bursty/dust parameters
 

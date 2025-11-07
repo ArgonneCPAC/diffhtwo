@@ -25,7 +25,7 @@ def _mse(nd_pred, nd_target):
     return jnp.mean(jnp.square(nd_pred - nd_target))
 
 
-@jjit
+@partial(jjit, static_argnames=["dmag"])
 def _loss_kern(
     u_theta,
     nd_target,
@@ -41,6 +41,7 @@ def _loss_kern(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
+    dmag,
 ):
     u_diffstarpop_theta, u_spspop_theta = u_theta
 
@@ -67,6 +68,7 @@ def _loss_kern(
         ssp_err_pop_params,
         tcurves,
         lh_centroids,
+        dmag,
     )
 
     return _mse(nd_model, nd_target)
