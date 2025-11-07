@@ -8,7 +8,7 @@ from jax import lax, value_and_grad
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
-from .nd_mag_kern import nd_mag_kern
+from .nd_mag import nd_mag_kern
 
 u_theta_default, u_unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
 
