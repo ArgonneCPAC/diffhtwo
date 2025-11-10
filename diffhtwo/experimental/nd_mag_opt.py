@@ -21,6 +21,7 @@ from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
 from .nd_mag import nd_mag_kern
+from .utils import safe_log10
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
@@ -30,7 +31,9 @@ u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
 
 @jjit
 def _mse(nd_pred, nd_target):
-    return jnp.mean(jnp.square(nd_pred - nd_target))
+	lg_nd_pred = safe_log10(nd_pred)
+	lg_nd_target = safe_log10(nd_target)
+    return jnp.mean(jnp.square(lg_nd_pred - lg_nd_target))
 
 
 @jjit

@@ -5,6 +5,28 @@ from jax import jit as jjit
 
 
 @jjit
+def lupton_log10(t, log10_clip, t0=0.0, M0=0.0, alpha=1 / jnp.log(10.0)):
+    """Clipped base-10 log function taken from
+    https://github.com/ArgonneCPAC/shamnet/blob/d47c842bfc5ad751ad63d0b21100db709de52e58/shamnet/utils.py#L217C5-L217C17
+
+    Parameters
+    ----------
+    t : ndarray of shape (n, )
+
+    log10_clip : float
+        Returned values of t larger than log10_clip will agree with log10(t).
+        Values smaller than log10(t) will converge to 10**log10_clip.
+
+    Returns
+    -------
+    lup : ndarray of shape (n, )
+
+    """
+    k = 10.0**log10_clip
+    return M0 + alpha * (jnp.arcsinh((t - t0) / (2 * k)) + jnp.log(k))
+
+
+@jjit
 def safe_log10(x):
     EPS = 1e-12
     return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
