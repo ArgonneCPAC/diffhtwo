@@ -2,7 +2,6 @@ import jax.numpy as jnp
 from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
 from jax import jit as jjit
-from jax.debug import print
 
 
 @jjit

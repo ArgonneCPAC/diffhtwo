@@ -26,6 +26,11 @@ def _mse(nd_pred, nd_target):
 
 
 @jjit
+def _mae(nd_pred, nd_target):
+    return jnp.mean(jnp.abs(nd_pred - nd_target))
+
+
+@jjit
 def _loss_kern(
     u_theta,
     nd_target,
@@ -73,7 +78,7 @@ def _loss_kern(
         dmag,
     )
 
-    return _mse(nd_model, nd_target)
+    return _mae(nd_model, nd_target)
 
 
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
