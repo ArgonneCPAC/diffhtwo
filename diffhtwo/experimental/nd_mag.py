@@ -115,6 +115,6 @@ def nd_mag_kern(
         lh_centroids_hi,
     )
 
-    nd_model = nd_q + nd_smooth_ms + nd_bursty_ms
+    nd_model = (nd_q + nd_smooth_ms + nd_bursty_ms) / lc_vol
 
     return nd_model
