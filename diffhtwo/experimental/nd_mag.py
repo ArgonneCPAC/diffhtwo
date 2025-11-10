@@ -72,19 +72,23 @@ def nd_mag_kern(
     for band in range(1, n_bands):
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
-    mag_colors_q = mag_colors_q.T
+    mag_colors_q = mag_colors_q.T.reshape(mag_colors_q.T.size, 1)
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
     for band in range(1, n_bands):
         color = mag_colors_smooth_ms - lc_phot.obs_mags_smooth_ms[:, band]
         mag_colors_smooth_ms = jnp.vstack((mag_colors_smooth_ms, color))
-    mag_colors_smooth_ms = mag_colors_smooth_ms.T
+    mag_colors_smooth_ms = mag_colors_smooth_ms.T.reshape(
+        mag_colors_smooth_ms.T.size, 1
+    )
 
     mag_colors_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0]
     for band in range(1, n_bands):
         color = mag_colors_bursty_ms - lc_phot.obs_mags_bursty_ms[:, band]
         mag_colors_bursty_ms = jnp.vstack((mag_colors_bursty_ms, color))
-    mag_colors_bursty_ms = mag_colors_bursty_ms.T
+    mag_colors_bursty_ms = mag_colors_bursty_ms.T.reshape(
+        mag_colors_bursty_ms.T.size, 1
+    )
 
     # i_q = lc_phot.obs_mags_q[:, 0]
     # ig_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 1]
@@ -119,30 +123,30 @@ def nd_mag_kern(
     print("lc_phot.weights_q.shape:{}", lc_phot.weights_q.shape)
     print("lc_halopop['nhalos'].shape:{}", lc_halopop["nhalos"].shape)
 
-    # nd_q = diffndhist.tw_ndhist_weighted(
-    #     mag_colors_q,
-    #     sig,
-    #     lc_phot.weights_q * lc_halopop["nhalos"],
-    #     lh_centroids_lo,
-    #     lh_centroids_hi,
-    # )
+    nd_q = diffndhist.tw_ndhist_weighted(
+        mag_colors_q,
+        sig,
+        lc_phot.weights_q * lc_halopop["nhalos"],
+        lh_centroids_lo,
+        lh_centroids_hi,
+    )
 
-    # nd_smooth_ms = diffndhist.tw_ndhist_weighted(
-    #     mag_colors_smooth_ms,
-    #     sig,
-    #     lc_phot.weights_smooth_ms * lc_halopop["nhalos"],
-    #     lh_centroids_lo,
-    #     lh_centroids_hi,
-    # )
+    nd_smooth_ms = diffndhist.tw_ndhist_weighted(
+        mag_colors_smooth_ms,
+        sig,
+        lc_phot.weights_smooth_ms * lc_halopop["nhalos"],
+        lh_centroids_lo,
+        lh_centroids_hi,
+    )
 
-    # nd_bursty_ms = diffndhist.tw_ndhist_weighted(
-    #     mag_colors_bursty_ms,
-    #     sig,
-    #     lc_phot.weights_bursty_ms * lc_halopop["nhalos"],
-    #     lh_centroids_lo,
-    #     lh_centroids_hi,
-    # )
+    nd_bursty_ms = diffndhist.tw_ndhist_weighted(
+        mag_colors_bursty_ms,
+        sig,
+        lc_phot.weights_bursty_ms * lc_halopop["nhalos"],
+        lh_centroids_lo,
+        lh_centroids_hi,
+    )
 
-    # nd_model = (nd_q + nd_smooth_ms + nd_bursty_ms) / lc_vol
+    nd_model = (nd_q + nd_smooth_ms + nd_bursty_ms) / lc_vol
 
-    # return nd_model, mag_colors_q, mag_colors_smooth_ms, mag_colors_bursty_ms
+    return nd_model, mag_colors_q, mag_colors_smooth_ms, mag_colors_bursty_ms
