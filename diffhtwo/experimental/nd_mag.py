@@ -2,6 +2,7 @@ import jax.numpy as jnp
 from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
 from jax import jit as jjit
+from jax.debug import print
 
 
 @jjit
@@ -64,6 +65,11 @@ def nd_mag_kern(
         ssp_err_pop_params,
     )
     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
+
+    n_bands = len(tcurves)
+
+    for band in range(0, n_bands):
+        print("band:{}", band)
 
     i_q = lc_phot.obs_mags_q[:, 0]
     ig_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 1]
