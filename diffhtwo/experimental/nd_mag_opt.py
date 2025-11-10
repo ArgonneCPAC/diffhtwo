@@ -54,7 +54,7 @@ def _loss_kern(
     u_spspop_params = u_spspop_unravel(u_spspop_theta)
     spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-    nd_model = nd_mag_kern(
+    nd_model, _, _, _ = nd_mag_kern(
         diffstarpop_params,
         spspop_params,
         ran_key,
