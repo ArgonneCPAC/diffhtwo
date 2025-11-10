@@ -23,7 +23,8 @@ def nd_mag_kern(
     lh_centroids,
     dmag,
 ):
-    """Kernel for calculating number density in 4D mag space based on diffstarpop/bursty/dust parameters
+    """Kernel for calculating number density in 4D mag space based on
+    diffstarpop/bursty/dust parameters
 
     Parameters
     ----------
@@ -37,8 +38,8 @@ def nd_mag_kern(
 
     Returns
     -------
-    nd : array of number counts weighted by pop fracs and nhalos in n_centroids bins centered on lh_centroids
-             shape (n_centroids,)
+    nd : array of number counts weighted by pop fracs and nhalos in n_centroids bins
+            centered on lh_centroids shape (n_centroids,)
     """
 
     args = (
@@ -86,7 +87,7 @@ def nd_mag_kern(
         (i_bursty_ms, ig_bursty_ms, ir_bursty_ms, iz_bursty_ms)
     ).T
 
-    sig = jnp.zeros(lc_phot.obs_mags_q.shape) + 0.01
+    sig = jnp.zeros(lc_phot.obs_mags_q.shape) + 0.1
 
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
