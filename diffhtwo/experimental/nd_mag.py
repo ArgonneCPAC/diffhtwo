@@ -65,23 +65,23 @@ def nd_mag_kern(
     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
 
     i_q = lc_phot.obs_mags_q[:, 0]
-    ig_q = lc_phot.obs_mags_q[:, 1] - lc_phot.obs_mags_q[:, 0]
-    ir_q = lc_phot.obs_mags_q[:, 2] - lc_phot.obs_mags_q[:, 0]
-    iz_q = lc_phot.obs_mags_q[:, 3] - lc_phot.obs_mags_q[:, 0]
+    ig_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 1]
+    ir_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 2]
+    iz_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 3]
     colors_q = jnp.vstack((i_q, ig_q, ir_q, iz_q)).T
 
     i_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
-    ig_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 1] - lc_phot.obs_mags_smooth_ms[:, 0]
-    ir_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 2] - lc_phot.obs_mags_smooth_ms[:, 0]
-    iz_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 3] - lc_phot.obs_mags_smooth_ms[:, 0]
+    ig_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0] - lc_phot.obs_mags_smooth_ms[:, 1]
+    ir_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0] - lc_phot.obs_mags_smooth_ms[:, 2]
+    iz_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0] - lc_phot.obs_mags_smooth_ms[:, 3]
     colors_smooth_ms = jnp.vstack(
         (i_smooth_ms, ig_smooth_ms, ir_smooth_ms, iz_smooth_ms)
     ).T
 
     i_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0]
-    ig_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 1] - lc_phot.obs_mags_bursty_ms[:, 0]
-    ir_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 2] - lc_phot.obs_mags_bursty_ms[:, 0]
-    iz_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 3] - lc_phot.obs_mags_bursty_ms[:, 0]
+    ig_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0] - lc_phot.obs_mags_bursty_ms[:, 1]
+    ir_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0] - lc_phot.obs_mags_bursty_ms[:, 2]
+    iz_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0] - lc_phot.obs_mags_bursty_ms[:, 3]
     colors_bursty_ms = jnp.vstack(
         (i_bursty_ms, ig_bursty_ms, ir_bursty_ms, iz_bursty_ms)
     ).T
