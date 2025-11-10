@@ -141,6 +141,7 @@ def fit_nd(
         u_theta = get_params(opt_state)
         print("u_theta:{}", u_theta)
         loss, grads = loss_and_grad_fn(u_theta, *other)
+        print("loss:{}", loss)
         print("grads:{}", grads)
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
