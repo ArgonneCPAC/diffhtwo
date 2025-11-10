@@ -5,7 +5,6 @@ import jax
 jax.config.update("jax_enable_x64", True)
 jax.config.update("jax_debug_nans", True)
 jax.config.update("jax_debug_infs", True)
-
 from functools import partial
 
 import jax.numpy as jnp
@@ -17,6 +16,7 @@ from diffstar.diffstarpop import get_bounded_diffstarpop_params
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from jax import jit as jjit
 from jax import lax, value_and_grad
+from jax.debug import print
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
@@ -136,7 +136,9 @@ def fit_nd(
 
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
+        print("u_theta:{}", u_theta)
         loss, grads = loss_and_grad_fn(u_theta, *other)
+        print("grads:{}", grads)
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
 
