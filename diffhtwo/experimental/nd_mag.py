@@ -63,72 +63,34 @@ def nd_mag_kern(
         scatter_params,
         ssp_err_pop_params,
     )
+
     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
 
-    n_bands = len(tcurves)
+    n_centroids, n_bands = lh_centroids.shape
 
     mag_colors_q = lc_phot.obs_mags_q[:, 0]
-    # mag_colors_q = mag_colors_q.reshape(mag_colors_q.size, 1)
     for band in range(1, n_bands):
-        print("mag_colors_q.shape:{}", mag_colors_q.shape)
-        print("lc_phot.obs_mags_q[:, band].shape:{}", lc_phot.obs_mags_q[:, band].shape)
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
-    print("mag_colors_q.shape:{}", mag_colors_q.shape)
-    mag_colors_q = mag_colors_q.reshape(mag_colors_q.shape[0], n_bands)
-
-    # print("mag_colors_q.shape:{}", mag_colors_q.shape)
-    # mag_colors_q = mag_colors_q.T
+    mag_colors_q = mag_colors_q.reshape(n_centroids, n_bands)
+    print("mag_colors_q.shape={}", mag_colors_q.shape)
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
-    # mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(mag_colors_smooth_ms.size, 1)
     for band in range(1, n_bands):
         color = mag_colors_smooth_ms - lc_phot.obs_mags_smooth_ms[:, band]
         mag_colors_smooth_ms = jnp.vstack((mag_colors_smooth_ms, color))
-    mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(
-        mag_colors_smooth_ms.shape[0], n_bands
-    )
+    mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(n_centroids, n_bands)
 
     mag_colors_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0]
     for band in range(1, n_bands):
         color = mag_colors_bursty_ms - lc_phot.obs_mags_bursty_ms[:, band]
         mag_colors_bursty_ms = jnp.vstack((mag_colors_bursty_ms, color))
-    mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(
-        mag_colors_bursty_ms.shape[0], n_bands
-    )
-
-    # i_q = lc_phot.obs_mags_q[:, 0]
-    # ig_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 1]
-    # ir_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 2]
-    # iz_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 3]
-    # colors_q = jnp.vstack((i_q, ig_q, ir_q, iz_q)).T
-
-    # i_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
-    # ig_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0] - lc_phot.obs_mags_smooth_ms[:, 1]
-    # ir_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0] - lc_phot.obs_mags_smooth_ms[:, 2]
-    # iz_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0] - lc_phot.obs_mags_smooth_ms[:, 3]
-    # colors_smooth_ms = jnp.vstack(
-    #     (i_smooth_ms, ig_smooth_ms, ir_smooth_ms, iz_smooth_ms)
-    # ).T
-
-    # i_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0]
-    # ig_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0] - lc_phot.obs_mags_bursty_ms[:, 1]
-    # ir_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0] - lc_phot.obs_mags_bursty_ms[:, 2]
-    # iz_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0] - lc_phot.obs_mags_bursty_ms[:, 3]
-    # colors_bursty_ms = jnp.vstack(
-    #     (i_bursty_ms, ig_bursty_ms, ir_bursty_ms, iz_bursty_ms)
-    # ).T
+    mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(n_centroids, n_bands)
 
     sig = jnp.zeros(mag_colors_q.shape) + 0.1
 
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
-
-    # print("sig.shape:{}", sig.shape)
-    # print("lh_centroids.shape:{}", lh_centroids.shape)
-    # print("mag_colors_q.shape:{}", mag_colors_q.shape)
-    # print("lc_phot.weights_q.shape:{}", lc_phot.weights_q.shape)
-    # print("lc_halopop['nhalos'].shape:{}", lc_halopop["nhalos"].shape)
 
     nd_q = diffndhist.tw_ndhist_weighted(
         mag_colors_q,
