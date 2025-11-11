@@ -123,4 +123,6 @@ def nd_mag_kern(
 
     nd_model = (nd_q + nd_smooth_ms + nd_bursty_ms) / lc_vol
 
+    print("nd_model.shape= ", nd_model.shape)
+
     return nd_model
