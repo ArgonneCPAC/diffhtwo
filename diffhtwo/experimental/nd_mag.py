@@ -67,7 +67,7 @@ def nd_mag_kern(
     # shape = number of halos in lightcone
     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
 
-    n_bands, num_halos = len(tcurves), lc_phot.shape
+    n_bands, num_halos = len(tcurves), lc_phot.obs_mags_q.shape
     print("n_bands =", n_bands)
     print("num_halos =", num_halos)
 
