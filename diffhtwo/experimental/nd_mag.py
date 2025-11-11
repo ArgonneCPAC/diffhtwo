@@ -111,7 +111,7 @@ def nd_mag_kern(
     #     (i_bursty_ms, ig_bursty_ms, ir_bursty_ms, iz_bursty_ms)
     # ).T
 
-    sig = jnp.zeros(mag_colors_q.shape) + 0.0
+    sig = jnp.zeros(mag_colors_q.shape) + 0.1
 
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
