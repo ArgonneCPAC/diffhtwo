@@ -64,27 +64,30 @@ def nd_mag_kern(
         ssp_err_pop_params,
     )
 
+    # shape = number of halos in lightcone
     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
 
-    n_centroids, n_bands = lh_centroids.shape
+    n_bands, num_halos = len(tcurves), lc_phot.shape
+    print("n_bands =", n_bands)
+    print("num_halos =", num_halos)
 
     mag_colors_q = lc_phot.obs_mags_q[:, 0]
     for band in range(1, n_bands):
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
-    mag_colors_q = mag_colors_q.reshape(n_centroids, n_bands)
+    mag_colors_q = mag_colors_q.reshape(num_halos, n_bands)
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
     for band in range(1, n_bands):
         color = mag_colors_smooth_ms - lc_phot.obs_mags_smooth_ms[:, band]
         mag_colors_smooth_ms = jnp.vstack((mag_colors_smooth_ms, color))
-    mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(n_centroids, n_bands)
+    mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(num_halos, n_bands)
 
     mag_colors_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0]
     for band in range(1, n_bands):
         color = mag_colors_bursty_ms - lc_phot.obs_mags_bursty_ms[:, band]
         mag_colors_bursty_ms = jnp.vstack((mag_colors_bursty_ms, color))
-    mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(n_centroids, n_bands)
+    mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(num_halos, n_bands)
 
     sig = jnp.zeros(mag_colors_q.shape) + 0.1
 
