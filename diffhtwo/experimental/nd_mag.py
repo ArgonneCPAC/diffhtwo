@@ -34,7 +34,7 @@ def nd_mag_kern(
     tcurves : list of dsps.data_loaders.defaults.TransmissionCurve objects
 
     lh_centroids: Latin Hypercube centroids in 4D mag space based on data
-                     array with shape (n_centroids, n_dim)
+                     array with shape (n_centroids, n_bands)
 
     Returns
     -------
@@ -73,7 +73,6 @@ def nd_mag_kern(
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
     mag_colors_q = mag_colors_q.reshape(n_centroids, n_bands)
-    print("mag_colors_q.shape={}", mag_colors_q.shape)
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
     for band in range(1, n_bands):
@@ -91,6 +90,12 @@ def nd_mag_kern(
 
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
+
+    print("mag_colors_q.shape =", mag_colors_q.shape)
+    print("sig.shape =", sig.shape)
+    print("lh_centroids_lo.shape =", lh_centroids_lo.shape)
+    print("lc_phot.weights_q.shape =", lc_phot.weights_q.shape)
+    print("lc_halopop['nhalos'].shape =", lc_halopop["nhalos"].shape)
 
     nd_q = diffndhist.tw_ndhist_weighted(
         mag_colors_q,
