@@ -36,9 +36,10 @@ def _mse(nd_pred, nd_target):
     return jnp.mean(jnp.square(lg_nd_pred - lg_nd_target))
 
 
-@jjit
 def _mae(nd_pred, nd_target):
-    return jnp.mean(jnp.abs(nd_pred - nd_target))
+    lg_nd_pred = safe_log10(nd_pred, EPS=1e-24)
+    lg_nd_target = safe_log10(nd_target, EPS=1e-24)
+    return jnp.mean(jnp.abs(lg_nd_pred - lg_nd_target))
 
 
 @jjit
@@ -89,7 +90,7 @@ def _loss_kern(
         dmag,
     )
 
-    return _mse(nd_model, nd_target)
+    return _mae(nd_model, nd_target)
 
 
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
