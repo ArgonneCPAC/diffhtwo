@@ -70,9 +70,11 @@ def nd_mag_kern(
     mag_colors_q = lc_phot.obs_mags_q[:, 0]
     mag_colors_q = mag_colors_q.reshape(mag_colors_q.size, 1)
     for band in range(1, n_bands):
+        print("mag_colors_q.shape:{}", mag_colors_q.shape)
+        print("lc_phot.obs_mags_q[:, band].shape:{}", lc_phot.obs_mags_q[:, band].shape)
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
-    print("mag_colors_q.shape:{}", mag_colors_q.shape)
+    # print("mag_colors_q.shape:{}", mag_colors_q.shape)
     # mag_colors_q = mag_colors_q.T
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
