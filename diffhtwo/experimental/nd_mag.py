@@ -148,4 +148,4 @@ def nd_mag_kern(
 
     nd_model = (nd_q + nd_smooth_ms + nd_bursty_ms) / lc_vol
 
-    return nd_model, mag_colors_q, mag_colors_smooth_ms, mag_colors_bursty_ms
+    return nd_model
