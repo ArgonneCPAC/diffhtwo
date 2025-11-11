@@ -68,6 +68,7 @@ def nd_mag_kern(
     n_bands = len(tcurves)
 
     mag_colors_q = lc_phot.obs_mags_q[:, 0]
+    mag_colors_q = mag_colors_q.reshape(mag_colors_q.size, 1)
     for band in range(1, n_bands):
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
@@ -75,12 +76,14 @@ def nd_mag_kern(
     mag_colors_q = mag_colors_q.T
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
+    mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(mag_colors_smooth_ms.size, 1)
     for band in range(1, n_bands):
         color = mag_colors_smooth_ms - lc_phot.obs_mags_smooth_ms[:, band]
         mag_colors_smooth_ms = jnp.vstack((mag_colors_smooth_ms, color))
     mag_colors_smooth_ms = mag_colors_smooth_ms.T
 
     mag_colors_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0]
+    mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(mag_colors_bursty_ms.size, 1)
     for band in range(1, n_bands):
         color = mag_colors_bursty_ms - lc_phot.obs_mags_bursty_ms[:, band]
         mag_colors_bursty_ms = jnp.vstack((mag_colors_bursty_ms, color))
