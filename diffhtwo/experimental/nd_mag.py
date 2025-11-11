@@ -116,11 +116,11 @@ def nd_mag_kern(
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
 
-    print("sig.shape:{}", sig.shape)
-    print("lh_centroids.shape:{}", lh_centroids.shape)
-    print("mag_colors_q.shape:{}", mag_colors_q.shape)
-    print("lc_phot.weights_q.shape:{}", lc_phot.weights_q.shape)
-    print("lc_halopop['nhalos'].shape:{}", lc_halopop["nhalos"].shape)
+    # print("sig.shape:{}", sig.shape)
+    # print("lh_centroids.shape:{}", lh_centroids.shape)
+    # print("mag_colors_q.shape:{}", mag_colors_q.shape)
+    # print("lc_phot.weights_q.shape:{}", lc_phot.weights_q.shape)
+    # print("lc_halopop['nhalos'].shape:{}", lc_halopop["nhalos"].shape)
 
     nd_q = diffndhist.tw_ndhist_weighted(
         mag_colors_q,
