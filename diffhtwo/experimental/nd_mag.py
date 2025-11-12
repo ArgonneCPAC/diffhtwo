@@ -68,14 +68,11 @@ def nd_mag_kern(
     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
 
     num_halos, n_bands = lc_phot.obs_mags_q.shape
-    print("n_bands =", n_bands)
-    print("num_halos =", num_halos)
 
     mag_colors_q = lc_phot.obs_mags_q[:, 0]
     for band in range(1, n_bands):
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
-    print("mag_colors_q.shape before reshape =", mag_colors_q.shape)
     mag_colors_q = mag_colors_q.reshape(num_halos, n_bands)
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
@@ -94,12 +91,6 @@ def nd_mag_kern(
 
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
-
-    print("mag_colors_q.shape =", mag_colors_q.shape)
-    print("sig.shape =", sig.shape)
-    print("lh_centroids_lo.shape =", lh_centroids_lo.shape)
-    print("lc_phot.weights_q.shape =", lc_phot.weights_q.shape)
-    print("lc_halopop['nhalos'].shape =", lc_halopop["nhalos"].shape)
 
     nd_q = diffndhist.tw_ndhist_weighted(
         mag_colors_q,
@@ -129,4 +120,4 @@ def nd_mag_kern(
 
     print("nd_model.shape= ", nd_model.shape)
 
-    return nd_model
+    return nd_model, lc_phot
