@@ -120,4 +120,4 @@ def nd_mag_kern(
 
     print("nd_model.shape= ", nd_model.shape)
 
-    return nd_model, lc_phot
+    return nd_model, lc_phot, nd_q, nd_smooth_ms, nd_bursty_ms
