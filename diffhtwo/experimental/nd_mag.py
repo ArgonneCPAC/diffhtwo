@@ -99,6 +99,7 @@ def nd_mag_kern(
         lh_centroids_lo,
         lh_centroids_hi,
     )
+    print("nd_q.max: ", nd_q.max())
 
     nd_smooth_ms = diffndhist.tw_ndhist_weighted(
         mag_colors_smooth_ms,
@@ -107,6 +108,7 @@ def nd_mag_kern(
         lh_centroids_lo,
         lh_centroids_hi,
     )
+    print("nd_smooth_ms.max: ", nd_smooth_ms.max())
 
     nd_bursty_ms = diffndhist.tw_ndhist_weighted(
         mag_colors_bursty_ms,
@@ -115,6 +117,7 @@ def nd_mag_kern(
         lh_centroids_lo,
         lh_centroids_hi,
     )
+    print("nd_bursty_ms.max: ", nd_bursty_ms.max())
 
     nd_model = (nd_q + nd_smooth_ms + nd_bursty_ms) / lc_vol
 
