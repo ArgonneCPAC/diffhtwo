@@ -70,6 +70,7 @@ def nd_mag_kern(
     num_halos, n_bands = lc_phot.obs_mags_q.shape
 
     mag_colors_q = lc_phot.obs_mags_q[:, 0]
+    mag_colors_q = mag_colors_q.reshape(mag_colors_q.size, 1)
     for band in range(1, n_bands):
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
