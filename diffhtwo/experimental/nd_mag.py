@@ -71,25 +71,24 @@ def nd_mag_kern(
 
     mag_colors_q = lc_phot.obs_mags_q[:, 0]
     mag_colors_q = mag_colors_q.reshape(1, mag_colors_q.size)
-    print("mag_colors_q.shape before:", mag_colors_q.shape)
     for band in range(1, n_bands):
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
-    # mag_colors_q = mag_colors_q.reshape(num_halos, n_bands)
     mag_colors_q = mag_colors_q.T
-    print("mag_colors_q.shape:", mag_colors_q.shape)
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
+    mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(1, mag_colors_smooth_ms.size)
     for band in range(1, n_bands):
         color = mag_colors_smooth_ms - lc_phot.obs_mags_smooth_ms[:, band]
         mag_colors_smooth_ms = jnp.vstack((mag_colors_smooth_ms, color))
-    mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(num_halos, n_bands)
+    mag_colors_smooth_ms = mag_colors_smooth_ms.T
 
     mag_colors_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0]
+    mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(1, mag_colors_bursty_ms.size)
     for band in range(1, n_bands):
         color = mag_colors_bursty_ms - lc_phot.obs_mags_bursty_ms[:, band]
         mag_colors_bursty_ms = jnp.vstack((mag_colors_bursty_ms, color))
-    mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(num_halos, n_bands)
+    mag_colors_bursty_ms = mag_colors_bursty_ms.T
 
     sig = jnp.zeros(mag_colors_q.shape) + (dmag / 2)
 
