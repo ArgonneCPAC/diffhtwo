@@ -123,4 +123,4 @@ def nd_mag_kern(
 
     print("nd_model.shape= ", nd_model.shape)
 
-    return nd_model, lc_phot, mag_colors_q, mag_colors_smooth_ms, mag_colors_bursty_ms
+    return nd_model
