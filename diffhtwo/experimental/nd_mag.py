@@ -73,7 +73,8 @@ def nd_mag_kern(
     for band in range(1, n_bands):
         color = mag_colors_q - lc_phot.obs_mags_q[:, band]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
-    mag_colors_q = mag_colors_q.reshape(num_halos, n_bands)
+    # mag_colors_q = mag_colors_q.reshape(num_halos, n_bands)
+    mag_colors_q = mag_colors_q.T
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
     for band in range(1, n_bands):
@@ -87,7 +88,7 @@ def nd_mag_kern(
         mag_colors_bursty_ms = jnp.vstack((mag_colors_bursty_ms, color))
     mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(num_halos, n_bands)
 
-    sig = jnp.zeros(mag_colors_q.shape) + 0.2
+    sig = jnp.zeros(mag_colors_q.shape) + (dmag / 2)
 
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
