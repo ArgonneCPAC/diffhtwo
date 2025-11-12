@@ -87,7 +87,7 @@ def nd_mag_kern(
         mag_colors_bursty_ms = jnp.vstack((mag_colors_bursty_ms, color))
     mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(num_halos, n_bands)
 
-    sig = jnp.zeros(mag_colors_q.shape) + 0.1
+    sig = jnp.zeros(mag_colors_q.shape) + 0.2
 
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
@@ -99,8 +99,6 @@ def nd_mag_kern(
         lh_centroids_lo,
         lh_centroids_hi,
     )
-    nd_q_max = jnp.max(nd_q)
-    print("nd_q.max: ", nd_q_max)
 
     nd_smooth_ms = diffndhist.tw_ndhist_weighted(
         mag_colors_smooth_ms,
@@ -109,8 +107,6 @@ def nd_mag_kern(
         lh_centroids_lo,
         lh_centroids_hi,
     )
-    nd_smooth_ms_max = jnp.max(nd_smooth_ms)
-    print("nd_smooth_ms.max: ", nd_smooth_ms_max)
 
     nd_bursty_ms = diffndhist.tw_ndhist_weighted(
         mag_colors_bursty_ms,
@@ -119,8 +115,6 @@ def nd_mag_kern(
         lh_centroids_lo,
         lh_centroids_hi,
     )
-    nd_bursty_ms_max = jnp.max(nd_bursty_ms)
-    print("nd_bursty_ms.max: ", nd_bursty_ms_max)
 
     nd_model = (nd_q + nd_smooth_ms + nd_bursty_ms) / lc_vol
 
