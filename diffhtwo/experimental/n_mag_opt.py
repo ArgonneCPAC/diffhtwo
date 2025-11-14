@@ -20,7 +20,7 @@ from jax.debug import print
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
-from .nd_mag import nd_mag_kern
+from .n_mag import n_mag_kern
 from .utils import safe_log10
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
