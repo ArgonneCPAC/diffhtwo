@@ -124,6 +124,6 @@ def n_mag_kern(
         lh_centroids_hi,
     )
 
-    n_model = (n_q + n_smooth_ms + n_bursty_ms) / lc_halopop["lc_vol_mp3"]
+    n_model = (n_q + n_smooth_ms + n_bursty_ms) / lc_halopop["lc_vol_Mpc3"]
 
     return n_model
