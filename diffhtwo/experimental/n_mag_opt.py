@@ -110,7 +110,7 @@ loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
-def fit_nd(
+def fit_n(
     u_theta_init,
     n_target_1d,
     ran_key,
