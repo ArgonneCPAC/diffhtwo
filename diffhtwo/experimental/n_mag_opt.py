@@ -67,6 +67,8 @@ def _loss_kern(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
+    fit_column,
+    fit_bin_edges,
     dmag,
 ):
     u_diffstarpop_theta, u_spspop_theta = u_theta
@@ -97,11 +99,11 @@ def _loss_kern(
         lh_centroids,
         dmag,
     )
-    n_model_default_hsc_i, _ = get_1d_hist_from_lh_counts(
-        lh_centroids, 0, hsc_i_bin_edges, n_model_default
+    n_model_1d, _ = get_1d_hist_from_lh_counts(
+        lh_centroids, fit_column, fit_bin_edges, n_model
     )
 
-    return _mse(nd_model, nd_target)
+    return _mse(nd_model_1d, nd_target_1d)
 
 
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
@@ -124,6 +126,8 @@ def fit_nd(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
+    fit_column,
+    fit_bin_edges,
     dmag,
     n_steps=2,
     step_size=0.1,
@@ -146,15 +150,14 @@ def fit_nd(
         ssp_err_pop_params,
         tcurves,
         lh_centroids,
+        fit_column,
+        fit_bin_edges,
         dmag,
     )
 
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
-        # print("u_theta:{}", u_theta)
         loss, grads = loss_and_grad_fn(u_theta, *other)
-        # print("loss:{}", loss)
-        # print("grads:{}", grads)
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
 
