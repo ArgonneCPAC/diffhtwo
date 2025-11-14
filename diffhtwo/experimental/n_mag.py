@@ -10,7 +10,6 @@ def n_mag_kern(
     spspop_params,
     ran_key,
     lc_halopop,
-    lc_vol,
     t_table,
     ssp_data,
     precomputed_ssp_mag_table,
@@ -125,6 +124,6 @@ def n_mag_kern(
         lh_centroids_hi,
     )
 
-    n_model = (n_q + n_smooth_ms + n_bursty_ms) / lc_vol
+    n_model = (n_q + n_smooth_ms + n_bursty_ms) / lc_halopop["lc_vol_mp3"]
 
     return n_model
