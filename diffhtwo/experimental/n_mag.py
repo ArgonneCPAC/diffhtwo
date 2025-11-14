@@ -5,7 +5,7 @@ from jax import jit as jjit
 
 
 @jjit
-def nd_mag_kern(
+def n_mag_kern(
     diffstarpop_params,
     spspop_params,
     ran_key,
@@ -38,7 +38,7 @@ def nd_mag_kern(
 
     Returns
     -------
-    nd : array of number counts weighted by pop fracs and nhalos in n_centroids bins
+    n : array of number counts weighted by pop fracs and nhalos in n_centroids bins
             centered on lh_centroids shape (n_centroids,)
     """
 
@@ -101,7 +101,7 @@ def nd_mag_kern(
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
 
-    nd_q = diffndhist.tw_ndhist_weighted(
+    n_q = diffndhist.tw_ndhist_weighted(
         mag_colors_q,
         sig,
         lc_phot.weights_q * lc_halopop["nhalos"],
@@ -109,7 +109,7 @@ def nd_mag_kern(
         lh_centroids_hi,
     )
 
-    nd_smooth_ms = diffndhist.tw_ndhist_weighted(
+    n_smooth_ms = diffndhist.tw_ndhist_weighted(
         mag_colors_smooth_ms,
         sig,
         lc_phot.weights_smooth_ms * lc_halopop["nhalos"],
@@ -117,7 +117,7 @@ def nd_mag_kern(
         lh_centroids_hi,
     )
 
-    nd_bursty_ms = diffndhist.tw_ndhist_weighted(
+    n_bursty_ms = diffndhist.tw_ndhist_weighted(
         mag_colors_bursty_ms,
         sig,
         lc_phot.weights_bursty_ms * lc_halopop["nhalos"],
@@ -125,8 +125,8 @@ def nd_mag_kern(
         lh_centroids_hi,
     )
 
-    nd_model = (nd_q + nd_smooth_ms + nd_bursty_ms) / lc_vol
+    n_model = (n_q + n_smooth_ms + n_bursty_ms) / lc_vol
 
-    print("nd_model.shape= ", nd_model.shape)
+    print("n_model.shape= ", n_model.shape)
 
-    return nd_model
+    return n_model

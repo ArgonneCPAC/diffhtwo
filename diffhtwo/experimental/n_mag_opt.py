@@ -36,10 +36,18 @@ def _mse(nd_pred, nd_target):
     return jnp.mean(jnp.square(lg_nd_pred - lg_nd_target))
 
 
+@jjit
 def _mae(nd_pred, nd_target):
     lg_nd_pred = safe_log10(nd_pred, EPS=1e-24)
     lg_nd_target = safe_log10(nd_target, EPS=1e-24)
     return jnp.mean(jnp.abs(lg_nd_pred - lg_nd_target))
+
+
+@jjit
+def get_1d_hist_from_lh_counts(lh_centroids, column, bin_edges, n):
+    n_1d, _ = jnp.histogram(lh_centroids[:, column], bins=bin_edges, weights=n)
+    bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
+    return n_1d, bin_centers
 
 
 @jjit
@@ -71,7 +79,7 @@ def _loss_kern(
     u_spspop_params = u_spspop_unravel(u_spspop_theta)
     spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-    nd_model = nd_mag_kern(
+    n_model = n_mag_kern(
         diffstarpop_params,
         spspop_params,
         ran_key,
@@ -88,6 +96,9 @@ def _loss_kern(
         tcurves,
         lh_centroids,
         dmag,
+    )
+    n_model_default_hsc_i, _ = get_1d_hist_from_lh_counts(
+        lh_centroids, 0, hsc_i_bin_edges, n_model_default
     )
 
     return _mse(nd_model, nd_target)
