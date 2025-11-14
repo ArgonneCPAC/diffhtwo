@@ -30,17 +30,17 @@ u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
 
 
 @jjit
-def _mse(nd_pred, nd_target):
-    lg_nd_pred = safe_log10(nd_pred, EPS=1e-24)
-    lg_nd_target = safe_log10(nd_target, EPS=1e-24)
-    return jnp.mean(jnp.square(lg_nd_pred - lg_nd_target))
+def _mse(n_pred, n_target):
+    lg_n_pred = safe_log10(n_pred, EPS=1e-24)
+    lg_n_target = safe_log10(n_target, EPS=1e-24)
+    return jnp.mean(jnp.square(lg_n_pred - lg_n_target))
 
 
 @jjit
-def _mae(nd_pred, nd_target):
-    lg_nd_pred = safe_log10(nd_pred, EPS=1e-24)
-    lg_nd_target = safe_log10(nd_target, EPS=1e-24)
-    return jnp.mean(jnp.abs(lg_nd_pred - lg_nd_target))
+def _mae(n_pred, n_target):
+    lg_n_pred = safe_log10(n_pred, EPS=1e-24)
+    lg_n_target = safe_log10(n_target, EPS=1e-24)
+    return jnp.mean(jnp.abs(lg_n_pred - lg_n_target))
 
 
 @jjit
@@ -53,7 +53,7 @@ def get_1d_hist_from_lh_counts(lh_centroids, column, bin_edges, n):
 @jjit
 def _loss_kern(
     u_theta,
-    nd_target,
+    n_target_1d,
     ran_key,
     lc_halopop,
     lc_vol,
@@ -103,7 +103,7 @@ def _loss_kern(
         lh_centroids, fit_column, fit_bin_edges, n_model
     )
 
-    return _mse(nd_model_1d, nd_target_1d)
+    return _mse(n_model_1d, n_target_1d)
 
 
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
@@ -112,7 +112,7 @@ loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
 @partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_nd(
     u_theta_init,
-    nd_target,
+    n_target_1d,
     ran_key,
     lc_halopop,
     lc_vol,
@@ -136,7 +136,7 @@ def fit_nd(
     opt_state = opt_init(u_theta_init)
 
     other = (
-        nd_target,
+        n_target_1d,
         ran_key,
         lc_halopop,
         lc_vol,
