@@ -23,7 +23,7 @@ def nd_mag_kern(
     lh_centroids,
     dmag,
 ):
-    """Kernel for calculating number density in 4D mag space based on
+    """Kernel for calculating number density in N-dimensional mag-color space based on
     diffstarpop/bursty/dust parameters
 
     Parameters
@@ -33,7 +33,7 @@ def nd_mag_kern(
 
     tcurves : list of dsps.data_loaders.defaults.TransmissionCurve objects
 
-    lh_centroids: Latin Hypercube centroids in 4D mag space based on data
+    lh_centroids: Latin Hypercube centroids in mag-color space based on data
                      array with shape (n_centroids, n_bands)
 
     Returns
@@ -71,22 +71,28 @@ def nd_mag_kern(
 
     mag_colors_q = lc_phot.obs_mags_q[:, 0]
     mag_colors_q = mag_colors_q.reshape(1, mag_colors_q.size)
-    for band in range(1, n_bands):
-        color = mag_colors_q - lc_phot.obs_mags_q[:, band]
+    for band in range(0, n_bands - 1):
+        color = lc_phot.obs_mags_q[:, band] - lc_phot.obs_mags_q[:, band + 1]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
     mag_colors_q = mag_colors_q.T
 
     mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
     mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(1, mag_colors_smooth_ms.size)
-    for band in range(1, n_bands):
-        color = mag_colors_smooth_ms - lc_phot.obs_mags_smooth_ms[:, band]
+    for band in range(0, n_bands - 1):
+        color = (
+            lc_phot.obs_mags_smooth_ms[:, band]
+            - lc_phot.obs_mags_smooth_ms[:, band + 1]
+        )
         mag_colors_smooth_ms = jnp.vstack((mag_colors_smooth_ms, color))
     mag_colors_smooth_ms = mag_colors_smooth_ms.T
 
     mag_colors_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0]
     mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(1, mag_colors_bursty_ms.size)
-    for band in range(1, n_bands):
-        color = mag_colors_bursty_ms - lc_phot.obs_mags_bursty_ms[:, band]
+    for band in range(0, n_bands - 1):
+        color = (
+            lc_phot.obs_mags_bursty_ms[:, band]
+            - lc_phot.obs_mags_bursty_ms[:, band + 1]
+        )
         mag_colors_bursty_ms = jnp.vstack((mag_colors_bursty_ms, color))
     mag_colors_bursty_ms = mag_colors_bursty_ms.T
 
