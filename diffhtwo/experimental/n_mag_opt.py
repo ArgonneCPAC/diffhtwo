@@ -70,6 +70,8 @@ def _loss_kern(
     fit_bin_edges,
     dmag,
 ):
+    ndim = len(fit_column)
+
     u_diffstarpop_theta, u_spspop_theta = u_theta
 
     # back to diffstarpop namedtuple u_params and then convert to bounded params
@@ -97,11 +99,15 @@ def _loss_kern(
         lh_centroids,
         dmag,
     )
-    n_model_1d, _ = get_1d_hist_from_lh_counts(
-        lh_centroids, fit_column, fit_bin_edges, n_model
-    )
 
-    return _mse(n_model_1d, n_target_1d)
+    mse = 0
+    for dim in range(0, ndim):
+        n_model_1d, _ = get_1d_hist_from_lh_counts(
+            lh_centroids, fit_column[dim], fit_bin_edges[dim], n_model
+        )
+        mse += _mse(n_model_1d, n_target_1d[dim])
+
+    return mse
 
 
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
