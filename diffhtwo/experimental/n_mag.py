@@ -127,6 +127,4 @@ def n_mag_kern(
 
     n_model = (n_q + n_smooth_ms + n_bursty_ms) / lc_vol
 
-    print("n_model.shape= ", n_model.shape)
-
     return n_model
