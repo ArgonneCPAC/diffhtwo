@@ -100,7 +100,7 @@ def _loss_kern(
         dmag,
     )
 
-    mse = 0
+    mse = 0.0
     for dim in range(0, ndim):
         n_model_1d, _ = get_1d_hist_from_lh_counts(
             lh_centroids, fit_column[dim], fit_bin_edges[dim], n_model
