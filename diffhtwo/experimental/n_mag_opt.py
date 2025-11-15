@@ -37,6 +37,11 @@ def _mse(n_pred, n_target):
 
 
 @jjit
+def _mse(n_pred, n_target):
+    return jnp.mean(jnp.square(n_pred - n_target))
+
+
+@jjit
 def _mae(n_pred, n_target):
     lg_n_pred = safe_log10(n_pred, EPS=1e-24)
     lg_n_target = safe_log10(n_target, EPS=1e-24)
