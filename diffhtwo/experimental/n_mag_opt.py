@@ -38,7 +38,9 @@ def _mse(n_pred, n_target):
 
 @jjit
 def _mse(n_pred, n_target):
-    return jnp.mean(jnp.square(n_pred - n_target))
+    lg_n_pred = jnp.log10(1 + n_pred)
+    lg_n_target = jnp.log10(1 + n_target)
+    return jnp.mean(jnp.square(lg_n_pred - lg_n_target))
 
 
 @jjit
