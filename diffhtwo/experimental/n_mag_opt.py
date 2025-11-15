@@ -53,7 +53,7 @@ def get_1d_hist_from_lh_counts(lh_centroids, column, bin_edges, n):
 @jjit
 def _loss_kern(
     u_theta,
-    n_target_1d,
+    n_target,
     ran_key,
     lc_halopop,
     t_table,
@@ -66,12 +66,8 @@ def _loss_kern(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
-    fit_column,
-    fit_bin_edges,
     dmag,
 ):
-    ndim = len(fit_column)
-
     u_diffstarpop_theta, u_spspop_theta = u_theta
 
     # back to diffstarpop namedtuple u_params and then convert to bounded params
@@ -100,14 +96,7 @@ def _loss_kern(
         dmag,
     )
 
-    mse = 0.0
-    for dim in range(0, ndim):
-        n_model_1d, _ = get_1d_hist_from_lh_counts(
-            lh_centroids, fit_column[dim], fit_bin_edges[dim], n_model
-        )
-        mse += _mse(n_model_1d, n_target_1d[dim])
-
-    return mse
+    return _mse(n_model, n_target)
 
 
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
@@ -116,7 +105,7 @@ loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
 @partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_n(
     u_theta_init,
-    n_target_1d,
+    n_target,
     ran_key,
     lc_halopop,
     t_table,
@@ -129,8 +118,6 @@ def fit_n(
     ssp_err_pop_params,
     tcurves,
     lh_centroids,
-    fit_column,
-    fit_bin_edges,
     dmag,
     n_steps=2,
     step_size=0.1,
@@ -139,7 +126,7 @@ def fit_n(
     opt_state = opt_init(u_theta_init)
 
     other = (
-        n_target_1d,
+        n_target,
         ran_key,
         lc_halopop,
         t_table,
@@ -152,8 +139,6 @@ def fit_n(
         ssp_err_pop_params,
         tcurves,
         lh_centroids,
-        fit_column,
-        fit_bin_edges,
         dmag,
     )
 
