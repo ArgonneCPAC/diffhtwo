@@ -110,7 +110,7 @@ def _loss_kern(
         dmag,
     )
 
-    return _mse(n_model, n_target)
+    return _mae(n_model, n_target)
 
 
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
