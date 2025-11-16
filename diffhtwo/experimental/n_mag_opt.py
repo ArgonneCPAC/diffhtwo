@@ -58,6 +58,14 @@ def _mae(n_pred, n_target):
 
 
 @jjit
+def _loss_log10(n_pred, n_target, EPS=1e-24, sigma_log=0.2):
+    y_pred = jnp.log10(n_pred + EPS)
+    y_target = jnp.log10(n_target + EPS)
+    chi = (y_pred - y_target) / sigma_log
+    return jnp.mean(chi**2)
+
+
+@jjit
 def get_1d_hist_from_lh_counts(lh_centroids, column, bin_edges, n):
     n_1d, _ = jnp.histogram(lh_centroids[:, column], bins=bin_edges, weights=n)
     bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
@@ -110,7 +118,7 @@ def _loss_kern(
         dmag,
     )
 
-    return _mae(n_model, n_target)
+    return _loss_log10(n_model, n_target)
 
 
 loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
