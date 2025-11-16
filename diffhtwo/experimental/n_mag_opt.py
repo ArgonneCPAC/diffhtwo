@@ -59,9 +59,13 @@ def _mae(n_pred, n_target):
 
 @jjit
 def _loss_log10(n_pred, n_target, EPS=1e-24, sigma_log=0.2):
-    y_pred = jnp.log10(n_pred + EPS)
-    y_target = jnp.log10(n_target + EPS)
-    chi = (y_pred - y_target) / sigma_log
+    # y_pred = jnp.log10(n_pred + EPS)
+    # y_target = jnp.log10(n_target + EPS)
+
+    lg_n_pred = safe_log10(n_pred, EPS=1e-24)
+    lg_n_target = safe_log10(n_target, EPS=1e-24)
+
+    chi = (lg_n_pred - lg_n_target) / sigma_log
     return jnp.mean(chi**2)
 
 
