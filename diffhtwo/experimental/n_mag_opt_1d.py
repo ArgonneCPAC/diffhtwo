@@ -31,8 +31,8 @@ u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
 
 @jjit
 def _mse(n_pred, n_target):
-    lg_n_pred = safe_log10(n_pred, EPS=1e-24)
-    lg_n_target = safe_log10(n_target, EPS=1e-24)
+    lg_n_pred = safe_log10(n_pred, EPS=1e-8)
+    lg_n_target = safe_log10(n_target, EPS=1e-8)
     return jnp.mean(jnp.square(lg_n_pred - lg_n_target))
 
 
