@@ -58,7 +58,7 @@ def _mae(n_pred, n_target):
 
 
 @jjit
-def _loss_log10(n_pred, n_target, EPS=1e-24, sigma_log=0.4):
+def _loss_log10(n_pred, n_target, EPS=1e-24, sigma_log=1):
     # y_pred = jnp.log10(n_pred + EPS)
     # y_target = jnp.log10(n_target + EPS)
 
