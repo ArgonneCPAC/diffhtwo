@@ -201,7 +201,6 @@ def n_color_1d_kern(
     )
     color_bursty_ms = color_bursty_ms.reshape(color_bursty_ms.size, 1)
 
-    print("color_q.shape: ", color_q.shape)
     sig = jnp.zeros(color_q.shape) + (dmag / 2)
 
     color_1d_centroids_lo = color_1d_centroids - (dmag / 2)
