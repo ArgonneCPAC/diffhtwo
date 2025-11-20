@@ -189,12 +189,18 @@ def n_color_1d_kern(
     num_halos, n_bands = lc_phot.obs_mags_q.shape
 
     color_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 1]
+    color_q = color_q.reshape(color_q.size, 1)
+
     color_smooth_ms = (
         lc_phot.obs_mags_smooth_ms[:, 0] - lc_phot.obs_mags_smooth_ms[:, 1]
     )
+    color_smooth_ms = color_smooth_ms.reshape(color_smooth_ms.size, 1)
+
     color_bursty_ms = (
         lc_phot.obs_mags_bursty_ms[:, 0] - lc_phot.obs_mags_bursty_ms[:, 1]
     )
+    color_bursty_ms = color_bursty_ms.reshape(color_bursty_ms.size, 1)
+
     print("color_q.shape: ", color_q.shape)
     sig = jnp.zeros(color_q.shape) + (dmag / 2)
 
