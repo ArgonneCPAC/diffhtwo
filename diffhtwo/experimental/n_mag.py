@@ -100,6 +100,7 @@ def n_mag_kern(
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
 
+    print("mag_colors_q.shape:", mag_colors_q.shape)
     n_q = diffndhist.tw_ndhist_weighted(
         mag_colors_q,
         sig,
