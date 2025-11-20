@@ -127,3 +127,104 @@ def n_mag_kern(
     n_model = (n_q + n_smooth_ms + n_bursty_ms) / lc_halopop["lc_vol_Mpc3"]
 
     return n_model, lc_phot
+
+
+@jjit
+def n_color_1d_kern(
+    diffstarpop_params,
+    spspop_params,
+    ran_key,
+    lc_halopop,
+    t_table,
+    ssp_data,
+    precomputed_ssp_mag_table,
+    z_phot_table,
+    wave_eff_table,
+    mzr_params,
+    scatter_params,
+    ssp_err_pop_params,
+    tcurves,
+    color_1d_centroids,
+    dmag,
+):
+    """Kernel for calculating number density in N-dimensional mag-color space based on
+    diffstarpop/bursty/dust parameters
+
+    Parameters
+    ----------
+    lc_halopop : dict of halo lightcone output of
+                 diffsky.experimental.mc_lightcone_halos.mc_weighted_halo_lightcone()
+
+    tcurves : list of dsps.data_loaders.defaults.TransmissionCurve objects
+
+    color_1d_centroids: 1D centers of bins in color space: tcurves[0] - tcurves[1]
+
+    Returns
+    -------
+    n : array of number counts weighted by pop fracs and nhalos in n_centroids bins
+            centered on color_1d_centroids shape (n_centroids,)
+    """
+
+    args = (
+        ran_key,
+        jnp.array(lc_halopop["z_obs"]),
+        lc_halopop["t_obs"],
+        lc_halopop["mah_params"],
+        lc_halopop["logmp0"],
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        diffstarpop_params,
+        mzr_params,
+        spspop_params,
+        scatter_params,
+        ssp_err_pop_params,
+    )
+
+    # shape = number of halos in lightcone
+    lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
+
+    num_halos, n_bands = lc_phot.obs_mags_q.shape
+
+    color_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 1]
+    color_smooth_ms = (
+        lc_phot.obs_mags_smooth_ms[:, 0] - lc_phot.obs_mags_smooth_ms[:, 1]
+    )
+    color_bursty_ms = (
+        lc_phot.obs_mags_bursty_ms[:, 0] - lc_phot.obs_mags_bursty_ms[:, 1]
+    )
+    print("color_q.shape: ", color_q.shape)
+    sig = jnp.zeros(color_q.shape) + (dmag / 2)
+
+    color_1d_centroids_lo = color_1d_centroids - (dmag / 2)
+    color_1d_centroids_hi = color_1d_centroids + (dmag / 2)
+
+    n_q = diffndhist.tw_ndhist_weighted(
+        color_q,
+        sig,
+        lc_phot.weights_q * lc_halopop["nhalos"],
+        color_1d_centroids_lo,
+        color_1d_centroids_hi,
+    )
+
+    n_smooth_ms = diffndhist.tw_ndhist_weighted(
+        color_smooth_ms,
+        sig,
+        lc_phot.weights_smooth_ms * lc_halopop["nhalos"],
+        color_1d_centroids_lo,
+        color_1d_centroids_hi,
+    )
+
+    n_bursty_ms = diffndhist.tw_ndhist_weighted(
+        color_bursty_ms,
+        sig,
+        lc_phot.weights_bursty_ms * lc_halopop["nhalos"],
+        color_1d_centroids_lo,
+        color_1d_centroids_hi,
+    )
+
+    n_model = (n_q + n_smooth_ms + n_bursty_ms) / lc_halopop["lc_vol_Mpc3"]
+
+    return n_model
