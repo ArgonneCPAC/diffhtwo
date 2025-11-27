@@ -68,31 +68,43 @@ def n_mag_kern(
 
     num_halos, n_bands = lc_phot.obs_mags_q.shape
 
-    mag_colors_q = lc_phot.obs_mags_q[:, 0]
+    mag_column = 3
+    mag_colors_q = lc_phot.obs_mags_q[:, 0] - lc_phot.obs_mags_q[:, 1]
     mag_colors_q = mag_colors_q.reshape(1, mag_colors_q.size)
-    for band in range(0, n_bands - 1):
+    for band in range(1, n_bands - 1):
         color = lc_phot.obs_mags_q[:, band] - lc_phot.obs_mags_q[:, band + 1]
         mag_colors_q = jnp.vstack((mag_colors_q, color))
+    mag_colors_q = jnp.vstack((mag_colors_q, lc_phot.obs_mags_q[:, mag_column]))
     mag_colors_q = mag_colors_q.T
 
-    mag_colors_smooth_ms = lc_phot.obs_mags_smooth_ms[:, 0]
+    mag_colors_smooth_ms = (
+        lc_phot.obs_mags_smooth_ms[:, 0] - lc_phot.obs_mags_smooth_ms[:, 1]
+    )
     mag_colors_smooth_ms = mag_colors_smooth_ms.reshape(1, mag_colors_smooth_ms.size)
-    for band in range(0, n_bands - 1):
+    for band in range(1, n_bands - 1):
         color = (
             lc_phot.obs_mags_smooth_ms[:, band]
             - lc_phot.obs_mags_smooth_ms[:, band + 1]
         )
         mag_colors_smooth_ms = jnp.vstack((mag_colors_smooth_ms, color))
+    mag_colors_smooth_ms = jnp.vstack(
+        (mag_colors_smooth_ms, lc_phot.obs_mags_smooth_ms[:, mag_column])
+    )
     mag_colors_smooth_ms = mag_colors_smooth_ms.T
 
-    mag_colors_bursty_ms = lc_phot.obs_mags_bursty_ms[:, 0]
+    mag_colors_bursty_ms = (
+        lc_phot.obs_mags_bursty_ms[:, 0] - lc_phot.obs_mags_bursty_ms[:, 1]
+    )
     mag_colors_bursty_ms = mag_colors_bursty_ms.reshape(1, mag_colors_bursty_ms.size)
-    for band in range(0, n_bands - 1):
+    for band in range(1, n_bands - 1):
         color = (
             lc_phot.obs_mags_bursty_ms[:, band]
             - lc_phot.obs_mags_bursty_ms[:, band + 1]
         )
         mag_colors_bursty_ms = jnp.vstack((mag_colors_bursty_ms, color))
+    mag_colors_bursty_ms = jnp.vstack(
+        (mag_colors_bursty_ms, lc_phot.obs_mags_bursty_ms[:, mag_column])
+    )
     mag_colors_bursty_ms = mag_colors_bursty_ms.T
 
     sig = jnp.zeros(mag_colors_q.shape) + (dmag / 2)
