@@ -9,6 +9,7 @@ from functools import partial
 
 import jax.numpy as jnp
 from diffsky.param_utils.spspop_param_utils import (
+    DEFAULT_SPSPOP_PARAMS,
     DEFAULT_SPSPOP_U_PARAMS,
     get_bounded_spspop_params_tw_dust,
 )
@@ -79,12 +80,12 @@ def _loss_kern(
     diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
     # back to spspop namedtuple u_params and then convert to bounded params
-    u_spspop_params = u_spspop_unravel(u_spspop_theta)
-    spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+    # u_spspop_params = u_spspop_unravel(u_spspop_theta)
+    # spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
     n_model, _ = n_mag_kern(
         diffstarpop_params,
-        spspop_params,
+        DEFAULT_SPSPOP_PARAMS,
         ran_key,
         lc_halopop,
         t_table,
