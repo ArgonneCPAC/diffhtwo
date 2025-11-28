@@ -53,7 +53,7 @@ def get_1d_hist_from_lh_counts(lh_centroids, column, bin_edges, n):
 
 @jjit
 def _loss_kern(
-    u_theta,
+    u_diffstarpop_theta,
     n_target_1d,
     ran_key,
     lc_halopop,
@@ -73,7 +73,7 @@ def _loss_kern(
 ):
     ndim = len(fit_column)
 
-    u_diffstarpop_theta, u_spspop_theta = u_theta
+    # u_diffstarpop_theta, u_spspop_theta = u_theta
 
     # back to diffstarpop namedtuple u_params and then convert to bounded params
     u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
@@ -162,9 +162,11 @@ def fit_n(
         u_theta = get_params(opt_state)
         loss, grads = loss_and_grad_fn(u_theta, *other)
         opt_state = opt_update(i, grads, opt_state)
-        return opt_state, loss
+        return opt_state, (loss, grads)
 
-    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+    (opt_state, (loss_hist, grad_hist)) = lax.scan(
+        _opt_update, opt_state, jnp.arange(n_steps)
+    )
     u_theta_fit = get_params(opt_state)
 
-    return loss_hist, u_theta_fit
+    return loss_hist, grad_hist, u_theta_fit
