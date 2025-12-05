@@ -51,3 +51,9 @@ def get_tcurve(get_filter_number, filter_info_filename, tcurves_filename):
         i += 1
 
     return jnp.array(wave_aa), jnp.array(trans)
+
+
+def get_feniks_filter_number_from_translate_file(translate_file, filter_name):
+    idx = translate_file["col1"] == "fcol_" + filter_name
+    filter_number = int(translate_file[idx]["col2"].data[0][1:])
+    return filter_number
