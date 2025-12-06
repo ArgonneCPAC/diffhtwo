@@ -2,6 +2,7 @@ from difflib import get_close_matches
 
 import jax.numpy as jnp
 from jax import jit as jjit
+from jax.tree_util import tree_flatten_with_path
 
 
 @jjit
@@ -57,3 +58,9 @@ def get_feniks_filter_number_from_translate_file(translate_file, filter_name):
     idx = translate_file["col1"] == "fcol_" + filter_name
     filter_number = int(translate_file[idx]["col2"].data[0][1:])
     return filter_number
+
+
+def get_param_names(params):
+    paths, leaves = tree_flatten_with_path(params)
+    names = [p[0][0].name for p in paths]  # each p is (GetAttrKey(...),)
+    return names

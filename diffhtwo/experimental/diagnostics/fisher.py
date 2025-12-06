@@ -1,26 +1,32 @@
 import jax.numpy as jnp
 import numpy as np
-from diffhtwo.experimental import n_mag
 from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import precompute_ssp_phot as psspp
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
 from diffsky.ssp_err_model import ssp_err_model
 from diffstar.defaults import T_TABLE_MIN
+from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.metallicity import umzr
 from jax import jacfwd
+from jax.flatten_util import ravel_pytree
+
+from diffhtwo.experimental import n_mag
+
+DEFAULT_DIFFSTARPOP_THETA, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
 
 
-def n_mag_kern_wrapper(diffstarpop_fiducial_params, *args):
-    lg_n, _ = n_mag.n_mag_kern(diffstarpop_fiducial_params, *args)
+def n_mag_kern_wrapper(diffstarpop_theta, *args):
+    diffstarpop_params = unravel_fn(diffstarpop_theta)
+    lg_n, _ = n_mag.n_mag_kern(diffstarpop_params, *args)
 
     return lg_n
 
 
 def get_fisher_matrix(
-    diffstarpop_params,
+    diffstarpop_theta,
     lc_halopop,
     lh_centroids,
     dmag,
@@ -67,9 +73,10 @@ def get_fisher_matrix(
     )
 
     # Get the Jacobian
-    Jacobian = jacfwd(n_mag_kern_wrapper)(diffstarpop_params, *args)
+    Jacobian = jacfwd(n_mag_kern_wrapper)(diffstarpop_theta, *args)
 
     # Get error
+    diffstarpop_params = unravel_fn(diffstarpop_theta)
     _, lg_n_avg_err = n_mag.n_mag_kern(diffstarpop_params, *args)
     w = 1.0 / lg_n_avg_err**2  # weights per number density bin
 
@@ -79,9 +86,7 @@ def get_fisher_matrix(
     return Fisher
 
 
-def sample_fisher_gaussian(
-    Fisher, diffstarpop_theta, labels=None, nsamp=20000, subset=None
-):
+def sample_fisher_gaussian(Fisher, diffstarpop_theta, nsamp=20000, subset=None):
     """
     Fisher : Fisher matrix (n_params, n_params)
     theta0 : fiducial parameter vector (n_params,)
@@ -99,8 +104,6 @@ def sample_fisher_gaussian(
         idx = np.array(subset)
         Sigma = Sigma[np.ix_(idx, idx)]
         diffstarpop_theta = diffstarpop_theta[idx]
-        if labels is not None:
-            labels = [labels[i] for i in idx]
     else:
         idx = np.arange(npar)
 
