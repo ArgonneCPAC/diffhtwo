@@ -83,13 +83,22 @@ def diffstarpop_halpha_kern(
     mzr_params,
     spspop_params,
     scatter_params,
+    cosmo_params,
+    fb,
 ):
     n_met, n_age = ssp_halpha_luminosity.shape
     n_gals = logmp0.size
 
     ran_key, sfh_key = jran.split(ran_key, 2)
     diffstar_galpop = diffstarpop_lc_cen_wrapper(
-        diffstarpop_params, sfh_key, mah_params, logmp0, t_table, t_obs
+        diffstarpop_params,
+        sfh_key,
+        mah_params,
+        logmp0,
+        t_table,
+        t_obs,
+        cosmo_params,
+        fb,
     )
 
     # get age weights
