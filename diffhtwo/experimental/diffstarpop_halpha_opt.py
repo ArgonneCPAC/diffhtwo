@@ -59,6 +59,8 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
         mzr_params,
         spspop_params,
         scatter_params,
+        cosmo_params,
+        fb,
     ):
         # scatter the subset into the full flat vector
         u_theta_full = u_theta_default.at[IDX].set(u_theta_sub)
@@ -83,6 +85,8 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
             mzr_params,
             spspop_params,
             scatter_params,
+            cosmo_params,
+            fb,
         )
 
         (
@@ -125,6 +129,8 @@ def fit_diffstarpop(
     mzr_params,
     spspop_params,
     scatter_params,
+    cosmo_params,
+    fb,
     n_steps=10,
     step_size=1e-2,
 ):
@@ -145,6 +151,8 @@ def fit_diffstarpop(
         mzr_params,
         spspop_params,
         scatter_params,
+        cosmo_params,
+        fb,
     )
 
     def _opt_update(opt_state, i):

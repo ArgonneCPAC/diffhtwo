@@ -2,7 +2,7 @@ import numpy as np
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 from diffsky.param_utils import spspop_param_utils as spspu
-from diffstar.defaults import T_TABLE_MIN
+from diffstar.defaults import FB, T_TABLE_MIN
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
@@ -63,6 +63,8 @@ def test_diffstarpop_halpha_kern():
         mzr_params,
         spspop_params,
         scatter_params,
+        DEFAULT_COSMOLOGY,
+        FB,
     )
     halpha_L = diffstarpop_halpha.diffstarpop_halpha_kern(*args)
 
