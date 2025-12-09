@@ -119,6 +119,8 @@ def test_diffstarpop_halpha_opt():
         mzr_params,
         spspop_params,
         scatter_params,
+        DEFAULT_COSMOLOGY,
+        FB,
     )
 
     loss_hist, u_theta_fit_sub = fit_diffstarpop(*fit_args, n_steps=2, step_size=0.02)
