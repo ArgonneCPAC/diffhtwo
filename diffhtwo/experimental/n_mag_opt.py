@@ -356,7 +356,44 @@ def fit_n(
     return loss_hist, grad_hist, u_theta_fit
 
 
-_L = (None, 0, None, 0, 0, None, 0, 0, 0, None, None, None, 0, None, None, None, None)
+# def _loss_kern(
+#     u_theta,
+#     lg_n_target,
+#     ran_key,
+#     lc_halopop,
+#     t_table,
+#     ssp_data,
+#     precomputed_ssp_mag_table,
+#     z_phot_table,
+#     wave_eff_table,
+#     mzr_params,
+#     scatter_params,
+#     ssp_err_pop_params,
+#     lh_centroids,
+#     dmag,
+#     mag_column,
+#     cosmo_params,
+#     fb,
+# ):
+_L = (
+    None,
+    0,
+    None,
+    None,
+    0,
+    None,
+    0,
+    0,
+    0,
+    None,
+    None,
+    None,
+    0,
+    None,
+    None,
+    None,
+    None,
+)
 _loss_kern_multi_z = jjit(
     vmap(
         _loss_kern,
