@@ -8,7 +8,7 @@ on:
 
 jobs:
   tests:
-    name: flake8-test
+    name: flake8 diffhtwo
     runs-on: "ubuntu-latest"
 
     steps:
