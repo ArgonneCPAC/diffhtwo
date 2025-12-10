@@ -8,7 +8,6 @@ jax.config.update("jax_debug_infs", True)
 from functools import partial
 
 import jax.numpy as jnp
-from diffhtwo.experimental.utils import safe_log10
 from diffsky.param_utils.spspop_param_utils import (
     DEFAULT_SPSPOP_PARAMS,
     DEFAULT_SPSPOP_U_PARAMS,
@@ -21,6 +20,8 @@ from jax import lax, value_and_grad
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 from n_mag import n_mag_kern, n_mag_kern_1d
+
+from diffhtwo.experimental.utils import safe_log10
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
@@ -130,6 +131,8 @@ def _loss_kern_1d(
     bin_centers_1d,
     dmag,
     mag_column,
+    cosmo_params,
+    fb,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 2:
@@ -162,6 +165,8 @@ def _loss_kern_1d(
         bin_centers_1d,
         dmag,
         mag_column,
+        cosmo_params,
+        fb,
     )
 
     mse_w = 0.0
@@ -191,6 +196,8 @@ def fit_n_1d(
     bin_centers_1d,
     dmag,
     mag_column,
+    cosmo_params,
+    fb,
     n_steps=2,
     step_size=0.1,
 ):
@@ -212,6 +219,8 @@ def fit_n_1d(
         bin_centers_1d,
         dmag,
         mag_column,
+        cosmo_params,
+        fb,
     )
 
     def _opt_update(opt_state, i):
@@ -245,6 +254,8 @@ def _loss_kern(
     lh_centroids,
     dmag,
     mag_column,
+    cosmo_params,
+    fb,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 2:
@@ -277,6 +288,8 @@ def _loss_kern(
         lh_centroids,
         dmag,
         mag_column,
+        cosmo_params,
+        fb,
     )
 
     return _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1])
@@ -302,6 +315,8 @@ def fit_n(
     lh_centroids,
     dmag,
     mag_column,
+    cosmo_params,
+    fb,
     n_steps=2,
     step_size=0.1,
 ):
@@ -323,6 +338,8 @@ def fit_n(
         lh_centroids,
         dmag,
         mag_column,
+        cosmo_params,
+        fb,
     )
 
     def _opt_update(opt_state, i):

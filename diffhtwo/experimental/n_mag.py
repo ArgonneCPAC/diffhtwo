@@ -30,6 +30,8 @@ def n_mag_kern(
     lh_centroids,
     dmag,
     mag_column,
+    cosmo_params,
+    fb,
 ):
     """Kernel for calculating number density in N-dimensional mag-color space based on
     diffstarpop/bursty/dust parameters
@@ -66,6 +68,8 @@ def n_mag_kern(
         spspop_params,
         scatter_params,
         ssp_err_pop_params,
+        cosmo_params,
+        fb,
     )
 
     # shape = number of halos in lightcone
@@ -157,6 +161,8 @@ def n_mag_kern_1d(
     bin_centers_1d,
     dmag,
     mag_column,
+    cosmo_params,
+    fb,
 ):
     """Kernel for calculating number density in N-dimensional mag-color space based on
     diffstarpop/bursty/dust parameters
@@ -193,6 +199,8 @@ def n_mag_kern_1d(
         spspop_params,
         scatter_params,
         ssp_err_pop_params,
+        cosmo_params,
+        fb,
     )
 
     # shape = number of halos in lightcone
