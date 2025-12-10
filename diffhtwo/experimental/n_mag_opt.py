@@ -354,3 +354,12 @@ def fit_n(
     u_theta_fit = get_params(opt_state)
 
     return loss_hist, grad_hist, u_theta_fit
+
+
+_L = (None, 0, None, 0, 0, None, 0, 0, 0, None, None, None, 0, None, None, None, None)
+_loss_kern_multi_z = jjit(
+    vmap(
+        _loss_kern,
+        in_axes=_L,
+    )
+)
