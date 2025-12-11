@@ -19,9 +19,10 @@ from jax import jit as jjit
 from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
-from n_mag import n_mag_kern, n_mag_kern_1d
 
 from diffhtwo.experimental.utils import safe_log10
+
+from .n_mag import n_mag_kern, n_mag_kern_1d
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
