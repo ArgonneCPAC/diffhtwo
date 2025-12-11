@@ -59,6 +59,11 @@ def get_halpha_luminosity_func(
     L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=38.0, lgL_max=45.0
 ):
     """
+    Calculates the h-alpha LF regardless of where the h-alpha Luminosities come from,
+    either from diffstarpop_halpha.diffstarpop_halpha_kern() or from
+    get_L_halpha_vmap() above designed for more manual SFHs as opposed to
+    diffstarpop parameter driven SFHs.
+
     Parameters
     ----------
     L_halpha_cgs : array of shape (n,) or (n, 1)
