@@ -4,15 +4,12 @@ from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental import precompute_ssp_phot as psspp
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
-from diffsky.param_utils.spspop_param_utils import (
-    DEFAULT_SPSPOP_PARAMS,
-    DEFAULT_SPSPOP_U_PARAMS,
-)
+from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
 from diffsky.ssp_err_model.ssp_err_model import ZERO_SSPERR_PARAMS
 from diffstar.defaults import FB, T_TABLE_MIN
+from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
 from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
     DiffstarPop_Params_Diffstarpopfits_mgash,
-    DiffstarPop_UParams_Diffstarpopfits_mgash,
 )
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
@@ -22,20 +19,16 @@ from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from diffhtwo.experimental import n_mag
+from diffhtwo.experimental import n_mag, n_mag_opt
 from diffhtwo.experimental.data_loaders import retrieve_tcurves
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
-DIFFSTARPOP_U_UM_plus_exsitu = DiffstarPop_UParams_Diffstarpopfits_mgash["smdpl_dr1"]
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
-    DIFFSTARPOP_U_UM_plus_exsitu
+    DEFAULT_DIFFSTARPOP_PARAMS
 )
-u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
-
-u_theta_default = (u_diffstarpop_theta_default, u_spspop_theta_default)
 
 tcurves = []
 SXDS_z_tcurve = retrieve_tcurves.SXDS_z
@@ -104,3 +97,35 @@ lg_n_true, lg_n_avg_err_true = n_mag.n_mag_kern(
 )
 assert np.isfinite(lg_n_true).all()
 assert np.isfinite(lg_n_avg_err_true).all()
+
+ran_key, fit_n_key = jran.split(ran_key, 2)
+loss_hist, grad_hist, u_theta_fit = n_mag_opt.fit_n(
+    u_diffstarpop_theta_default,
+    lg_n_true,
+    fit_n_key,
+    jnp.array(lc_halopop["z_obs"]),
+    lc_halopop["t_obs"],
+    lc_halopop["mah_params"],
+    lc_halopop["logmp0"],
+    lc_halopop["nhalos"],
+    lc_halopop["lc_vol_Mpc3"],
+    t_table,
+    ssp_data,
+    precomputed_ssp_mag_table,
+    z_phot_table,
+    wave_eff_table,
+    DEFAULT_MZR_PARAMS,
+    DEFAULT_SCATTER_PARAMS,
+    ZERO_SSPERR_PARAMS,
+    bin_centers,
+    dmag,
+    mag_column,
+    DEFAULT_COSMOLOGY,
+    FB,
+    n_steps=2,
+    step_size=0.1,
+)
+
+assert np.isfinite(loss_hist).all()
+assert np.isfinite(grad_hist).all()
+assert np.isfinite(u_theta_fit).all()
