@@ -186,7 +186,7 @@ def _loss_kern_1d(
     return mse_w
 
 
-loss_and_grad_fn_1d = jjit(value_and_grad(_loss_kern_1d))
+loss_and_grad_1d = jjit(value_and_grad(_loss_kern_1d))
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
@@ -245,7 +245,7 @@ def fit_n_1d(
 
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
-        loss, grads = loss_and_grad_fn_1d(u_theta, *other)
+        loss, grads = loss_and_grad_1d(u_theta, *other)
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, (loss, grads)
 
@@ -325,7 +325,7 @@ def _loss_kern(
     return _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1])
 
 
-loss_and_grad_fn = jjit(value_and_grad(_loss_kern))
+loss_and_grad = jjit(value_and_grad(_loss_kern))
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
@@ -384,7 +384,7 @@ def fit_n(
 
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
-        loss, grads = loss_and_grad_fn(u_theta, *other)
+        loss, grads = loss_and_grad(u_theta, *other)
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, (loss, grads)
 
@@ -426,3 +426,79 @@ _loss_kern_multi_z = jjit(
         in_axes=_L,
     )
 )
+
+
+@jjit
+def _loss_total_multi_z(*args):
+    return jnp.sum(_loss_kern_multi_z(*args))
+
+
+loss_and_grad_multi_z = jjit(value_and_grad(_loss_total_multi_z))
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_n_multi_z(
+    u_theta_init,
+    lg_n_target,
+    ran_key,
+    lc_z_obs,
+    lc_t_obs,
+    lc_mah_params,
+    lc_logmp0,
+    lc_nhalos,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    precomputed_ssp_mag_table,
+    z_phot_table,
+    wave_eff_table,
+    mzr_params,
+    scatter_params,
+    ssp_err_pop_params,
+    lh_centroids,
+    dmag,
+    mag_column,
+    cosmo_params,
+    fb,
+    n_steps=2,
+    step_size=0.1,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    other = (
+        lg_n_target,
+        ran_key,
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
+        lc_nhalos,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        mzr_params,
+        scatter_params,
+        ssp_err_pop_params,
+        lh_centroids,
+        dmag,
+        mag_column,
+        cosmo_params,
+        fb,
+    )
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss, grads = loss_and_grad_multi_z(u_theta, *other)
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, (loss, grads)
+
+    (opt_state, (loss_hist, grad_hist)) = lax.scan(
+        _opt_update, opt_state, jnp.arange(n_steps)
+    )
+    u_theta_fit = get_params(opt_state)
+
+    return loss_hist, grad_hist, u_theta_fit
