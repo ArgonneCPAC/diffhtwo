@@ -115,147 +115,147 @@ def get_1d_hist_from_lh_log(
     return lg_n_1d, lg_n_1d_err, bin_centers
 
 
-@jjit
-def _loss_kern_1d(
-    u_theta,
-    lg_n_target_1d,
-    ran_key,
-    lc_z_obs,
-    lc_t_obs,
-    lc_mah_params,
-    lc_logmp0,
-    lc_nhalos,
-    lc_vol_mpc3,
-    t_table,
-    ssp_data,
-    precomputed_ssp_mag_table,
-    z_phot_table,
-    wave_eff_table,
-    mzr_params,
-    scatter_params,
-    ssp_err_pop_params,
-    bin_centers_1d,
-    dmag,
-    mag_column,
-    cosmo_params,
-    fb,
-):
-    # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
-    if len(u_theta) == 2:
-        u_diffstarpop_theta, u_spspop_theta = u_theta
+# @jjit
+# def _loss_kern_1d(
+#     u_theta,
+#     lg_n_target_1d,
+#     ran_key,
+#     lc_z_obs,
+#     lc_t_obs,
+#     lc_mah_params,
+#     lc_logmp0,
+#     lc_nhalos,
+#     lc_vol_mpc3,
+#     t_table,
+#     ssp_data,
+#     precomputed_ssp_mag_table,
+#     z_phot_table,
+#     wave_eff_table,
+#     mzr_params,
+#     scatter_params,
+#     ssp_err_pop_params,
+#     bin_centers_1d,
+#     dmag,
+#     mag_column,
+#     cosmo_params,
+#     fb,
+# ):
+#     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
+#     if len(u_theta) == 2:
+#         u_diffstarpop_theta, u_spspop_theta = u_theta
 
-        u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
-        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+#         u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+#         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
-        u_spspop_params = u_spspop_unravel(u_spspop_theta)
-        spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
-    else:
-        u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
-        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+#         u_spspop_params = u_spspop_unravel(u_spspop_theta)
+#         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+#     else:
+#         u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
+#         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
-        spspop_params = DEFAULT_SPSPOP_PARAMS
+#         spspop_params = DEFAULT_SPSPOP_PARAMS
 
-    lg_n_model_1d = n_mag_kern_1d(
-        diffstarpop_params,
-        spspop_params,
-        ran_key,
-        lc_z_obs,
-        lc_t_obs,
-        lc_mah_params,
-        lc_logmp0,
-        lc_nhalos,
-        lc_vol_mpc3,
-        t_table,
-        ssp_data,
-        precomputed_ssp_mag_table,
-        z_phot_table,
-        wave_eff_table,
-        mzr_params,
-        scatter_params,
-        ssp_err_pop_params,
-        bin_centers_1d,
-        dmag,
-        mag_column,
-        cosmo_params,
-        fb,
-    )
+#     lg_n_model_1d = n_mag_kern_1d(
+#         diffstarpop_params,
+#         spspop_params,
+#         ran_key,
+#         lc_z_obs,
+#         lc_t_obs,
+#         lc_mah_params,
+#         lc_logmp0,
+#         lc_nhalos,
+#         lc_vol_mpc3,
+#         t_table,
+#         ssp_data,
+#         precomputed_ssp_mag_table,
+#         z_phot_table,
+#         wave_eff_table,
+#         mzr_params,
+#         scatter_params,
+#         ssp_err_pop_params,
+#         bin_centers_1d,
+#         dmag,
+#         mag_column,
+#         cosmo_params,
+#         fb,
+#     )
 
-    mse_w = 0.0
-    for i in range(0, len(lg_n_model_1d)):
-        mse_w += _mse_w(lg_n_model_1d[i], lg_n_target_1d[i][0], lg_n_target_1d[i][1])
+#     mse_w = 0.0
+#     for i in range(0, len(lg_n_model_1d)):
+#         mse_w += _mse_w(lg_n_model_1d[i], lg_n_target_1d[i][0], lg_n_target_1d[i][1])
 
-    return mse_w
-
-
-loss_and_grad_1d = jjit(value_and_grad(_loss_kern_1d))
+#     return mse_w
 
 
-@partial(jjit, static_argnames=["n_steps", "step_size"])
-def fit_n_1d(
-    u_theta_init,
-    lg_n_target_1d,
-    ran_key,
-    lc_z_obs,
-    lc_t_obs,
-    lc_mah_params,
-    lc_logmp0,
-    lc_nhalos,
-    lc_vol_mpc3,
-    t_table,
-    ssp_data,
-    precomputed_ssp_mag_table,
-    z_phot_table,
-    wave_eff_table,
-    mzr_params,
-    scatter_params,
-    ssp_err_pop_params,
-    bin_centers_1d,
-    dmag,
-    mag_column,
-    cosmo_params,
-    fb,
-    n_steps=2,
-    step_size=0.1,
-):
-    opt_init, opt_update, get_params = jax_opt.adam(step_size)
-    opt_state = opt_init(u_theta_init)
+# loss_and_grad_1d = jjit(value_and_grad(_loss_kern_1d))
 
-    other = (
-        lg_n_target_1d,
-        ran_key,
-        lc_z_obs,
-        lc_t_obs,
-        lc_mah_params,
-        lc_logmp0,
-        lc_nhalos,
-        lc_vol_mpc3,
-        t_table,
-        ssp_data,
-        precomputed_ssp_mag_table,
-        z_phot_table,
-        wave_eff_table,
-        mzr_params,
-        scatter_params,
-        ssp_err_pop_params,
-        bin_centers_1d,
-        dmag,
-        mag_column,
-        cosmo_params,
-        fb,
-    )
 
-    def _opt_update(opt_state, i):
-        u_theta = get_params(opt_state)
-        loss, grads = loss_and_grad_1d(u_theta, *other)
-        opt_state = opt_update(i, grads, opt_state)
-        return opt_state, (loss, grads)
+# @partial(jjit, static_argnames=["n_steps", "step_size"])
+# def fit_n_1d(
+#     u_theta_init,
+#     lg_n_target_1d,
+#     ran_key,
+#     lc_z_obs,
+#     lc_t_obs,
+#     lc_mah_params,
+#     lc_logmp0,
+#     lc_nhalos,
+#     lc_vol_mpc3,
+#     t_table,
+#     ssp_data,
+#     precomputed_ssp_mag_table,
+#     z_phot_table,
+#     wave_eff_table,
+#     mzr_params,
+#     scatter_params,
+#     ssp_err_pop_params,
+#     bin_centers_1d,
+#     dmag,
+#     mag_column,
+#     cosmo_params,
+#     fb,
+#     n_steps=2,
+#     step_size=0.1,
+# ):
+#     opt_init, opt_update, get_params = jax_opt.adam(step_size)
+#     opt_state = opt_init(u_theta_init)
 
-    (opt_state, (loss_hist, grad_hist)) = lax.scan(
-        _opt_update, opt_state, jnp.arange(n_steps)
-    )
-    u_theta_fit = get_params(opt_state)
+#     other = (
+#         lg_n_target_1d,
+#         ran_key,
+#         lc_z_obs,
+#         lc_t_obs,
+#         lc_mah_params,
+#         lc_logmp0,
+#         lc_nhalos,
+#         lc_vol_mpc3,
+#         t_table,
+#         ssp_data,
+#         precomputed_ssp_mag_table,
+#         z_phot_table,
+#         wave_eff_table,
+#         mzr_params,
+#         scatter_params,
+#         ssp_err_pop_params,
+#         bin_centers_1d,
+#         dmag,
+#         mag_column,
+#         cosmo_params,
+#         fb,
+#     )
 
-    return loss_hist, grad_hist, u_theta_fit
+#     def _opt_update(opt_state, i):
+#         u_theta = get_params(opt_state)
+#         loss, grads = loss_and_grad_1d(u_theta, *other)
+#         opt_state = opt_update(i, grads, opt_state)
+#         return opt_state, (loss, grads)
+
+#     (opt_state, (loss_hist, grad_hist)) = lax.scan(
+#         _opt_update, opt_state, jnp.arange(n_steps)
+#     )
+#     u_theta_fit = get_params(opt_state)
+
+#     return loss_hist, grad_hist, u_theta_fit
 
 
 @jjit
