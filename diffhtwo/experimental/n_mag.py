@@ -18,7 +18,12 @@ def n_mag_kern(
     diffstarpop_params,
     spspop_params,
     ran_key,
-    lc_halopop,
+    lc_z_obs,
+    lc_t_obs,
+    lc_mah_params,
+    lc_logmp0,
+    lc_nhalos,
+    lc_vol_mpc3,
     t_table,
     ssp_data,
     precomputed_ssp_mag_table,
@@ -54,10 +59,12 @@ def n_mag_kern(
 
     args = (
         ran_key,
-        jnp.array(lc_halopop["z_obs"]),
-        lc_halopop["t_obs"],
-        lc_halopop["mah_params"],
-        lc_halopop["logmp0"],
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
+        lc_nhalos,
+        lc_vol_mpc3,
         t_table,
         ssp_data,
         precomputed_ssp_mag_table,
@@ -116,7 +123,7 @@ def n_mag_kern(
     N_q = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_q,
         sig,
-        lc_phot.weights_q * lc_halopop["nhalos"],
+        lc_phot.weights_q * lc_nhalos,
         lh_centroids_lo,
         lh_centroids_hi,
     )
@@ -124,7 +131,7 @@ def n_mag_kern(
     N_smooth_ms = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_smooth_ms,
         sig,
-        lc_phot.weights_smooth_ms * lc_halopop["nhalos"],
+        lc_phot.weights_smooth_ms * lc_nhalos,
         lh_centroids_lo,
         lh_centroids_hi,
     )
@@ -132,14 +139,14 @@ def n_mag_kern(
     N_bursty_ms = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_bursty_ms,
         sig,
-        lc_phot.weights_bursty_ms * lc_halopop["nhalos"],
+        lc_phot.weights_bursty_ms * lc_nhalos,
         lh_centroids_lo,
         lh_centroids_hi,
     )
 
     N_model = N_q + N_smooth_ms + N_bursty_ms
 
-    lg_n, lg_n_avg_err = get_n_data_err(N_model, lc_halopop["lc_vol_Mpc3"])
+    lg_n, lg_n_avg_err = get_n_data_err(N_model, lc_vol_mpc3)
 
     return lg_n, lg_n_avg_err
 
@@ -149,7 +156,12 @@ def n_mag_kern_1d(
     diffstarpop_params,
     spspop_params,
     ran_key,
-    lc_halopop,
+    lc_z_obs,
+    lc_t_obs,
+    lc_mah_params,
+    lc_logmp0,
+    lc_nhalos,
+    lc_vol_mpc3,
     t_table,
     ssp_data,
     precomputed_ssp_mag_table,
@@ -185,10 +197,12 @@ def n_mag_kern_1d(
 
     args = (
         ran_key,
-        jnp.array(lc_halopop["z_obs"]),
-        lc_halopop["t_obs"],
-        lc_halopop["mah_params"],
-        lc_halopop["logmp0"],
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
+        lc_nhalos,
+        lc_vol_mpc3,
         t_table,
         ssp_data,
         precomputed_ssp_mag_table,
@@ -229,7 +243,7 @@ def n_mag_kern_1d(
         N_q = diffndhist.tw_ndhist_weighted(
             obs_color_q,
             sig,
-            lc_phot.weights_q * lc_halopop["nhalos"],
+            lc_phot.weights_q * lc_nhalos,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -237,7 +251,7 @@ def n_mag_kern_1d(
         N_smooth_ms = diffndhist.tw_ndhist_weighted(
             obs_color_smooth_ms,
             sig,
-            lc_phot.weights_smooth_ms * lc_halopop["nhalos"],
+            lc_phot.weights_smooth_ms * lc_nhalos,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -245,13 +259,13 @@ def n_mag_kern_1d(
         N_bursty_ms = diffndhist.tw_ndhist_weighted(
             obs_color_bursty_ms,
             sig,
-            lc_phot.weights_bursty_ms * lc_halopop["nhalos"],
+            lc_phot.weights_bursty_ms * lc_nhalos,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
 
         N_model = N_q + N_smooth_ms + N_bursty_ms
-        lg_n, _ = get_n_data_err(N_model, lc_halopop["lc_vol_Mpc3"])
+        lg_n, _ = get_n_data_err(N_model, lc_vol_mpc3)
         lg_n_model_1d.append(lg_n)
 
     """mag_column"""
@@ -272,7 +286,7 @@ def n_mag_kern_1d(
     N_q = diffndhist.tw_ndhist_weighted(
         obs_mags_q,
         sig,
-        lc_phot.weights_q * lc_halopop["nhalos"],
+        lc_phot.weights_q * lc_nhalos,
         bin_centers_1d_lo,
         bin_centers_1d_hi,
     )
@@ -280,7 +294,7 @@ def n_mag_kern_1d(
     N_smooth_ms = diffndhist.tw_ndhist_weighted(
         obs_mags_smooth_ms,
         sig,
-        lc_phot.weights_smooth_ms * lc_halopop["nhalos"],
+        lc_phot.weights_smooth_ms * lc_nhalos,
         bin_centers_1d_lo,
         bin_centers_1d_hi,
     )
@@ -288,14 +302,14 @@ def n_mag_kern_1d(
     N_bursty_ms = diffndhist.tw_ndhist_weighted(
         obs_mags_bursty_ms,
         sig,
-        lc_phot.weights_bursty_ms * lc_halopop["nhalos"],
+        lc_phot.weights_bursty_ms * lc_nhalos,
         bin_centers_1d_lo,
         bin_centers_1d_hi,
     )
 
     N_model = N_q + N_smooth_ms + N_bursty_ms
 
-    lg_n, _ = get_n_data_err(N_model, lc_halopop["lc_vol_Mpc3"])
+    lg_n, _ = get_n_data_err(N_model, lc_vol_mpc3)
     lg_n_model_1d.append(lg_n)
 
     return lg_n_model_1d
