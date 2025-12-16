@@ -29,7 +29,7 @@ def plot_n_ugriz(
     scatter_params,
     ssp_err_pop_params,
     lgmp_min=10.0,
-    sky_area_degsq=1.0,
+    sky_area_degsq=0.5,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
 ):
@@ -74,9 +74,6 @@ def plot_n_ugriz(
 
     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*phot_args)
 
-    # color_bin_edges = np.arange(-3. - dmag / 2, 4., dmag)
-    # mag_bin_edges = np.arange(18. - dmag / 2, 26., dmag)
-
     num_halos, n_bands = lc_phot.obs_mags_q.shape
 
     obs_colors_mag_q = []
@@ -113,11 +110,18 @@ def plot_n_ugriz(
     fig, ax = plt.subplots(1, 5, figsize=(10, 3))
     fig.subplots_adjust(left=0.275, hspace=0, top=0.95, right=0.87, wspace=0.3)
 
-    for i in range(0, len(tcurves) + 1):
+    color_bin_edges = jnp.arange(-3.0 - dmag / 2, 4.0, dmag)
+    mag_bin_edges = jnp.arange(18.0 - dmag / 2, 26.0, dmag)
+    for i in range(0, n_bands):
+        if i == n_bands - 1:
+            bins = mag_bin_edges
+        else:
+            bins = color_bin_edges
         ax[i].hist(
             obs_colors_mag_q[:, i],
             weights=lc_phot.weights_q,
             width=dmag,
+            bins=bins,
             facecolor="orange",
             alpha=0.7,
             edgecolor="none",
