@@ -29,7 +29,7 @@ def plot_n_ugriz(
     scatter_params,
     ssp_err_pop_params,
     lgmp_min=10.0,
-    sky_area_degsq=10.0,
+    sky_area_degsq=1.0,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
 ):
