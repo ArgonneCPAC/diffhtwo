@@ -7,12 +7,12 @@ from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from jax import random as jran
 
-# try:
-#     from matplotlib import pyplot as plt
+try:
+    from matplotlib import pyplot as plt
 
-#     HAS_MATPLOTLIB = True
-# except ImportError:
-#     HAS_MATPLOTLIB = False
+    HAS_MATPLOTLIB = True
+except ImportError:
+    HAS_MATPLOTLIB = False
 
 
 def plot_n_ugriz(
@@ -110,4 +110,27 @@ def plot_n_ugriz(
     obs_colors_mag_bursty_ms.append(obs_mag_bursty_ms)
     obs_colors_mag_bursty_ms = jnp.asarray(obs_colors_mag_bursty_ms).T
 
-    return obs_colors_mag_q, lc_phot.weights_q
+    fig, ax = plt.subplots(1, 5, figsize=(10, 3))
+    fig.subplots_adjust(left=0.275, hspace=0, top=0.95, right=0.87, wspace=0.3)
+
+    for i in range(0, len(tcurves) + 1):
+        ax[i].hist(
+            obs_colors_mag_q[:, i],
+            weights=lc_phot.weights_q,
+            width=dmag,
+            facecolor="orange",
+            alpha=0.7,
+            edgecolor="none",
+            label="data",
+        )
+
+    # ax[0].set_ylabel("log$_{10}$ (1 + N)")
+    ax[0].set_xlabel("MegaCam_uS - HSC_g [AB mag]")
+    ax[1].set_xlabel("HSC_g- HSC_r [AB mag]")
+    ax[2].set_xlabel("HSC_r - HSC_i [AB mag]")
+    ax[3].set_xlabel("HSC_i - HSC_z [AB mag]")
+    ax[4].set_xlabel("HSC_i [AB mag]")
+
+    plt.legend()
+    plt.tight_layout()
+    plt.show()
