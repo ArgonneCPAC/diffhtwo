@@ -107,10 +107,10 @@ def plot_n_ugriz(
     obs_colors_mag_bursty_ms.append(obs_mag_bursty_ms)
     obs_colors_mag_bursty_ms = jnp.asarray(obs_colors_mag_bursty_ms).T
 
-    fig, ax = plt.subplots(1, 5, figsize=(10, 3))
+    fig, ax = plt.subplots(1, 5, figsize=(14, 3))
     fig.subplots_adjust(left=0.275, hspace=0, top=0.95, right=0.87, wspace=0.3)
 
-    color_bin_edges = jnp.arange(-3.0 - dmag / 2, 4.0, dmag)
+    color_bin_edges = jnp.arange(-1.0 - dmag / 2, 2.0, dmag)
     mag_bin_edges = jnp.arange(18.0 - dmag / 2, 26.0, dmag)
     for i in range(0, n_bands):
         if i == n_bands - 1:
@@ -128,12 +128,12 @@ def plot_n_ugriz(
             label="data",
         )
 
-    # ax[0].set_ylabel("log$_{10}$ (1 + N)")
-    ax[0].set_xlabel("MegaCam_uS - HSC_g [AB mag]")
-    ax[1].set_xlabel("HSC_g- HSC_r [AB mag]")
-    ax[2].set_xlabel("HSC_r - HSC_i [AB mag]")
-    ax[3].set_xlabel("HSC_i - HSC_z [AB mag]")
-    ax[4].set_xlabel("HSC_i [AB mag]")
+    ax[0].set_ylabel("N")
+    ax[0].set_xlabel("MegaCam_uS - HSC_g [AB]")
+    ax[1].set_xlabel("HSC_g- HSC_r [AB]")
+    ax[2].set_xlabel("HSC_r - HSC_i [AB]")
+    ax[3].set_xlabel("HSC_i - HSC_z [AB]")
+    ax[4].set_xlabel("HSC_i [AB]")
 
     plt.legend()
     plt.tight_layout()
