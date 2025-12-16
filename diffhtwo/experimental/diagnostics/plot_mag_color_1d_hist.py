@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+import numpy as np
 from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental import precompute_ssp_phot as psspp
@@ -110,22 +111,32 @@ def plot_n_ugriz(
     fig, ax = plt.subplots(1, 5, figsize=(14, 3))
     fig.subplots_adjust(left=0.275, hspace=0, top=0.95, right=0.87, wspace=0.3)
 
-    color_bin_edges = jnp.arange(-1.0 - dmag / 2, 2.0, dmag)
-    mag_bin_edges = jnp.arange(18.0 - dmag / 2, 26.0, dmag)
+    color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
+    mag_bin_edges = np.arange(18.0 - dmag / 2, 26.0, dmag)
+    weights = np.concatenate(
+        [lc_phot.weights_q, lc_phot.weights_smooth_ms, lc_phot.weights_bursty_ms]
+    )
     for i in range(0, n_bands):
         if i == n_bands - 1:
             bins = mag_bin_edges
         else:
             bins = color_bin_edges
+
+        obs_colors_mag = np.concatenate(
+            [
+                obs_colors_mag_q[:, i],
+                obs_colors_mag_smooth_ms[:, i],
+                obs_colors_mag_bursty_ms[:, i],
+            ]
+        )
+
         ax[i].hist(
-            obs_colors_mag_q[:, i],
-            weights=lc_phot.weights_q,
+            obs_colors_mag,
+            weights=weights,
             width=dmag,
             bins=bins,
             facecolor="orange",
             alpha=0.7,
-            edgecolor="none",
-            label="data",
         )
 
     ax[0].set_ylabel("N")
