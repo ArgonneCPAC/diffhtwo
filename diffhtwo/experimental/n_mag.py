@@ -149,6 +149,36 @@ def n_mag_kern(
     return lg_n, lg_n_avg_err
 
 
+_N = (
+    None,
+    None,
+    None,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    None,
+    0,
+    0,
+    0,
+    None,
+    None,
+    None,
+    0,
+    None,
+    None,
+    None,
+    None,
+)
+n_mag_kern_multi_z = jjit(
+    vmap(
+        n_mag_kern,
+        in_axes=_N,
+    )
+)
 # @jjit
 # def n_mag_kern_1d(
 #     diffstarpop_params,
