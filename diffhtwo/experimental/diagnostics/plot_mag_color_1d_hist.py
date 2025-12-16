@@ -16,6 +16,8 @@ from jax import random as jran
 
 
 def plot_n_ugriz(
+    diffstarpop_params,
+    spspop_params,
     tcurves,
     mag_column,
     dmag,
@@ -23,9 +25,7 @@ def plot_n_ugriz(
     zmin,
     zmax,
     ssp_data,
-    diffstarpop_params,
     mzr_params,
-    spspop_params,
     scatter_params,
     ssp_err_pop_params,
     lgmp_min=10.0,
