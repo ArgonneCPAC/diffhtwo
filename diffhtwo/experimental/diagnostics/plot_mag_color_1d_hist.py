@@ -8,6 +8,8 @@ from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from jax import random as jran
 
+from ..utils import zbin_volume
+
 try:
     from matplotlib import pyplot as plt
 
@@ -38,6 +40,7 @@ def plot_n_ugriz(
     ran_key, lc_key = jran.split(ran_key, 2)
     lc_args = (lc_key, lgmp_min, zmin, zmax, sky_area_degsq, cosmo_params)
     lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*lc_args)
+    lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax)
 
     n_z_phot_table = 15
 
@@ -114,7 +117,11 @@ def plot_n_ugriz(
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
     mag_bin_edges = np.arange(18.0 - dmag / 2, 26.0, dmag)
     weights = np.concatenate(
-        [lc_phot.weights_q, lc_phot.weights_smooth_ms, lc_phot.weights_bursty_ms]
+        [
+            lc_phot.weights_q * (1 / lc_vol_mpc3),
+            lc_phot.weights_smooth_ms * (1 / lc_vol_mpc3),
+            lc_phot.weights_bursty_ms * (1 / lc_vol_mpc3),
+        ]
     )
     for i in range(0, n_bands):
         if i == n_bands - 1:
@@ -146,6 +153,5 @@ def plot_n_ugriz(
     ax[3].set_xlabel("HSC_i - HSC_z [AB]")
     ax[4].set_xlabel("HSC_i [AB]")
 
-    plt.legend()
     plt.tight_layout()
     plt.show()
