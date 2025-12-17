@@ -186,6 +186,7 @@ def plot_n_ugriz(
     ax[2].set_xlabel("HSC_r - HSC_i [AB]")
     ax[3].set_xlabel("HSC_i - HSC_z [AB]")
     ax[4].set_xlabel("HSC_i [AB]")
+    ax[0].legend()
 
     plt.tight_layout()
     plt.show()
