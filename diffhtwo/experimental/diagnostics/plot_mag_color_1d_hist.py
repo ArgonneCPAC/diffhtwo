@@ -160,7 +160,7 @@ def plot_n_ugriz(
             weights=weights1,
             bins=bins,
             histtype="step",
-            color="orange",
+            color="k",
             alpha=0.7,
             label="default",
         )
