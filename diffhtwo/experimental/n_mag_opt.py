@@ -425,6 +425,8 @@ def fit_n_multi_z(
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
         loss, grads = loss_and_grad_multi_z(u_theta, *other)
+        print("grads:{}", grads)
+        print("grads.shape:{}", grads.shape)
         # set grads for untrainable params to 0.0
         grads = jnp.where(trainable, grads, jnp.zeros_like(grads))
         opt_state = opt_update(i, grads, opt_state)
