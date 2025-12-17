@@ -32,7 +32,7 @@ def plot_n_ugriz(
     scatter_params,
     ssp_err_pop_params,
     lgmp_min=10.0,
-    sky_area_degsq=0.5,
+    sky_area_degsq=0.25,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
 ):
@@ -146,7 +146,7 @@ def plot_n_ugriz(
             alpha=0.7,
         )
 
-    ax[0].set_ylabel("N")
+    ax[0].set_ylabel("N [Mpc$^{-3}$]")
     ax[0].set_xlabel("MegaCam_uS - HSC_g [AB]")
     ax[1].set_xlabel("HSC_g- HSC_r [AB]")
     ax[2].set_xlabel("HSC_r - HSC_i [AB]")
