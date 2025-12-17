@@ -45,8 +45,6 @@ def plot_n_ugriz(
     lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*lc_args)
     lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
     data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
-    print(lc_vol_mpc3)
-    print(data_vol_mpc3)
 
     n_z_phot_table = 15
 
@@ -122,7 +120,7 @@ def plot_n_ugriz(
     ) = get_obs_colors_mag(lc_phot2, mag_column)
 
     fig, ax = plt.subplots(1, 5, figsize=(14, 3))
-    fig.subplots_adjust(left=0.275, hspace=0, top=0.95, right=0.87, wspace=0.3)
+    fig.subplots_adjust(left=0.275, hspace=0, top=0.95, right=0.87, wspace=0.0)
 
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
     mag_bin_edges = np.arange(18.0 - dmag / 2, 26.0, dmag)
@@ -204,6 +202,10 @@ def plot_n_ugriz(
     ax[3].set_xlabel("HSC_i - HSC_z [AB]")
     ax[4].set_xlabel("HSC_i [AB]")
     ax[0].legend()
+    for i in range(0, n_bands):
+        ax[i].set_ylim(1e-6, 1e-1)
+        if i != 0:
+            ax[i].set_yticklabels([])
 
     plt.tight_layout()
     plt.show()
