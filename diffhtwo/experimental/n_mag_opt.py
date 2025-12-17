@@ -428,7 +428,7 @@ def fit_n_multi_z(
         print("grads:{}", grads)
         print("grads.shape:{}", grads.shape)
         # set grads for untrainable params to 0.0
-        grads = jnp.where(trainable, grads, jnp.zeros_like(grads))
+        # grads = jnp.where(trainable, grads, jnp.zeros_like(grads))
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, (loss, grads)
 
