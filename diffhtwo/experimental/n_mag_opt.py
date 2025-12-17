@@ -259,7 +259,6 @@ loss_and_grad = jjit(value_and_grad(_loss_kern))
 @partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_n(
     u_theta_init,
-    trainable,
     lg_n_target,
     ran_key,
     lc_z_obs,
@@ -314,8 +313,6 @@ def fit_n(
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
         loss, grads = loss_and_grad(u_theta, *other)
-        # set grads for untrainable params to 0.0
-        grads = jnp.where(trainable, grads, jnp.zeros_like(grads))
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, (loss, grads)
 

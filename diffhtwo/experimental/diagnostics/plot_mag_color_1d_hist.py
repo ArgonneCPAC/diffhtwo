@@ -22,6 +22,8 @@ def plot_n_ugriz(
     diffstarpop_params,
     spspop_params1,
     spspop_params2,
+    dataset,
+    data_sky_area_degsq,
     tcurves,
     mag_column,
     dmag,
@@ -41,7 +43,8 @@ def plot_n_ugriz(
     ran_key, lc_key = jran.split(ran_key, 2)
     lc_args = (lc_key, lgmp_min, zmin, zmax, sky_area_degsq, cosmo_params)
     lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*lc_args)
-    lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax)
+    lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
+    data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
 
     n_z_phot_table = 15
 
@@ -137,6 +140,7 @@ def plot_n_ugriz(
             lc_phot2.weights_bursty_ms * (1 / lc_vol_mpc3),
         ]
     )
+    data_weights = np.ones_like(dataset[:, 0]) / data_vol_mpc3
     for i in range(0, n_bands):
         if i == n_bands - 1:
             bins = mag_bin_edges
@@ -155,9 +159,10 @@ def plot_n_ugriz(
             obs_colors_mag1,
             weights=weights1,
             bins=bins,
+            histtype="step",
             color="orange",
             alpha=0.7,
-            label="1",
+            label="default",
         )
 
         obs_colors_mag2 = np.concatenate(
@@ -175,7 +180,17 @@ def plot_n_ugriz(
             histtype="step",
             color="green",
             alpha=0.7,
-            label="2",
+            label="fit",
+        )
+
+        # data
+        ax[i].hist(
+            dataset[:, i],
+            weights=data_weights,
+            bins=bins,
+            color="orange",
+            alpha=0.7,
+            label="data",
         )
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
