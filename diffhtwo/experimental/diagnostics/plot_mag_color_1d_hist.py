@@ -154,9 +154,8 @@ def plot_n_ugriz(
         ax[i].hist(
             obs_colors_mag1,
             weights=weights1,
-            width=dmag,
             bins=bins,
-            facecolor="orange",
+            color="orange",
             alpha=0.7,
             label="1",
         )
@@ -172,7 +171,6 @@ def plot_n_ugriz(
         ax[i].hist(
             obs_colors_mag2,
             weights=weights2,
-            width=dmag,
             bins=bins,
             histtype="step",
             color="green",
