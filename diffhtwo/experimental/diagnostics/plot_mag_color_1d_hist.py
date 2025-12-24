@@ -119,7 +119,7 @@ def plot_n_ugriz(
         obs_colors_mag_bursty_ms2,
     ) = get_obs_colors_mag(lc_phot2, mag_column)
 
-    fig, ax = plt.subplots(1, 5, figsize=(14, 3))
+    fig, ax = plt.subplots(1, 5, figsize=(12, 3))
     fig.subplots_adjust(left=0.275, hspace=0, top=0.95, right=0.87, wspace=0.0)
 
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
@@ -180,6 +180,7 @@ def plot_n_ugriz(
             histtype="step",
             color="green",
             alpha=0.7,
+            lw=2,
             label="fit",
         )
 
@@ -201,7 +202,7 @@ def plot_n_ugriz(
     ax[2].set_xlabel("HSC_r - HSC_i [AB]")
     ax[3].set_xlabel("HSC_i - HSC_z [AB]")
     ax[4].set_xlabel("HSC_i [AB]")
-    ax[0].legend()
+    ax[4].legend()
     for i in range(0, n_bands):
         ax[i].set_ylim(1e-6, 1e-1)
         if i != 0:
