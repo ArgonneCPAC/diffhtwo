@@ -32,7 +32,7 @@ u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
 
 @jjit
 def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err):
-    mask = lg_n_target > -9.0
+    mask = lg_n_target > -10.0
     nbins = jnp.maximum(jnp.sum(mask), 1)
 
     resid = lg_n_pred - lg_n_target
