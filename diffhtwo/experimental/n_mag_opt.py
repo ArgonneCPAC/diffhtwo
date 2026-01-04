@@ -219,6 +219,7 @@ def _loss_kern(
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
+        print("yes")
         u_diffstarpop_theta, u_spspop_theta, u_ssp_err_pop_theta = u_theta
 
         u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
