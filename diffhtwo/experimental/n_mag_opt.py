@@ -241,7 +241,6 @@ def _loss_kern(
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
         spspop_params = DEFAULT_SPSPOP_PARAMS
-
         ssp_err_pop_params = ZERO_SSPERR_PARAMS
 
     lg_n_model, _ = n_mag_kern(
@@ -356,7 +355,6 @@ _L = (
     0,
     0,
     0,
-    None,
     None,
     None,
     0,
