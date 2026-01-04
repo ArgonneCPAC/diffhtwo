@@ -13,6 +13,11 @@ from diffsky.param_utils.spspop_param_utils import (
     DEFAULT_SPSPOP_U_PARAMS,
     get_bounded_spspop_params_tw_dust,
 )
+from diffsky.ssp_err_model.ssp_err_model import (
+    ZERO_SSPERR_PARAMS,
+    ZERO_SSPERR_U_PARAMS,
+    get_bounded_ssperr_params,
+)
 from diffstar.diffstarpop import get_bounded_diffstarpop_params
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from jax import jit as jjit
@@ -203,7 +208,6 @@ def _loss_kern(
     wave_eff_table,
     mzr_params,
     scatter_params,
-    ssp_err_pop_params,
     lh_centroids,
     dmag,
     mag_column,
@@ -211,6 +215,17 @@ def _loss_kern(
     fb,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
+    if len(u_theta) == 3:
+        u_diffstarpop_theta, u_spspop_theta, u_ssp_err_pop_theta = u_theta
+
+        u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+        u_spspop_params = u_spspop_unravel(u_spspop_theta)
+        spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+        ssp_err_pop_params = get_bounded_ssperr_params(u_ssp_err_pop_theta)
+
     if len(u_theta) == 2:
         u_diffstarpop_theta, u_spspop_theta = u_theta
 
@@ -219,11 +234,15 @@ def _loss_kern(
 
         u_spspop_params = u_spspop_unravel(u_spspop_theta)
         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+        ssp_err_pop_params = ZERO_SSPERR_PARAMS
     else:
         u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
         spspop_params = DEFAULT_SPSPOP_PARAMS
+
+        ssp_err_pop_params = ZERO_SSPERR_PARAMS
 
     lg_n_model, _ = n_mag_kern(
         diffstarpop_params,
@@ -274,7 +293,6 @@ def fit_n(
     wave_eff_table,
     mzr_params,
     scatter_params,
-    ssp_err_pop_params,
     lh_centroids,
     dmag,
     mag_column,
@@ -302,7 +320,6 @@ def fit_n(
         wave_eff_table,
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
         lh_centroids,
         dmag,
         mag_column,
@@ -383,7 +400,6 @@ def fit_n_multi_z(
     wave_eff_table,
     mzr_params,
     scatter_params,
-    ssp_err_pop_params,
     lh_centroids,
     dmag,
     mag_column,
@@ -411,7 +427,6 @@ def fit_n_multi_z(
         wave_eff_table,
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
         lh_centroids,
         dmag,
         mag_column,
