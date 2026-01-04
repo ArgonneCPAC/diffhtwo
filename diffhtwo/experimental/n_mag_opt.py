@@ -33,6 +33,9 @@ u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
 )
 u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
+u_zero_ssp_err_pop_theta, u_zero_ssp_err_pop_unravel = ravel_pytree(
+    ZERO_SSPERR_U_PARAMS
+)
 
 
 @jjit
@@ -224,7 +227,8 @@ def _loss_kern(
         u_spspop_params = u_spspop_unravel(u_spspop_theta)
         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-        ssp_err_pop_params = get_bounded_ssperr_params(u_ssp_err_pop_theta)
+        u_ssp_err_pop_params = u_zero_ssp_err_pop_unravel(u_ssp_err_pop_theta)
+        ssp_err_pop_params = get_bounded_ssperr_params(u_ssp_err_pop_params)
 
     if len(u_theta) == 2:
         u_diffstarpop_theta, u_spspop_theta = u_theta
