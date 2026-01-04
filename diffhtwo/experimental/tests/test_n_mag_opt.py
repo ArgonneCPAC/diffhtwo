@@ -116,7 +116,6 @@ loss_hist, grad_hist, u_theta_fit = n_mag_opt.fit_n(
     wave_eff_table,
     DEFAULT_MZR_PARAMS,
     DEFAULT_SCATTER_PARAMS,
-    ZERO_SSPERR_PARAMS,
     bin_centers,
     dmag,
     mag_column,
