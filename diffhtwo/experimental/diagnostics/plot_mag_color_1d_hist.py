@@ -126,7 +126,7 @@ def plot_n_ugriz(
     ) = get_obs_colors_mag(lc_phot2, mag_column)
 
     fig, ax = plt.subplots(1, 5, figsize=(12, 3))
-    fig.subplots_adjust(left=0.275, hspace=0, top=0.95, right=0.99, wspace=0.0)
+    fig.subplots_adjust(left=0.1, hspace=0, top=0.9, right=0.99, bottom=0.2, wspace=0.0)
 
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
     mag_bin_edges = np.arange(18.0 - dmag / 2, 26.0, dmag)
