@@ -36,6 +36,9 @@ def plot_n_ugriz(
     ssp_data,
     mzr_params,
     scatter_params,
+    label1,
+    label2,
+    saveAs,
     lgmp_min=10.0,
     sky_area_degsq=0.25,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -164,7 +167,7 @@ def plot_n_ugriz(
             histtype="step",
             color="k",
             alpha=0.7,
-            label="default",
+            label=label1,
         )
 
         obs_colors_mag2 = np.concatenate(
@@ -183,7 +186,7 @@ def plot_n_ugriz(
             color="green",
             alpha=0.7,
             lw=2,
-            label="fit",
+            label=label2,
         )
 
         # data
@@ -211,6 +214,7 @@ def plot_n_ugriz(
             ax[i].set_yticklabels([])
 
     plt.tight_layout()
+    plt.savefig(saveAs)
     plt.show()
 
 
