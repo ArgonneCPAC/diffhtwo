@@ -127,6 +127,7 @@ def plot_n_ugriz(
 
     fig, ax = plt.subplots(1, 5, figsize=(12, 3))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.9, right=0.99, bottom=0.2, wspace=0.0)
+    fig.suptitle(title)
 
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
     mag_bin_edges = np.arange(18.0 - dmag / 2, 26.0, dmag)
@@ -213,8 +214,6 @@ def plot_n_ugriz(
         ax[i].set_ylim(1e-6, 1e-1)
         if i != 0:
             ax[i].set_yticklabels([])
-    plt.title(title)
-    # plt.tight_layout()
     plt.savefig(saveAs)
     plt.show()
 
