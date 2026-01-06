@@ -214,7 +214,7 @@ def plot_n_ugriz(
         if i != 0:
             ax[i].set_yticklabels([])
     plt.title(title)
-    plt.tight_layout()
+    # plt.tight_layout()
     plt.savefig(saveAs)
     plt.show()
 
