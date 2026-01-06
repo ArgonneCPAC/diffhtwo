@@ -36,6 +36,7 @@ def plot_n_ugriz(
     ssp_data,
     mzr_params,
     scatter_params,
+    title,
     label1,
     label2,
     saveAs,
@@ -212,7 +213,7 @@ def plot_n_ugriz(
         ax[i].set_ylim(1e-6, 1e-1)
         if i != 0:
             ax[i].set_yticklabels([])
-
+    plt.title(title)
     plt.tight_layout()
     plt.savefig(saveAs)
     plt.show()
