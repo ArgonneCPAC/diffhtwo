@@ -49,7 +49,7 @@ def zbin_volume(sky_area_degsq, zlow=0.2, zhigh=0.5, slices=1000):
     A = sky_area_degsq * u.deg**2
     for i in range(0, len(z)):
         dV_dz[i] = COSMO.differential_comoving_volume(z[i]).value
-    volume = (np.trapz(dV_dz, z) * u.Mpc**3 / u.sr) * A.to(u.sr)
+    volume = (np.trapezoid(dV_dz, z) * u.Mpc**3 / u.sr) * A.to(u.sr)
 
     # Convert from Mpc3 to Mpc3/h3 units
     # volume = (volume/u.h**3)*(cosmo.h**3)
