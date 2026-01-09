@@ -25,7 +25,7 @@ from diffhtwo.experimental.data_loaders import retrieve_tcurves
 from diffhtwo.experimental.utils import zbin_volume
 
 TEST_DIR = Path(__file__).resolve().parent
-
+print(TEST_DIR)
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
