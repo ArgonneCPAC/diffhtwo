@@ -241,7 +241,7 @@ def _loss_kern(
 
         ssp_err_pop_params = ZERO_SSPERR_PARAMS
 
-    if len(u_theta) == 1:
+    else:
         u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
