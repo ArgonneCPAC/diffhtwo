@@ -38,13 +38,13 @@ DISTANCE_MPC = 1 * u.Mpc
 MPC_TO_CM = DISTANCE_MPC.to(u.cm).value
 
 
-SXDS_z_tcurve = retrieve_tcurves.SXDS_z
+HSC_Z_tcurve = retrieve_tcurves.HSC_Z
 HSC_NB921_tcurve = retrieve_tcurves.HSC_NB921
 
 
-def test_line_phot_kern(BB_tcurve=SXDS_z_tcurve, NB_tcurve=HSC_NB921_tcurve):
-    BB_tcurve_wave_aa = BB_tcurve[:, 0]
-    BB_tcurve_trans = BB_tcurve[:, 1]
+def test_line_phot_kern(BB_tcurve=HSC_Z_tcurve, NB_tcurve=HSC_NB921_tcurve):
+    BB_tcurve_wave_aa = BB_tcurve.wave
+    BB_tcurve_trans = BB_tcurve.transmission
 
     NB_tcurve_wave_aa = NB_tcurve[:, 0]
     NB_tcurve_trans = NB_tcurve[:, 1]
@@ -188,11 +188,13 @@ def test_line_mag_vmap():
     d_L_Mpc = COSMO.luminosity_distance(z_obs)
     d_L_cm = d_L_Mpc * MPC_TO_CM
 
-    SXDS_z_wave_aa = SXDS_z_tcurve[:, 0]
-    SXDS_z_trans = SXDS_z_tcurve[:, 1]
-
     SXDS_z_mag_ab = line_phot_kern.get_band_mag_ab_from_luminosity(
-        halpha_obs_aa, halpha_L_true, z_obs, d_L_cm, SXDS_z_wave_aa, SXDS_z_trans
+        halpha_obs_aa,
+        halpha_L_true,
+        z_obs,
+        d_L_cm,
+        HSC_Z_tcurve.wave,
+        HSC_Z_tcurve.transmission,
     )
 
     assert np.isfinite(SXDS_z_mag_ab.band_mag_ab_q).all()

@@ -13,6 +13,11 @@ from diffsky.param_utils.spspop_param_utils import (
     DEFAULT_SPSPOP_U_PARAMS,
     get_bounded_spspop_params_tw_dust,
 )
+from diffsky.ssp_err_model.defaults import (
+    ZERO_SSPERR_PARAMS,
+    ZERO_SSPERR_U_PARAMS,
+    get_bounded_ssperr_params,
+)
 from diffstar.diffstarpop import get_bounded_diffstarpop_params
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from jax import jit as jjit
@@ -28,6 +33,9 @@ u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
 )
 u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
+u_zero_ssp_err_pop_theta, u_zero_ssp_err_pop_unravel = ravel_pytree(
+    ZERO_SSPERR_U_PARAMS
+)
 
 
 @jjit
@@ -40,79 +48,6 @@ def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err):
     chi2 = jnp.where(mask, chi2, 0.0)
 
     return jnp.sum(chi2) / nbins
-
-
-@jjit
-def get_1d_hist_from_lh_log(
-    lh_centroids,
-    column,
-    bin_edges,
-    lg_n_lh,
-    lg_n_lh_err=None,
-):
-    """
-    Project log10(number density) (and optionally its log-error)
-    from Latin Hypercube samples into 1D bins.
-
-    Parameters
-    ----------
-    lh_centroids : array, shape (N_samples, D)
-        LH coordinates.
-    column : int
-        Column index to bin on.
-    bin_edges : array, shape (N_bins+1,)
-        Edges of the 1D histogram bins.
-    lg_n_lh : array, shape (N_samples,)
-        log10(number density) per LH sample (already includes n_floor).
-    lg_n_lh_err : array or None
-        1-sigma uncertainties in log10(number density) per LH sample.
-        If None, function returns only lg_n_1d.
-
-    Returns
-    -------
-    If lg_n_lh_err is None:
-        lg_n_1d, bin_centers
-
-    If lg_n_lh_err is provided:
-        lg_n_1d, lg_n_1d_err, bin_centers
-    """
-
-    # 1) count LH samples in each 1D bin
-    counts, _ = jnp.histogram(
-        lh_centroids[:, column],
-        bins=bin_edges,
-    )
-    counts_safe = jnp.where(counts > 0, counts, 1)
-
-    # 2) weighted sum of log10(n)
-    lg_sum, _ = jnp.histogram(
-        lh_centroids[:, column],
-        bins=bin_edges,
-        weights=lg_n_lh,
-    )
-
-    # 3) mean log10(n) per bin
-    lg_n_1d = lg_sum / counts_safe
-    lg_n_1d = jnp.where(counts > 0, lg_n_1d, 0.0)
-
-    # Return early if no errors provided
-    if lg_n_lh_err is None:
-        bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
-        return lg_n_1d, bin_centers
-
-    # 4) If errors provided, propagate into bins:
-    var_sum, _ = jnp.histogram(
-        lh_centroids[:, column],
-        bins=bin_edges,
-        weights=lg_n_lh_err**2,
-    )
-
-    lg_n_1d_err = jnp.sqrt(var_sum) / counts_safe
-    lg_n_1d_err = jnp.where(counts > 0, lg_n_1d_err, 0.0)
-
-    bin_centers = 0.5 * (bin_edges[:-1] + bin_edges[1:])
-
-    return lg_n_1d, lg_n_1d_err, bin_centers
 
 
 # @jjit
@@ -276,7 +211,6 @@ def _loss_kern(
     wave_eff_table,
     mzr_params,
     scatter_params,
-    ssp_err_pop_params,
     lh_centroids,
     dmag,
     mag_column,
@@ -284,6 +218,18 @@ def _loss_kern(
     fb,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
+    if len(u_theta) == 3:
+        u_diffstarpop_theta, u_spspop_theta, u_ssp_err_pop_theta = u_theta
+
+        u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+        u_spspop_params = u_spspop_unravel(u_spspop_theta)
+        spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+        u_ssp_err_pop_params = u_zero_ssp_err_pop_unravel(u_ssp_err_pop_theta)
+        ssp_err_pop_params = get_bounded_ssperr_params(u_ssp_err_pop_params)
+
     if len(u_theta) == 2:
         u_diffstarpop_theta, u_spspop_theta = u_theta
 
@@ -292,11 +238,15 @@ def _loss_kern(
 
         u_spspop_params = u_spspop_unravel(u_spspop_theta)
         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+        ssp_err_pop_params = ZERO_SSPERR_PARAMS
+
     else:
         u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
         spspop_params = DEFAULT_SPSPOP_PARAMS
+        ssp_err_pop_params = ZERO_SSPERR_PARAMS
 
     lg_n_model, _ = n_mag_kern(
         diffstarpop_params,
@@ -347,7 +297,6 @@ def fit_n(
     wave_eff_table,
     mzr_params,
     scatter_params,
-    ssp_err_pop_params,
     lh_centroids,
     dmag,
     mag_column,
@@ -375,7 +324,6 @@ def fit_n(
         wave_eff_table,
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
         lh_centroids,
         dmag,
         mag_column,
@@ -414,7 +362,6 @@ _L = (
     0,
     None,
     None,
-    None,
     0,
     None,
     None,
@@ -440,6 +387,7 @@ loss_and_grad_multi_z = jjit(value_and_grad(_loss_total_multi_z))
 @partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_n_multi_z(
     u_theta_init,
+    trainable,
     lg_n_target,
     ran_key,
     lc_z_obs,
@@ -455,7 +403,6 @@ def fit_n_multi_z(
     wave_eff_table,
     mzr_params,
     scatter_params,
-    ssp_err_pop_params,
     lh_centroids,
     dmag,
     mag_column,
@@ -483,7 +430,6 @@ def fit_n_multi_z(
         wave_eff_table,
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
         lh_centroids,
         dmag,
         mag_column,
@@ -494,6 +440,10 @@ def fit_n_multi_z(
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
         loss, grads = loss_and_grad_multi_z(u_theta, *other)
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, (loss, grads)
 
