@@ -14,7 +14,6 @@ from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders import retrieve_fake_fsps_data
-from dsps.data_loaders.defaults import TransmissionCurve
 from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
@@ -31,8 +30,7 @@ u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
 )
 
 tcurves = []
-SXDS_z_tcurve = retrieve_tcurves.SXDS_z
-tcurves.append(TransmissionCurve(SXDS_z_tcurve[:, 0], SXDS_z_tcurve[:, 1]))
+tcurves.append(retrieve_tcurves.HSC_I)
 
 ran_key = jran.key(0)
 dmag = 0.2
