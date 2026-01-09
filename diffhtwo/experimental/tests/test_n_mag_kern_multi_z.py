@@ -125,7 +125,7 @@ for zbin in range(0, len(zbins)):
                 + str(zbins[zbin][0])
                 + "-"
                 + str(zbins[zbin][1])
-                + ".npy",
+                + "_test.npy",
             )
         )
     )
@@ -209,7 +209,7 @@ for zbin in range(0, len(zbins)):
                 + str(zbins[zbin][0])
                 + "-"
                 + str(zbins[zbin][1])
-                + ".npy",
+                + "_test.npy",
             )
         )
     )
