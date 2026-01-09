@@ -65,3 +65,149 @@ for zbin in range(0, len(zbins)):
     )
     lc_halopop = mclh.mc_weighted_halo_lightcone(*args)
     lc_halopop["lc_vol_Mpc3"] = lc_vol
+
+# Transmission curves
+tcurves = []
+
+bands = ["MegaCam_uS", "HSC_G", "HSC_R", "HSC_I", "HSC_Z"]  # mag_column
+
+
+for band in bands:
+    tcurves.append(retrieve_tcurves.band)
+
+mag_column = 3
+dmag = 0.2
+
+ran_key = jran.key(0)
+
+n_z_phot_table = 15
+
+lc_halopop_z_obs_multi_z = []
+lc_halopop_t_obs_multi_z = []
+lc_halopop_mah_params_multi_z = []
+lc_halopop_nhalos_multi_z = []
+lc_halopop_logmp0_multi_z = []
+lc_halopop_lc_vol_mpc3_multi_z = []
+
+t_table_multi_z = []
+precomputed_ssp_mag_table_multi_z = []
+z_phot_table_multi_z = []
+wave_eff_table_multi_z = []
+
+lh_centroids_multi_z = []
+for zbin in range(0, len(zbins) - 1):
+    zmin = zbins[zbin][0]
+    zmax = zbins[zbin][1]
+
+    z_phot_table = jnp.linspace(zmin, zmax, n_z_phot_table)
+    t_0 = flat_wcdm.age_at_z0(*DEFAULT_COSMOLOGY)
+    lgt0 = jnp.log10(t_0)
+    t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
+
+    precomputed_ssp_mag_table = psspp.get_precompute_ssp_mag_redshift_table(
+        tcurves, ssp_data, z_phot_table, DEFAULT_COSMOLOGY
+    )
+
+    wave_eff_table = lc_phot_kern.get_wave_eff_table(z_phot_table, tcurves)
+
+    with open(
+        "/Users/kumail/diffdir/mock_data/lc_halopop_z_"
+        + str(zbins[zbin][0])
+        + "-"
+        + str(zbins[zbin][1])
+        + ".pkl",
+        "rb",
+    ) as f:
+        lc_halopop = pickle.load(f)
+
+    lh_centroids = jnp.asarray(
+        np.load(
+            "/Users/kumail/diffdir/data/lh_centroids_z_"
+            + str(zbins[zbin][0])
+            + "-"
+            + str(zbins[zbin][1])
+            + ".npy"
+        )
+    )
+
+    ran_key, n_key = jran.split(ran_key, 2)
+    n_args_single_z = (
+        DIFFSTARPOP_UM_plus_exsitu,
+        DEFAULT_SPSPOP_PARAMS,
+        n_key,
+        jnp.array(lc_halopop["z_obs"]),
+        lc_halopop["t_obs"],
+        lc_halopop["mah_params"],
+        lc_halopop["logmp0"],
+        lc_halopop["nhalos"],
+        lc_halopop["lc_vol_Mpc3"],
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        DEFAULT_MZR_PARAMS,
+        DEFAULT_SCATTER_PARAMS,
+        ZERO_SSPERR_PARAMS,
+        lh_centroids,
+        dmag,
+        mag_column,
+        DEFAULT_COSMOLOGY,
+        FB,
+    )
+    lg_n_single_z, lg_n_avg_err_single_z = n_mag.n_mag_kern(*n_args_single_z)
+
+    lc_halopop_z_obs_multi_z.append(lc_halopop["z_obs"])
+    lc_halopop_t_obs_multi_z.append(lc_halopop["t_obs"])
+
+    lc_halopop_mah_params_multi_z.append(lc_halopop["mah_params"])
+
+    lc_halopop_logmp0_multi_z.append(lc_halopop["logmp0"])
+    lc_halopop_nhalos_multi_z.append(lc_halopop["nhalos"])
+    lc_halopop_lc_vol_mpc3_multi_z.append(lc_halopop["lc_vol_Mpc3"])
+    t_table_multi_z.append(t_table)
+    precomputed_ssp_mag_table_multi_z.append(precomputed_ssp_mag_table)
+    z_phot_table_multi_z.append(z_phot_table)
+    wave_eff_table_multi_z.append(wave_eff_table)
+    lh_centroids_multi_z.append(lh_centroids)
+
+lc_halopop_z_obs_multi_z = jnp.asarray(lc_halopop_z_obs_multi_z)
+lc_halopop_t_obs_multi_z = jnp.asarray(lc_halopop_t_obs_multi_z)
+lc_halopop_mah_params_multi_z = jnp.asarray(lc_halopop_mah_params_multi_z)
+lc_halopop_logmp0_multi_z = jnp.asarray(lc_halopop_logmp0_multi_z)
+lc_halopop_nhalos_multi_z = jnp.asarray(lc_halopop_nhalos_multi_z)
+lc_halopop_lc_vol_mpc3_multi_z = jnp.asarray(lc_halopop_lc_vol_mpc3_multi_z)
+
+t_table_multi_z = jnp.asarray(t_table_multi_z)
+precomputed_ssp_mag_table_multi_z = jnp.asarray(precomputed_ssp_mag_table_multi_z)
+z_phot_table_multi_z = jnp.asarray(z_phot_table_multi_z)
+lh_centroids_multi_z = jnp.asarray(lh_centroids_multi_z)
+
+wave_eff_table_multi_z = jnp.asarray(wave_eff_table_multi_z)
+
+n_args_multi_z = (
+    DIFFSTARPOP_UM_plus_exsitu,
+    DEFAULT_SPSPOP_PARAMS,
+    n_key,
+    lc_halopop_z_obs_multi_z,
+    lc_halopop_t_obs_multi_z,
+    lc_halopop_mah_params_multi_z,
+    lc_halopop_logmp0_multi_z,
+    lc_halopop_nhalos_multi_z,
+    lc_halopop_lc_vol_mpc3_multi_z,
+    t_table_multi_z,
+    ssp_data,
+    precomputed_ssp_mag_table_multi_z,
+    z_phot_table_multi_z,
+    wave_eff_table_multi_z,
+    DEFAULT_MZR_PARAMS,
+    DEFAULT_SCATTER_PARAMS,
+    ZERO_SSPERR_PARAMS,
+    lh_centroids_multi_z,
+    dmag,
+    mag_column,
+    DEFAULT_COSMOLOGY,
+    FB,
+)
+
+lg_n_multi_z, lg_n_avg_err_multi_z = n_mag.n_mag_kern_multi_z(*n_args_multi_z)
