@@ -1,3 +1,5 @@
+import os
+
 import jax.numpy as jnp
 import numpy as np
 from diffsky.experimental import lc_phot_kern
@@ -22,7 +24,9 @@ from diffhtwo.experimental import n_mag
 from diffhtwo.experimental.data_loaders import retrieve_tcurves
 from diffhtwo.experimental.utils import zbin_volume
 
-DATA_DIR = "./experimental/data_loaders/"
+TEST_DIR = os.path.dirname(os.path.abspath(__file__))
+DATA_PATH = os.path.join(TEST_DIR, "..", "data_loaders")
+
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
@@ -115,12 +119,14 @@ for zbin in range(0, len(zbins)):
 
     lh_centroids = jnp.asarray(
         np.load(
-            DATA_DIR
-            + "lh_centroids_z_"
-            + str(zbins[zbin][0])
-            + "-"
-            + str(zbins[zbin][1])
-            + ".npy"
+            os.path.join(
+                DATA_PATH,
+                "lh_centroids_z_"
+                + str(zbins[zbin][0])
+                + "-"
+                + str(zbins[zbin][1])
+                + ".npy",
+            )
         )
     )
 
@@ -197,12 +203,14 @@ for zbin in range(0, len(zbins)):
 
     lh_centroids = jnp.asarray(
         np.load(
-            DATA_DIR
-            + "lh_centroids_z_"
-            + str(zbins[zbin][0])
-            + "-"
-            + str(zbins[zbin][1])
-            + ".npy"
+            os.path.join(
+                DATA_PATH,
+                "lh_centroids_z_"
+                + str(zbins[zbin][0])
+                + "-"
+                + str(zbins[zbin][1])
+                + ".npy",
+            )
         )
     )
 
