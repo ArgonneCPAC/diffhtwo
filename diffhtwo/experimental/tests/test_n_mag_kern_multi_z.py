@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import jax.numpy as jnp
 import numpy as np
 from diffsky.experimental import lc_phot_kern
@@ -24,8 +22,8 @@ from diffhtwo.experimental import n_mag
 from diffhtwo.experimental.data_loaders import retrieve_tcurves
 from diffhtwo.experimental.utils import zbin_volume
 
-TEST_DIR = Path(__file__).resolve().parent
-print(TEST_DIR)
+DATA_DIR = "./experimental/data_loaders/"
+
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
@@ -117,8 +115,8 @@ for zbin in range(0, len(zbins)):
 
     lh_centroids = jnp.asarray(
         np.load(
-            TEST_DIR
-            + "../data_loaders/lh_centroids_z_"
+            DATA_DIR
+            + "lh_centroids_z_"
             + str(zbins[zbin][0])
             + "-"
             + str(zbins[zbin][1])
@@ -199,8 +197,8 @@ for zbin in range(0, len(zbins)):
 
     lh_centroids = jnp.asarray(
         np.load(
-            TEST_DIR
-            + "../data_loaders/lh_centroids_z_"
+            DATA_DIR
+            + "lh_centroids_z_"
             + str(zbins[zbin][0])
             + "-"
             + str(zbins[zbin][1])
