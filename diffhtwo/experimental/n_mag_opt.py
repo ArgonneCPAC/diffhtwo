@@ -230,7 +230,7 @@ def _loss_kern(
         u_ssp_err_pop_params = u_zero_ssp_err_pop_unravel(u_ssp_err_pop_theta)
         ssp_err_pop_params = get_bounded_ssperr_params(u_ssp_err_pop_params)
 
-    if len(u_theta) == 2:
+    elif len(u_theta) == 2:
         u_diffstarpop_theta, u_spspop_theta = u_theta
 
         u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
