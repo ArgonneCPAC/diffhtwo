@@ -72,17 +72,16 @@ for zbin in range(0, len(zbins)):
     lc_halopop_multi_z.append(lc_halopop)
 
 # Transmission curves
-tcurves = []
-
-bands = ["MegaCam_uS", "HSC_G", "HSC_R", "HSC_I", "HSC_Z"]  # mag_column
-
-
-for band in bands:
-    tcurves.append(retrieve_tcurves.band)
+tcurves = [
+    retrieve_tcurves.MegaCam_uS,
+    retrieve_tcurves.HSC_G,
+    retrieve_tcurves.HSC_R,
+    retrieve_tcurves.HSC_I,
+    retrieve_tcurves.HSC_Z,
+]
 
 mag_column = 3
 dmag = 0.2
-
 
 n_z_phot_table = 15
 
