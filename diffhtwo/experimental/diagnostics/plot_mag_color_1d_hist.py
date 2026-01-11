@@ -49,6 +49,7 @@ def plot_n_ugriz(
     saveAs,
     lh_centroids,
     lg_n_data_err_lh,
+    lg_n_thresh,
     lgmp_min=10.0,
     sky_area_degsq=0.1,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -227,7 +228,6 @@ def plot_n_ugriz(
     plt.show()
 
     # Output loss based on lh_centroids, not 1D histograms as above
-    lg_n_thresh = -8
     lc_nhalos = np.ones(lc_halopop["logmp0"].shape)
     ran_key, n_key = jran.split(ran_key, 2)
 
