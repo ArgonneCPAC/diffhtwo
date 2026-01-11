@@ -39,8 +39,8 @@ u_zero_ssp_err_pop_theta, u_zero_ssp_err_pop_unravel = ravel_pytree(
 
 
 @jjit
-def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err):
-    mask = lg_n_target > -8.0
+def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err, lg_n_thresh):
+    mask = lg_n_target > lg_n_thresh
     nbins = jnp.maximum(jnp.sum(mask), 1)
 
     resid = lg_n_pred - lg_n_target
@@ -197,6 +197,7 @@ def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err):
 def _loss_kern(
     u_theta,
     lg_n_target,
+    lg_n_thresh,
     ran_key,
     lc_z_obs,
     lc_t_obs,
@@ -273,7 +274,7 @@ def _loss_kern(
         fb,
     )
 
-    return _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1])
+    return _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
 
 loss_and_grad = jjit(value_and_grad(_loss_kern))
@@ -283,6 +284,7 @@ loss_and_grad = jjit(value_and_grad(_loss_kern))
 def fit_n(
     u_theta_init,
     lg_n_target,
+    lg_n_thresh,
     ran_key,
     lc_z_obs,
     lc_t_obs,
@@ -310,6 +312,7 @@ def fit_n(
 
     other = (
         lg_n_target,
+        lg_n_thresh,
         ran_key,
         lc_z_obs,
         lc_t_obs,
@@ -348,6 +351,7 @@ def fit_n(
 _L = (
     None,
     0,
+    None,
     None,
     0,
     0,
@@ -389,6 +393,7 @@ def fit_n_multi_z(
     u_theta_init,
     trainable,
     lg_n_target,
+    lg_n_thresh,
     ran_key,
     lc_z_obs,
     lc_t_obs,
@@ -416,6 +421,7 @@ def fit_n_multi_z(
 
     other = (
         lg_n_target,
+        lg_n_thresh,
         ran_key,
         lc_z_obs,
         lc_t_obs,
