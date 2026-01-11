@@ -10,7 +10,7 @@ from diffsky.param_utils.spspop_param_utils import (
     DEFAULT_SPSPOP_PARAMS,
     DEFAULT_SPSPOP_U_PARAMS,
 )
-from diffsky.ssp_err_model.ssp_err_model import ZERO_SSPERR_PARAMS, ZERO_SSPERR_U_PARAMS
+from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS, ZERO_SSPERR_U_PARAMS
 from diffstar.defaults import FB, T_TABLE_MIN
 from diffstar.diffstarpop.defaults import (
     DEFAULT_DIFFSTARPOP_PARAMS,
