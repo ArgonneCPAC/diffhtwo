@@ -50,7 +50,7 @@ def plot_n_ugriz(
     lh_centroids,
     lg_n_data_err_lh,
     lgmp_min=10.0,
-    sky_area_degsq=0.25,
+    sky_area_degsq=0.1,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
 ):
