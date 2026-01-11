@@ -6,10 +6,16 @@ from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental import precompute_ssp_phot as psspp
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
-from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
-from diffsky.ssp_err_model.ssp_err_model import ZERO_SSPERR_PARAMS
+from diffsky.param_utils.spspop_param_utils import (
+    DEFAULT_SPSPOP_PARAMS,
+    DEFAULT_SPSPOP_U_PARAMS,
+)
+from diffsky.ssp_err_model.ssp_err_model import ZERO_SSPERR_PARAMS, ZERO_SSPERR_U_PARAMS
 from diffstar.defaults import FB, T_TABLE_MIN
-from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+from diffstar.diffstarpop.defaults import (
+    DEFAULT_DIFFSTARPOP_PARAMS,
+    DEFAULT_DIFFSTARPOP_U_PARAMS,
+)
 from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
     DiffstarPop_Params_Diffstarpopfits_mgash,
 )
@@ -23,6 +29,8 @@ from jax.flatten_util import ravel_pytree
 from diffhtwo.experimental import n_mag
 from diffhtwo.experimental.data_loaders import retrieve_tcurves
 from diffhtwo.experimental.utils import zbin_volume
+
+from .. import n_mag_opt
 
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(TEST_DIR, "..", "data_loaders")
@@ -92,7 +100,7 @@ lc_halopop_t_obs_multi_z = []
 lc_halopop_mah_params_multi_z = []
 lc_halopop_nhalos_multi_z = []
 lc_halopop_logmp0_multi_z = []
-lc_halopop_lc_vol_mpc3_multi_z = []
+lc_halopop_vol_mpc3_multi_z = []
 
 t_table_multi_z = []
 precomputed_ssp_mag_table_multi_z = []
@@ -135,7 +143,7 @@ for zbin in range(0, len(zbins)):
     lc_halopop_mah_params_multi_z.append(lc_halopop["mah_params"])
     lc_halopop_logmp0_multi_z.append(lc_halopop["logmp0"])
     lc_halopop_nhalos_multi_z.append(lc_halopop["nhalos"])
-    lc_halopop_lc_vol_mpc3_multi_z.append(lc_halopop["lc_vol_Mpc3"])
+    lc_halopop_vol_mpc3_multi_z.append(lc_halopop["lc_vol_Mpc3"])
     t_table_multi_z.append(t_table)
     precomputed_ssp_mag_table_multi_z.append(precomputed_ssp_mag_table)
     z_phot_table_multi_z.append(z_phot_table)
@@ -147,7 +155,7 @@ lc_halopop_t_obs_multi_z = jnp.asarray(lc_halopop_t_obs_multi_z)
 lc_halopop_mah_params_multi_z = jnp.asarray(lc_halopop_mah_params_multi_z)
 lc_halopop_logmp0_multi_z = jnp.asarray(lc_halopop_logmp0_multi_z)
 lc_halopop_nhalos_multi_z = jnp.asarray(lc_halopop_nhalos_multi_z)
-lc_halopop_lc_vol_mpc3_multi_z = jnp.asarray(lc_halopop_lc_vol_mpc3_multi_z)
+lc_halopop_vol_mpc3_multi_z = jnp.asarray(lc_halopop_vol_mpc3_multi_z)
 t_table_multi_z = jnp.asarray(t_table_multi_z)
 precomputed_ssp_mag_table_multi_z = jnp.asarray(precomputed_ssp_mag_table_multi_z)
 z_phot_table_multi_z = jnp.asarray(z_phot_table_multi_z)
@@ -157,7 +165,6 @@ lh_centroids_multi_z = jnp.asarray(lh_centroids_multi_z)
 
 ran_key, n_key = jran.split(ran_key, 2)
 n_args_multi_z = (
-    DIFFSTARPOP_UM_plus_exsitu,
     DEFAULT_SPSPOP_PARAMS,
     n_key,
     lc_halopop_z_obs_multi_z,
@@ -165,7 +172,7 @@ n_args_multi_z = (
     lc_halopop_mah_params_multi_z,
     lc_halopop_logmp0_multi_z,
     lc_halopop_nhalos_multi_z,
-    lc_halopop_lc_vol_mpc3_multi_z,
+    lc_halopop_vol_mpc3_multi_z,
     t_table_multi_z,
     ssp_data,
     precomputed_ssp_mag_table_multi_z,
@@ -181,8 +188,47 @@ n_args_multi_z = (
     FB,
 )
 
-lg_n_multi_z, lg_n_avg_err_multi_z = n_mag.n_mag_kern_multi_z(*n_args_multi_z)
+lg_n_multi_z, lg_n_avg_err_multi_z = n_mag.n_mag_kern_multi_z(
+    DIFFSTARPOP_UM_plus_exsitu, *n_args_multi_z
+)
+lg_n_data_err_lh_multi_z = jnp.stack((lg_n_multi_z, lg_n_avg_err_multi_z), axis=1)
 
+lg_n_multi_z2, lg_n_avg_err_multi_z2 = n_mag.n_mag_kern_multi_z(
+    DEFAULT_DIFFSTARPOP_PARAMS, *n_args_multi_z
+)
+
+# loss w/ DEFAULT_DIFFSTARPOP when DIFFSTARPOP_UM_plus_exsitu is the target data
+u_diffstarpop_theta2, u_diffstarpop_unravel = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
+u_spspop_theta2, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
+u_ssp_err_pop_theta2, u_ssp_err_pop_unravel = ravel_pytree(ZERO_SSPERR_U_PARAMS)
+u_theta2 = (u_diffstarpop_theta2, u_spspop_theta2, u_ssp_err_pop_theta2)
+
+lg_n_thresh = -10
+loss_args_multi_z = (
+    lg_n_thresh,
+    n_key,
+    lc_halopop_z_obs_multi_z,
+    lc_halopop_t_obs_multi_z,
+    lc_halopop_mah_params_multi_z,
+    lc_halopop_logmp0_multi_z,
+    lc_halopop_nhalos_multi_z,
+    lc_halopop_vol_mpc3_multi_z,
+    t_table_multi_z,
+    ssp_data,
+    precomputed_ssp_mag_table_multi_z,
+    z_phot_table_multi_z,
+    wave_eff_table_multi_z,
+    DEFAULT_MZR_PARAMS,
+    DEFAULT_SCATTER_PARAMS,
+    lh_centroids_multi_z,
+    dmag,
+    mag_column,
+    DEFAULT_COSMOLOGY,
+    FB,
+)
+loss_multi_z = n_mag_opt._loss_kern_multi_z(
+    u_theta2, lg_n_data_err_lh_multi_z, *loss_args_multi_z
+)
 
 for zbin in range(0, len(zbins)):
     zmin = zbins[zbin][0]
@@ -240,3 +286,32 @@ for zbin in range(0, len(zbins)):
     )
     lg_n_single_z, lg_n_avg_err_single_z = n_mag.n_mag_kern(*n_args_single_z)
     assert np.allclose(lg_n_multi_z[zbin], lg_n_single_z)
+
+    loss_args_single_z = (
+        lg_n_thresh,
+        n_key,
+        jnp.array(lc_halopop["z_obs"]),
+        lc_halopop["t_obs"],
+        lc_halopop["mah_params"],
+        lc_halopop["logmp0"],
+        lc_halopop["nhalos"],
+        lc_halopop["lc_vol_Mpc3"],
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        DEFAULT_MZR_PARAMS,
+        DEFAULT_SCATTER_PARAMS,
+        lh_centroids,
+        dmag,
+        mag_column,
+        DEFAULT_COSMOLOGY,
+        FB,
+    )
+    lg_n_data_err_lh_single_z = jnp.vstack((lg_n_single_z, lg_n_avg_err_single_z))
+
+    loss_single_z = n_mag_opt._loss_kern(
+        u_theta2, lg_n_data_err_lh_single_z, *loss_args_single_z
+    )
+    assert np.isclose(loss_multi_z[zbin], loss_single_z)
