@@ -60,6 +60,7 @@ def plot_n_ugriz(
     lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*lc_args)
     lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
     data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
+    print(lc_halopop)
 
     n_z_phot_table = 15
 
