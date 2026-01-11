@@ -282,7 +282,8 @@ def plot_n_ugriz(
     loss1 = n_mag_opt._loss_kern(u_theta1, lg_n_data_err_lh, *args)
     loss2 = n_mag_opt._loss_kern(u_theta2, lg_n_data_err_lh, *args)
 
-    print(loss1, loss2)
+    print(f"default loss = {loss1:.2f}")
+    print(f"fit loss = {loss2:.2f}")
 
 
 def get_obs_colors_mag(lc_phot, mag_column):
