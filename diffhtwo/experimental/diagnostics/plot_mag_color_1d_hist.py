@@ -3,11 +3,18 @@ import numpy as np
 from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental import precompute_ssp_phot as psspp
+from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
+from diffsky.param_utils.spspop_param_utils import get_unbounded_spspop_params_tw_dust
+from diffsky.ssp_err_model.defaults import get_unbounded_ssperr_params
 from diffstar.defaults import FB, T_TABLE_MIN
+from diffstar.diffstarpop import get_unbounded_diffstarpop_params
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
+from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
+from jax.flatten_util import ravel_pytree
 
+from .. import n_mag_opt
 from ..utils import zbin_volume
 
 try:
@@ -40,6 +47,8 @@ def plot_n_ugriz(
     label1,
     label2,
     saveAs,
+    lh_centroids,
+    lg_n_data_err_lh,
     lgmp_min=10.0,
     sky_area_degsq=0.25,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -216,6 +225,64 @@ def plot_n_ugriz(
             ax[i].set_yticklabels([])
     plt.savefig(saveAs)
     plt.show()
+
+    # Output loss based on lh_centroids, not 1D histograms as above
+    lg_n_thresh = -8
+    lc_nhalos = np.ones_like(lh_centroids[0, :, 0])
+    ran_key, n_key = jran.split(ran_key, 2)
+
+    # 1
+    u_diffstarpop_params1 = get_unbounded_diffstarpop_params(diffstarpop_params1)
+    u_diffstarpop_theta1, u_diffstarpop_unravel = ravel_pytree(u_diffstarpop_params1)
+
+    u_spspop_params1 = get_unbounded_spspop_params_tw_dust(spspop_params1)
+    u_spspop_theta1, u_spspop_unravel = ravel_pytree(u_spspop_params1)
+
+    u_ssp_err_pop_params1 = get_unbounded_ssperr_params(ssp_err_pop_params1)
+    u_ssp_err_pop_theta1, u_ssp_err_pop_unravel = ravel_pytree(u_ssp_err_pop_params1)
+
+    u_theta1 = (u_diffstarpop_theta1, u_spspop_theta1, u_ssp_err_pop_theta1)
+
+    # 2
+    u_diffstarpop_params2 = get_unbounded_diffstarpop_params(diffstarpop_params2)
+    u_diffstarpop_theta2, u_diffstarpop_unravel = ravel_pytree(u_diffstarpop_params2)
+
+    u_spspop_params2 = get_unbounded_spspop_params_tw_dust(spspop_params2)
+    u_spspop_theta2, u_spspop_unravel = ravel_pytree(u_spspop_params2)
+
+    u_ssp_err_pop_params2 = get_unbounded_ssperr_params(ssp_err_pop_params2)
+    u_ssp_err_pop_theta2, u_ssp_err_pop_unravel = ravel_pytree(u_ssp_err_pop_params2)
+
+    u_theta1 = (u_diffstarpop_theta1, u_spspop_theta1, u_ssp_err_pop_theta1)
+    u_theta2 = (u_diffstarpop_theta2, u_spspop_theta2, u_ssp_err_pop_theta2)
+
+    args = (
+        lg_n_thresh,
+        n_key,
+        lc_halopop["z_obs"],
+        lc_halopop["t_obs"],
+        lc_halopop["mah_params"],
+        lc_halopop["logmp0"],
+        lc_nhalos,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        DEFAULT_MZR_PARAMS,
+        DEFAULT_SCATTER_PARAMS,
+        lh_centroids,
+        dmag,
+        mag_column,
+        DEFAULT_COSMOLOGY,
+        FB,
+    )
+
+    loss1 = n_mag_opt._loss_kern(u_theta1, lg_n_data_err_lh, *args)
+    loss2 = n_mag_opt._loss_kern(u_theta2, lg_n_data_err_lh, *args)
+
+    print(loss1, loss2)
 
 
 def get_obs_colors_mag(lc_phot, mag_column):
