@@ -378,7 +378,7 @@ def Gehrels_low_eq12(Ngal):
 
 
 @jjit
-def get_n_data_err(N, vol, N_floor=1e-6):
+def get_n_data_err(N, vol, N_floor=1e-12):
     N = jnp.where(N > N_floor, N, N_floor)
     lg_n = jnp.log10(N / vol)
 
