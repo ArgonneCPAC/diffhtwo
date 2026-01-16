@@ -212,7 +212,7 @@ def fit_n_1d(
     return loss_hist, grad_hist, u_theta_fit
 
 
-_L_1D = (
+_L_1d = (
     None,
     0,
     None,
