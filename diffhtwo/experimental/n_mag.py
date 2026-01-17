@@ -180,166 +180,170 @@ n_mag_kern_multi_z = jjit(
         in_axes=_N,
     )
 )
-# @jjit
-# def n_mag_kern_1d(
-#     diffstarpop_params,
-#     spspop_params,
-#     ran_key,
-#     lc_z_obs,
-#     lc_t_obs,
-#     lc_mah_params,
-#     lc_logmp0,
-#     lc_nhalos,
-#     lc_vol_mpc3,
-#     t_table,
-#     ssp_data,
-#     precomputed_ssp_mag_table,
-#     z_phot_table,
-#     wave_eff_table,
-#     mzr_params,
-#     scatter_params,
-#     ssp_err_pop_params,
-#     bin_centers_1d,
-#     dmag,
-#     mag_column,
-#     cosmo_params,
-#     fb,
-# ):
-#     """Kernel for calculating number density in N-dimensional mag-color space based on
-#     diffstarpop/bursty/dust parameters
 
-#     Parameters
-#     ----------
-#     lc_halopop : dict of halo lightcone output of
-#                  diffsky.experimental.mc_lightcone_halos.mc_weighted_halo_lightcone()
 
-#     tcurve : list of dsps.data_loaders.defaults.TransmissionCurve objects
+@jjit
+def n_mag_kern_1d(
+    diffstarpop_params,
+    spspop_params,
+    ran_key,
+    lc_z_obs,
+    lc_t_obs,
+    lc_mah_params,
+    lc_logmp0,
+    lc_nhalos,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    precomputed_ssp_mag_table,
+    z_phot_table,
+    wave_eff_table,
+    mzr_params,
+    scatter_params,
+    ssp_err_pop_params,
+    bin_centers_1d,
+    dmag,
+    mag_column,
+    cosmo_params,
+    fb,
+):
+    """Kernel for calculating number density in N-dimensional mag-color space based on
+    diffstarpop/bursty/dust parameters
 
-#     bin_centers_1d: Latin Hypercube centroids in mag-color space based on data
-#                      array with shape (n_centroids, n_bands)
+    Parameters
+    ----------
+    lc_halopop : dict of halo lightcone output of
+                 diffsky.experimental.mc_lightcone_halos.mc_weighted_halo_lightcone()
 
-#     Returns
-#     -------
-#     n : array of number counts weighted by pop fracs and nhalos in n_centroids bins
-#             centered on bin_centers shape (n_centroids,)
-#     """
+    tcurve : list of dsps.data_loaders.defaults.TransmissionCurve objects
 
-#     args = (
-#         ran_key,
-#         lc_z_obs,
-#         lc_t_obs,
-#         lc_mah_params,
-#         lc_logmp0,
-#         t_table,
-#         ssp_data,
-#         precomputed_ssp_mag_table,
-#         z_phot_table,
-#         wave_eff_table,
-#         diffstarpop_params,
-#         mzr_params,
-#         spspop_params,
-#         scatter_params,
-#         ssp_err_pop_params,
-#         cosmo_params,
-#         fb,
-#     )
+    bin_centers_1d: Latin Hypercube centroids in mag-color space based on data
+                     array with shape (n_centroids, n_bands)
 
-#     # shape = number of halos in lightcone
-#     lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
+    Returns
+    -------
+    n : array of number counts weighted by pop fracs and nhalos in n_centroids bins
+            centered on bin_centers shape (n_centroids,)
+    """
 
-#     lg_n_model_1d = []
-#     for i in range(lc_phot.obs_mags_q.shape[1] - 1):
-#         obs_color_q = lc_phot.obs_mags_q[:, i] - lc_phot.obs_mags_q[:, i + 1]
-#         obs_color_q = obs_color_q.reshape(obs_color_q.size, 1)
+    args = (
+        ran_key,
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        diffstarpop_params,
+        mzr_params,
+        spspop_params,
+        scatter_params,
+        ssp_err_pop_params,
+        cosmo_params,
+        fb,
+    )
 
-#         obs_color_smooth_ms = (
-#             lc_phot.obs_mags_smooth_ms[:, i] - lc_phot.obs_mags_smooth_ms[:, i + 1]
-#         )
-#         obs_color_smooth_ms = obs_color_smooth_ms.reshape(obs_color_smooth_ms.size, 1)
+    # shape = number of halos in lightcone
+    lc_phot = lc_phot_kern.multiband_lc_phot_kern(*args)
 
-#         obs_color_bursty_ms = (
-#             lc_phot.obs_mags_bursty_ms[:, i] - lc_phot.obs_mags_bursty_ms[:, i + 1]
-#         )
-#         obs_color_bursty_ms = obs_color_bursty_ms.reshape(obs_color_bursty_ms.size, 1)
+    num_halos, n_bands = lc_phot.obs_mags_q.shape
 
-#         sig = jnp.zeros(obs_color_q.shape) + (dmag / 2)
+    lg_n_model_1d = []
+    for i in range(n_bands - 1):
+        obs_color_q = lc_phot.obs_mags_q[:, i] - lc_phot.obs_mags_q[:, i + 1]
+        obs_color_q = obs_color_q.reshape(obs_color_q.size, 1)
 
-#         bin_centers_1d_lo = bin_centers_1d[i] - (dmag / 2)
-#         bin_centers_1d_hi = bin_centers_1d[i] + (dmag / 2)
+        obs_color_smooth_ms = (
+            lc_phot.obs_mags_smooth_ms[:, i] - lc_phot.obs_mags_smooth_ms[:, i + 1]
+        )
+        obs_color_smooth_ms = obs_color_smooth_ms.reshape(obs_color_smooth_ms.size, 1)
 
-#         N_q = diffndhist.tw_ndhist_weighted(
-#             obs_color_q,
-#             sig,
-#             lc_phot.weights_q * lc_nhalos,
-#             bin_centers_1d_lo,
-#             bin_centers_1d_hi,
-#         )
+        obs_color_bursty_ms = (
+            lc_phot.obs_mags_bursty_ms[:, i] - lc_phot.obs_mags_bursty_ms[:, i + 1]
+        )
+        obs_color_bursty_ms = obs_color_bursty_ms.reshape(obs_color_bursty_ms.size, 1)
 
-#         N_smooth_ms = diffndhist.tw_ndhist_weighted(
-#             obs_color_smooth_ms,
-#             sig,
-#             lc_phot.weights_smooth_ms * lc_nhalos,
-#             bin_centers_1d_lo,
-#             bin_centers_1d_hi,
-#         )
+        sig = jnp.zeros(obs_color_q.shape) + (dmag / 2)
 
-#         N_bursty_ms = diffndhist.tw_ndhist_weighted(
-#             obs_color_bursty_ms,
-#             sig,
-#             lc_phot.weights_bursty_ms * lc_nhalos,
-#             bin_centers_1d_lo,
-#             bin_centers_1d_hi,
-#         )
+        bin_centers_1d_lo = bin_centers_1d[i] - (dmag / 2)
+        bin_centers_1d_hi = bin_centers_1d[i] + (dmag / 2)
 
-#         N_model = N_q + N_smooth_ms + N_bursty_ms
-#         lg_n, _ = get_n_data_err(N_model, lc_vol_mpc3)
-#         lg_n_model_1d.append(lg_n)
+        N_q = diffndhist.tw_ndhist_weighted(
+            obs_color_q,
+            sig,
+            lc_phot.weights_q * lc_nhalos,
+            bin_centers_1d_lo,
+            bin_centers_1d_hi,
+        )
 
-#     """mag_column"""
-#     obs_mags_q = lc_phot.obs_mags_q[:, mag_column]
-#     obs_mags_q = obs_mags_q.reshape(obs_mags_q.size, 1)
+        N_smooth_ms = diffndhist.tw_ndhist_weighted(
+            obs_color_smooth_ms,
+            sig,
+            lc_phot.weights_smooth_ms * lc_nhalos,
+            bin_centers_1d_lo,
+            bin_centers_1d_hi,
+        )
 
-#     obs_mags_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_column]
-#     obs_mags_smooth_ms = obs_mags_smooth_ms.reshape(obs_mags_smooth_ms.size, 1)
+        N_bursty_ms = diffndhist.tw_ndhist_weighted(
+            obs_color_bursty_ms,
+            sig,
+            lc_phot.weights_bursty_ms * lc_nhalos,
+            bin_centers_1d_lo,
+            bin_centers_1d_hi,
+        )
 
-#     obs_mags_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_column]
-#     obs_mags_bursty_ms = obs_mags_bursty_ms.reshape(obs_mags_bursty_ms.size, 1)
+        N_model = N_q + N_smooth_ms + N_bursty_ms
+        lg_n, _ = get_n_data_err(N_model, lc_vol_mpc3)
+        lg_n_model_1d.append(lg_n)
 
-#     sig = jnp.zeros(obs_mags_q.shape) + (dmag / 2)
+    """mag_column"""
+    obs_mags_q = lc_phot.obs_mags_q[:, mag_column]
+    obs_mags_q = obs_mags_q.reshape(obs_mags_q.size, 1)
 
-#     bin_centers_1d_lo = bin_centers_1d[-1] - (dmag / 2)
-#     bin_centers_1d_hi = bin_centers_1d[-1] + (dmag / 2)
+    obs_mags_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_column]
+    obs_mags_smooth_ms = obs_mags_smooth_ms.reshape(obs_mags_smooth_ms.size, 1)
 
-#     N_q = diffndhist.tw_ndhist_weighted(
-#         obs_mags_q,
-#         sig,
-#         lc_phot.weights_q * lc_nhalos,
-#         bin_centers_1d_lo,
-#         bin_centers_1d_hi,
-#     )
+    obs_mags_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_column]
+    obs_mags_bursty_ms = obs_mags_bursty_ms.reshape(obs_mags_bursty_ms.size, 1)
 
-#     N_smooth_ms = diffndhist.tw_ndhist_weighted(
-#         obs_mags_smooth_ms,
-#         sig,
-#         lc_phot.weights_smooth_ms * lc_nhalos,
-#         bin_centers_1d_lo,
-#         bin_centers_1d_hi,
-#     )
+    sig = jnp.zeros(obs_mags_q.shape) + (dmag / 2)
 
-#     N_bursty_ms = diffndhist.tw_ndhist_weighted(
-#         obs_mags_bursty_ms,
-#         sig,
-#         lc_phot.weights_bursty_ms * lc_nhalos,
-#         bin_centers_1d_lo,
-#         bin_centers_1d_hi,
-#     )
+    bin_centers_1d_lo = bin_centers_1d[-1] - (dmag / 2)
+    bin_centers_1d_hi = bin_centers_1d[-1] + (dmag / 2)
 
-#     N_model = N_q + N_smooth_ms + N_bursty_ms
+    N_q = diffndhist.tw_ndhist_weighted(
+        obs_mags_q,
+        sig,
+        lc_phot.weights_q * lc_nhalos,
+        bin_centers_1d_lo,
+        bin_centers_1d_hi,
+    )
 
-#     lg_n, _ = get_n_data_err(N_model, lc_vol_mpc3)
-#     lg_n_model_1d.append(lg_n)
+    N_smooth_ms = diffndhist.tw_ndhist_weighted(
+        obs_mags_smooth_ms,
+        sig,
+        lc_phot.weights_smooth_ms * lc_nhalos,
+        bin_centers_1d_lo,
+        bin_centers_1d_hi,
+    )
 
-#     return lg_n_model_1d
+    N_bursty_ms = diffndhist.tw_ndhist_weighted(
+        obs_mags_bursty_ms,
+        sig,
+        lc_phot.weights_bursty_ms * lc_nhalos,
+        bin_centers_1d_lo,
+        bin_centers_1d_hi,
+    )
+
+    N_model = N_q + N_smooth_ms + N_bursty_ms
+
+    lg_n, _ = get_n_data_err(N_model, lc_vol_mpc3)
+    lg_n_model_1d.append(lg_n)
+
+    return lg_n_model_1d
 
 
 """
