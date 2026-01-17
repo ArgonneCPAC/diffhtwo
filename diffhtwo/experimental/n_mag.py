@@ -268,8 +268,8 @@ def n_mag_kern_1d(
 
         sig = jnp.zeros(obs_color_q.shape) + (dmag / 2)
 
-        bin_centers_1d_lo = bin_centers_1d[i][bin_centers_1d[i] != 0.0] - (dmag / 2)
-        bin_centers_1d_hi = bin_centers_1d[i][bin_centers_1d[i] != 0.0] + (dmag / 2)
+        bin_centers_1d_lo = bin_centers_1d[i] - (dmag / 2)
+        bin_centers_1d_hi = bin_centers_1d[i] + (dmag / 2)
 
         N_q = diffndhist.tw_ndhist_weighted(
             obs_color_q,
@@ -311,8 +311,8 @@ def n_mag_kern_1d(
 
     sig = jnp.zeros(obs_mags_q.shape) + (dmag / 2)
 
-    bin_centers_1d_lo = bin_centers_1d[-1][bin_centers_1d[-1] != 0.0] - (dmag / 2)
-    bin_centers_1d_hi = bin_centers_1d[-1][bin_centers_1d[-1] != 0.0] + (dmag / 2)
+    bin_centers_1d_lo = bin_centers_1d[-1] - (dmag / 2)
+    bin_centers_1d_hi = bin_centers_1d[-1] + (dmag / 2)
 
     N_q = diffndhist.tw_ndhist_weighted(
         obs_mags_q,
