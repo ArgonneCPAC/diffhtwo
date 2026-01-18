@@ -346,7 +346,7 @@ def n_mag_kern_1d(
 
     lg_n_model_1d_err.append(get_n_data_err(N_model, lc_vol_mpc3))
 
-    return jnp.asarray(lg_n_model_1d_err)
+    return lg_n_model_1d_err
 
 
 _N_1d = (
