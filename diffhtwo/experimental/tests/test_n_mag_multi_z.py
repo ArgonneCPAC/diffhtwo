@@ -203,7 +203,7 @@ u_spspop_theta2, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
 u_ssp_err_pop_theta2, u_ssp_err_pop_unravel = ravel_pytree(ZERO_SSPERR_U_PARAMS)
 u_theta2 = (u_diffstarpop_theta2, u_spspop_theta2, u_ssp_err_pop_theta2)
 
-lg_n_thresh = -10
+lg_n_thresh = -8
 loss_args_multi_z = (
     lg_n_thresh,
     n_key,
