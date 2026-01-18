@@ -85,7 +85,7 @@ tcurves = [
 ]
 
 mag_column = 3
-dmag = 0.2
+dmag = 0.5
 fit_columns = jnp.arange(0, len(tcurves), 1)
 
 n_z_phot_table = 15
