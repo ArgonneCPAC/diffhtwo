@@ -102,10 +102,10 @@ wave_eff_table_multi_z = []
 
 # color and mag bins used for all zbins
 bin_edges_1d = (
-    jnp.arange(-0.2, 3.8 + dmag, dmag),
-    jnp.arange(0, 1.8 + dmag, dmag),
-    jnp.arange(-0.6, 1.1 + dmag, dmag),
-    jnp.arange(-1.5, 1.4 + dmag, dmag),
+    jnp.arange(-3, 4.6 + dmag, dmag),
+    jnp.arange(-3, 4.6 + dmag, dmag),
+    jnp.arange(-3, 4.6 + dmag, dmag),
+    jnp.arange(-3, 4.6 + dmag, dmag),
     jnp.arange(17, 25 + dmag, dmag),
 )
 bin_centers_1d = [(b[1:] + b[:-1]) / 2 for b in bin_edges_1d]
