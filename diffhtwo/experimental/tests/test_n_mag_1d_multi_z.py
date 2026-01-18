@@ -86,6 +86,7 @@ tcurves = [
 
 mag_column = 3
 dmag = 0.2
+fit_columns = jnp.arange(0, len(tcurves), 1)
 
 n_z_phot_table = 15
 
@@ -109,10 +110,6 @@ bin_edges_1d = (
     jnp.arange(17, 25 + dmag, dmag),
 )
 bin_centers_1d = [(b[1:] + b[:-1]) / 2 for b in bin_edges_1d]
-
-lengths = jnp.array([b.size for b in bin_centers_1d])
-max_len = lengths.max()
-bin_centers_1d = [jnp.pad(x, (0, max_len - x.size)) for x in bin_centers_1d]
 
 for zbin in range(0, len(zbins)):
     zmin = zbins[zbin][0]
@@ -212,6 +209,7 @@ loss_args_multi_z = (
     bin_centers_1d,
     dmag,
     mag_column,
+    fit_columns,
     DEFAULT_COSMOLOGY,
     FB,
 )
@@ -282,6 +280,7 @@ for zbin in range(0, len(zbins)):
         bin_centers_1d,
         dmag,
         mag_column,
+        fit_columns,
         DEFAULT_COSMOLOGY,
         FB,
     )
