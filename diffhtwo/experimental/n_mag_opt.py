@@ -73,6 +73,7 @@ def _loss_kern_1d(
     bin_centers_1d,
     dmag,
     mag_column,
+    fit_columns,
     cosmo_params,
     fb,
 ):
@@ -133,9 +134,13 @@ def _loss_kern_1d(
     )
 
     mse_w = 0.0
-    for i in range(0, len(lg_n_model_1d)):
+    for i in range(0, len(fit_columns)):
+        fit_column = fit_columns[i]
         mse_w += _mse_w(
-            lg_n_model_1d[i][0], lg_n_target_1d[i][0], lg_n_target_1d[i][1], lg_n_thresh
+            lg_n_model_1d[fit_column][0],
+            lg_n_target_1d[fit_column][0],
+            lg_n_target_1d[fit_column][1],
+            lg_n_thresh,
         )
 
     return mse_w
@@ -166,6 +171,7 @@ def fit_n_1d(
     bin_centers_1d,
     dmag,
     mag_column,
+    fit_columns,
     cosmo_params,
     fb,
     n_steps=2,
@@ -194,6 +200,7 @@ def fit_n_1d(
         bin_centers_1d,
         dmag,
         mag_column,
+        fit_columns,
         cosmo_params,
         fb,
     )
@@ -228,6 +235,7 @@ _L_1d = (
     0,
     0,
     0,
+    None,
     None,
     None,
     None,
@@ -275,6 +283,7 @@ def fit_n_1d_multi_z(
     bin_centers_1d,
     dmag,
     mag_column,
+    fit_columns,
     cosmo_params,
     fb,
     n_steps=2,
@@ -303,6 +312,7 @@ def fit_n_1d_multi_z(
         bin_centers_1d,
         dmag,
         mag_column,
+        fit_columns,
         cosmo_params,
         fb,
     )
