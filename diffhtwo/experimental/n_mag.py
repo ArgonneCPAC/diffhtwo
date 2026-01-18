@@ -344,7 +344,7 @@ def n_mag_kern_1d(
 
     N_model = N_q + N_smooth_ms + N_bursty_ms
 
-    llg_n_model_1d_err.append(get_n_data_err(N_model, lc_vol_mpc3))
+    lg_n_model_1d_err.append(get_n_data_err(N_model, lc_vol_mpc3))
 
     return jnp.asarray(lg_n_model_1d_err)
 
