@@ -352,6 +352,36 @@ def n_mag_kern_1d(
     return lg_n_model_1d
 
 
+_N_1d = (
+    None,
+    None,
+    None,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    None,
+    0,
+    0,
+    0,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+)
+n_mag_kern_1d_multi_z = jjit(
+    vmap(
+        n_mag_kern_1d,
+        in_axes=_N_1d,
+    )
+)
 """
 Gehrels Poisson error 
 """
