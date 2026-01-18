@@ -100,6 +100,7 @@ precomputed_ssp_mag_table_multi_z = []
 z_phot_table_multi_z = []
 wave_eff_table_multi_z = []
 
+# color and mag bins used for all zbins
 bin_edges_1d = (
     jnp.arange(-0.2, 3.8 + dmag, dmag),
     jnp.arange(0, 1.8 + dmag, dmag),
@@ -177,12 +178,11 @@ n_args_multi_z = (
     FB,
 )
 
-lg_n_multi_z, lg_n_avg_err_multi_z = n_mag.n_mag_kern_1d_multi_z(
+lg_n_1d_multi_z = n_mag.n_mag_kern_1d_multi_z(
     DIFFSTARPOP_UM_plus_exsitu, *n_args_multi_z
 )
-lg_n_data_err_lh_multi_z = jnp.stack((lg_n_multi_z, lg_n_avg_err_multi_z), axis=1)
 
-lg_n_multi_z2, lg_n_avg_err_multi_z2 = n_mag.n_mag_kern_1d_multi_z(
+lg_n_1d_multi_z2 = n_mag.n_mag_kern_1d_multi_z(
     DEFAULT_DIFFSTARPOP_PARAMS, *n_args_multi_z
 )
 
@@ -216,7 +216,7 @@ loss_args_multi_z = (
     FB,
 )
 loss_multi_z = n_mag_opt._loss_kern_1d_multi_z(
-    u_theta2, lg_n_data_err_lh_multi_z, *loss_args_multi_z
+    u_theta2, lg_n_1d_multi_z, *loss_args_multi_z
 )
 
 for zbin in range(0, len(zbins)):
@@ -260,8 +260,8 @@ for zbin in range(0, len(zbins)):
         DEFAULT_COSMOLOGY,
         FB,
     )
-    lg_n_single_z, lg_n_avg_err_single_z = n_mag.n_mag_kern_1d(*n_args_single_z)
-    assert np.allclose(lg_n_multi_z[zbin], lg_n_single_z)
+    lg_n_single_z = n_mag.n_mag_kern_1d(*n_args_single_z)
+    assert np.allclose(lg_n_1d_multi_z[zbin], lg_n_single_z)
 
     loss_args_single_z = (
         lg_n_thresh,
@@ -285,9 +285,8 @@ for zbin in range(0, len(zbins)):
         DEFAULT_COSMOLOGY,
         FB,
     )
-    lg_n_data_err_lh_single_z = jnp.vstack((lg_n_single_z, lg_n_avg_err_single_z))
 
     loss_single_z = n_mag_opt._loss_kern_1d(
-        u_theta2, lg_n_data_err_lh_single_z, *loss_args_single_z
+        u_theta2, lg_n_single_z, *loss_args_single_z
     )
     assert np.isclose(loss_multi_z[zbin], loss_single_z)
