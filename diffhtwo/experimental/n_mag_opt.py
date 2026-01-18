@@ -107,7 +107,7 @@ def _loss_kern_1d(
         spspop_params = DEFAULT_SPSPOP_PARAMS
         ssp_err_pop_params = ZERO_SSPERR_PARAMS
 
-    lg_n_model_1d, _ = n_mag_kern_1d(
+    lg_n_model_1d = n_mag_kern_1d(
         diffstarpop_params,
         spspop_params,
         ran_key,
@@ -135,7 +135,7 @@ def _loss_kern_1d(
     mse_w = 0.0
     for i in range(0, len(lg_n_model_1d)):
         mse_w += _mse_w(
-            lg_n_model_1d[i], lg_n_target_1d[i][0], lg_n_target_1d[i][1], lg_n_thresh
+            lg_n_model_1d[i][0], lg_n_target_1d[i][0], lg_n_target_1d[i][1], lg_n_thresh
         )
 
     return mse_w

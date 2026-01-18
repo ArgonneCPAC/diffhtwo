@@ -222,8 +222,7 @@ def n_mag_kern_1d(
 
     Returns
     -------
-    n : array of number counts weighted by pop fracs and nhalos in n_centroids bins
-            centered on bin_centers shape (n_centroids,)
+    lg_n_model_1d : shape (ndim, 2, nbins)
     """
 
     args = (
@@ -251,7 +250,6 @@ def n_mag_kern_1d(
 
     num_halos, n_bands = lc_phot.obs_mags_q.shape
 
-    lg_n_model_1d = []
     lg_n_model_1d_err = []
     for i in range(n_bands - 1):
         obs_color_q = lc_phot.obs_mags_q[:, i] - lc_phot.obs_mags_q[:, i + 1]
@@ -300,9 +298,7 @@ def n_mag_kern_1d(
         )
 
         N_model = N_q + N_smooth_ms + N_bursty_ms
-        lg_n, lg_n_err = get_n_data_err(N_model, lc_vol_mpc3)
-        lg_n_model_1d.append(lg_n)
-        lg_n_model_1d_err.append(lg_n_err)
+        lg_n_model_1d_err.append(get_n_data_err(N_model, lc_vol_mpc3))
 
     """mag_column"""
     obs_mags_q = lc_phot.obs_mags_q[:, mag_column]
@@ -348,11 +344,9 @@ def n_mag_kern_1d(
 
     N_model = N_q + N_smooth_ms + N_bursty_ms
 
-    lg_n, lg_n_err = get_n_data_err(N_model, lc_vol_mpc3)
-    lg_n_model_1d.append(lg_n)
-    lg_n_model_1d_err.append(lg_n_err)
+    llg_n_model_1d_err.append(get_n_data_err(N_model, lc_vol_mpc3))
 
-    return lg_n_model_1d, lg_n_model_1d_err
+    return jnp.asarray(lg_n_model_1d_err)
 
 
 _N_1d = (
