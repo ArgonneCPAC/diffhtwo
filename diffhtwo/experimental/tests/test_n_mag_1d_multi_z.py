@@ -1,5 +1,3 @@
-import os
-
 import jax.numpy as jnp
 import numpy as np
 from diffsky.experimental import lc_phot_kern

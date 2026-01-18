@@ -252,6 +252,7 @@ def n_mag_kern_1d(
     num_halos, n_bands = lc_phot.obs_mags_q.shape
 
     lg_n_model_1d = []
+    lg_n_model_1d_err = []
     for i in range(n_bands - 1):
         obs_color_q = lc_phot.obs_mags_q[:, i] - lc_phot.obs_mags_q[:, i + 1]
         obs_color_q = obs_color_q.reshape(obs_color_q.size, 1)
@@ -299,8 +300,9 @@ def n_mag_kern_1d(
         )
 
         N_model = N_q + N_smooth_ms + N_bursty_ms
-        lg_n, _ = get_n_data_err(N_model, lc_vol_mpc3)
+        lg_n, lg_n_err = get_n_data_err(N_model, lc_vol_mpc3)
         lg_n_model_1d.append(lg_n)
+        lg_n_model_1d_err.append(lg_n_err)
 
     """mag_column"""
     obs_mags_q = lc_phot.obs_mags_q[:, mag_column]
@@ -346,10 +348,11 @@ def n_mag_kern_1d(
 
     N_model = N_q + N_smooth_ms + N_bursty_ms
 
-    lg_n, _ = get_n_data_err(N_model, lc_vol_mpc3)
+    lg_n, lg_n_err = get_n_data_err(N_model, lc_vol_mpc3)
     lg_n_model_1d.append(lg_n)
+    lg_n_model_1d_err.append(lg_n_err)
 
-    return lg_n_model_1d
+    return lg_n_model_1d, lg_n_model_1d_err
 
 
 _N_1d = (
