@@ -144,22 +144,24 @@ def plot_n_ugriz(
 
     weights1 = np.concatenate(
         [
-            lc_phot1.weights_q,  # * (1 / lc_vol_mpc3),
-            lc_phot1.weights_smooth_ms,  # * (1 / lc_vol_mpc3),
-            lc_phot1.weights_bursty_ms,  # * (1 / lc_vol_mpc3),
+            lc_phot1.weights_q * (1 / lc_vol_mpc3),
+            lc_phot1.weights_smooth_ms * (1 / lc_vol_mpc3),
+            lc_phot1.weights_bursty_ms * (1 / lc_vol_mpc3),
         ]
     )
 
     weights2 = np.concatenate(
         [
-            lc_phot2.weights_q,  # * (1 / lc_vol_mpc3),
-            lc_phot2.weights_smooth_ms,  # * (1 / lc_vol_mpc3),
-            lc_phot2.weights_bursty_ms,  # * (1 / lc_vol_mpc3),
+            lc_phot2.weights_q,
+            *(1 / lc_vol_mpc3),
+            lc_phot2.weights_smooth_ms,
+            *(1 / lc_vol_mpc3),
+            lc_phot2.weights_bursty_ms,
+            *(1 / lc_vol_mpc3),
         ]
     )
-    print(lc_vol_mpc3)
-    print(data_vol_mpc3)
-    data_weights = np.ones_like(dataset[:, 0])  # / data_vol_mpc3
+
+    data_weights = np.ones_like(dataset[:, 0]) / data_vol_mpc3
     for i in range(0, n_bands):
         if i == n_bands - 1:
             bins = mag_bin_edges
@@ -222,10 +224,10 @@ def plot_n_ugriz(
     ax[3].set_xlabel("HSC_i - HSC_z [AB]")
     ax[4].set_xlabel("HSC_i [AB]")
     ax[4].legend()
-    # for i in range(0, n_bands):
-    #     ax[i].set_ylim(1e-6, 2e-1)
-    #     if i != 0:
-    #         ax[i].set_yticklabels([])
+    for i in range(0, n_bands):
+        ax[i].set_ylim(1e-6, 2e-1)
+        if i != 0:
+            ax[i].set_yticklabels([])
     plt.savefig(saveAs)
     plt.show()
 
