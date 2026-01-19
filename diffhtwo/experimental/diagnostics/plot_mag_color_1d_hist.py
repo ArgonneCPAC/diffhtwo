@@ -158,7 +158,8 @@ def plot_n_ugriz(
         ]
     )
     print(lc_vol_mpc3)
-    data_weights = np.ones_like(dataset[:, 0]) / data_vol_mpc3
+    print(data_vol_mpc3)
+    data_weights = np.ones_like(dataset[:, 0])  # / data_vol_mpc3
     for i in range(0, n_bands):
         if i == n_bands - 1:
             bins = mag_bin_edges
