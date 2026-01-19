@@ -152,12 +152,9 @@ def plot_n_ugriz(
 
     weights2 = np.concatenate(
         [
-            lc_phot2.weights_q,
-            *(1 / lc_vol_mpc3),
-            lc_phot2.weights_smooth_ms,
-            *(1 / lc_vol_mpc3),
-            lc_phot2.weights_bursty_ms,
-            *(1 / lc_vol_mpc3),
+            lc_phot2.weights_q * (1 / lc_vol_mpc3),
+            lc_phot2.weights_smooth_ms * (1 / lc_vol_mpc3),
+            lc_phot2.weights_bursty_ms * (1 / lc_vol_mpc3),
         ]
     )
 
