@@ -221,7 +221,7 @@ def plot_n_ugriz(
     ax[4].set_xlabel("HSC_i [AB]")
     ax[4].legend()
     for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 1e-1)
+        ax[i].set_ylim(1e-6, 1e0)
         if i != 0:
             ax[i].set_yticklabels([])
     plt.savefig(saveAs)
