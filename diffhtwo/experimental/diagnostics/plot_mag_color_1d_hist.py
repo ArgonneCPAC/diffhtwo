@@ -280,9 +280,21 @@ def plot_n_ugriz(
         N2 = N_q2 + N_smooth_ms2 + N_bursty_ms2
         n2 = N2 / lc_vol_mpc3
 
+        # data
+        dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
+        dataset_i_sig = jnp.zeros_like(dataset_i) + (dmag / 8)
+        N_data = diffndhist.tw_ndhist(
+            dataset_i,
+            dataset_i_sig,
+            bins_lo,
+            bins_hi,
+        )
+        n_data = N_data / data_vol_mpc3
+
         bin_centers = (bins[1:] + bins[:-1]) / 2
         ax[i].scatter(bin_centers, n1, label=label1, c="k")
         ax[i].scatter(bin_centers, n2, label=label2, c="green")
+        ax[i].scatter(bin_centers, n_data, label=label2, c="orange")
         ####
 
         ax[i].hist(
