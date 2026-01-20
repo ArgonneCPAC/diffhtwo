@@ -141,7 +141,7 @@ def plot_n_ugriz(
     fig.suptitle(title)
 
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
-    mag_bin_edges = np.arange(18.0 - dmag / 2, 26.0, dmag)
+    mag_bin_edges = np.arange(18.0 - dmag / 2, 24.5, dmag)
 
     weights1 = np.concatenate(
         [
