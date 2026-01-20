@@ -183,7 +183,7 @@ def plot_n_ugriz(
         # q1
         obs_colors_mag_q1_i = obs_colors_mag_q1[:, i]
         obs_colors_mag_q1_i = obs_colors_mag_q1_i.reshape(obs_colors_mag_q1_i.size, 1)
-        sig = jnp.zeros(obs_colors_mag_q1_i.shape) + (dmag / 2)
+        sig = jnp.zeros(obs_colors_mag_q1_i.shape) + (dmag / 8)
         lc_phot1_weights_q_i = lc_phot1.weights_q.reshape(lc_phot1.weights_q.size, 1)
 
         N_q1 = diffndhist.tw_ndhist_weighted(
