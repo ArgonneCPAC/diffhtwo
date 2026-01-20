@@ -1,5 +1,6 @@
 import jax.numpy as jnp
 import numpy as np
+from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental import precompute_ssp_phot as psspp
@@ -172,6 +173,26 @@ def plot_n_ugriz(
                 obs_colors_mag_bursty_ms1[:, i],
             ]
         )
+
+        # Test
+        bins_lo = bins - (dmag / 2)
+        bins_hi = bins + (dmag / 2)
+        sig = jnp.zeros(obs_colors_mag_q1[:, i].shape) + (dmag / 2)
+
+        print("obs_colors_mag_q1[:, i].shape: " + str(obs_colors_mag_q1[:, i].shape))
+        print("sig.shape: " + str(sig.shape))
+        print("lc_phot1.weights_q.shape: " + str(lc_phot1.weights_q.shape))
+        print("bins_lo.shape: " + str(bins_lo.shape))
+
+        # N_q1 = diffndhist.tw_ndhist_weighted(
+        #     obs_colors_mag_q1[:, i],
+        #     sig,
+        #     lc_phot1.weights_q,
+        #     bins_lo,
+        #     bins_hi,
+        # )
+
+        ####
 
         ax[i].hist(
             obs_colors_mag1,
