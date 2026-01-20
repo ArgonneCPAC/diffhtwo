@@ -193,7 +193,7 @@ def plot_n_ugriz(
         N_q1 = diffndhist.tw_ndhist_weighted(
             obs_colors_mag_q1_i,
             sig,
-            lc_phot1.weights_q_i,
+            lc_phot1_weights_q_i,
             bins_lo,
             bins_hi,
         )
