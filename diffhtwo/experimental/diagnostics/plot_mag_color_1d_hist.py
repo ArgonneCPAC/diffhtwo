@@ -345,10 +345,10 @@ def plot_n_ugriz(
     ax[3].set_xlabel("HSC_i - HSC_z [AB]")
     ax[4].set_xlabel("HSC_i [AB]")
     ax[4].legend()
-    for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 2e-1)
-        if i != 0:
-            ax[i].set_yticklabels([])
+    # for i in range(0, n_bands):
+    #     ax[i].set_ylim(1e-6, 2e-1)
+    #     if i != 0:
+    #         ax[i].set_yticklabels([])
     plt.savefig(saveAs)
     plt.show()
 
