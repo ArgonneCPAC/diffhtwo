@@ -175,126 +175,126 @@ def plot_n_ugriz(
         )
 
         # diffndhist
-        bins_lo = bins[:-1]
-        bins_hi = bins[1:]
-        bins_lo = bins_lo.reshape(bins_lo.size, 1)
-        bins_hi = bins_hi.reshape(bins_hi.size, 1)
+        # bins_lo = bins[:-1]
+        # bins_hi = bins[1:]
+        # bins_lo = bins_lo.reshape(bins_lo.size, 1)
+        # bins_hi = bins_hi.reshape(bins_hi.size, 1)
 
-        # q1
-        obs_colors_mag_q1_i = obs_colors_mag_q1[:, i]
-        obs_colors_mag_q1_i = obs_colors_mag_q1_i.reshape(obs_colors_mag_q1_i.size, 1)
-        sig = jnp.zeros(obs_colors_mag_q1_i.shape) + (dmag / 8)
-        lc_phot1_weights_q_i = lc_phot1.weights_q.reshape(lc_phot1.weights_q.size, 1)
+        # # q1
+        # obs_colors_mag_q1_i = obs_colors_mag_q1[:, i]
+        # obs_colors_mag_q1_i = obs_colors_mag_q1_i.reshape(obs_colors_mag_q1_i.size, 1)
+        # sig = jnp.zeros(obs_colors_mag_q1_i.shape) + (dmag / 8)
+        # lc_phot1_weights_q_i = lc_phot1.weights_q.reshape(lc_phot1.weights_q.size, 1)
 
-        N_q1 = diffndhist.tw_ndhist_weighted(
-            obs_colors_mag_q1_i,
-            sig,
-            lc_phot1_weights_q_i,
-            bins_lo,
-            bins_hi,
-        )
+        # N_q1 = diffndhist.tw_ndhist_weighted(
+        #     obs_colors_mag_q1_i,
+        #     sig,
+        #     lc_phot1_weights_q_i,
+        #     bins_lo,
+        #     bins_hi,
+        # )
 
-        # smooth_ms1
-        obs_colors_mag_smooth_ms1_i = obs_colors_mag_smooth_ms1[:, i]
-        obs_colors_mag_smooth_ms1_i = obs_colors_mag_smooth_ms1_i.reshape(
-            obs_colors_mag_smooth_ms1_i.size, 1
-        )
-        lc_phot1_weights_smooth_ms_i = lc_phot1.weights_smooth_ms.reshape(
-            lc_phot1.weights_smooth_ms.size, 1
-        )
+        # # smooth_ms1
+        # obs_colors_mag_smooth_ms1_i = obs_colors_mag_smooth_ms1[:, i]
+        # obs_colors_mag_smooth_ms1_i = obs_colors_mag_smooth_ms1_i.reshape(
+        #     obs_colors_mag_smooth_ms1_i.size, 1
+        # )
+        # lc_phot1_weights_smooth_ms_i = lc_phot1.weights_smooth_ms.reshape(
+        #     lc_phot1.weights_smooth_ms.size, 1
+        # )
 
-        N_smooth_ms1 = diffndhist.tw_ndhist_weighted(
-            obs_colors_mag_smooth_ms1_i,
-            sig,
-            lc_phot1_weights_smooth_ms_i,
-            bins_lo,
-            bins_hi,
-        )
+        # N_smooth_ms1 = diffndhist.tw_ndhist_weighted(
+        #     obs_colors_mag_smooth_ms1_i,
+        #     sig,
+        #     lc_phot1_weights_smooth_ms_i,
+        #     bins_lo,
+        #     bins_hi,
+        # )
 
-        # bursty_ms1
-        obs_colors_mag_bursty_ms1_i = obs_colors_mag_bursty_ms1[:, i]
-        obs_colors_mag_bursty_ms1_i = obs_colors_mag_bursty_ms1_i.reshape(
-            obs_colors_mag_bursty_ms1_i.size, 1
-        )
-        lc_phot1_weights_bursty_ms_i = lc_phot1.weights_bursty_ms.reshape(
-            lc_phot1.weights_bursty_ms.size, 1
-        )
+        # # bursty_ms1
+        # obs_colors_mag_bursty_ms1_i = obs_colors_mag_bursty_ms1[:, i]
+        # obs_colors_mag_bursty_ms1_i = obs_colors_mag_bursty_ms1_i.reshape(
+        #     obs_colors_mag_bursty_ms1_i.size, 1
+        # )
+        # lc_phot1_weights_bursty_ms_i = lc_phot1.weights_bursty_ms.reshape(
+        #     lc_phot1.weights_bursty_ms.size, 1
+        # )
 
-        N_bursty_ms1 = diffndhist.tw_ndhist_weighted(
-            obs_colors_mag_bursty_ms1_i,
-            sig,
-            lc_phot1_weights_bursty_ms_i,
-            bins_lo,
-            bins_hi,
-        )
-        N1 = N_q1 + N_smooth_ms1 + N_bursty_ms1
-        n1 = N1 / lc_vol_mpc3
+        # N_bursty_ms1 = diffndhist.tw_ndhist_weighted(
+        #     obs_colors_mag_bursty_ms1_i,
+        #     sig,
+        #     lc_phot1_weights_bursty_ms_i,
+        #     bins_lo,
+        #     bins_hi,
+        # )
+        # N1 = N_q1 + N_smooth_ms1 + N_bursty_ms1
+        # n1 = N1 / lc_vol_mpc3
 
-        # q2
-        obs_colors_mag_q2_i = obs_colors_mag_q2[:, i]
-        obs_colors_mag_q2_i = obs_colors_mag_q2_i.reshape(obs_colors_mag_q2_i.size, 1)
-        sig = jnp.zeros(obs_colors_mag_q2_i.shape) + (dmag / 2)
-        lc_phot2_weights_q_i = lc_phot2.weights_q.reshape(lc_phot2.weights_q.size, 1)
+        # # q2
+        # obs_colors_mag_q2_i = obs_colors_mag_q2[:, i]
+        # obs_colors_mag_q2_i = obs_colors_mag_q2_i.reshape(obs_colors_mag_q2_i.size, 1)
+        # sig = jnp.zeros(obs_colors_mag_q2_i.shape) + (dmag / 2)
+        # lc_phot2_weights_q_i = lc_phot2.weights_q.reshape(lc_phot2.weights_q.size, 1)
 
-        N_q2 = diffndhist.tw_ndhist_weighted(
-            obs_colors_mag_q2_i,
-            sig,
-            lc_phot2_weights_q_i,
-            bins_lo,
-            bins_hi,
-        )
+        # N_q2 = diffndhist.tw_ndhist_weighted(
+        #     obs_colors_mag_q2_i,
+        #     sig,
+        #     lc_phot2_weights_q_i,
+        #     bins_lo,
+        #     bins_hi,
+        # )
 
-        # smooth_ms2
-        obs_colors_mag_smooth_ms2_i = obs_colors_mag_smooth_ms2[:, i]
-        obs_colors_mag_smooth_ms2_i = obs_colors_mag_smooth_ms2_i.reshape(
-            obs_colors_mag_smooth_ms2_i.size, 1
-        )
-        lc_phot2_weights_smooth_ms_i = lc_phot2.weights_smooth_ms.reshape(
-            lc_phot2.weights_smooth_ms.size, 1
-        )
+        # # smooth_ms2
+        # obs_colors_mag_smooth_ms2_i = obs_colors_mag_smooth_ms2[:, i]
+        # obs_colors_mag_smooth_ms2_i = obs_colors_mag_smooth_ms2_i.reshape(
+        #     obs_colors_mag_smooth_ms2_i.size, 1
+        # )
+        # lc_phot2_weights_smooth_ms_i = lc_phot2.weights_smooth_ms.reshape(
+        #     lc_phot2.weights_smooth_ms.size, 1
+        # )
 
-        N_smooth_ms2 = diffndhist.tw_ndhist_weighted(
-            obs_colors_mag_smooth_ms2_i,
-            sig,
-            lc_phot2_weights_smooth_ms_i,
-            bins_lo,
-            bins_hi,
-        )
+        # N_smooth_ms2 = diffndhist.tw_ndhist_weighted(
+        #     obs_colors_mag_smooth_ms2_i,
+        #     sig,
+        #     lc_phot2_weights_smooth_ms_i,
+        #     bins_lo,
+        #     bins_hi,
+        # )
 
-        # bursty_ms2
-        obs_colors_mag_bursty_ms2_i = obs_colors_mag_bursty_ms2[:, i]
-        obs_colors_mag_bursty_ms2_i = obs_colors_mag_bursty_ms2_i.reshape(
-            obs_colors_mag_bursty_ms2_i.size, 1
-        )
-        lc_phot2_weights_bursty_ms_i = lc_phot2.weights_bursty_ms.reshape(
-            lc_phot2.weights_bursty_ms.size, 1
-        )
+        # # bursty_ms2
+        # obs_colors_mag_bursty_ms2_i = obs_colors_mag_bursty_ms2[:, i]
+        # obs_colors_mag_bursty_ms2_i = obs_colors_mag_bursty_ms2_i.reshape(
+        #     obs_colors_mag_bursty_ms2_i.size, 1
+        # )
+        # lc_phot2_weights_bursty_ms_i = lc_phot2.weights_bursty_ms.reshape(
+        #     lc_phot2.weights_bursty_ms.size, 1
+        # )
 
-        N_bursty_ms2 = diffndhist.tw_ndhist_weighted(
-            obs_colors_mag_bursty_ms2_i,
-            sig,
-            lc_phot2_weights_bursty_ms_i,
-            bins_lo,
-            bins_hi,
-        )
-        N2 = N_q2 + N_smooth_ms2 + N_bursty_ms2
-        n2 = N2 / lc_vol_mpc3
+        # N_bursty_ms2 = diffndhist.tw_ndhist_weighted(
+        #     obs_colors_mag_bursty_ms2_i,
+        #     sig,
+        #     lc_phot2_weights_bursty_ms_i,
+        #     bins_lo,
+        #     bins_hi,
+        # )
+        # N2 = N_q2 + N_smooth_ms2 + N_bursty_ms2
+        # n2 = N2 / lc_vol_mpc3
 
-        # data
-        dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
-        dataset_i_sig = jnp.zeros_like(dataset_i) + (dmag / 8)
-        N_data = diffndhist.tw_ndhist(
-            dataset_i,
-            dataset_i_sig,
-            bins_lo,
-            bins_hi,
-        )
-        n_data = N_data / data_vol_mpc3
+        # # data
+        # dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
+        # dataset_i_sig = jnp.zeros_like(dataset_i) + (dmag / 8)
+        # N_data = diffndhist.tw_ndhist(
+        #     dataset_i,
+        #     dataset_i_sig,
+        #     bins_lo,
+        #     bins_hi,
+        # )
+        # n_data = N_data / data_vol_mpc3
 
-        bin_centers = (bins[1:] + bins[:-1]) / 2
-        ax[i].scatter(bin_centers, n1, label=label1, c="k")
-        ax[i].scatter(bin_centers, n2, label=label2, c="green")
-        ax[i].scatter(bin_centers, n_data, label=label2, c="orange")
+        # bin_centers = (bins[1:] + bins[:-1]) / 2
+        # ax[i].scatter(bin_centers, n1, label=label1, c="k")
+        # ax[i].scatter(bin_centers, n2, label=label2, c="green")
+        # ax[i].scatter(bin_centers, n_data, label=label2, c="orange")
         ####
 
         ax[i].hist(
@@ -336,7 +336,7 @@ def plot_n_ugriz(
             label="data",
         )
 
-        # ax[i].set_yscale("log")
+        ax[i].set_yscale("log")
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
     ax[0].set_xlabel("MegaCam_uS - HSC_g [AB]")
@@ -345,10 +345,10 @@ def plot_n_ugriz(
     ax[3].set_xlabel("HSC_i - HSC_z [AB]")
     ax[4].set_xlabel("HSC_i [AB]")
     ax[4].legend()
-    # for i in range(0, n_bands):
-    #     ax[i].set_ylim(1e-6, 2e-1)
-    #     if i != 0:
-    #         ax[i].set_yticklabels([])
+    for i in range(0, n_bands):
+        ax[i].set_ylim(1e-6, 2e-1)
+        if i != 0:
+            ax[i].set_yticklabels([])
     plt.savefig(saveAs)
     plt.show()
 
