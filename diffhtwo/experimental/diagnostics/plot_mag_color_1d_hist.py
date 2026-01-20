@@ -336,7 +336,7 @@ def plot_n_ugriz(
             label="data",
         )
 
-        ax[i].set_yscale("log")
+        # ax[i].set_yscale("log")
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
     ax[0].set_xlabel("MegaCam_uS - HSC_g [AB]")
