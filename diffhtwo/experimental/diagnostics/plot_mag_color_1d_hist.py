@@ -280,11 +280,9 @@ def plot_n_ugriz(
         N2 = N_q2 + N_smooth_ms2 + N_bursty_ms2
         n2 = N2 / lc_vol_mpc3
 
-        print(bins.shape)
-        print(n1.shape)
-
-        ax[i].scatter(bins, n1, label=label1, c="k")
-        ax[i].scatter(bins, n2, label=label2, c="green")
+        bin_centers = (bins[1:] + bins[:-1]) / 2
+        ax[i].scatter(bin_centers, n1, label=label1, c="k")
+        ax[i].scatter(bin_centers, n2, label=label2, c="green")
         ####
 
         ax[i].hist(
