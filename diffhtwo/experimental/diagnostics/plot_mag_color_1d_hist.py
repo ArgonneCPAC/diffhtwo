@@ -177,20 +177,27 @@ def plot_n_ugriz(
         # Test
         bins_lo = bins - (dmag / 2)
         bins_hi = bins + (dmag / 2)
-        sig = jnp.zeros(obs_colors_mag_q1[:, i].shape) + (dmag / 2)
 
-        print("obs_colors_mag_q1[:, i].shape: " + str(obs_colors_mag_q1[:, i].shape))
+        obs_colors_mag_q1_i = obs_colors_mag_q1[:, i]
+        obs_colors_mag_q1_i = obs_colors_mag_q1_i.reshape(obs_colors_mag_q1_i.size, 1)
+        sig = jnp.zeros(obs_colors_mag_q1_i.shape) + (dmag / 2)
+        lc_phot1.weights_q_i = lc_phot1.weights_q.reshape(lc_phot1.weights_q.size, 1)
+        bins_lo = bins_lo.reshape(bins_lo.size, 1)
+        bins_hi = bins_hi.reshape(bins_hi.size, 1)
+
+        print("obs_colors_mag_q1_i.shape: " + str(obs_colors_mag_q1_i.shape))
         print("sig.shape: " + str(sig.shape))
-        print("lc_phot1.weights_q.shape: " + str(lc_phot1.weights_q.shape))
+        print("lc_phot1.weights_q_i.shape: " + str(lc_phot1.weights_q_i.shape))
         print("bins_lo.shape: " + str(bins_lo.shape))
 
-        # N_q1 = diffndhist.tw_ndhist_weighted(
-        #     obs_colors_mag_q1[:, i],
-        #     sig,
-        #     lc_phot1.weights_q,
-        #     bins_lo,
-        #     bins_hi,
-        # )
+        N_q1 = diffndhist.tw_ndhist_weighted(
+            obs_colors_mag_q1_i,
+            sig,
+            lc_phot1.weights_q_i,
+            bins_lo,
+            bins_hi,
+        )
+        print(N_q1)
 
         ####
 
