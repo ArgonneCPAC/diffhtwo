@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import numpy as np
-from diffsky import diffndhist
+
+# from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental import precompute_ssp_phot as psspp
