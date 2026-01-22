@@ -178,21 +178,21 @@ def plot_n_ugriz(
         )
 
         # diffndhist
-        bins_lo = bins[:-1]
-        bins_hi = bins[1:]
-        bins_lo = bins_lo.reshape(bins_lo.size, 1)
-        bins_hi = bins_hi.reshape(bins_hi.size, 1)
-        dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
-        dataset_sig_i = jnp.zeros_like(dataset_i)
-        dataset_weights_i = jnp.ones_like(dataset_i) / data_vol_mpc3
+        # bins_lo = bins[:-1]
+        # bins_hi = bins[1:]
+        # bins_lo = bins_lo.reshape(bins_lo.size, 1)
+        # bins_hi = bins_hi.reshape(bins_hi.size, 1)
+        # dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
+        # dataset_sig_i = jnp.zeros_like(dataset_i)
+        # dataset_weights_i = jnp.ones_like(dataset_i) / data_vol_mpc3
 
-        n_data1 = diffndhist.tw_ndhist_weighted(
-            dataset_i,
-            dataset_sig_i,
-            dataset_weights_i,
-            bins_lo,
-            bins_hi,
-        )
+        # n_data1 = diffndhist.tw_ndhist_weighted(
+        #     dataset_i,
+        #     dataset_sig_i,
+        #     dataset_weights_i,
+        #     bins_lo,
+        #     bins_hi,
+        # )
 
         # # q1
         # obs_colors_mag_q1_i = obs_colors_mag_q1[:, i]
@@ -303,12 +303,12 @@ def plot_n_ugriz(
         # )
         # n_data2 = N_data / data_vol_mpc3
 
-        bin_centers = (bins[1:] + bins[:-1]) / 2
+        # bin_centers = (bins[1:] + bins[:-1]) / 2
         # ax[i].scatter(bin_centers, n1, label=label1, c="k")
         # ax[i].scatter(bin_centers, n2, label=label2, c="green")
-        ax[i].scatter(
-            bin_centers, n_data1, label="weighted" + label2, c="cyan", alpha=0.5
-        )
+        # ax[i].scatter(
+        #     bin_centers, n_data1, label="weighted" + label2, c="cyan", alpha=0.5
+        # )
         # ax[i].scatter(bin_centers, n_data2, label=label2, c="magenta", alpha=0.5)
 
         ####
