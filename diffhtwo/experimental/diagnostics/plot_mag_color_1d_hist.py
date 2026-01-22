@@ -295,11 +295,9 @@ def plot_n_ugriz(
         # n2 = N2 / lc_vol_mpc3
 
         # data not weighted with volume
-        dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
-        dataset_i_sig = jnp.zeros_like(dataset_i) + (dmag / 8)
         N_data = diffndhist.tw_ndhist(
             dataset_i,
-            dataset_i_sig,
+            dataset_sig_i,
             bins_lo,
             bins_hi,
         )
