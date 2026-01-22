@@ -61,8 +61,9 @@ def plot_n_ugriz(
     """mc lightcone"""
     ran_key, lc_key = jran.split(ran_key, 2)
     lc_args = (lc_key, lgmp_min, zmin, zmax, sky_area_degsq)
-    lc_kwargs = dict(cosmo_params=cosmo_params, lgmp_max=lgmp_max)
-    lc_halopop = mclh.mc_lightcone_host_halo_diffmah(*lc_args, *lc_kwargs)
+    lc_halopop = mclh.mc_lightcone_host_halo_diffmah(
+        *lc_args, cosmo_params=cosmo_params, lgmp_max=lgmp_max
+    )
     lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
     data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
 
