@@ -306,8 +306,10 @@ def plot_n_ugriz(
         bin_centers = (bins[1:] + bins[:-1]) / 2
         # ax[i].scatter(bin_centers, n1, label=label1, c="k")
         # ax[i].scatter(bin_centers, n2, label=label2, c="green")
-        ax[i].scatter(bin_centers, n_data1, label="weighted" + label2, c="orange")
-        ax[i].scatter(bin_centers, n_data2, label=label2, c="magenta")
+        ax[i].scatter(
+            bin_centers, n_data1, label="weighted" + label2, c="cyan", alpha=0.5
+        )
+        ax[i].scatter(bin_centers, n_data2, label=label2, c="magenta", alpha=0.5)
 
         ####
 
