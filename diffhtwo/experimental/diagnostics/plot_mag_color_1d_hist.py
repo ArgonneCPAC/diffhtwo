@@ -1,7 +1,6 @@
 import jax.numpy as jnp
 import numpy as np
-
-# from diffsky import diffndhist
+from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental import precompute_ssp_phot as psspp
@@ -179,10 +178,21 @@ def plot_n_ugriz(
         )
 
         # diffndhist
-        # bins_lo = bins[:-1]
-        # bins_hi = bins[1:]
-        # bins_lo = bins_lo.reshape(bins_lo.size, 1)
-        # bins_hi = bins_hi.reshape(bins_hi.size, 1)
+        bins_lo = bins[:-1]
+        bins_hi = bins[1:]
+        bins_lo = bins_lo.reshape(bins_lo.size, 1)
+        bins_hi = bins_hi.reshape(bins_hi.size, 1)
+        dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
+        dataset_sig_i = jnp.zeros_like(dataset_i)
+        dataset_weights_i = jnp.ones_like(dataset_i) / data_vol_mpc3
+
+        n_data1 = diffndhist.tw_ndhist_weighted(
+            dataset_i,
+            dataset_sig_i,
+            dataset_weights_i,
+            bins_lo,
+            bins_hi,
+        )
 
         # # q1
         # obs_colors_mag_q1_i = obs_colors_mag_q1[:, i]
@@ -284,21 +294,23 @@ def plot_n_ugriz(
         # N2 = N_q2 + N_smooth_ms2 + N_bursty_ms2
         # n2 = N2 / lc_vol_mpc3
 
-        # # data
-        # dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
-        # dataset_i_sig = jnp.zeros_like(dataset_i) + (dmag / 8)
-        # N_data = diffndhist.tw_ndhist(
-        #     dataset_i,
-        #     dataset_i_sig,
-        #     bins_lo,
-        #     bins_hi,
-        # )
-        # n_data = N_data / data_vol_mpc3
+        # data not weighted with volume
+        dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
+        dataset_i_sig = jnp.zeros_like(dataset_i) + (dmag / 8)
+        N_data = diffndhist.tw_ndhist(
+            dataset_i,
+            dataset_i_sig,
+            bins_lo,
+            bins_hi,
+        )
+        n_data2 = N_data / data_vol_mpc3
 
-        # bin_centers = (bins[1:] + bins[:-1]) / 2
+        bin_centers = (bins[1:] + bins[:-1]) / 2
         # ax[i].scatter(bin_centers, n1, label=label1, c="k")
         # ax[i].scatter(bin_centers, n2, label=label2, c="green")
-        # ax[i].scatter(bin_centers, n_data, label=label2, c="orange")
+        ax[i].scatter(bin_centers, n_data1, label="weighted" + label2, c="orange")
+        ax[i].scatter(bin_centers, n_data2, label=label2, c="magenta")
+
         ####
 
         ax[i].hist(
