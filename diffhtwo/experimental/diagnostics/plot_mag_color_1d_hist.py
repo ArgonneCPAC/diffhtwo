@@ -295,13 +295,13 @@ def plot_n_ugriz(
         # n2 = N2 / lc_vol_mpc3
 
         # data not weighted with volume
-        N_data = diffndhist.tw_ndhist(
-            dataset_i,
-            dataset_sig_i,
-            bins_lo,
-            bins_hi,
-        )
-        n_data2 = N_data / data_vol_mpc3
+        # N_data = diffndhist.tw_ndhist(
+        #     dataset_i,
+        #     dataset_sig_i,
+        #     bins_lo,
+        #     bins_hi,
+        # )
+        # n_data2 = N_data / data_vol_mpc3
 
         bin_centers = (bins[1:] + bins[:-1]) / 2
         # ax[i].scatter(bin_centers, n1, label=label1, c="k")
@@ -309,7 +309,7 @@ def plot_n_ugriz(
         ax[i].scatter(
             bin_centers, n_data1, label="weighted" + label2, c="cyan", alpha=0.5
         )
-        ax[i].scatter(bin_centers, n_data2, label=label2, c="magenta", alpha=0.5)
+        # ax[i].scatter(bin_centers, n_data2, label=label2, c="magenta", alpha=0.5)
 
         ####
 
