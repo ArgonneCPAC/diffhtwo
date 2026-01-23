@@ -371,7 +371,7 @@ def plot_n_ugriz(
     # Output loss based on lh_centroids, not 1D histograms as above,
     # but the same lc_halopop
     if lh_centroids is not None:
-        lc_nhalos = np.ones(lc_halopop["logmp0"].shape)
+        lc_nhalos = jnp.ones_like(lc_halopop["logmp0"])
         ran_key, n_key = jran.split(ran_key, 2)
 
         # 1
