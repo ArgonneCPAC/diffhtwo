@@ -198,15 +198,15 @@ def plot_n_mag_ugriz(
         ax[i].set_yscale("log")
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[0].set_xlabel("MegaCam_uS[AB]")
-    ax[1].set_xlabel("HSC_g[AB]")
-    ax[2].set_xlabel("HSC_r[AB]")
-    ax[3].set_xlabel("HSC_i[AB]")
+    ax[0].set_xlabel("MegaCam_uS [AB]")
+    ax[1].set_xlabel("HSC_g [AB]")
+    ax[2].set_xlabel("HSC_r [AB]")
+    ax[3].set_xlabel("HSC_i [AB]")
     ax[4].set_xlabel("HSC_z [AB]")
-    ax[4].legend()
+    ax[4].legend(framealpha=0.5)
 
     for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 2e-1)
+        ax[i].set_ylim(1e-6, 1e-2)
         if i != 0:
             ax[i].set_yticklabels([])
     plt.savefig(saveAs)
