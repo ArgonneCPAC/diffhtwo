@@ -1,6 +1,7 @@
 import jax.numpy as jnp
 import numpy as np
-from diffsky import diffndhist
+
+# from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental import precompute_ssp_phot as psspp
@@ -26,6 +27,192 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
+def plot_n_mag_ugriz(
+    diffstarpop_params1,
+    diffstarpop_params2,
+    spspop_params1,
+    spspop_params2,
+    ssp_err_pop_params1,
+    ssp_err_pop_params2,
+    dataset_mags,
+    data_sky_area_degsq,
+    tcurves,
+    mag_column,
+    dmag,
+    ran_key,
+    zmin,
+    zmax,
+    ssp_data,
+    mzr_params,
+    scatter_params,
+    title,
+    label1,
+    label2,
+    saveAs,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
+    sky_area_degsq=0.1,
+    cosmo_params=DEFAULT_COSMOLOGY,
+    fb=FB,
+):
+    """mc lightcone"""
+    ran_key, lc_key = jran.split(ran_key, 2)
+    lc_args = (lc_key, lgmp_min, zmin, zmax, sky_area_degsq)
+    lc_halopop = mclh.mc_lightcone_host_halo_diffmah(
+        *lc_args, cosmo_params=cosmo_params, lgmp_max=lgmp_max
+    )
+    lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
+    data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
+
+    n_z_phot_table = 15
+
+    z_phot_table = jnp.linspace(zmin, zmax, n_z_phot_table)
+    t_0 = flat_wcdm.age_at_z0(*DEFAULT_COSMOLOGY)
+    lgt0 = jnp.log10(t_0)
+    t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
+
+    precomputed_ssp_mag_table = psspp.get_precompute_ssp_mag_redshift_table(
+        tcurves, ssp_data, z_phot_table, DEFAULT_COSMOLOGY
+    )
+
+    wave_eff_table = lc_phot_kern.get_wave_eff_table(z_phot_table, tcurves)
+
+    ran_key, phot_key1 = jran.split(ran_key, 2)
+    phot_args1 = (
+        phot_key1,
+        lc_halopop["z_obs"],
+        lc_halopop["t_obs"],
+        lc_halopop["mah_params"],
+        lc_halopop["logmp0"],
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        diffstarpop_params1,
+        mzr_params,
+        spspop_params1,
+        scatter_params,
+        ssp_err_pop_params1,
+        cosmo_params,
+        fb,
+    )
+
+    lc_phot1 = lc_phot_kern.multiband_lc_phot_kern(*phot_args1)
+    num_halos, n_bands = lc_phot1.obs_mags_q.shape
+
+    ran_key, phot_key2 = jran.split(ran_key, 2)
+    phot_args2 = (
+        phot_key2,
+        lc_halopop["z_obs"],
+        lc_halopop["t_obs"],
+        lc_halopop["mah_params"],
+        lc_halopop["logmp0"],
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        diffstarpop_params2,
+        mzr_params,
+        spspop_params2,
+        scatter_params,
+        ssp_err_pop_params2,
+        cosmo_params,
+        fb,
+    )
+
+    lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
+    num_halos, n_bands = lc_phot2.obs_mags_q.shape
+
+    weights1 = np.concatenate(
+        [
+            lc_phot1.weights_q * (1 / lc_vol_mpc3),
+            lc_phot1.weights_smooth_ms * (1 / lc_vol_mpc3),
+            lc_phot1.weights_bursty_ms * (1 / lc_vol_mpc3),
+        ]
+    )
+
+    weights2 = np.concatenate(
+        [
+            lc_phot2.weights_q * (1 / lc_vol_mpc3),
+            lc_phot2.weights_smooth_ms * (1 / lc_vol_mpc3),
+            lc_phot2.weights_bursty_ms * (1 / lc_vol_mpc3),
+        ]
+    )
+
+    data_weights = np.ones_like(dataset_mags[:, 0]) / data_vol_mpc3
+
+    fig, ax = plt.subplots(1, 5, figsize=(12, 3))
+    fig.subplots_adjust(left=0.1, hspace=0, top=0.9, right=0.99, bottom=0.2, wspace=0.0)
+    fig.suptitle(title)
+
+    mag_bin_edges = np.arange(18.0 - dmag / 2, 24.5, dmag)
+    for i in range(0, n_bands):
+        lc_phot1_obs_mags = np.concatenate(
+            [
+                lc_phot1.obs_mags_q[:, i],
+                lc_phot1.obs_mags_smooth_ms[:, i],
+                lc_phot1.obs_mags_bursty_ms[:, i],
+            ]
+        )
+        ax[i].hist(
+            lc_phot1_obs_mags,
+            weights=weights1,
+            bins=mag_bin_edges,
+            histtype="step",
+            color="k",
+            alpha=0.7,
+            label=label1,
+        )
+
+        lc_phot2_obs_mags = np.concatenate(
+            [
+                lc_phot2.obs_mags_q[:, i],
+                lc_phot2.obs_mags_smooth_ms[:, i],
+                lc_phot2.obs_mags_bursty_ms[:, i],
+            ]
+        )
+
+        ax[i].hist(
+            lc_phot2_obs_mags,
+            weights=weights2,
+            bins=mag_bin_edges,
+            histtype="step",
+            color="green",
+            alpha=0.7,
+            lw=2,
+            label=label2,
+        )
+
+        # data
+        ax[i].hist(
+            dataset_mags[:, i],
+            weights=data_weights,
+            bins=mag_bin_edges,
+            color="orange",
+            alpha=0.7,
+            label="data",
+        )
+
+        ax[i].set_yscale("log")
+
+    ax[0].set_ylabel("number density [Mpc$^{-3}$]")
+    ax[0].set_xlabel("MegaCam_uS[AB]")
+    ax[1].set_xlabel("HSC_g[AB]")
+    ax[2].set_xlabel("HSC_r[AB]")
+    ax[3].set_xlabel("HSC_i[AB]")
+    ax[4].set_xlabel("HSC_z [AB]")
+    ax[4].legend()
+
+    for i in range(0, n_bands):
+        ax[i].set_ylim(1e-6, 2e-1)
+        if i != 0:
+            ax[i].set_yticklabels([])
+    plt.savefig(saveAs)
+    plt.show()
+
+
 def plot_n_ugriz(
     diffstarpop_params1,
     diffstarpop_params2,
@@ -33,7 +220,7 @@ def plot_n_ugriz(
     spspop_params2,
     ssp_err_pop_params1,
     ssp_err_pop_params2,
-    dataset,
+    dataset_colors_mag,
     data_sky_area_degsq,
     tcurves,
     mag_column,
@@ -162,7 +349,7 @@ def plot_n_ugriz(
         ]
     )
 
-    data_weights = np.ones_like(dataset[:, 0]) / data_vol_mpc3
+    data_weights = np.ones_like(dataset_colors_mag[:, 0]) / data_vol_mpc3
     for i in range(0, n_bands):
         if i == n_bands - 1:
             bins = mag_bin_edges
@@ -182,14 +369,14 @@ def plot_n_ugriz(
         # bins_hi = bins[1:]
         # bins_lo = bins_lo.reshape(bins_lo.size, 1)
         # bins_hi = bins_hi.reshape(bins_hi.size, 1)
-        # dataset_i = dataset[:, i].reshape(dataset[:, i].size, 1)
-        # dataset_sig_i = jnp.zeros_like(dataset_i)
-        # dataset_weights_i = jnp.ones_like(dataset_i) / data_vol_mpc3
+        # dataset_colors_mag_i = dataset_colors_mag[:, i].reshape(dataset_colors_mag[:, i].size, 1)
+        # dataset_colors_mag_sig_i = jnp.zeros_like(dataset_colors_mag_i)
+        # dataset_colors_mag_weights_i = jnp.ones_like(dataset_colors_mag_i) / data_vol_mpc3
 
         # n_data1 = diffndhist.tw_ndhist_weighted(
-        #     dataset_i,
-        #     dataset_sig_i,
-        #     dataset_weights_i,
+        #     dataset_colors_mag_i,
+        #     dataset_colors_mag_sig_i,
+        #     dataset_colors_mag_weights_i,
         #     bins_lo,
         #     bins_hi,
         # )
@@ -296,8 +483,8 @@ def plot_n_ugriz(
 
         # data not weighted with volume
         # N_data = diffndhist.tw_ndhist(
-        #     dataset_i,
-        #     dataset_sig_i,
+        #     dataset_colors_mag_i,
+        #     dataset_colors_mag_sig_i,
         #     bins_lo,
         #     bins_hi,
         # )
@@ -344,7 +531,7 @@ def plot_n_ugriz(
 
         # data
         ax[i].hist(
-            dataset[:, i],
+            dataset_colors_mag[:, i],
             weights=data_weights,
             bins=bins,
             color="orange",
