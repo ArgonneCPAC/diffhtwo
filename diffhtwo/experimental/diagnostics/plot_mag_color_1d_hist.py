@@ -361,7 +361,7 @@ def plot_n_ugriz(
             r"$i_{HSC} [AB]$",
         ],
         color="k",
-        smooth=1.0,
+        smooth=1.5,
         bins=80,
         smooth_1d=1.5,
         hist_kwargs={
@@ -377,7 +377,7 @@ def plot_n_ugriz(
         weights=N_weights2,
         fig=fig_corner,
         color="green",
-        smooth=1.0,
+        smooth=1.5,
         bins=80,
         smooth_1d=1.5,
         hist_kwargs={
@@ -395,7 +395,7 @@ def plot_n_ugriz(
         dataset_colors_mag,
         fig=fig_corner,
         color="orange",
-        smooth=1.0,
+        smooth=1.5,
         bins=80,
         smooth_1d=1.5,
         hist_kwargs={
