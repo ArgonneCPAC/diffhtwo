@@ -149,6 +149,7 @@ def plot_n_mag_ugriz(
     fig.suptitle(title)
 
     mag_bin_edges = np.arange(18.0 - dmag / 2, 24.5, dmag)
+    print(n_bands)
     for i in range(0, n_bands):
         lc_phot1_obs_mags = np.concatenate(
             [
