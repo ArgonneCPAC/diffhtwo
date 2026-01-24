@@ -349,7 +349,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    ranges = [(0, 2.5), (0, 2.5), (-0.6, 1.5), (-0.6, 1.5), (17, 36)]
+    ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (17, 36)]
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=N_weights1,
