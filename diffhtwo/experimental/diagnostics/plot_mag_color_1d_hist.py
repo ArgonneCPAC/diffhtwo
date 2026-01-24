@@ -149,7 +149,6 @@ def plot_n_mag_ugriz(
     fig.suptitle(title)
 
     mag_bin_edges = np.arange(18.0 - dmag / 2, 24.5, dmag)
-    print(n_bands)
     for i in range(0, n_bands):
         lc_phot1_obs_mags = np.concatenate(
             [
@@ -350,7 +349,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    range = [(-1, 3), (-1, 3), (-1, 3), (-1, 3), (17, 36)]
+    ranges = [(-1, 3), (-1, 3), (-1, 3), (-1, 3), (17, 36)]
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=N_weights1,
@@ -366,7 +365,7 @@ def plot_n_ugriz(
         smooth_1d=1.0,
         fill_contours=True,
         quantiles=[0.16, 0.5, 0.84],
-        range=range,
+        range=ranges,
     )
 
     corner.corner(
@@ -381,7 +380,7 @@ def plot_n_ugriz(
         title_fmt=".2f",
         quantiles=[0.16, 0.5, 0.84],
         title_kwargs={"fontsize": 12},
-        range=range,
+        range=ranges,
     )
 
     corner.corner(
@@ -393,7 +392,7 @@ def plot_n_ugriz(
         fill_contours=True,
         title_fmt=".2f",
         quantiles=[0.16, 0.5, 0.84],
-        range=range,
+        range=ranges,
     )
     plt.show()
 
