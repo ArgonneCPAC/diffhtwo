@@ -349,20 +349,21 @@ def plot_n_ugriz(
     )
 
     # Plot corner
+    range = [(-1, 3), (-1, 3), (-1, 3), (-1, 3), (17, 25)]
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=N_weights1,
         labels=[
-            r"$uS_MegaCam - g_HSC [AB]$",
-            r"$g_HSC - r_HSC [AB]$",
-            r"$r_HSC - i_HSC [AB]$",
-            r"$i_HSC - z_HSC [AB]$",
-            r"$i_HSC [AB]$",
+            r"$uS_{MegaCam} - g_{HSC} [AB]$",
+            r"$g_{HSC} - r_{HSC} [AB]$",
+            r"$r_{HSC} - i_{HSC} [AB]$",
+            r"$i_{HSC} - z_{HSC} [AB]$",
+            r"$i_{HSC} [AB]$",
         ],
         color="k",
         fill_contours=True,
         quantiles=[0.16, 0.5, 0.84],
-        title_kwargs={"fontsize": 12},
+        range=range,
     )
 
     corner.corner(
@@ -375,6 +376,7 @@ def plot_n_ugriz(
         title_fmt=".2f",
         quantiles=[0.16, 0.5, 0.84],
         title_kwargs={"fontsize": 12},
+        range=range,
     )
 
     corner.corner(
@@ -382,10 +384,9 @@ def plot_n_ugriz(
         fig=fig_corner,
         color="orange",
         fill_contours=True,
-        show_titles=True,
         title_fmt=".2f",
         quantiles=[0.16, 0.5, 0.84],
-        title_kwargs={"fontsize": 12},
+        range=range,
     )
     plt.show()
 
