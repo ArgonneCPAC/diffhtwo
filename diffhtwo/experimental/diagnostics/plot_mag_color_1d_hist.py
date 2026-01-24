@@ -369,7 +369,6 @@ def plot_n_ugriz(
             "alpha": 0.9,
         },
         fill_contours=True,
-        range=ranges,
     )
 
     corner.corner(
@@ -388,7 +387,6 @@ def plot_n_ugriz(
         show_titles=True,
         title_fmt=".2f",
         title_kwargs={"fontsize": 12},
-        range=ranges,
     )
 
     corner.corner(
@@ -404,7 +402,6 @@ def plot_n_ugriz(
         },
         fill_contours=True,
         title_fmt=".2f",
-        range=ranges,
     )
     plt.show()
 
