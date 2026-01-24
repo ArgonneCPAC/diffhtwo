@@ -296,6 +296,16 @@ def plot_n_ugriz(
         obs_colors_mag_smooth_ms1,
         obs_colors_mag_bursty_ms1,
     ) = get_obs_colors_mag(lc_phot1, mag_column)
+    obs_colors_mag1 = np.concatenate(
+        [obs_colors_mag_q1, obs_colors_mag_smooth_ms1, obs_colors_mag_bursty_ms1]
+    )
+    weights1 = np.concatenate(
+        [
+            lc_phot1.weights_q * (1 / lc_vol_mpc3),
+            lc_phot1.weights_smooth_ms * (1 / lc_vol_mpc3),
+            lc_phot1.weights_bursty_ms * (1 / lc_vol_mpc3),
+        ]
+    )
 
     ran_key, phot_key2 = jran.split(ran_key, 2)
     phot_args2 = (
@@ -329,15 +339,6 @@ def plot_n_ugriz(
     obs_colors_mag2 = np.concatenate(
         [obs_colors_mag_q2, obs_colors_mag_smooth_ms2, obs_colors_mag_bursty_ms2]
     )
-    print(obs_colors_mag2.shape)
-
-    weights1 = np.concatenate(
-        [
-            lc_phot1.weights_q * (1 / lc_vol_mpc3),
-            lc_phot1.weights_smooth_ms * (1 / lc_vol_mpc3),
-            lc_phot1.weights_bursty_ms * (1 / lc_vol_mpc3),
-        ]
-    )
 
     weights2 = np.concatenate(
         [
@@ -349,16 +350,28 @@ def plot_n_ugriz(
 
     data_weights = np.ones_like(dataset_colors_mag[:, 0]) / data_vol_mpc3
 
+    fig_corner = corner.corner(
+        obs_colors_mag1,
+        weights=weights1,
+        labels=[
+            r"$uS_MegaCam - g_HSC [AB]$",
+            r"$g_HSC - r_HSC [AB]$",
+            r"$r_HSC - i_HSC [AB]$",
+            r"$i_HSC - z_HSC [AB]$",
+            r"$i_HSC [AB]$",
+        ],
+        color="k",
+        fill_contours=True,
+        quantiles=[0.16, 0.5, 0.84],
+        title_kwargs={"fontsize": 12},
+    )
+
     corner.corner(
         obs_colors_mag2,
         weights=weights2,
-        labels=[
-            r"$MegaCam_uS - HSC_g [AB]$",
-            r"$HSC_g - HSC_r [AB]$",
-            r"$HSC_r - HSC_i [AB]$",
-            r"$HSC_i - HSC_z [AB]$",
-            r"$HSC_i [AB]$",
-        ],
+        fig=fig_corner,
+        color="green",
+        fill_contours=True,
         show_titles=True,
         title_fmt=".2f",
         quantiles=[0.16, 0.5, 0.84],
