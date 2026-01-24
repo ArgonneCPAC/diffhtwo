@@ -349,20 +349,22 @@ def plot_n_ugriz(
 
     data_weights = np.ones_like(dataset_colors_mag[:, 0]) / data_vol_mpc3
 
-    # fig = corner.corner(
-    #     samples,
-    #     labels=[
-    #         r"$\theta_1$",
-    #         r"$\theta_2$",
-    #         r"$\theta_3$",
-    #         r"$\theta_4$",
-    #         r"$\theta_5$",
-    #     ],
-    #     show_titles=True,
-    #     title_fmt=".2f",
-    #     quantiles=[0.16, 0.5, 0.84],
-    #     title_kwargs={"fontsize": 12},
-    # )
+    corner.corner(
+        obs_colors_mag2,
+        weights=weights2,
+        labels=[
+            r"$MegaCam_uS - HSC_g [AB]$",
+            r"$HSC_g - HSC_r [AB]$",
+            r"$HSC_r - HSC_i [AB]$",
+            r"$HSC_i - HSC_z [AB]$",
+            r"$HSC_i [AB]$",
+        ],
+        show_titles=True,
+        title_fmt=".2f",
+        quantiles=[0.16, 0.5, 0.84],
+        title_kwargs={"fontsize": 12},
+    )
+    plt.show()
 
     fig, ax = plt.subplots(1, 5, figsize=(12, 3))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.9, right=0.99, bottom=0.2, wspace=0.0)
