@@ -363,13 +363,12 @@ def plot_n_ugriz(
         color="k",
         smooth=1.0,
         bins=80,
-        smooth_1d=1.0,
+        smooth_1d=1.5,
         hist_kwargs={
             "histtype": "stepfilled",
             "alpha": 0.6,
         },
         fill_contours=True,
-        quantiles=[0.16, 0.5, 0.84],
         range=ranges,
     )
 
@@ -380,7 +379,7 @@ def plot_n_ugriz(
         color="green",
         smooth=1.0,
         bins=80,
-        smooth_1d=1.0,
+        smooth_1d=1.5,
         hist_kwargs={
             "histtype": "stepfilled",
             "alpha": 0.6,
@@ -388,7 +387,6 @@ def plot_n_ugriz(
         fill_contours=True,
         show_titles=True,
         title_fmt=".2f",
-        quantiles=[0.16, 0.5, 0.84],
         title_kwargs={"fontsize": 12},
         range=ranges,
     )
@@ -399,14 +397,13 @@ def plot_n_ugriz(
         color="orange",
         smooth=1.0,
         bins=80,
-        smooth_1d=1.0,
+        smooth_1d=1.5,
         hist_kwargs={
             "histtype": "stepfilled",
             "alpha": 0.6,
         },
         fill_contours=True,
         title_fmt=".2f",
-        # quantiles=[0.16, 0.5, 0.84],
         range=ranges,
     )
     plt.show()
