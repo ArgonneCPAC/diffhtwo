@@ -349,7 +349,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    range = [(-1, 3), (-1, 3), (-1, 3), (-1, 3), (17, 25)]
+    range = [(-1, 3), (-1, 3), (-1, 3), (-1, 3), (17, 36)]
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=N_weights1,
@@ -361,6 +361,8 @@ def plot_n_ugriz(
             r"$i_{HSC} [AB]$",
         ],
         color="k",
+        smooth=1.0,
+        smooth_1d=1.0,
         fill_contours=True,
         quantiles=[0.16, 0.5, 0.84],
         range=range,
@@ -371,6 +373,8 @@ def plot_n_ugriz(
         weights=N_weights2,
         fig=fig_corner,
         color="green",
+        smooth=1.0,
+        smooth_1d=1.0,
         fill_contours=True,
         show_titles=True,
         title_fmt=".2f",
@@ -383,6 +387,8 @@ def plot_n_ugriz(
         dataset_colors_mag,
         fig=fig_corner,
         color="orange",
+        smooth=1.0,
+        smooth_1d=1.0,
         fill_contours=True,
         title_fmt=".2f",
         quantiles=[0.16, 0.5, 0.84],
