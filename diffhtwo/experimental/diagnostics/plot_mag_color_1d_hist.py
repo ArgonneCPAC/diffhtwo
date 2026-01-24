@@ -299,11 +299,11 @@ def plot_n_ugriz(
     obs_colors_mag1 = np.concatenate(
         [obs_colors_mag_q1, obs_colors_mag_smooth_ms1, obs_colors_mag_bursty_ms1]
     )
-    weights1 = np.concatenate(
+    N_weights1 = np.concatenate(
         [
-            lc_phot1.weights_q * (1 / lc_vol_mpc3),
-            lc_phot1.weights_smooth_ms * (1 / lc_vol_mpc3),
-            lc_phot1.weights_bursty_ms * (1 / lc_vol_mpc3),
+            lc_phot1.weights_q,
+            lc_phot1.weights_smooth_ms,
+            lc_phot1.weights_bursty_ms,
         ]
     )
 
@@ -340,19 +340,18 @@ def plot_n_ugriz(
         [obs_colors_mag_q2, obs_colors_mag_smooth_ms2, obs_colors_mag_bursty_ms2]
     )
 
-    weights2 = np.concatenate(
+    N_weights2 = np.concatenate(
         [
-            lc_phot2.weights_q * (1 / lc_vol_mpc3),
-            lc_phot2.weights_smooth_ms * (1 / lc_vol_mpc3),
-            lc_phot2.weights_bursty_ms * (1 / lc_vol_mpc3),
+            lc_phot2.weights_q,
+            lc_phot2.weights_smooth_ms,
+            lc_phot2.weights_bursty_ms,
         ]
     )
 
-    data_weights = np.ones_like(dataset_colors_mag[:, 0]) / data_vol_mpc3
-
+    # Plot corner
     fig_corner = corner.corner(
         obs_colors_mag1,
-        weights=weights1,
+        weights=N_weights1,
         labels=[
             r"$uS_MegaCam - g_HSC [AB]$",
             r"$g_HSC - r_HSC [AB]$",
@@ -368,7 +367,7 @@ def plot_n_ugriz(
 
     corner.corner(
         obs_colors_mag2,
-        weights=weights2,
+        weights=N_weights2,
         fig=fig_corner,
         color="green",
         fill_contours=True,
@@ -377,8 +376,20 @@ def plot_n_ugriz(
         quantiles=[0.16, 0.5, 0.84],
         title_kwargs={"fontsize": 12},
     )
+
+    corner.corner(
+        dataset_colors_mag,
+        fig=fig_corner,
+        color="orange",
+        fill_contours=True,
+        show_titles=True,
+        title_fmt=".2f",
+        quantiles=[0.16, 0.5, 0.84],
+        title_kwargs={"fontsize": 12},
+    )
     plt.show()
 
+    # Plot 1D histograms
     fig, ax = plt.subplots(1, 5, figsize=(12, 3))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.9, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title)
@@ -538,7 +549,7 @@ def plot_n_ugriz(
 
         ax[i].hist(
             obs_colors_mag1,
-            weights=weights1,
+            weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
             color="k",
@@ -556,7 +567,7 @@ def plot_n_ugriz(
 
         ax[i].hist(
             obs_colors_mag2,
-            weights=weights2,
+            weights=N_weights2 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
             color="green",
@@ -568,7 +579,7 @@ def plot_n_ugriz(
         # data
         ax[i].hist(
             dataset_colors_mag[:, i],
-            weights=data_weights,
+            weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
             bins=bins,
             color="orange",
             alpha=0.7,
