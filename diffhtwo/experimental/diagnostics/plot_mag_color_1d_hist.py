@@ -365,8 +365,8 @@ def plot_n_ugriz(
         bins=80,
         smooth_1d=1.5,
         hist_kwargs={
-            "histtype": "stepfilled",
-            "alpha": 0.6,
+            "histtype": "step",
+            "alpha": 0.9,
         },
         fill_contours=True,
         range=ranges,
@@ -381,8 +381,8 @@ def plot_n_ugriz(
         bins=80,
         smooth_1d=1.5,
         hist_kwargs={
-            "histtype": "stepfilled",
-            "alpha": 0.6,
+            "histtype": "step",
+            "alpha": 0.9,
         },
         fill_contours=True,
         show_titles=True,
@@ -400,7 +400,7 @@ def plot_n_ugriz(
         smooth_1d=1.5,
         hist_kwargs={
             "histtype": "stepfilled",
-            "alpha": 0.6,
+            "alpha": 1.0,
         },
         fill_contours=True,
         title_fmt=".2f",
