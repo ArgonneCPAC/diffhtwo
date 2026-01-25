@@ -183,6 +183,7 @@ _N = (
     None,
     None,
     None,
+    None,
 )
 n_mag_kern_multi_z = jjit(
     vmap(
