@@ -349,7 +349,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    # ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (17, 36)]
+    ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (18, 24)]
     labels = [
         r"$uS_{MegaCam} - g_{HSC} [AB]$",
         r"$g_{HSC} - r_{HSC} [AB]$",
@@ -368,7 +368,7 @@ def plot_n_ugriz(
         hist_kwargs={
             "histtype": "step",
             "alpha": 0.9,
-            "density": False,
+            "range": ranges,
         },
         fill_contours=True,
     )
@@ -384,7 +384,7 @@ def plot_n_ugriz(
         hist_kwargs={
             "histtype": "step",
             "alpha": 0.9,
-            "density": False,
+            "range": ranges,
         },
         fill_contours=True,
         show_titles=True,
@@ -402,7 +402,7 @@ def plot_n_ugriz(
         hist_kwargs={
             "histtype": "stepfilled",
             "alpha": 1.0,
-            "density": False,
+            "range": ranges,
         },
         fill_contours=True,
         title_fmt=".2f",
