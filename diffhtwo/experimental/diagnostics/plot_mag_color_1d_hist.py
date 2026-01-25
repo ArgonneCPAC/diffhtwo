@@ -349,7 +349,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (18, 24)]
+    ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (18, 36)]
     labels = [
         r"$uS_{MegaCam} - g_{HSC} [AB]$",
         r"$g_{HSC} - r_{HSC} [AB]$",
@@ -399,7 +399,7 @@ def plot_n_ugriz(
         range=ranges,
     )
 
-    plt.savefig(saveAs + "_corner_zoomed_HSC_I.pdf")
+    plt.savefig(saveAs + "_corner.pdf")
     plt.show()
 
     # Plot 1D histograms
