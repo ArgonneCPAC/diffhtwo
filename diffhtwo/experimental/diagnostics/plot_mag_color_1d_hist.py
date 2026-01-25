@@ -103,6 +103,32 @@ def plot_n_mag_ugriz(
     lc_phot1 = lc_phot_kern.multiband_lc_phot_kern(*phot_args1)
     num_halos, n_bands = lc_phot1.obs_mags_q.shape
 
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
+    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_column]
+    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_column]
+    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_column]
+
+    lc_phot_weights_q1 = jnp.where(
+        obs_mag_q1 < mag_thresh, lc_phot1.weights_q, jnp.zeros_like(lc_phot1.weights_q)
+    )
+    lc_phot_weights_smooth_ms1 = jnp.where(
+        obs_mag_smooth_ms1 < mag_thresh,
+        lc_phot1.weights_smooth_ms,
+        jnp.zeros_like(lc_phot1.weights_smooth_ms),
+    )
+    lc_phot_weights_bursty_ms1 = jnp.where(
+        obs_mag_bursty_ms1 < mag_thresh,
+        lc_phot1.weights_bursty_ms,
+        jnp.zeros_like(lc_phot1.weights_bursty_ms),
+    )
+    N_weights1 = np.concatenate(
+        [
+            lc_phot_weights_q1,
+            lc_phot_weights_smooth_ms1,
+            lc_phot_weights_bursty_ms1,
+        ]
+    )
+
     ran_key, phot_key2 = jran.split(ran_key, 2)
     phot_args2 = (
         phot_key2,
@@ -127,29 +153,37 @@ def plot_n_mag_ugriz(
     lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
     num_halos, n_bands = lc_phot2.obs_mags_q.shape
 
-    weights1 = np.concatenate(
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
+    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_column]
+    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_column]
+    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_column]
+
+    lc_phot_weights_q2 = jnp.where(
+        obs_mag_q2 < mag_thresh, lc_phot2.weights_q, jnp.zeros_like(lc_phot2.weights_q)
+    )
+    lc_phot_weights_smooth_ms2 = jnp.where(
+        obs_mag_smooth_ms2 < mag_thresh,
+        lc_phot2.weights_smooth_ms,
+        jnp.zeros_like(lc_phot2.weights_smooth_ms),
+    )
+    lc_phot_weights_bursty_ms2 = jnp.where(
+        obs_mag_bursty_ms2 < mag_thresh,
+        lc_phot2.weights_bursty_ms,
+        jnp.zeros_like(lc_phot2.weights_bursty_ms),
+    )
+    N_weights2 = np.concatenate(
         [
-            lc_phot1.weights_q * (1 / lc_vol_mpc3),
-            lc_phot1.weights_smooth_ms * (1 / lc_vol_mpc3),
-            lc_phot1.weights_bursty_ms * (1 / lc_vol_mpc3),
+            lc_phot_weights_q2,
+            lc_phot_weights_smooth_ms2,
+            lc_phot_weights_bursty_ms2,
         ]
     )
-
-    weights2 = np.concatenate(
-        [
-            lc_phot2.weights_q * (1 / lc_vol_mpc3),
-            lc_phot2.weights_smooth_ms * (1 / lc_vol_mpc3),
-            lc_phot2.weights_bursty_ms * (1 / lc_vol_mpc3),
-        ]
-    )
-
-    data_weights = np.ones_like(dataset_mags[:, 0]) / data_vol_mpc3
 
     fig, ax = plt.subplots(1, 5, figsize=(12, 3))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.9, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title)
 
-    mag_bin_edges = np.arange(18.0 - dmag / 2, 24.5, dmag)
+    mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
     for i in range(0, n_bands):
         lc_phot1_obs_mags = np.concatenate(
             [
@@ -160,7 +194,7 @@ def plot_n_mag_ugriz(
         )
         ax[i].hist(
             lc_phot1_obs_mags,
-            weights=weights1,
+            weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=mag_bin_edges,
             histtype="step",
             color="k",
@@ -178,7 +212,7 @@ def plot_n_mag_ugriz(
 
         ax[i].hist(
             lc_phot2_obs_mags,
-            weights=weights2,
+            weights=N_weights2 * (1 / lc_vol_mpc3),
             bins=mag_bin_edges,
             histtype="step",
             color="green",
@@ -190,7 +224,7 @@ def plot_n_mag_ugriz(
         # data
         ax[i].hist(
             dataset_mags[:, i],
-            weights=data_weights,
+            weights=np.ones_like(dataset_mags[:, i]) / data_vol_mpc3,
             bins=mag_bin_edges,
             color="orange",
             alpha=0.7,
@@ -446,7 +480,7 @@ def plot_n_ugriz(
     fig.suptitle(title)
 
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
-    mag_bin_edges = np.arange(18.0 - dmag / 2, 24.5, dmag)
+    mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
 
     for i in range(0, n_bands):
         if i == n_bands - 1:
