@@ -365,12 +365,9 @@ def plot_n_ugriz(
         smooth=1.5,
         bins=80,
         smooth_1d=1.5,
-        hist_kwargs={
-            "histtype": "step",
-            "alpha": 0.9,
-            "range": ranges,
-        },
+        hist_kwargs={"histtype": "step", "alpha": 0.9},
         fill_contours=True,
+        range=ranges,
     )
 
     corner.corner(
@@ -381,15 +378,12 @@ def plot_n_ugriz(
         smooth=1.5,
         bins=80,
         smooth_1d=1.5,
-        hist_kwargs={
-            "histtype": "step",
-            "alpha": 0.9,
-            "range": ranges,
-        },
+        hist_kwargs={"histtype": "step", "alpha": 0.9},
         fill_contours=True,
         show_titles=True,
         title_fmt=".2f",
         title_kwargs={"fontsize": 12},
+        range=ranges,
     )
 
     corner.corner(
@@ -399,13 +393,10 @@ def plot_n_ugriz(
         smooth=1.5,
         bins=80,
         smooth_1d=1.5,
-        hist_kwargs={
-            "histtype": "stepfilled",
-            "alpha": 1.0,
-            "range": ranges,
-        },
+        hist_kwargs={"histtype": "stepfilled", "alpha": 1.0},
         fill_contours=True,
         title_fmt=".2f",
+        range=ranges,
     )
 
     # ndim = len(labels)
