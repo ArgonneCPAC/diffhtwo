@@ -12,6 +12,7 @@ from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
 from jax import jit as jjit
 from jax import vmap
+from jax.debug import print
 
 
 @jjit
@@ -36,6 +37,7 @@ def n_mag_kern(
     lh_centroids,
     dmag,
     mag_column,
+    mag_thresh,
     cosmo_params,
     fb,
 ):
@@ -119,10 +121,18 @@ def n_mag_kern(
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
 
+    # set weights=0 for based on mag > mag_thresh
+    print("lc_phot.weights_q.shape:{}", lc_phot.weights_q.shape)
+    print("obs_mag_q:{}", obs_mag_q.shape)
+    lc_phot_weights_q = jnp.where(
+        obs_mag_q < mag_thresh, lc_phot.weights_q, jnp.zeros_like(lc_phot.weights_q)
+    )
+    print("lc_phot_weights_q.shape:{}", lc_phot_weights_q.shape)
+
     N_q = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_q,
         sig,
-        lc_phot.weights_q * lc_nhalos,
+        lc_phot_weights_q * lc_nhalos,
         lh_centroids_lo,
         lh_centroids_hi,
     )
