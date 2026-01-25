@@ -412,12 +412,21 @@ def plot_n_ugriz(
     for i in range(ndim):
         ax = fig_corner.axes[i * (ndim + 1)]
 
-        # Move y-axis to the right
-        ax.yaxis.set_label_position("right")
-        ax.yaxis.tick_right()
+        # Turn ticks ON
+        ax.tick_params(
+            axis="y",
+            which="both",
+            right=True,
+            left=False,
+            labelright=True,
+            labelleft=False,
+        )
 
-        ax.set_ylabel("N")  # or "Density"
-        ax.tick_params(axis="y", labelright=True, labelleft=False)
+        # Move axis to the right
+        ax.yaxis.set_ticks_position("right")
+        ax.yaxis.set_label_position("right")
+
+        ax.set_ylabel("Counts")
     plt.show()
 
     # Plot 1D histograms
