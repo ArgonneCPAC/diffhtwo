@@ -349,17 +349,12 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (17, 36)]
+    # ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (17, 36)]
+    labels = labels
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=N_weights1,
-        labels=[
-            r"$uS_{MegaCam} - g_{HSC} [AB]$",
-            r"$g_{HSC} - r_{HSC} [AB]$",
-            r"$r_{HSC} - i_{HSC} [AB]$",
-            r"$i_{HSC} - z_{HSC} [AB]$",
-            r"$i_{HSC} [AB]$",
-        ],
+        labels=labels,
         color="k",
         smooth=1.5,
         bins=80,
@@ -406,6 +401,17 @@ def plot_n_ugriz(
         fill_contours=True,
         title_fmt=".2f",
     )
+
+    ndim = len(labels)
+    for i in range(ndim):
+        ax = fig_corner.axes[i * (ndim + 1)]
+
+        # Move y-axis to the right
+        ax.yaxis.set_label_position("right")
+        ax.yaxis.tick_right()
+
+        ax.set_ylabel("N")  # or "Density"
+        ax.tick_params(axis="y", labelright=True, labelleft=False)
     plt.show()
 
     # Plot 1D histograms
