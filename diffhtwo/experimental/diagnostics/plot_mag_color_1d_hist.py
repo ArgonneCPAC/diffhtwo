@@ -239,6 +239,7 @@ def plot_n_ugriz(
     lh_centroids=None,
     lg_n_data_err_lh=None,
     lg_n_thresh=None,
+    mag_thresh=None,
     lgmp_min=10.0,
     lgmp_max=15.0,
     sky_area_degsq=0.1,
@@ -673,6 +674,7 @@ def plot_n_ugriz(
             lh_centroids,
             dmag,
             mag_column,
+            mag_thresh,
             DEFAULT_COSMOLOGY,
             FB,
         )
