@@ -367,6 +367,7 @@ def plot_n_ugriz(
         hist_kwargs={
             "histtype": "step",
             "alpha": 0.9,
+            "density": False,
         },
         fill_contours=True,
     )
@@ -382,6 +383,7 @@ def plot_n_ugriz(
         hist_kwargs={
             "histtype": "step",
             "alpha": 0.9,
+            "density": False,
         },
         fill_contours=True,
         show_titles=True,
@@ -399,6 +401,7 @@ def plot_n_ugriz(
         hist_kwargs={
             "histtype": "stepfilled",
             "alpha": 1.0,
+            "density": False,
         },
         fill_contours=True,
         title_fmt=".2f",
