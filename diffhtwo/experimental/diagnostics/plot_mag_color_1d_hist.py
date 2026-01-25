@@ -300,11 +300,30 @@ def plot_n_ugriz(
     obs_colors_mag1 = np.concatenate(
         [obs_colors_mag_q1, obs_colors_mag_smooth_ms1, obs_colors_mag_bursty_ms1]
     )
+
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
+    obs_mag_q1 = obs_colors_mag_q1[:, -1]
+    obs_mag_smooth_ms1 = obs_colors_mag_smooth_ms1[:, -1]
+    obs_mag_bursty_ms1 = obs_colors_mag_bursty_ms1[:, -1]
+
+    lc_phot_weights_q1 = jnp.where(
+        obs_mag_q1 < mag_thresh, lc_phot1.weights_q, jnp.zeros_like(lc_phot1.weights_q)
+    )
+    lc_phot_weights_smooth_ms1 = jnp.where(
+        obs_mag_smooth_ms1 < mag_thresh,
+        lc_phot1.weights_smooth_ms,
+        jnp.zeros_like(lc_phot1.weights_smooth_ms),
+    )
+    lc_phot_weights_bursty_ms1 = jnp.where(
+        obs_mag_bursty_ms1 < mag_thresh,
+        lc_phot1.weights_bursty_ms,
+        jnp.zeros_like(lc_phot1.weights_bursty_ms),
+    )
     N_weights1 = np.concatenate(
         [
-            lc_phot1.weights_q,
-            lc_phot1.weights_smooth_ms,
-            lc_phot1.weights_bursty_ms,
+            lc_phot_weights_q1,
+            lc_phot_weights_smooth_ms1,
+            lc_phot_weights_bursty_ms1,
         ]
     )
 
@@ -340,12 +359,29 @@ def plot_n_ugriz(
     obs_colors_mag2 = np.concatenate(
         [obs_colors_mag_q2, obs_colors_mag_smooth_ms2, obs_colors_mag_bursty_ms2]
     )
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
+    obs_mag_q2 = obs_colors_mag_q2[:, -1]
+    obs_mag_smooth_ms2 = obs_colors_mag_smooth_ms2[:, -1]
+    obs_mag_bursty_ms2 = obs_colors_mag_bursty_ms2[:, -1]
 
+    lc_phot_weights_q2 = jnp.where(
+        obs_mag_q2 < mag_thresh, lc_phot2.weights_q, jnp.zeros_like(lc_phot2.weights_q)
+    )
+    lc_phot_weights_smooth_ms2 = jnp.where(
+        obs_mag_smooth_ms2 < mag_thresh,
+        lc_phot2.weights_smooth_ms,
+        jnp.zeros_like(lc_phot2.weights_smooth_ms),
+    )
+    lc_phot_weights_bursty_ms2 = jnp.where(
+        obs_mag_bursty_ms2 < mag_thresh,
+        lc_phot2.weights_bursty_ms,
+        jnp.zeros_like(lc_phot2.weights_bursty_ms),
+    )
     N_weights2 = np.concatenate(
         [
-            lc_phot2.weights_q,
-            lc_phot2.weights_smooth_ms,
-            lc_phot2.weights_bursty_ms,
+            lc_phot_weights_q2,
+            lc_phot_weights_smooth_ms2,
+            lc_phot_weights_bursty_ms2,
         ]
     )
 
