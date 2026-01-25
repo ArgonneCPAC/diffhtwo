@@ -399,25 +399,7 @@ def plot_n_ugriz(
         range=ranges,
     )
 
-    # ndim = len(labels)
-    # for i in range(ndim):
-    #     ax = fig_corner.axes[i * (ndim + 1)]
-
-    #     # Move axis to the right
-    #     ax.yaxis.set_ticks_position("right")
-    #     ax.yaxis.set_label_position("right")
-
-    #     # Turn ticks ON
-    #     ax.tick_params(
-    #         axis="y",
-    #         which="both",
-    #         right=True,
-    #         left=False,
-    #         labelright=True,
-    #         labelleft=False,
-    #     )
-
-    #     ax.set_ylabel("N")
+    plt.savefig(saveAs + "_corner_zoomed_HSC_I.pdf")
     plt.show()
 
     # Plot 1D histograms
@@ -630,7 +612,7 @@ def plot_n_ugriz(
         ax[i].set_ylim(1e-6, 2e-1)
         if i != 0:
             ax[i].set_yticklabels([])
-    plt.savefig(saveAs)
+    plt.savefig(saveAs + ".pdf")
     plt.show()
 
     # Output loss based on lh_centroids, not 1D histograms as above,
