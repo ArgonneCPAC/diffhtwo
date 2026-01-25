@@ -386,18 +386,18 @@ def plot_n_ugriz(
         # range=ranges,
     )
 
-    # corner.corner(
-    #     dataset_colors_mag,
-    #     fig=fig_corner,
-    #     color="orange",
-    #     smooth=1.5,
-    #     bins=80,
-    #     smooth_1d=1.5,
-    #     hist_kwargs={"histtype": "stepfilled", "alpha": 1.0},
-    #     fill_contours=True,
-    #     title_fmt=".2f",
-    #     # range=ranges,
-    # )
+    corner.corner(
+        dataset_colors_mag,
+        fig=fig_corner,
+        color="orange",
+        smooth=1.5,
+        bins=80,
+        smooth_1d=1.5,
+        hist_kwargs={"histtype": "stepfilled", "alpha": 1.0},
+        fill_contours=True,
+        title_fmt=".2f",
+        # range=ranges,
+    )
 
     plt.savefig(saveAs + "_corner.pdf")
     plt.show()
