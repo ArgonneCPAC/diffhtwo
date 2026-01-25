@@ -412,6 +412,10 @@ def plot_n_ugriz(
     for i in range(ndim):
         ax = fig_corner.axes[i * (ndim + 1)]
 
+        # Move axis to the right
+        ax.yaxis.set_ticks_position("right")
+        ax.yaxis.set_label_position("right")
+
         # Turn ticks ON
         ax.tick_params(
             axis="y",
@@ -422,11 +426,7 @@ def plot_n_ugriz(
             labelleft=False,
         )
 
-        # Move axis to the right
-        ax.yaxis.set_ticks_position("right")
-        ax.yaxis.set_label_position("right")
-
-        ax.set_ylabel("Counts")
+        ax.set_ylabel("N")
     plt.show()
 
     # Plot 1D histograms
