@@ -121,13 +121,20 @@ def n_mag_kern(
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
 
-    # set weights=0 for based on mag > mag_thresh
-    print("lc_phot.weights_q.shape:{}", lc_phot.weights_q.shape)
-    print("obs_mag_q:{}", obs_mag_q.shape)
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
     lc_phot_weights_q = jnp.where(
         obs_mag_q < mag_thresh, lc_phot.weights_q, jnp.zeros_like(lc_phot.weights_q)
     )
-    print("lc_phot_weights_q.shape:{}", lc_phot_weights_q.shape)
+    lc_phot_weights_smooth_ms = jnp.where(
+        obs_mag_smooth_ms < mag_thresh,
+        lc_phot.weights_smooth_ms,
+        jnp.zeros_like(lc_phot.weights_smooth_ms),
+    )
+    lc_phot_weights_bursty_ms = jnp.where(
+        obs_mag_bursty_ms < mag_thresh,
+        lc_phot.weights_bursty_ms,
+        jnp.zeros_like(lc_phot.weights_bursty_ms),
+    )
 
     N_q = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_q,
@@ -140,7 +147,7 @@ def n_mag_kern(
     N_smooth_ms = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_smooth_ms,
         sig,
-        lc_phot.weights_smooth_ms * lc_nhalos,
+        lc_phot_weights_smooth_ms * lc_nhalos,
         lh_centroids_lo,
         lh_centroids_hi,
     )
@@ -148,7 +155,7 @@ def n_mag_kern(
     N_bursty_ms = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_bursty_ms,
         sig,
-        lc_phot.weights_bursty_ms * lc_nhalos,
+        lc_phot_weights_bursty_ms * lc_nhalos,
         lh_centroids_lo,
         lh_centroids_hi,
     )

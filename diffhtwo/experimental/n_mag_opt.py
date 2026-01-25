@@ -382,6 +382,7 @@ def _loss_kern(
     lh_centroids,
     dmag,
     mag_column,
+    mag_thresh,
     cosmo_params,
     fb,
 ):
@@ -437,6 +438,7 @@ def _loss_kern(
         lh_centroids,
         dmag,
         mag_column,
+        mag_thresh,
         cosmo_params,
         fb,
     )
@@ -469,6 +471,7 @@ def fit_n(
     lh_centroids,
     dmag,
     mag_column,
+    mag_thresh,
     cosmo_params,
     fb,
     n_steps=2,
@@ -497,6 +500,7 @@ def fit_n(
         lh_centroids,
         dmag,
         mag_column,
+        mag_thresh,
         cosmo_params,
         fb,
     )
@@ -534,6 +538,7 @@ _L = (
     None,
     None,
     0,
+    None,
     None,
     None,
     None,
@@ -578,6 +583,7 @@ def fit_n_multi_z(
     lh_centroids,
     dmag,
     mag_column,
+    mag_thresh,
     cosmo_params,
     fb,
     n_steps=2,
@@ -606,6 +612,7 @@ def fit_n_multi_z(
         lh_centroids,
         dmag,
         mag_column,
+        mag_thresh,
         cosmo_params,
         fb,
     )
