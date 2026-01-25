@@ -35,6 +35,7 @@ tcurves.append(retrieve_tcurves.HSC_I)
 ran_key = jran.key(0)
 dmag = 0.2
 mag_column = 0
+mag_thresh = 24.5
 
 """Halo lightcone"""
 ran_key, lc_key = jran.split(ran_key, 2)
@@ -91,6 +92,7 @@ lg_n_true, lg_n_avg_err_true = n_mag.n_mag_kern(
     bin_centers,
     dmag,
     mag_column,
+    mag_thresh,
     DEFAULT_COSMOLOGY,
     FB,
 )
@@ -119,6 +121,7 @@ loss_hist, grad_hist, u_theta_fit = n_mag_opt.fit_n(
     bin_centers,
     dmag,
     mag_column,
+    mag_thresh,
     DEFAULT_COSMOLOGY,
     FB,
     n_steps=2,
