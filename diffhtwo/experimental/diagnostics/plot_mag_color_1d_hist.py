@@ -349,7 +349,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (18, 36)]
+    # ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (18, 25)]
     labels = [
         r"$uS_{MegaCam} - g_{HSC} [AB]$",
         r"$g_{HSC} - r_{HSC} [AB]$",
@@ -367,7 +367,7 @@ def plot_n_ugriz(
         smooth_1d=1.5,
         hist_kwargs={"histtype": "step", "alpha": 0.9},
         fill_contours=True,
-        range=ranges,
+        # range=ranges,
     )
 
     corner.corner(
@@ -383,7 +383,7 @@ def plot_n_ugriz(
         show_titles=True,
         title_fmt=".2f",
         title_kwargs={"fontsize": 12},
-        range=ranges,
+        # range=ranges,
     )
 
     corner.corner(
@@ -396,7 +396,7 @@ def plot_n_ugriz(
         hist_kwargs={"histtype": "stepfilled", "alpha": 1.0},
         fill_contours=True,
         title_fmt=".2f",
-        range=ranges,
+        # range=ranges,
     )
 
     plt.savefig(saveAs + "_corner.pdf")
