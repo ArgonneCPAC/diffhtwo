@@ -422,7 +422,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    ranges = [(-1, 2.0), (-1, 2.0), (-1, 1.0), (-1, 1.0), (18, mag_thresh)]
+    ranges = [(-1, 2.0), (-1, 2.0), (-0.5, 1.0), (-0.5, 1.0), (18, mag_thresh)]
     labels = [
         r"$uS_{MegaCam} - g_{HSC} [AB]$",
         r"$g_{HSC} - r_{HSC} [AB]$",
