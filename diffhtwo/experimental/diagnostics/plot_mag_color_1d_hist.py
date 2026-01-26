@@ -487,7 +487,8 @@ def plot_n_ugriz(
     # attach legend to one axis (corner has many axes!)
     fig_corner.axes[0].legend(
         handles=handles,
-        loc="upper right",
+        loc="center left",
+        bbox_to_anchor=(1.0, 0.5),
         frameon=False,
     )
 
