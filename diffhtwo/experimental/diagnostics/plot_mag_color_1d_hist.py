@@ -439,7 +439,7 @@ def plot_n_ugriz(
         # smooth_1d=1.5,
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "step", "alpha": 0.9},
-        fill_contours=True,
+        fill_contours=False,
         range=ranges,
     )
 
@@ -454,7 +454,7 @@ def plot_n_ugriz(
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "step", "alpha": 0.9},
         hist2d_kwargs={"weights": N_weights2},
-        fill_contours=True,
+        fill_contours=False,
         show_titles=True,
         title_fmt=".2f",
         title_kwargs={"fontsize": 12},
@@ -470,7 +470,7 @@ def plot_n_ugriz(
         # smooth_1d=1.5,
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "stepfilled", "alpha": 1.0},
-        fill_contours=True,
+        fill_contours=False,
         title_fmt=".2f",
         range=ranges,
     )
