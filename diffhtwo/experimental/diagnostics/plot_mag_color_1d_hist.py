@@ -451,6 +451,7 @@ def plot_n_ugriz(
         # bins=80,
         # smooth_1d=1.5,
         hist_kwargs={"histtype": "step", "alpha": 0.9},
+        hist2d_kwargs={"weights": N_weights2},
         fill_contours=True,
         show_titles=True,
         title_fmt=".2f",
