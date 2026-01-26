@@ -243,7 +243,7 @@ def plot_n_mag_ugriz(
     ax[4].legend(framealpha=0.5)
 
     for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 2e-3)
+        ax[i].set_ylim(1e-6, 5e-3)
         if i != 0:
             ax[i].set_yticklabels([])
     plt.savefig(saveAs + ".pdf")
