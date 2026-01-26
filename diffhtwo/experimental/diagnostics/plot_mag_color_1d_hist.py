@@ -243,7 +243,7 @@ def plot_n_mag_ugriz(
     ax[4].legend(framealpha=0.5)
 
     for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 1e-2)
+        ax[i].set_ylim(1e-6, 2e-3)
         if i != 0:
             ax[i].set_yticklabels([])
     plt.savefig(saveAs + ".pdf")
@@ -422,7 +422,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    ranges = [(-1, 2.0), (-1, 2.0), (-0.5, 1.0), (-0.5, 1.0), (18, mag_thresh)]
+    ranges = [(-1, 2.5), (-1, 2.0), (-0.5, 1.0), (-0.5, 1.0), (18, mag_thresh)]
     labels = [
         r"$uS_{MegaCam} - g_{HSC} [AB]$",
         r"$g_{HSC} - r_{HSC} [AB]$",
@@ -700,9 +700,9 @@ def plot_n_ugriz(
     ax[2].set_xlabel("HSC_r - HSC_i [AB]")
     ax[3].set_xlabel("HSC_i - HSC_z [AB]")
     ax[4].set_xlabel("HSC_i [AB]")
-    ax[4].legend()
+    ax[4].legend(framealpha=0.5)
     for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 2e-1)
+        ax[i].set_ylim(1e-6, 2e-2)
         if i != 0:
             ax[i].set_yticklabels([])
     plt.savefig(saveAs + ".pdf")
