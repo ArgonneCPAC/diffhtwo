@@ -22,6 +22,7 @@ from ..utils import zbin_volume
 
 try:
     from matplotlib import pyplot as plt
+    from matplotlib.lines import Line2D
 
     HAS_MATPLOTLIB = True
 except ImportError:
@@ -454,7 +455,7 @@ def plot_n_ugriz(
         # smooth_1d=1.5,
         plot_datapoints=False,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.9},
+        hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 2},
         hist2d_kwargs={"weights": N_weights2},
         fill_contours=False,
         show_titles=True,
@@ -475,6 +476,19 @@ def plot_n_ugriz(
         hist_kwargs={"histtype": "stepfilled", "alpha": 1.0},
         fill_contours=False,
         range=ranges,
+    )
+    # proxy artists
+    handles = [
+        Line2D([], [], color="k", lw=2, label=label1),
+        Line2D([], [], color="green", lw=2, label=label2),
+        Line2D([], [], color="orange", lw=2, label="data"),
+    ]
+
+    # attach legend to one axis (corner has many axes!)
+    fig_corner.axes[0].legend(
+        handles=handles,
+        loc="upper right",
+        frameon=False,
     )
 
     plt.savefig(saveAs + "_corner.pdf")
