@@ -422,7 +422,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    # ranges = [(0, 2.0), (0, 2.0), (-0.6, 1.0), (-0.6, 1.0), (18, mag_thresh)]
+    ranges = [(-1, 2.0), (-1, 2.0), (-1, 1.0), (-1, 1.0), (18, mag_thresh)]
     labels = [
         r"$uS_{MegaCam} - g_{HSC} [AB]$",
         r"$g_{HSC} - r_{HSC} [AB]$",
@@ -442,7 +442,7 @@ def plot_n_ugriz(
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
         fill_contours=False,
-        # range=ranges,
+        range=ranges,
     )
 
     corner.corner(
@@ -461,7 +461,7 @@ def plot_n_ugriz(
         show_titles=True,
         title_fmt=".2f",
         title_kwargs={"fontsize": 12},
-        # range=ranges,
+        range=ranges,
     )
 
     corner.corner(
@@ -475,7 +475,7 @@ def plot_n_ugriz(
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "density": True},
         fill_contours=False,
-        # range=ranges,
+        range=ranges,
     )
     # proxy artists
     handles = [
