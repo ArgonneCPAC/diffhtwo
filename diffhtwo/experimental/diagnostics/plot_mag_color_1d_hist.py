@@ -246,7 +246,7 @@ def plot_n_mag_ugriz(
         ax[i].set_ylim(1e-6, 1e-2)
         if i != 0:
             ax[i].set_yticklabels([])
-    plt.savefig(saveAs)
+    plt.savefig(saveAs + ".pdf")
     plt.show()
 
 
