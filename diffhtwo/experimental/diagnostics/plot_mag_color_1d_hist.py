@@ -180,8 +180,10 @@ def plot_n_mag_ugriz(
         ]
     )
 
-    fig, ax = plt.subplots(1, 5, figsize=(12, 3))
-    fig.subplots_adjust(left=0.1, hspace=0, top=0.9, right=0.99, bottom=0.2, wspace=0.0)
+    fig, ax = plt.subplots(1, 5, figsize=(11.5, 3))
+    fig.subplots_adjust(
+        left=0.1, hspace=0, top=0.85, right=0.99, bottom=0.2, wspace=0.0
+    )
     fig.suptitle(title)
 
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
@@ -496,8 +498,10 @@ def plot_n_ugriz(
     plt.show()
 
     # Plot 1D histograms
-    fig, ax = plt.subplots(1, 5, figsize=(12, 3))
-    fig.subplots_adjust(left=0.1, hspace=0, top=0.9, right=0.99, bottom=0.2, wspace=0.0)
+    fig, ax = plt.subplots(1, 5, figsize=(11.5, 3))
+    fig.subplots_adjust(
+        left=0.1, hspace=0, top=0.85, right=0.99, bottom=0.2, wspace=0.0
+    )
     fig.suptitle(title)
 
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
