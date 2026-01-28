@@ -1,7 +1,6 @@
 import corner
 import jax.numpy as jnp
 import numpy as np
-import proplot as pplt
 
 # from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
@@ -17,13 +16,12 @@ from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
-from proplot.gridspec import GridSpec as GSpec
 
 from .. import n_mag_opt
 from ..utils import zbin_volume
 
 # from scipy.stats import gaussian_kde
-yellow7 = pplt.scale_luminance("yellow7", 1.05)
+# yellow7 = pplt.scale_luminance('yellow7', 1.05)
 
 
 try:
