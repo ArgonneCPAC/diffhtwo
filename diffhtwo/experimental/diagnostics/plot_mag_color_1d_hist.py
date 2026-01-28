@@ -233,7 +233,7 @@ def plot_n_mag_ugriz(
             dataset_mags[:, i],
             weights=np.ones_like(dataset_mags[:, i]) / data_vol_mpc3,
             bins=mag_bin_edges,
-            color="orange",
+            color="navajowhite",
             alpha=0.7,
             label="data",
         )
@@ -487,7 +487,7 @@ def plot_n_ugriz(
     corner.corner(
         dataset_colors_mag,
         fig=fig_corner,
-        color="orange",
+        color="navajowhite",
         plot_datapoints=False,
         # smooth=1.5,
         # bins=80,
@@ -501,7 +501,7 @@ def plot_n_ugriz(
     handles = [
         Line2D([], [], color="magenta", lw=2, label=label1),
         Line2D([], [], color="deepskyblue", lw=2, label=label2),
-        Line2D([], [], color="orange", lw=2, label="data"),
+        Line2D([], [], color="navajowhite", lw=2, label="data"),
     ]
 
     # attach legend to one axis (corner has many axes!)
@@ -709,7 +709,7 @@ def plot_n_ugriz(
             dataset_colors_mag[:, i],
             weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
             bins=bins,
-            color="orange",
+            color="navajowhite",
             alpha=0.7,
             label="data",
         )
