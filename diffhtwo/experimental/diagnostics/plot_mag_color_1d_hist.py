@@ -224,7 +224,7 @@ def plot_n_mag_ugriz(
             histtype="step",
             color="magenta",
             alpha=0.7,
-            lw=2,
+            lw=1,
             label=label2,
         )
 
@@ -499,9 +499,9 @@ def plot_n_ugriz(
     )
     # proxy artists
     handles = [
-        Line2D([], [], color="magenta", lw=2, label=label1),
-        Line2D([], [], color="magenta", lw=2, label=label2),
-        Line2D([], [], color="navajowhite", lw=2, label="data"),
+        Line2D([], [], color="magenta", lw=1, label=label1),
+        Line2D([], [], color="magenta", lw=1, label=label2),
+        Line2D([], [], color="navajowhite", lw=1, label="data"),
     ]
 
     # attach legend to one axis (corner has many axes!)
@@ -700,7 +700,7 @@ def plot_n_ugriz(
             histtype="step",
             color="magenta",
             alpha=0.7,
-            lw=2,
+            lw=1,
             label=label2,
         )
 
