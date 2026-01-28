@@ -16,6 +16,7 @@ from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
+from scipy.stats import gaussian_kde
 
 from .. import n_mag_opt
 from ..utils import zbin_volume
@@ -439,13 +440,24 @@ def plot_n_ugriz(
         color="k",
         # smooth=1.5,
         # bins=80,
-        smooth_1d=2,
+        # smooth_1d=2,
         plot_datapoints=False,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
+        hist_kwargs={"histtype": "step", "alpha": 0.5, "density": True},
         fill_contours=False,
         range=ranges,
     )
+
+    axes = np.array(fig_corner.axes).reshape((5, 5))
+
+    for i in range(5):
+        ax = axes[i, i]
+        x = obs_colors_mag1[:, i]
+
+        kde = gaussian_kde(x)
+        xs = np.linspace(x.min(), x.max(), 500)
+
+        ax.plot(xs, kde(xs), lw=2)
 
     corner.corner(
         obs_colors_mag2,
