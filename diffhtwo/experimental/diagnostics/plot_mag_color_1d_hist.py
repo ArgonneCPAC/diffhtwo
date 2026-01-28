@@ -439,7 +439,7 @@ def plot_n_ugriz(
         color="k",
         # smooth=1.5,
         # bins=80,
-        # smooth_1d=1.5,
+        smooth_1d=2,
         plot_datapoints=False,
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
