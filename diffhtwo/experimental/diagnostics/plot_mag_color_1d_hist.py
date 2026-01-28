@@ -493,7 +493,7 @@ def plot_n_ugriz(
         # bins=80,
         # smooth_1d=1.5,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "stepfilled", "alpha": 0.9, "density": True},
+        hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "density": True},
         fill_contours=False,
         range=ranges,
     )
@@ -710,7 +710,7 @@ def plot_n_ugriz(
             weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
             bins=bins,
             color="navajowhite",
-            alpha=0.7,
+            alpha=1,
             label="data",
         )
 
