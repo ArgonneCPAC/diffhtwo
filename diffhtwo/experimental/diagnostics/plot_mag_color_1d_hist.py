@@ -443,21 +443,10 @@ def plot_n_ugriz(
         # smooth_1d=2,
         plot_datapoints=False,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.5, "density": True},
+        hist_kwargs={"histtype": "step", "alpha": 0.3, "density": True},
         fill_contours=False,
         range=ranges,
     )
-
-    axes = np.array(fig_corner.axes).reshape((5, 5))
-
-    for i in range(5):
-        ax = axes[i, i]
-        x = obs_colors_mag1[:, i]
-
-        kde = gaussian_kde(x)
-        xs = np.linspace(x.min(), x.max(), 500)
-
-        ax.plot(xs, kde(xs), lw=2)
 
     corner.corner(
         obs_colors_mag2,
@@ -469,7 +458,7 @@ def plot_n_ugriz(
         # smooth_1d=1.5,
         plot_datapoints=False,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 2, "density": True},
+        hist_kwargs={"histtype": "step", "alpha": 0.3, "lw": 2, "density": True},
         hist2d_kwargs={"weights": N_weights2},
         fill_contours=False,
         show_titles=True,
@@ -477,6 +466,20 @@ def plot_n_ugriz(
         title_kwargs={"fontsize": 12},
         range=ranges,
     )
+
+    # Plot smooth gaussian curves over 1d histograms
+    axs = np.array(fig_corner.axes).reshape((5, 5))
+
+    for i in range(5):
+        x1 = obs_colors_mag1[:, i]
+        kde = gaussian_kde(x1)
+        xs1 = np.linspace(x1.min(), x1.max(), 500)
+        axs[i, i].plot(xs1, kde(xs1), lw=2, color="k")
+
+        x2 = obs_colors_mag2[:, i]
+        kde = gaussian_kde(x2)
+        xs2 = np.linspace(x2.min(), x1.max(), 500)
+        axs[i, i].plot(xs2, kde(xs2), lw=2, color="green")
 
     corner.corner(
         dataset_colors_mag,
