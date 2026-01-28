@@ -204,7 +204,7 @@ def plot_n_mag_ugriz(
             weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=mag_bin_edges,
             histtype="step",
-            color="magenta",
+            color="deepskyblue",
             alpha=0.7,
             label=label1,
         )
@@ -222,7 +222,7 @@ def plot_n_mag_ugriz(
             weights=N_weights2 * (1 / lc_vol_mpc3),
             bins=mag_bin_edges,
             histtype="step",
-            color="deepskyblue",
+            color="magenta",
             alpha=0.7,
             lw=2,
             label=label2,
@@ -234,7 +234,7 @@ def plot_n_mag_ugriz(
             weights=np.ones_like(dataset_mags[:, i]) / data_vol_mpc3,
             bins=mag_bin_edges,
             color="navajowhite",
-            alpha=0.7,
+            alpha=1,
             label="data",
         )
 
@@ -440,7 +440,7 @@ def plot_n_ugriz(
         obs_colors_mag1,
         weights=N_weights1,
         labels=labels,
-        color="magenta",
+        color="deepskyblue",
         # smooth=1.5,
         # bins=80,
         # smooth_1d=2,
@@ -455,7 +455,7 @@ def plot_n_ugriz(
         obs_colors_mag2,
         weights=N_weights2,
         fig=fig_corner,
-        color="deepskyblue",
+        color="magenta",
         # smooth=False,
         # bins=80,
         # smooth_1d=1.5,
@@ -482,7 +482,7 @@ def plot_n_ugriz(
     #     x2 = obs_colors_mag2[:, i]
     #     kde = gaussian_kde(x2, bw_method=0.3)
     #     xs2 = np.linspace(x2.min(), x1.max(), 500)
-    #     axs[i, i].plot(xs2, kde(xs2), lw=1, color="deepskyblue")
+    #     axs[i, i].plot(xs2, kde(xs2), lw=1, color="magenta")
 
     corner.corner(
         dataset_colors_mag,
@@ -500,7 +500,7 @@ def plot_n_ugriz(
     # proxy artists
     handles = [
         Line2D([], [], color="magenta", lw=2, label=label1),
-        Line2D([], [], color="deepskyblue", lw=2, label=label2),
+        Line2D([], [], color="magenta", lw=2, label=label2),
         Line2D([], [], color="navajowhite", lw=2, label="data"),
     ]
 
@@ -680,7 +680,7 @@ def plot_n_ugriz(
             weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
-            color="magenta",
+            color="deepskyblue",
             alpha=0.7,
             label=label1,
         )
@@ -698,7 +698,7 @@ def plot_n_ugriz(
             weights=N_weights2 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
-            color="deepskyblue",
+            color="magenta",
             alpha=0.7,
             lw=2,
             label=label2,
