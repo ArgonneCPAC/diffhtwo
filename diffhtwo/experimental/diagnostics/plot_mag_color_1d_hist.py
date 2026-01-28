@@ -425,7 +425,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    ranges = [(-1, 2.5), (-1, 2.0), (-0.5, 1.5), (-0.5, 1.5), (18, mag_thresh)]
+    ranges = [(-1, 2.5), (-1, 2.5), (-0.5, 1.5), (-0.5, 1.5), (18, mag_thresh)]
     labels = [
         r"$uS_{MegaCam} - g_{HSC} [AB]$",
         r"$g_{HSC} - r_{HSC} [AB]$",
@@ -472,12 +472,12 @@ def plot_n_ugriz(
 
     for i in range(5):
         x1 = obs_colors_mag1[:, i]
-        kde = gaussian_kde(x1)
+        kde = gaussian_kde(x1, bw_method=0.3)
         xs1 = np.linspace(x1.min(), x1.max(), 500)
         axs[i, i].plot(xs1, kde(xs1), lw=1, color="k")
 
         x2 = obs_colors_mag2[:, i]
-        kde = gaussian_kde(x2)
+        kde = gaussian_kde(x2, bw_method=0.3)
         xs2 = np.linspace(x2.min(), x1.max(), 500)
         axs[i, i].plot(xs2, kde(xs2), lw=1, color="green")
 
