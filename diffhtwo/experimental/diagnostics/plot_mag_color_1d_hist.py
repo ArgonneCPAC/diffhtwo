@@ -461,7 +461,7 @@ def plot_n_ugriz(
         # smooth_1d=1.5,
         plot_datapoints=False,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 2, "density": True},
+        hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 1, "density": True},
         hist2d_kwargs={"weights": N_weights2},
         fill_contours=False,
         show_titles=True,
