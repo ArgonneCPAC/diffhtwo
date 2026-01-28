@@ -16,10 +16,12 @@ from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
-from scipy.stats import gaussian_kde
 
 from .. import n_mag_opt
 from ..utils import zbin_volume
+
+# from scipy.stats import gaussian_kde
+
 
 try:
     from matplotlib import pyplot as plt
@@ -201,7 +203,7 @@ def plot_n_mag_ugriz(
             weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=mag_bin_edges,
             histtype="step",
-            color="k",
+            color="magenta",
             alpha=0.7,
             label=label1,
         )
@@ -219,7 +221,7 @@ def plot_n_mag_ugriz(
             weights=N_weights2 * (1 / lc_vol_mpc3),
             bins=mag_bin_edges,
             histtype="step",
-            color="green",
+            color="deepskyblue",
             alpha=0.7,
             lw=2,
             label=label2,
@@ -437,13 +439,13 @@ def plot_n_ugriz(
         obs_colors_mag1,
         weights=N_weights1,
         labels=labels,
-        color="k",
+        color="magenta",
         # smooth=1.5,
         # bins=80,
         # smooth_1d=2,
         plot_datapoints=False,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.5, "density": True},
+        hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
         fill_contours=False,
         range=ranges,
     )
@@ -452,13 +454,13 @@ def plot_n_ugriz(
         obs_colors_mag2,
         weights=N_weights2,
         fig=fig_corner,
-        color="green",
+        color="deepskyblue",
         # smooth=False,
         # bins=80,
         # smooth_1d=1.5,
         plot_datapoints=False,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.5, "lw": 2, "density": True},
+        hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 2, "density": True},
         hist2d_kwargs={"weights": N_weights2},
         fill_contours=False,
         show_titles=True,
@@ -468,18 +470,18 @@ def plot_n_ugriz(
     )
 
     # Plot smooth gaussian curves over 1d histograms
-    axs = np.array(fig_corner.axes).reshape((5, 5))
+    # axs = np.array(fig_corner.axes).reshape((5, 5))
 
-    for i in range(5):
-        x1 = obs_colors_mag1[:, i]
-        kde = gaussian_kde(x1, bw_method=0.3)
-        xs1 = np.linspace(x1.min(), x1.max(), 500)
-        axs[i, i].plot(xs1, kde(xs1), lw=1, color="k")
+    # for i in range(5):
+    #     x1 = obs_colors_mag1[:, i]
+    #     kde = gaussian_kde(x1, bw_method=0.3)
+    #     xs1 = np.linspace(x1.min(), x1.max(), 500)
+    #     axs[i, i].plot(xs1, kde(xs1), lw=1, color="magenta")
 
-        x2 = obs_colors_mag2[:, i]
-        kde = gaussian_kde(x2, bw_method=0.3)
-        xs2 = np.linspace(x2.min(), x1.max(), 500)
-        axs[i, i].plot(xs2, kde(xs2), lw=1, color="green")
+    #     x2 = obs_colors_mag2[:, i]
+    #     kde = gaussian_kde(x2, bw_method=0.3)
+    #     xs2 = np.linspace(x2.min(), x1.max(), 500)
+    #     axs[i, i].plot(xs2, kde(xs2), lw=1, color="deepskyblue")
 
     corner.corner(
         dataset_colors_mag,
@@ -490,14 +492,14 @@ def plot_n_ugriz(
         # bins=80,
         # smooth_1d=1.5,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "stepfilled", "alpha": 0.5, "density": True},
+        hist_kwargs={"histtype": "stepfilled", "alpha": 0.9, "density": True},
         fill_contours=False,
         range=ranges,
     )
     # proxy artists
     handles = [
-        Line2D([], [], color="k", lw=2, label=label1),
-        Line2D([], [], color="green", lw=2, label=label2),
+        Line2D([], [], color="magenta", lw=2, label=label1),
+        Line2D([], [], color="deepskyblue", lw=2, label=label2),
         Line2D([], [], color="orange", lw=2, label="data"),
     ]
 
@@ -663,7 +665,7 @@ def plot_n_ugriz(
         # n_data2 = N_data / data_vol_mpc3
 
         # bin_centers = (bins[1:] + bins[:-1]) / 2
-        # ax[i].scatter(bin_centers, n1, label=label1, c="k")
+        # ax[i].scatter(bin_centers, n1, label=label1, c="magenta")
         # ax[i].scatter(bin_centers, n2, label=label2, c="green")
         # ax[i].scatter(
         #     bin_centers, n_data1, label="weighted" + label2, c="cyan", alpha=0.5
@@ -677,7 +679,7 @@ def plot_n_ugriz(
             weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
-            color="k",
+            color="magenta",
             alpha=0.7,
             label=label1,
         )
@@ -695,7 +697,7 @@ def plot_n_ugriz(
             weights=N_weights2 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
-            color="green",
+            color="deepskyblue",
             alpha=0.7,
             lw=2,
             label=label2,
