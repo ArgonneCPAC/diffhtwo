@@ -452,7 +452,7 @@ def plot_n_ugriz(
     )
 
     fig_corner.suptitle(title, y=0.98)
-    fig_corner.subplots_adjust(top=0.9)
+    fig_corner.subplots_adjust(top=0.7)
 
     corner.corner(
         obs_colors_mag2,
