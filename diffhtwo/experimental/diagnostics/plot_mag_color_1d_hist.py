@@ -450,7 +450,7 @@ def plot_n_ugriz(
         fill_contours=False,
         range=ranges,
     )
-    fig_corner.subplots_adjust(top=0.9)
+    fig_corner.subplots_adjust(top=0.8)
     fig_corner.suptitle(title)
 
     corner.corner(
