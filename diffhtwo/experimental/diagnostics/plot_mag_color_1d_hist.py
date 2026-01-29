@@ -513,7 +513,6 @@ def plot_n_ugriz(
         bbox_to_anchor=(1.0, 0.5),
         frameon=False,
     )
-    fig_corner.tight_layout(rect=[0, 0, 1, 0.90])
     plt.savefig(saveAs + "_corner.pdf")
     plt.show()
 
