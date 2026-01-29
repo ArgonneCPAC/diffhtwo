@@ -450,6 +450,7 @@ def plot_n_ugriz(
         fill_contours=False,
         range=ranges,
     )
+    fig_corner.suptitle(title)
 
     corner.corner(
         obs_colors_mag2,
