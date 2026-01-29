@@ -451,8 +451,7 @@ def plot_n_ugriz(
         range=ranges,
     )
 
-    # fig_corner.suptitle(title, y=0.98)
-    # fig_corner.subplots_adjust(top=0.7)
+    fig_corner.suptitle(title)
 
     corner.corner(
         obs_colors_mag2,
@@ -514,7 +513,7 @@ def plot_n_ugriz(
         bbox_to_anchor=(1.0, 0.5),
         frameon=False,
     )
-
+    fig_corner.tight_layout(rect=[0, 0, 1, 0.90])
     plt.savefig(saveAs + "_corner.pdf")
     plt.show()
 
