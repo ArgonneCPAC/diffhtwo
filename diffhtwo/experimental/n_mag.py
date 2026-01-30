@@ -433,7 +433,7 @@ def Gehrels_low_eq12(Ngal):
 
 
 @jjit
-def get_n_data_err(N, vol, N_floor=0.1):
+def get_n_data_err(N, vol, N_floor=0.5):
     N_0 = 1e-12
 
     N = jnp.where(N > N_floor, N, N_0)
