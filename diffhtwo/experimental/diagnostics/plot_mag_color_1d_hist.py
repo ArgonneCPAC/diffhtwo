@@ -499,7 +499,7 @@ def plot_n_ugriz(
     )
     # proxy artists
     handles = [
-        Line2D([], [], color="magenta", lw=1, label=label1),
+        Line2D([], [], color="deepskyblue", lw=1, label=label1),
         Line2D([], [], color="magenta", lw=1, label=label2),
         Line2D([], [], color="navajowhite", lw=1, label="data"),
     ]
