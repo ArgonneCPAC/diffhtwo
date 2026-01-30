@@ -116,7 +116,7 @@ def n_mag_kern(
     obs_colors_mag_bursty_ms.append(obs_mag_bursty_ms)
     obs_colors_mag_bursty_ms = jnp.asarray(obs_colors_mag_bursty_ms).T
 
-    sig = jnp.zeros(obs_colors_mag_q.shape) + (dmag / 2)
+    sig = jnp.zeros(obs_colors_mag_q.shape) + (dmag * 2)
 
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
@@ -283,7 +283,7 @@ def n_mag_kern_1d(
         )
         obs_color_bursty_ms = obs_color_bursty_ms.reshape(obs_color_bursty_ms.size, 1)
 
-        sig = jnp.zeros(obs_color_q.shape) + (dmag / 2)
+        sig = jnp.zeros(obs_color_q.shape) + (dmag * 2)
 
         bin_centers_1d_lo = bin_centers_1d[i] - (dmag / 2)
         bin_centers_1d_hi = bin_centers_1d[i] + (dmag / 2)
@@ -328,7 +328,7 @@ def n_mag_kern_1d(
     obs_mags_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_column]
     obs_mags_bursty_ms = obs_mags_bursty_ms.reshape(obs_mags_bursty_ms.size, 1)
 
-    sig = jnp.zeros(obs_mags_q.shape) + (dmag / 2)
+    sig = jnp.zeros(obs_mags_q.shape) + (dmag * 2)
 
     bin_centers_1d_lo = bin_centers_1d[-1] - (dmag / 2)
     bin_centers_1d_hi = bin_centers_1d[-1] + (dmag / 2)
