@@ -45,6 +45,7 @@ def plot_n_mag_ugriz(
     tcurves,
     mag_column,
     mag_thresh,
+    dimension_labels,
     dmag,
     ran_key,
     zmin,
@@ -184,7 +185,7 @@ def plot_n_mag_ugriz(
         ]
     )
 
-    fig, ax = plt.subplots(1, 5, figsize=(11.5, 3))
+    fig, ax = plt.subplots(1, n_bands, figsize=(2.4 * n_bands, 3))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title)
 
@@ -237,14 +238,10 @@ def plot_n_mag_ugriz(
         )
 
         ax[i].set_yscale("log")
+        ax[i].set_xlabel(dimension_labels[i])
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[0].set_xlabel("MegaCam_uS [AB]")
-    ax[1].set_xlabel("HSC_g [AB]")
-    ax[2].set_xlabel("HSC_r [AB]")
-    ax[3].set_xlabel("HSC_i [AB]")
-    ax[4].set_xlabel("HSC_z [AB]")
-    ax[4].legend(framealpha=0.5)
+    ax[-1].legend(framealpha=0.5)
 
     for i in range(0, n_bands):
         ax[i].set_ylim(1e-6, 5e-3)
@@ -708,7 +705,7 @@ def plot_n_ugriz(
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
     ax[-1].legend(framealpha=0.5)
     for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 2e-2)
+        ax[i].set_ylim(1e-6, 3e-2)
         if i != 0:
             ax[i].set_yticklabels([])
     plt.savefig(saveAs + ".pdf")
