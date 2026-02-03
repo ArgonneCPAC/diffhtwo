@@ -266,6 +266,7 @@ def plot_n_ugriz(
     tcurves,
     mag_column,
     mag_thresh,
+    dimension_labels,
     dmag,
     ran_key,
     zmin,
@@ -427,17 +428,10 @@ def plot_n_ugriz(
 
     # Plot corner
     # ranges = [(-1, 2.5), (-1, 2.5), (-0.5, 1.5), (-0.5, 1.5), (18, mag_thresh)]
-    labels = [
-        r"$uS_{MegaCam} - g_{HSC} [AB]$",
-        r"$g_{HSC} - r_{HSC} [AB]$",
-        r"$r_{HSC} - i_{HSC} [AB]$",
-        r"$i_{HSC} - z_{HSC} [AB]$",
-        r"$i_{HSC} [AB]$",
-    ]
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=N_weights1,
-        labels=labels,
+        labels=dimension_labels,
         color="deepskyblue",
         # smooth=1.5,
         # bins=80,
@@ -709,14 +703,10 @@ def plot_n_ugriz(
         )
 
         ax[i].set_yscale("log")
+        ax[i].set_xlabel(dimension_labels[i])
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[0].set_xlabel("MegaCam_uS - HSC_g [AB]")
-    ax[1].set_xlabel("HSC_g- HSC_r [AB]")
-    ax[2].set_xlabel("HSC_r - HSC_i [AB]")
-    ax[3].set_xlabel("HSC_i - HSC_z [AB]")
-    ax[4].set_xlabel("HSC_i [AB]")
-    ax[4].legend(framealpha=0.5)
+    ax[-1].legend(framealpha=0.5)
     for i in range(0, n_bands):
         ax[i].set_ylim(1e-6, 2e-2)
         if i != 0:
