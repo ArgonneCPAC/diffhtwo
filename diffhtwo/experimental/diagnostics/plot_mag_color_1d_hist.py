@@ -426,7 +426,7 @@ def plot_n_ugriz(
     )
 
     # Plot corner
-    ranges = [(-1, 2.5), (-1, 2.5), (-0.5, 1.5), (-0.5, 1.5), (18, mag_thresh)]
+    # ranges = [(-1, 2.5), (-1, 2.5), (-0.5, 1.5), (-0.5, 1.5), (18, mag_thresh)]
     labels = [
         r"$uS_{MegaCam} - g_{HSC} [AB]$",
         r"$g_{HSC} - r_{HSC} [AB]$",
@@ -446,7 +446,6 @@ def plot_n_ugriz(
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
         fill_contours=False,
-        range=ranges,
     )
 
     fig_corner.suptitle(title)
@@ -467,7 +466,6 @@ def plot_n_ugriz(
         show_titles=True,
         title_fmt=".2f",
         title_kwargs={"fontsize": 12},
-        range=ranges,
     )
 
     # Plot smooth gaussian curves over 1d histograms
@@ -495,7 +493,6 @@ def plot_n_ugriz(
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "density": True},
         fill_contours=False,
-        range=ranges,
     )
     # proxy artists
     handles = [
