@@ -33,7 +33,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-def plot_n_mag_ugriz(
+def plot_n_mag(
     diffstarpop_params1,
     diffstarpop_params2,
     spspop_params1,
@@ -251,7 +251,7 @@ def plot_n_mag_ugriz(
     plt.show()
 
 
-def plot_n_ugriz(
+def plot_n(
     diffstarpop_params1,
     diffstarpop_params2,
     spspop_params1,
