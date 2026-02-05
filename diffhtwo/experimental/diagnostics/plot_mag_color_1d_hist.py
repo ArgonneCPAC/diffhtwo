@@ -424,7 +424,10 @@ def plot_n(
     )
 
     # Plot corner
-    ranges = [None] * len(dimension_labels)
+    ranges = ranges = [
+        (obs_colors_mag1[:, i].min(), obs_colors_mag1[:, i].max())
+        for i in range(len(dimension_labels))
+    ]
     ranges[-1] = (18, mag_thresh)
     # [(-1, 2.5), (-1, 2.5), (-0.5, 1.5), (-0.5, 1.5), (18, mag_thresh)]
     fig_corner = corner.corner(
