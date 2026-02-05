@@ -424,7 +424,9 @@ def plot_n(
     )
 
     # Plot corner
-    # ranges = [(-1, 2.5), (-1, 2.5), (-0.5, 1.5), (-0.5, 1.5), (18, mag_thresh)]
+    ranges = [None] * len(dimension_labels)
+    ranges[-1] = (18, mag_thresh)
+    # [(-1, 2.5), (-1, 2.5), (-0.5, 1.5), (-0.5, 1.5), (18, mag_thresh)]
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=N_weights1,
@@ -437,6 +439,7 @@ def plot_n(
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
         fill_contours=False,
+        range=ranges,
     )
 
     fig_corner.suptitle(title)
@@ -457,6 +460,7 @@ def plot_n(
         show_titles=True,
         title_fmt=".2f",
         title_kwargs={"fontsize": 12},
+        range=ranges,
     )
 
     # Plot smooth gaussian curves over 1d histograms
@@ -484,6 +488,7 @@ def plot_n(
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "density": True},
         fill_contours=False,
+        range=ranges,
     )
     # proxy artists
     handles = [
