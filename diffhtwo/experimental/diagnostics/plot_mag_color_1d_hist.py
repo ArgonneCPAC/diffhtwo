@@ -423,13 +423,12 @@ def plot_n(
         ]
     )
 
+    color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
+    mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
+
     # Plot corner
-    ranges = ranges = [
-        (obs_colors_mag1[:, i].min(), obs_colors_mag1[:, i].max())
-        for i in range(len(dimension_labels))
-    ]
-    ranges[-1] = (18, mag_thresh)
-    # [(-1, 2.5), (-1, 2.5), (-0.5, 1.5), (-0.5, 1.5), (18, mag_thresh)]
+    ranges = [(color_bin_edges[0], color_bin_edges[-1])] * (len(dimension_labels) - 1)
+    ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=N_weights1,
@@ -514,9 +513,6 @@ def plot_n(
     fig, ax = plt.subplots(1, n_bands, figsize=(2.4 * n_bands, 3))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title)
-
-    color_bin_edges = np.arange(-0.5 - dmag / 2, 2.0, dmag)
-    mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
 
     for i in range(0, n_bands):
         if i == n_bands - 1:
