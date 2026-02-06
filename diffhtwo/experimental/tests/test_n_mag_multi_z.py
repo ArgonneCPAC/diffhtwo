@@ -228,6 +228,9 @@ loss_args_multi_z = (
     mag_thresh,
     DEFAULT_COSMOLOGY,
     FB,
+    None,
+    None,
+    None,
 )
 loss_multi_z = n_mag_opt._loss_kern_multi_z(
     u_theta2, lg_n_data_err_lh_multi_z, *loss_args_multi_z
