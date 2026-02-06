@@ -56,7 +56,13 @@ get_L_halpha_vmap = jjit(
 
 @jjit
 def get_halpha_luminosity_func(
-    L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=38.0, lgL_max=45.0
+    L_halpha_cgs,
+    weights,
+    sig=0.05,
+    dlgL_bin=0.2,
+    lgL_min=38.0,
+    lgL_max=45.0,
+    lgL_bin_edges=None,
 ):
     """
     Calculates the h-alpha LF regardless of where the h-alpha Luminosities come from,
@@ -103,7 +109,9 @@ def get_halpha_luminosity_func(
 
     sig_arr = jnp.zeros_like(lgL_halpha) + sig
 
-    lgL_bin_edges = jnp.arange(lgL_min, lgL_max, dlgL_bin)
+    if lgL_bin_edges is None:
+        lgL_bin_edges = jnp.arange(lgL_min, lgL_max, dlgL_bin)
+
     lgL_bin_lo = lgL_bin_edges[:-1].reshape(lgL_bin_edges[:-1].size, 1)
     lgL_bin_hi = lgL_bin_edges[1:].reshape(lgL_bin_edges[1:].size, 1)
 
