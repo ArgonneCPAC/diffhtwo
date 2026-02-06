@@ -448,7 +448,7 @@ def _loss_kern(
     )
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
-    if ssp_halpha_luminosity is not None:
+    if lg_halpha_LF_target is not None:
         halpha_args = (
             diffstarpop_params,
             ran_key,
