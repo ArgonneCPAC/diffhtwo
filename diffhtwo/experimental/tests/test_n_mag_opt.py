@@ -35,6 +35,7 @@ tcurves.append(retrieve_tcurves.HSC_I)
 ran_key = jran.key(0)
 dmag = 0.2
 mag_column = 0
+mag_thresh = 24.5
 
 """Halo lightcone"""
 ran_key, lc_key = jran.split(ran_key, 2)
@@ -67,6 +68,7 @@ wave_eff_table = lc_phot_kern.get_wave_eff_table(z_phot_table, tcurves)
 bin_edges = np.arange(18.0 - dmag / 2, 26.0, dmag)
 bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2
 bin_centers = bin_centers.reshape(bin_centers.size, 1)
+lg_n_thresh = -8
 
 ran_key, n_key = jran.split(ran_key, 2)
 lg_n_true, lg_n_avg_err_true = n_mag.n_mag_kern(
@@ -90,6 +92,7 @@ lg_n_true, lg_n_avg_err_true = n_mag.n_mag_kern(
     bin_centers,
     dmag,
     mag_column,
+    mag_thresh,
     DEFAULT_COSMOLOGY,
     FB,
 )
@@ -100,6 +103,7 @@ ran_key, fit_n_key = jran.split(ran_key, 2)
 loss_hist, grad_hist, u_theta_fit = n_mag_opt.fit_n(
     u_diffstarpop_theta_default,
     lg_n_true,
+    lg_n_thresh,
     fit_n_key,
     jnp.array(lc_halopop["z_obs"]),
     lc_halopop["t_obs"],
@@ -117,6 +121,7 @@ loss_hist, grad_hist, u_theta_fit = n_mag_opt.fit_n(
     bin_centers,
     dmag,
     mag_column,
+    mag_thresh,
     DEFAULT_COSMOLOGY,
     FB,
     n_steps=2,
