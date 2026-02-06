@@ -27,9 +27,8 @@ from jax.flatten_util import ravel_pytree
 
 from diffhtwo.experimental.utils import safe_log10
 
+from . import diffstarpop_halpha as dpop_halpha
 from .n_mag import n_mag_kern, n_mag_kern_1d
-
-from .diffstarpop_halpha as dpop_halpha
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
@@ -465,23 +464,24 @@ def _loss_kern(
             spspop_params,
             DEFAULT_SCATTER_PARAMS,
             cosmo_params,
-            fb
+            fb,
         )
         halpha_L = dpop_halpha.diffstarpop_halpha_kern(*halpha_args)
         (
-            _, 
-            halpha_lf_weighted_q, 
-            halpha_lf_weighted_smooth_ms,  
-            halpha_lf_weighted_bursty_ms, 
-        ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(halpha_L, lc_halopop['nhalos'], sig=0.05, lgL_bin_edges=lg_halpha_Lbin_edges)
-        
+            _,
+            halpha_lf_weighted_q,
+            halpha_lf_weighted_smooth_ms,
+            halpha_lf_weighted_bursty_ms,
+        ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
+            halpha_L, lc_halopop["nhalos"], sig=0.05, lgL_bin_edges=lg_halpha_Lbin_edges
+        )
+
         halpha_lf_weighted_composite = (
-            halpha_lf_weighted_q + 
-            halpha_lf_weighted_smooth_ms + 
-            halpha_lf_weighted_bursty_ms
+            halpha_lf_weighted_q
+            + halpha_lf_weighted_smooth_ms
+            + halpha_lf_weighted_bursty_ms
         )
         lg_halpha_LF_model = jnp.log10(halpha_lf_weighted_composite / lc_vol_mpc3)
-
 
         loss += _mse_w(
             lg_halpha_LF_model,
@@ -555,7 +555,7 @@ def fit_n(
         fb,
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
-        lg_halpha_Lbin_edges
+        lg_halpha_Lbin_edges,
     )
 
     def _opt_update(opt_state, i):
