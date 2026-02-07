@@ -440,10 +440,11 @@ def Gehrels_low_eq12(Ngal):
 
 
 @jjit
-def get_n_data_err(N, vol, N_floor=1e-6):
+def get_n_data_err(N, vol, N_floor=0.5):
     N_0 = 1e-12
+    non_zero = N > N_floor
 
-    N = jnp.where(N > N_floor, N, N_0)
+    N = jnp.where(non_zero, N, N_0)
     lg_n = jnp.log10(N / vol)
 
     # upper limit approximation - Eq. 9 Gehrels (1986); 1-sigma
@@ -453,8 +454,7 @@ def get_n_data_err(N, vol, N_floor=1e-6):
 
     # lower limit approximation - Eq. 12 Gehrels (1986); 1-sigma
     N_low = Gehrels_low_eq12(N)
-    print("N_low:{}", N_low)
-    N_low = jnp.where(N > N_floor, N_low, N_0)
+    N_low = jnp.where(non_zero, N_low, N_0)
     lg_n_low = jnp.log10(N_low / vol)
 
     lg_n_low_err = lg_n - lg_n_low
