@@ -44,6 +44,7 @@ def plot_n_mag(
     data_sky_area_degsq,
     tcurves,
     mag_column,
+    mag_thresh_column,
     mag_thresh,
     dimension_labels,
     dmag,
@@ -109,10 +110,10 @@ def plot_n_mag(
     lc_phot1 = lc_phot_kern.multiband_lc_phot_kern(*phot_args1)
     num_halos, n_bands = lc_phot1.obs_mags_q.shape
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_column]
-    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_column]
-    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_column]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q1 = jnp.where(
         obs_mag_q1 < mag_thresh, lc_phot1.weights_q, jnp.zeros_like(lc_phot1.weights_q)
@@ -159,10 +160,10 @@ def plot_n_mag(
     lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
     num_halos, n_bands = lc_phot2.obs_mags_q.shape
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_column]
-    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_column]
-    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_column]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q2 = jnp.where(
         obs_mag_q2 < mag_thresh, lc_phot2.weights_q, jnp.zeros_like(lc_phot2.weights_q)
@@ -262,6 +263,7 @@ def plot_n(
     data_sky_area_degsq,
     tcurves,
     mag_column,
+    mag_thresh_column,
     mag_thresh,
     dimension_labels,
     dmag,
@@ -339,10 +341,10 @@ def plot_n(
         [obs_colors_mag_q1, obs_colors_mag_smooth_ms1, obs_colors_mag_bursty_ms1]
     )
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q1 = obs_colors_mag_q1[:, -1]
-    obs_mag_smooth_ms1 = obs_colors_mag_smooth_ms1[:, -1]
-    obs_mag_bursty_ms1 = obs_colors_mag_bursty_ms1[:, -1]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q1 = jnp.where(
         obs_mag_q1 < mag_thresh, lc_phot1.weights_q, jnp.zeros_like(lc_phot1.weights_q)
@@ -397,10 +399,10 @@ def plot_n(
     obs_colors_mag2 = np.concatenate(
         [obs_colors_mag_q2, obs_colors_mag_smooth_ms2, obs_colors_mag_bursty_ms2]
     )
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q2 = obs_colors_mag_q2[:, -1]
-    obs_mag_smooth_ms2 = obs_colors_mag_smooth_ms2[:, -1]
-    obs_mag_bursty_ms2 = obs_colors_mag_bursty_ms2[:, -1]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q2 = jnp.where(
         obs_mag_q2 < mag_thresh, lc_phot2.weights_q, jnp.zeros_like(lc_phot2.weights_q)
