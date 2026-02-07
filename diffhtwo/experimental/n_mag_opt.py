@@ -473,7 +473,7 @@ def _loss_kern(
             halpha_lf_weighted_smooth_ms,
             halpha_lf_weighted_bursty_ms,
         ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
-            halpha_L, lc_halopop["nhalos"], sig=0.05, lgL_bin_edges=lg_halpha_Lbin_edges
+            halpha_L, lc_nhalos, sig=0.05, lgL_bin_edges=lg_halpha_Lbin_edges
         )
 
         halpha_lf_weighted_composite = (
