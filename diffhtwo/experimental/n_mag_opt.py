@@ -460,9 +460,9 @@ def _loss_kern(
             ssp_data,
             ssp_halpha_luminosity,
             z_phot_table,
-            DEFAULT_MZR_PARAMS,
+            mzr_params,
             spspop_params,
-            DEFAULT_SCATTER_PARAMS,
+            scatter_params,
             cosmo_params,
             fb,
         )
