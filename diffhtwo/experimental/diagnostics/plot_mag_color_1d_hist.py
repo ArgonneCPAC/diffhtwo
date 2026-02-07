@@ -775,6 +775,7 @@ def plot_n(
             lh_centroids,
             dmag,
             mag_column,
+            mag_thresh_column,
             mag_thresh,
             DEFAULT_COSMOLOGY,
             FB,
