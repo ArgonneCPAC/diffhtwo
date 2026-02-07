@@ -756,6 +756,7 @@ def plot_n(
         u_theta1 = (u_diffstarpop_theta1, u_spspop_theta1, u_ssp_err_pop_theta1)
         u_theta2 = (u_diffstarpop_theta2, u_spspop_theta2, u_ssp_err_pop_theta2)
 
+        dmag_for_loss = 0.5
         loss_args = (
             lg_n_thresh,
             n_key,
@@ -773,7 +774,7 @@ def plot_n(
             DEFAULT_MZR_PARAMS,
             DEFAULT_SCATTER_PARAMS,
             lh_centroids,
-            dmag,
+            dmag_for_loss,
             mag_column,
             mag_thresh_column,
             mag_thresh,
