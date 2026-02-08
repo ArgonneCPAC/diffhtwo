@@ -37,6 +37,7 @@ def n_mag_kern(
     lh_centroids,
     dmag,
     mag_column,
+    mag_thresh_column,
     mag_thresh,
     cosmo_params,
     fb,
@@ -121,15 +122,20 @@ def n_mag_kern(
     lh_centroids_lo = lh_centroids - (dmag / 2)
     lh_centroids_hi = lh_centroids + (dmag / 2)
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q = lc_phot.obs_mags_q[:, mag_thresh_column]
     lc_phot_weights_q = jnp.where(
         obs_mag_q < mag_thresh, lc_phot.weights_q, jnp.zeros_like(lc_phot.weights_q)
     )
+
+    obs_mag_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_thresh_column]
     lc_phot_weights_smooth_ms = jnp.where(
         obs_mag_smooth_ms < mag_thresh,
         lc_phot.weights_smooth_ms,
         jnp.zeros_like(lc_phot.weights_smooth_ms),
     )
+
+    obs_mag_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_thresh_column]
     lc_phot_weights_bursty_ms = jnp.where(
         obs_mag_bursty_ms < mag_thresh,
         lc_phot.weights_bursty_ms,
@@ -186,6 +192,7 @@ _N = (
     None,
     None,
     0,
+    None,
     None,
     None,
     None,
@@ -435,8 +442,9 @@ def Gehrels_low_eq12(Ngal):
 @jjit
 def get_n_data_err(N, vol, N_floor=0.5):
     N_0 = 1e-12
+    non_zero = N > N_floor
 
-    N = jnp.where(N > N_floor, N, N_0)
+    N = jnp.where(non_zero, N, N_0)
     lg_n = jnp.log10(N / vol)
 
     # upper limit approximation - Eq. 9 Gehrels (1986); 1-sigma
@@ -446,13 +454,14 @@ def get_n_data_err(N, vol, N_floor=0.5):
 
     # lower limit approximation - Eq. 12 Gehrels (1986); 1-sigma
     N_low = Gehrels_low_eq12(N)
-    N_low = jnp.where(N > N_floor, N_low, N_0)
+    N_low = jnp.where(non_zero, N_low, N_0)
     lg_n_low = jnp.log10(N_low / vol)
 
     lg_n_low_err = lg_n - lg_n_low
 
     lg_n_avg_err = (lg_n_low_err + lg_n_upp_err) / 2
-    # just the upper limit for N < N_floor
-    lg_n_avg_err = jnp.where(N > N_floor, lg_n_avg_err, lg_n_upp_err)
+
+    # just the upper limit for N ~ 0
+    lg_n_avg_err = jnp.where(non_zero, lg_n_avg_err, lg_n_upp_err)
 
     return lg_n, lg_n_avg_err

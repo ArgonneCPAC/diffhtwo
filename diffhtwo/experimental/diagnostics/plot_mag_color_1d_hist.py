@@ -44,6 +44,7 @@ def plot_n_mag(
     data_sky_area_degsq,
     tcurves,
     mag_column,
+    mag_thresh_column,
     mag_thresh,
     dimension_labels,
     dmag,
@@ -109,10 +110,10 @@ def plot_n_mag(
     lc_phot1 = lc_phot_kern.multiband_lc_phot_kern(*phot_args1)
     num_halos, n_bands = lc_phot1.obs_mags_q.shape
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_column]
-    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_column]
-    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_column]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q1 = jnp.where(
         obs_mag_q1 < mag_thresh, lc_phot1.weights_q, jnp.zeros_like(lc_phot1.weights_q)
@@ -159,10 +160,10 @@ def plot_n_mag(
     lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
     num_halos, n_bands = lc_phot2.obs_mags_q.shape
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_column]
-    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_column]
-    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_column]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q2 = jnp.where(
         obs_mag_q2 < mag_thresh, lc_phot2.weights_q, jnp.zeros_like(lc_phot2.weights_q)
@@ -262,6 +263,7 @@ def plot_n(
     data_sky_area_degsq,
     tcurves,
     mag_column,
+    mag_thresh_column,
     mag_thresh,
     dimension_labels,
     dmag,
@@ -339,10 +341,10 @@ def plot_n(
         [obs_colors_mag_q1, obs_colors_mag_smooth_ms1, obs_colors_mag_bursty_ms1]
     )
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q1 = obs_colors_mag_q1[:, -1]
-    obs_mag_smooth_ms1 = obs_colors_mag_smooth_ms1[:, -1]
-    obs_mag_bursty_ms1 = obs_colors_mag_bursty_ms1[:, -1]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q1 = jnp.where(
         obs_mag_q1 < mag_thresh, lc_phot1.weights_q, jnp.zeros_like(lc_phot1.weights_q)
@@ -397,10 +399,10 @@ def plot_n(
     obs_colors_mag2 = np.concatenate(
         [obs_colors_mag_q2, obs_colors_mag_smooth_ms2, obs_colors_mag_bursty_ms2]
     )
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q2 = obs_colors_mag_q2[:, -1]
-    obs_mag_smooth_ms2 = obs_colors_mag_smooth_ms2[:, -1]
-    obs_mag_bursty_ms2 = obs_colors_mag_bursty_ms2[:, -1]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q2 = jnp.where(
         obs_mag_q2 < mag_thresh, lc_phot2.weights_q, jnp.zeros_like(lc_phot2.weights_q)
@@ -520,13 +522,13 @@ def plot_n(
         else:
             bins = color_bin_edges
 
-        obs_colors_mag1 = np.concatenate(
-            [
-                obs_colors_mag_q1[:, i],
-                obs_colors_mag_smooth_ms1[:, i],
-                obs_colors_mag_bursty_ms1[:, i],
-            ]
-        )
+        # obs_colors_mag1 = np.concatenate(
+        #     [
+        #         obs_colors_mag_q1[:, i],
+        #         obs_colors_mag_smooth_ms1[:, i],
+        #         obs_colors_mag_bursty_ms1[:, i],
+        #     ]
+        # )
 
         # diffndhist
         # bins_lo = bins[:-1]
@@ -665,7 +667,7 @@ def plot_n(
         ####
 
         ax[i].hist(
-            obs_colors_mag1,
+            obs_colors_mag1[:, i],
             weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
@@ -674,16 +676,16 @@ def plot_n(
             label=label1,
         )
 
-        obs_colors_mag2 = np.concatenate(
-            [
-                obs_colors_mag_q2[:, i],
-                obs_colors_mag_smooth_ms2[:, i],
-                obs_colors_mag_bursty_ms2[:, i],
-            ]
-        )
+        # obs_colors_mag2 = np.concatenate(
+        #     [
+        #         obs_colors_mag_q2[:, i],
+        #         obs_colors_mag_smooth_ms2[:, i],
+        #         obs_colors_mag_bursty_ms2[:, i],
+        #     ]
+        # )
 
         ax[i].hist(
-            obs_colors_mag2,
+            obs_colors_mag2[:, i],
             weights=N_weights2 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
@@ -707,7 +709,7 @@ def plot_n(
         ax[i].set_xlabel(dimension_labels[i])
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[-1].legend(framealpha=0.5)
+    ax[-1].legend(framealpha=0.5, loc="best")
     for i in range(0, n_bands):
         ax[i].set_ylim(1e-6, 3e-2)
         if i != 0:
@@ -754,6 +756,7 @@ def plot_n(
         u_theta1 = (u_diffstarpop_theta1, u_spspop_theta1, u_ssp_err_pop_theta1)
         u_theta2 = (u_diffstarpop_theta2, u_spspop_theta2, u_ssp_err_pop_theta2)
 
+        dmag_for_loss = 0.5
         loss_args = (
             lg_n_thresh,
             n_key,
@@ -771,8 +774,9 @@ def plot_n(
             DEFAULT_MZR_PARAMS,
             DEFAULT_SCATTER_PARAMS,
             lh_centroids,
-            dmag,
+            dmag_for_loss,
             mag_column,
+            mag_thresh_column,
             mag_thresh,
             DEFAULT_COSMOLOGY,
             FB,
