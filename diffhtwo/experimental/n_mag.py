@@ -460,7 +460,8 @@ def get_n_data_err(N, vol, N_floor=0.5):
     lg_n_low_err = lg_n - lg_n_low
 
     lg_n_avg_err = (lg_n_low_err + lg_n_upp_err) / 2
-    # just the upper limit for N < N_floor
-    lg_n_avg_err = jnp.where(N > N_floor, lg_n_avg_err, lg_n_upp_err)
+
+    # just the upper limit for N ~ 0
+    lg_n_avg_err = jnp.where(non_zero, lg_n_avg_err, lg_n_upp_err)
 
     return lg_n, lg_n_avg_err
