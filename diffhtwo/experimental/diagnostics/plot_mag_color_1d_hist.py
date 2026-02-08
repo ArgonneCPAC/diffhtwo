@@ -522,13 +522,13 @@ def plot_n(
         else:
             bins = color_bin_edges
 
-        obs_colors_mag1 = np.concatenate(
-            [
-                obs_colors_mag_q1[:, i],
-                obs_colors_mag_smooth_ms1[:, i],
-                obs_colors_mag_bursty_ms1[:, i],
-            ]
-        )
+        # obs_colors_mag1 = np.concatenate(
+        #     [
+        #         obs_colors_mag_q1[:, i],
+        #         obs_colors_mag_smooth_ms1[:, i],
+        #         obs_colors_mag_bursty_ms1[:, i],
+        #     ]
+        # )
 
         # diffndhist
         # bins_lo = bins[:-1]
@@ -667,7 +667,7 @@ def plot_n(
         ####
 
         ax[i].hist(
-            obs_colors_mag1,
+            obs_colors_mag1[:, i],
             weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
@@ -676,16 +676,16 @@ def plot_n(
             label=label1,
         )
 
-        obs_colors_mag2 = np.concatenate(
-            [
-                obs_colors_mag_q2[:, i],
-                obs_colors_mag_smooth_ms2[:, i],
-                obs_colors_mag_bursty_ms2[:, i],
-            ]
-        )
+        # obs_colors_mag2 = np.concatenate(
+        #     [
+        #         obs_colors_mag_q2[:, i],
+        #         obs_colors_mag_smooth_ms2[:, i],
+        #         obs_colors_mag_bursty_ms2[:, i],
+        #     ]
+        # )
 
         ax[i].hist(
-            obs_colors_mag2,
+            obs_colors_mag2[:, i],
             weights=N_weights2 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
@@ -709,7 +709,7 @@ def plot_n(
         ax[i].set_xlabel(dimension_labels[i])
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[-1].legend(framealpha=0.5)
+    ax[-1].legend(framealpha=0.5, loc="best")
     for i in range(0, n_bands):
         ax[i].set_ylim(1e-6, 3e-2)
         if i != 0:
