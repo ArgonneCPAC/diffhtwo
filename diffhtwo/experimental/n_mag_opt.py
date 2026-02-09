@@ -103,6 +103,9 @@ def _loss_kern_1d(
     fit_columns,
     cosmo_params,
     fb,
+    ssp_halpha_luminosity=None,
+    lg_halpha_LF_target=None,
+    lg_halpha_Lbin_edges=None,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
@@ -162,17 +165,58 @@ def _loss_kern_1d(
         fb,
     )
 
-    mse_w = 0.0
+    loss = 0.0
     for i in range(0, len(fit_columns)):
         fit_column = fit_columns[i]
-        mse_w += _mse_w(
+        loss += _mse_w(
             lg_n_model_1d[fit_column][0],
             lg_n_target_1d[fit_column][0],
             lg_n_target_1d[fit_column][1],
             lg_n_thresh,
         )
+    if lg_halpha_LF_target is not None:
+        halpha_args = (
+            diffstarpop_params,
+            ran_key,
+            lc_z_obs,
+            lc_t_obs,
+            lc_mah_params,
+            lc_logmp0,
+            t_table,
+            ssp_data,
+            ssp_halpha_luminosity,
+            z_phot_table,
+            mzr_params,
+            spspop_params,
+            scatter_params,
+            cosmo_params,
+            fb,
+        )
+        halpha_L = dpop_halpha.diffstarpop_halpha_kern(*halpha_args)
+        (
+            _,
+            halpha_lf_weighted_q,
+            halpha_lf_weighted_smooth_ms,
+            halpha_lf_weighted_bursty_ms,
+        ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
+            halpha_L, lc_nhalos, sig=0.05, lgL_bin_edges=lg_halpha_Lbin_edges
+        )
 
-    return mse_w
+        halpha_lf_weighted_composite = (
+            halpha_lf_weighted_q
+            + halpha_lf_weighted_smooth_ms
+            + halpha_lf_weighted_bursty_ms
+        )
+        lg_halpha_LF_model = jnp.log10(halpha_lf_weighted_composite / lc_vol_mpc3)
+
+        loss += _mse_w(
+            lg_halpha_LF_model,
+            lg_halpha_LF_target[0],
+            lg_halpha_LF_target[1],
+            lg_n_thresh,
+        )
+
+    return loss
 
 
 loss_and_grad_1d = jjit(value_and_grad(_loss_kern_1d))
@@ -207,6 +251,9 @@ def fit_n_1d(
     fb,
     n_steps=2,
     step_size=0.1,
+    ssp_halpha_luminosity=None,
+    lg_halpha_LF_target=None,
+    lg_halpha_Lbin_edges=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -236,6 +283,9 @@ def fit_n_1d(
         fit_columns,
         cosmo_params,
         fb,
+        ssp_halpha_luminosity,
+        lg_halpha_LF_target,
+        lg_halpha_Lbin_edges,
     )
 
     def _opt_update(opt_state, i):
@@ -278,6 +328,9 @@ _L_1d = (
     None,
     None,
     None,
+    None,
+    0,
+    0,
 )
 _loss_kern_1d_multi_z = jjit(
     vmap(
@@ -325,6 +378,9 @@ def fit_n_1d_multi_z(
     fb,
     n_steps=2,
     step_size=0.1,
+    ssp_halpha_luminosity=None,
+    lg_halpha_LF_target=None,
+    lg_halpha_Lbin_edges=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -354,6 +410,9 @@ def fit_n_1d_multi_z(
         fit_columns,
         cosmo_params,
         fb,
+        ssp_halpha_luminosity,
+        lg_halpha_LF_target,
+        lg_halpha_Lbin_edges,
     )
 
     def _opt_update(opt_state, i):
