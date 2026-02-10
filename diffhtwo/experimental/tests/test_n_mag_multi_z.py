@@ -233,9 +233,15 @@ loss_args_multi_z = (
     mag_thresh,
     DEFAULT_COSMOLOGY,
     FB,
+    frac_cat,
 )
 loss_multi_z = n_mag_opt._loss_kern_multi_z(
-    u_theta2, lg_n_data_err_lh_multi_z, *loss_args_multi_z
+    u_theta2,
+    lg_n_data_err_lh_multi_z,
+    *loss_args_multi_z,
+    ssp_halpha_luminosity=None,
+    lg_halpha_LF_target=None,
+    lg_halpha_Lbin_edges=None,
 )
 
 for zbin in range(0, len(zbins)):
