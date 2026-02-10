@@ -85,6 +85,8 @@ tcurves = [
 ]
 
 mag_column = 3
+mag_thresh_column = 3
+mag_thresh = 24.5
 dmag = 0.5
 fit_columns = jnp.arange(0, len(tcurves), 1)
 
@@ -171,6 +173,8 @@ n_args_multi_z = (
     bin_centers_1d,
     dmag,
     mag_column,
+    mag_thresh_column,
+    mag_thresh,
     DEFAULT_COSMOLOGY,
     FB,
 )
@@ -209,6 +213,8 @@ loss_args_multi_z = (
     bin_centers_1d,
     dmag,
     mag_column,
+    mag_thresh_column,
+    mag_thresh,
     fit_columns,
     DEFAULT_COSMOLOGY,
     FB,
@@ -255,6 +261,8 @@ for zbin in range(0, len(zbins)):
         bin_centers_1d,
         dmag,
         mag_column,
+        mag_thresh_column,
+        mag_thresh,
         DEFAULT_COSMOLOGY,
         FB,
     )
@@ -280,6 +288,8 @@ for zbin in range(0, len(zbins)):
         bin_centers_1d,
         dmag,
         mag_column,
+        mag_thresh_column,
+        mag_thresh,
         fit_columns,
         DEFAULT_COSMOLOGY,
         FB,
