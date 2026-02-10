@@ -46,6 +46,7 @@ def plot_n_mag(
     mag_column,
     mag_thresh_column,
     mag_thresh,
+    frac_cat,
     dimension_labels,
     dmag,
     ran_key,
@@ -135,6 +136,9 @@ def plot_n_mag(
             lc_phot_weights_bursty_ms1,
         ]
     )
+    # correction added on 02/09/2026. The fraction of objects remaining after all bands included have totflux !=-99.
+    cat_weight = jnp.ones_like(N_weights1) * frac_cat
+    ###################################################################
 
     ran_key, phot_key2 = jran.split(ran_key, 2)
     phot_args2 = (
@@ -201,7 +205,7 @@ def plot_n_mag(
         )
         ax[i].hist(
             lc_phot1_obs_mags,
-            weights=N_weights1 * (1 / lc_vol_mpc3),
+            weights=N_weights1 * (1 / lc_vol_mpc3) * cat_weight,
             bins=mag_bin_edges,
             histtype="step",
             color="deepskyblue",
@@ -219,7 +223,7 @@ def plot_n_mag(
 
         ax[i].hist(
             lc_phot2_obs_mags,
-            weights=N_weights2 * (1 / lc_vol_mpc3),
+            weights=N_weights2 * (1 / lc_vol_mpc3) * cat_weight,
             bins=mag_bin_edges,
             histtype="step",
             color="magenta",
