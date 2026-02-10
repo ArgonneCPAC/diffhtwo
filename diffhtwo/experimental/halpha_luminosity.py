@@ -91,10 +91,11 @@ def get_halpha_luminosity_func(
 
     # mask: valid (strictly positive & finite)
     valid = jnp.isfinite(L_halpha) & (L_halpha > 0)
+    L_halpha = jnp.where(valid, L_halpha, 10)
 
-    # safe log10: put invalids far below the underflow bin (won't matter b/c weight=0)
-    lg_floor = lgL_min - 10.0
-    lgL_halpha = jnp.where(valid, safe_log10(L_halpha), lg_floor)
+    # # safe log10: put invalids far below the underflow bin (won't matter b/c weight=0)
+    # lg_floor = lgL_min - 10.0
+    lgL_halpha = jnp.log10(L_halpha)
 
     # weights: zero-out invalids
     w = jnp.where(
