@@ -265,6 +265,7 @@ def plot_n(
     mag_column,
     mag_thresh_column,
     mag_thresh,
+    frac_cat,
     dimension_labels,
     dmag,
     ran_key,
@@ -366,6 +367,9 @@ def plot_n(
             lc_phot_weights_bursty_ms1,
         ]
     )
+    # correction added on 02/09/2026. The fraction of objects remaining after all bands included have totflux !=-99.
+    cat_weight = jnp.ones_like(N_weights1) * frac_cat
+    ###################################################################
 
     ran_key, phot_key2 = jran.split(ran_key, 2)
     phot_args2 = (
@@ -433,7 +437,7 @@ def plot_n(
     ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
     fig_corner = corner.corner(
         obs_colors_mag1,
-        weights=N_weights1,
+        weights=N_weights1 * cat_weight,
         labels=dimension_labels,
         color="deepskyblue",
         # smooth=1.5,
@@ -450,7 +454,7 @@ def plot_n(
 
     corner.corner(
         obs_colors_mag2,
-        weights=N_weights2,
+        weights=N_weights2 * cat_weight,
         fig=fig_corner,
         color="magenta",
         # smooth=False,
@@ -668,7 +672,7 @@ def plot_n(
 
         ax[i].hist(
             obs_colors_mag1[:, i],
-            weights=N_weights1 * (1 / lc_vol_mpc3),
+            weights=N_weights1 * (1 / lc_vol_mpc3) * cat_weight,
             bins=bins,
             histtype="step",
             color="deepskyblue",
@@ -686,7 +690,7 @@ def plot_n(
 
         ax[i].hist(
             obs_colors_mag2[:, i],
-            weights=N_weights2 * (1 / lc_vol_mpc3),
+            weights=N_weights2 * (1 / lc_vol_mpc3) * cat_weight,
             bins=bins,
             histtype="step",
             color="magenta",
