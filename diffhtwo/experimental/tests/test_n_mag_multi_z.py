@@ -94,6 +94,7 @@ mag_column = 3
 mag_thresh_column = 3
 mag_thresh = 24.5
 dmag = 0.2
+frac_cat = 1.0
 
 n_z_phot_table = 15
 
@@ -190,6 +191,7 @@ n_args_multi_z = (
     mag_thresh,
     DEFAULT_COSMOLOGY,
     FB,
+    frac_cat,
 )
 
 lg_n_multi_z, lg_n_avg_err_multi_z = n_mag.n_mag_kern_multi_z(
