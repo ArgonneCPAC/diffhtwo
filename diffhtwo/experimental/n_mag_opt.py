@@ -552,7 +552,6 @@ def _loss_kern(
             fb,
         )
         halpha_L = dpop_halpha.diffstarpop_halpha_kern(*halpha_args)
-        print("halpha_L:{}", halpha_L)
         (
             _,
             halpha_lf_weighted_q,
@@ -567,18 +566,15 @@ def _loss_kern(
             + halpha_lf_weighted_smooth_ms
             + halpha_lf_weighted_bursty_ms
         )
-        print("halpha_lf_weighted_composite:{}", halpha_lf_weighted_composite)
-        lg_halpha_LF_model = jnp.log10(halpha_lf_weighted_composite / lc_vol_mpc3)
 
-        print(
-            "halpha_loss:{}",
-            _mse_w(
-                lg_halpha_LF_model,
-                lg_halpha_LF_target[0],
-                lg_halpha_LF_target[1],
-                lg_n_thresh,
-            ),
+        # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
+        N_0 = 1e-12
+        N_floor = 0.5
+        halpha_lf_weighted_composite = jnp.where(
+            halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
         )
+
+        lg_halpha_LF_model = jnp.log10(halpha_lf_weighted_composite / lc_vol_mpc3)
 
         loss += _mse_w(
             lg_halpha_LF_model,
