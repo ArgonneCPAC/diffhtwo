@@ -226,9 +226,9 @@ loss_multi_z = n_mag_opt._loss_kern_1d_multi_z(
     u_theta2,
     lg_n_1d_multi_z,
     *loss_args_multi_z,
-    ssp_halpha_luminosity=None,
-    lg_halpha_LF_target=None,
-    lg_halpha_Lbin_edges=None,
+    None,
+    None,
+    None,
 )
 
 for zbin in range(0, len(zbins)):
