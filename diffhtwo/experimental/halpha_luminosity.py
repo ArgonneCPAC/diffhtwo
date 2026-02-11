@@ -5,8 +5,6 @@ from dsps.utils import cumulative_mstar_formed
 from jax import jit as jjit
 from jax import vmap
 
-from .utils import safe_log10
-
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
