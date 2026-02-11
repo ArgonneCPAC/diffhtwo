@@ -500,4 +500,4 @@ def get_n_data_err(N, vol, N_floor=0.5):
     # just the upper limit for N ~ 0
     lg_n_avg_err = jnp.where(non_zero, lg_n_avg_err, lg_n_upp_err)
 
-    return lg_n, 2 * lg_n_avg_err
+    return lg_n, 10 * lg_n_avg_err
