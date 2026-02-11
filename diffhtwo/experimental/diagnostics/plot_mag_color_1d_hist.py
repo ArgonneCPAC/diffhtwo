@@ -190,7 +190,7 @@ def plot_n_mag(
         ]
     )
 
-    fig, ax = plt.subplots(1, n_bands, figsize=(2.4 * n_bands, 3))
+    fig, ax = plt.subplots(1, n_bands, figsize=(2.4 * n_bands, 4))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title)
 
@@ -520,7 +520,7 @@ def plot_n(
     plt.show()
 
     # Plot 1D histograms
-    fig, ax = plt.subplots(1, n_bands, figsize=(2.4 * n_bands, 3))
+    fig, ax = plt.subplots(1, n_bands, figsize=(2.4 * n_bands, 4))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title)
 
@@ -719,7 +719,7 @@ def plot_n(
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-1, 1.2), ncols=3)
     for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 3e-2)
+        ax[i].set_ylim(1e-6, 3e-3)
         if i != 0:
             ax[i].set_yticklabels([])
     plt.savefig(saveAs + ".pdf")
