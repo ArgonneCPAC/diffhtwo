@@ -249,7 +249,7 @@ def plot_n_mag(
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-1, 1.2), ncols=3)
 
     for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 5e-3)
+        ax[i].set_ylim(1e-6, 1e-3)
         if i != 0:
             ax[i].set_yticklabels([])
     plt.savefig(saveAs + ".pdf")
@@ -719,7 +719,7 @@ def plot_n(
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-1, 1.2), ncols=3)
     for i in range(0, n_bands):
-        ax[i].set_ylim(1e-6, 3e-3)
+        ax[i].set_ylim(1e-6, 3e-5)
         if i != 0:
             ax[i].set_yticklabels([])
     plt.savefig(saveAs + ".pdf")
