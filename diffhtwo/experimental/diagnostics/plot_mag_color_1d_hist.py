@@ -717,7 +717,7 @@ def plot_n(
         ax[i].set_xlabel(dimension_labels[i])
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[-1].legend(framealpha=0.5, loc="best")
+    ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(0, 1.02), ncols=3)
     for i in range(0, n_bands):
         ax[i].set_ylim(1e-6, 3e-2)
         if i != 0:
@@ -788,6 +788,7 @@ def plot_n(
             mag_thresh,
             DEFAULT_COSMOLOGY,
             FB,
+            frac_cat,
         )
 
         loss1 = n_mag_opt._loss_kern(u_theta1, lg_n_data_err_lh, *loss_args)
