@@ -44,9 +44,20 @@ u_zero_ssp_err_pop_theta, u_zero_ssp_err_pop_unravel = ravel_pytree(
 def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err, lg_n_thresh):
     mask = lg_n_target > lg_n_thresh
 
-    resid = jnp.square(lg_n_pred - lg_n_target)
-    return jnp.mean(resid, where=mask)
+    num = jnp.sum(
+        jnp.square(lg_n_pred - lg_n_target) / jnp.square(lg_n_target_err), where=mask
+    )
+    den = jnp.sum(1 / jnp.square(lg_n_target_err), where=mask)
 
+    return num / den
+
+
+# @jjit
+# def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err, lg_n_thresh):
+#     mask = lg_n_target > lg_n_thresh
+
+#     resid = jnp.square(lg_n_pred - lg_n_target)
+#     return jnp.mean(resid, where=mask)
 
 # @jjit
 # def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err, lg_n_thresh):
