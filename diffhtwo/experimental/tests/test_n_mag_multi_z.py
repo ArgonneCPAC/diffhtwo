@@ -90,7 +90,7 @@ tcurves = [
     retrieve_tcurves.HSC_Z,
 ]
 
-mag_column = 3
+mag_columns = [3]
 mag_thresh_column = 3
 mag_thresh = 24.5
 dmag = 0.2
@@ -186,7 +186,7 @@ n_args_multi_z = (
     ZERO_SSPERR_PARAMS,
     lh_centroids_multi_z,
     dmag,
-    mag_column,
+    mag_columns,
     mag_thresh_column,
     mag_thresh,
     DEFAULT_COSMOLOGY,
@@ -228,7 +228,7 @@ loss_args_multi_z = (
     DEFAULT_SCATTER_PARAMS,
     lh_centroids_multi_z,
     dmag,
-    mag_column,
+    mag_columns,
     mag_thresh_column,
     mag_thresh,
     DEFAULT_COSMOLOGY,
@@ -294,7 +294,7 @@ for zbin in range(0, len(zbins)):
         ZERO_SSPERR_PARAMS,
         lh_centroids,
         dmag,
-        mag_column,
+        mag_columns,
         mag_thresh_column,
         mag_thresh,
         DEFAULT_COSMOLOGY,
@@ -321,7 +321,7 @@ for zbin in range(0, len(zbins)):
         DEFAULT_SCATTER_PARAMS,
         lh_centroids,
         dmag,
-        mag_column,
+        mag_columns,
         mag_thresh_column,
         mag_thresh,
         DEFAULT_COSMOLOGY,
