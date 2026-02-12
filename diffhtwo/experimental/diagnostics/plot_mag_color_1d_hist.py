@@ -517,7 +517,7 @@ def plot_n(
         figsize=(2.5 * n_bands - 1 + len(mag_columns), 4),
     )
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
-    fig.suptitle(title)
+    fig.suptitle(title, fontsize=16)
 
     for i in range(0, n_bands - 1 + len(mag_columns)):
         if i < n_bands - 1:
@@ -557,14 +557,15 @@ def plot_n(
         )
 
         ax[i].set_yscale("log")
-        ax[i].set_xlabel(dimension_labels[i])
-
-    ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-1, 1.2), ncols=3)
-    for i in range(0, n_bands):
+        ax[i].set_xlabel(dimension_labels[i], fontsize=12)
         ax[i].set_ylim(1e-6, 3e-2)
         if i != 0:
             ax[i].set_yticklabels([])
+
+    ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=12)
+    plt.rcParams["legend.fontsize"] = 10
+    ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-1, 1.2), ncols=3)
+
     plt.savefig(saveAs + ".pdf")
     plt.show()
 
