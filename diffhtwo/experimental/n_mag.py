@@ -105,8 +105,8 @@ def n_mag_kern(
         )
         obs_colors_mag_bursty_ms.append(obs_color_bursty_ms)
 
-    """mag_column"""
-    for mag_column in range(0, len(mag_columns)):
+    """mag_columns"""
+    for mag_column in mag_columns:
         obs_mag_q = lc_phot.obs_mags_q[:, mag_column]
         obs_colors_mag_q.append(obs_mag_q)
 
