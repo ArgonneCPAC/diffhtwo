@@ -250,7 +250,7 @@ def plot_n_mag(
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=14)
     plt.rcParams["legend.fontsize"] = 14
-    ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-1.5, 1.2), ncols=3)
+    ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
     plt.savefig(saveAs + ".pdf")
     plt.show()
 
