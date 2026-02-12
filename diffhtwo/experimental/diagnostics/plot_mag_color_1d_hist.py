@@ -43,7 +43,6 @@ def plot_n_mag(
     dataset_mags,
     data_sky_area_degsq,
     tcurves,
-    mag_column,
     mag_thresh_column,
     mag_thresh,
     frac_cat,
@@ -136,7 +135,8 @@ def plot_n_mag(
             lc_phot_weights_bursty_ms1,
         ]
     )
-    # correction added on 02/09/2026. The fraction of objects remaining after all bands included have totflux !=-99.
+    # correction added on 02/09/2026. The fraction of objects remaining after all bands
+    # included have totflux !=-99.
     cat_weight = jnp.ones_like(N_weights1) * frac_cat
     ###################################################################
 
@@ -192,7 +192,7 @@ def plot_n_mag(
 
     fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
-    fig.suptitle(title)
+    fig.suptitle(title, fontsize=18)
 
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
     for i in range(0, n_bands):
@@ -243,15 +243,14 @@ def plot_n_mag(
         )
 
         ax[i].set_yscale("log")
-        ax[i].set_xlabel(dimension_labels[i])
-
-    ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-1, 1.2), ncols=3)
-
-    for i in range(0, n_bands):
+        ax[i].set_xlabel(dimension_labels[i], fontsize=14)
         ax[i].set_ylim(1e-6, 1e-3)
         if i != 0:
             ax[i].set_yticklabels([])
+
+    ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=14)
+    plt.rcParams["legend.fontsize"] = 10
+    ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-1, 1.2), ncols=3)
     plt.savefig(saveAs + ".pdf")
     plt.show()
 
@@ -517,7 +516,7 @@ def plot_n(
         figsize=(2.5 * n_bands - 1 + len(mag_columns), 4),
     )
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
-    fig.suptitle(title, fontsize=16)
+    fig.suptitle(title, fontsize=18)
 
     for i in range(0, n_bands - 1 + len(mag_columns)):
         if i < n_bands - 1:
@@ -557,12 +556,12 @@ def plot_n(
         )
 
         ax[i].set_yscale("log")
-        ax[i].set_xlabel(dimension_labels[i], fontsize=12)
+        ax[i].set_xlabel(dimension_labels[i], fontsize=14)
         ax[i].set_ylim(1e-6, 3e-2)
         if i != 0:
             ax[i].set_yticklabels([])
 
-    ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=12)
+    ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=14)
     plt.rcParams["legend.fontsize"] = 10
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-1, 1.2), ncols=3)
 
