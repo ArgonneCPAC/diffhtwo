@@ -36,7 +36,7 @@ def n_mag_kern(
     ssp_err_pop_params,
     lh_centroids,
     dmag,
-    mag_column,
+    mag_columns,
     mag_thresh_column,
     mag_thresh,
     cosmo_params,
@@ -106,16 +106,18 @@ def n_mag_kern(
         obs_colors_mag_bursty_ms.append(obs_color_bursty_ms)
 
     """mag_column"""
-    obs_mag_q = lc_phot.obs_mags_q[:, mag_column]
-    obs_colors_mag_q.append(obs_mag_q)
+    for mag_column in range(0, len(mag_columns)):
+        obs_mag_q = lc_phot.obs_mags_q[:, mag_column]
+        obs_colors_mag_q.append(obs_mag_q)
+
+        obs_mag_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_column]
+        obs_colors_mag_smooth_ms.append(obs_mag_smooth_ms)
+
+        obs_mag_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_column]
+        obs_colors_mag_bursty_ms.append(obs_mag_bursty_ms)
+
     obs_colors_mag_q = jnp.asarray(obs_colors_mag_q).T
-
-    obs_mag_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_column]
-    obs_colors_mag_smooth_ms.append(obs_mag_smooth_ms)
     obs_colors_mag_smooth_ms = jnp.asarray(obs_colors_mag_smooth_ms).T
-
-    obs_mag_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_column]
-    obs_colors_mag_bursty_ms.append(obs_mag_bursty_ms)
     obs_colors_mag_bursty_ms = jnp.asarray(obs_colors_mag_bursty_ms).T
 
     sig = jnp.zeros(obs_colors_mag_q.shape) + (dmag / 2)
