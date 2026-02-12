@@ -149,12 +149,6 @@ def n_mag_kern(
     cat_weight = jnp.ones_like(lc_phot_weights_q) * frac_cat
     ###################################################################
 
-    print("obs_colors_mag_q.shape:{}", obs_colors_mag_q.shape)
-    print("sig.shape:{}", sig.shape)
-    print("lc_phot_weights_q.shape:{}", lc_phot_weights_q.shape)
-    print("cat_weight.shape:{}", cat_weight.shape)
-    print("lh_centroids_lo.shape:{}", lh_centroids_lo.shape)
-
     N_q = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_q,
         sig,
