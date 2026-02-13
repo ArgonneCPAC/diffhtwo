@@ -743,7 +743,7 @@ _L = (
     0,
     0,
     None,
-    None,
+    0,
 )
 _loss_kern_multi_z = jjit(
     vmap(
