@@ -30,7 +30,6 @@ from diffhtwo.experimental.utils import safe_log10
 
 from . import diffstarpop_halpha as dpop_halpha
 from .n_mag import n_mag_kern, n_mag_kern_1d
-from .utils import zbin_volume
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
@@ -495,7 +494,7 @@ def _loss_kern(
     lg_halpha_Lbin_edges=None,
     halpha_LF_z=None,
     halpha_LF_delta_z=None,
-    lc_sky_area_degsq=None,
+    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
@@ -606,12 +605,8 @@ def _loss_kern(
             halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
         )
 
-        halpha_LF_z_vol_Mpc3 = zbin_volume(
-            lc_sky_area_degsq, zlow=halpha_LF_zmin, zhigh=halpha_LF_zmax
-        ).value
-
         lg_halpha_LF_model = jnp.log10(
-            halpha_lf_weighted_composite / halpha_LF_z_vol_Mpc3
+            halpha_lf_weighted_composite / halpha_LF_delta_z_vol_Mpc3
         )
 
         loss += _mse_w(
@@ -661,7 +656,7 @@ def fit_n(
     lg_halpha_Lbin_edges=None,
     halpha_LF_z=None,
     halpha_LF_delta_z=None,
-    lc_sky_area_degsq=None,
+    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -696,7 +691,7 @@ def fit_n(
         lg_halpha_Lbin_edges,
         halpha_LF_z,
         halpha_LF_delta_z,
-        lc_sky_area_degsq,
+        halpha_LF_delta_z_vol_Mpc3,
     )
 
     def _opt_update(opt_state, i):
@@ -797,7 +792,7 @@ def fit_n_multi_z(
     lg_halpha_Lbin_edges=None,
     halpha_LF_z=None,
     halpha_LF_delta_z=None,
-    lc_sky_area_degsq=None,
+    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -832,7 +827,7 @@ def fit_n_multi_z(
         lg_halpha_Lbin_edges,
         halpha_LF_z,
         halpha_LF_delta_z,
-        lc_sky_area_degsq,
+        halpha_LF_delta_z_vol_Mpc3,
     )
 
     def _opt_update(opt_state, i):
