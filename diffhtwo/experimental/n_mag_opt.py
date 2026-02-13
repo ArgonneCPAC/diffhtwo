@@ -30,6 +30,7 @@ from diffhtwo.experimental.utils import safe_log10
 
 from . import diffstarpop_halpha as dpop_halpha
 from .n_mag import n_mag_kern, n_mag_kern_1d
+from .utils import zbin_volume
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
