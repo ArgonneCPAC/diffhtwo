@@ -254,13 +254,18 @@ def _loss_kern_1d(
             halpha_lf_weighted_composite / halpha_LF_delta_z_vol_Mpc3
         )
 
-        loss += _mse_w(
+        print("lg_halpha_LF_model:{}", lg_halpha_LF_model)
+        print("lg_halpha_LF_target[0]:{}", lg_halpha_LF_target[0])
+        print("lg_halpha_LF_target[1]:{}", lg_halpha_LF_target[1])
+
+        loss_halpha = _mse_w(
             lg_halpha_LF_model,
             lg_halpha_LF_target[0],
             lg_halpha_LF_target[1],
             lg_n_thresh,
         )
-        print("loss after h-alpha:{}", loss)
+        loss += loss_halpha
+        print("loss_halpha:{}", loss_halpha)
 
     return loss
 
