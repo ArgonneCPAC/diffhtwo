@@ -200,6 +200,7 @@ def _loss_kern_1d(
             lg_n_target_1d[fit_column][1],
             lg_n_thresh,
         )
+    print("loss after n:{}", loss)
     if lg_halpha_LF_target is not None:
         halpha_args = (
             diffstarpop_params,
@@ -259,6 +260,7 @@ def _loss_kern_1d(
             lg_halpha_LF_target[1],
             lg_n_thresh,
         )
+        print("loss after h-alpha:{}", loss)
 
     return loss
 
