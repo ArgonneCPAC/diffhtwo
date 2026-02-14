@@ -236,7 +236,7 @@ def n_mag_kern_1d(
     ssp_err_pop_params,
     bin_centers_1d,
     dmag,
-    mag_column,
+    mag_columns,
     mag_thresh_column,
     mag_thresh,
     cosmo_params,
@@ -286,6 +286,30 @@ def n_mag_kern_1d(
 
     num_halos, n_bands = lc_phot.obs_mags_q.shape
 
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q = lc_phot.obs_mags_q[:, mag_thresh_column]
+    lc_phot_weights_q = jnp.where(
+        obs_mag_q < mag_thresh, lc_phot.weights_q, jnp.zeros_like(lc_phot.weights_q)
+    )
+
+    obs_mag_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_thresh_column]
+    lc_phot_weights_smooth_ms = jnp.where(
+        obs_mag_smooth_ms < mag_thresh,
+        lc_phot.weights_smooth_ms,
+        jnp.zeros_like(lc_phot.weights_smooth_ms),
+    )
+
+    obs_mag_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_thresh_column]
+    lc_phot_weights_bursty_ms = jnp.where(
+        obs_mag_bursty_ms < mag_thresh,
+        lc_phot.weights_bursty_ms,
+        jnp.zeros_like(lc_phot.weights_bursty_ms),
+    )
+
+    # correction added on 02/09/2026. The fraction of objects remaining after all bands included have totflux !=-99.
+    cat_weight = jnp.ones_like(lc_phot_weights_q) * frac_cat
+    ###################################################################
+
     lg_n_model_1d_err = []
     for i in range(n_bands - 1):
         obs_color_q = lc_phot.obs_mags_q[:, i] - lc_phot.obs_mags_q[:, i + 1]
@@ -312,7 +336,7 @@ def n_mag_kern_1d(
         N_q = diffndhist.tw_ndhist_weighted(
             obs_color_q,
             sig,
-            lc_phot.weights_q * lc_nhalos,
+            lc_phot_weights_q * lc_nhalos * cat_weight,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -320,7 +344,7 @@ def n_mag_kern_1d(
         N_smooth_ms = diffndhist.tw_ndhist_weighted(
             obs_color_smooth_ms,
             sig,
-            lc_phot.weights_smooth_ms * lc_nhalos,
+            lc_phot_weights_smooth_ms * lc_nhalos * cat_weight,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -328,7 +352,7 @@ def n_mag_kern_1d(
         N_bursty_ms = diffndhist.tw_ndhist_weighted(
             obs_color_bursty_ms,
             sig,
-            lc_phot.weights_bursty_ms * lc_nhalos,
+            lc_phot_weights_bursty_ms * lc_nhalos * cat_weight,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -337,74 +361,51 @@ def n_mag_kern_1d(
         lg_n_model_1d_err.append(get_n_data_err(N_model, lc_vol_mpc3))
 
     """mag_column"""
-    obs_mags_q = lc_phot.obs_mags_q[:, mag_column]
-    obs_mags_q = obs_mags_q.reshape(obs_mags_q.size, 1)
+    for mag_column in mag_columns:
+        obs_mags_q = lc_phot.obs_mags_q[:, mag_column]
+        obs_mags_q = obs_mags_q.reshape(obs_mags_q.size, 1)
 
-    obs_mags_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_column]
-    obs_mags_smooth_ms = obs_mags_smooth_ms.reshape(obs_mags_smooth_ms.size, 1)
+        obs_mags_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_column]
+        obs_mags_smooth_ms = obs_mags_smooth_ms.reshape(obs_mags_smooth_ms.size, 1)
 
-    obs_mags_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_column]
-    obs_mags_bursty_ms = obs_mags_bursty_ms.reshape(obs_mags_bursty_ms.size, 1)
+        obs_mags_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_column]
+        obs_mags_bursty_ms = obs_mags_bursty_ms.reshape(obs_mags_bursty_ms.size, 1)
 
-    sig = jnp.zeros(obs_mags_q.shape) + (dmag / 2)
+        sig = jnp.zeros(obs_mags_q.shape) + (dmag / 2)
 
-    bin_centers_1d_lo = bin_centers_1d[-1] - (dmag / 2)
-    bin_centers_1d_hi = bin_centers_1d[-1] + (dmag / 2)
+        bin_centers_1d_lo = bin_centers_1d[-1] - (dmag / 2)
+        bin_centers_1d_hi = bin_centers_1d[-1] + (dmag / 2)
 
-    bin_centers_1d_lo = bin_centers_1d_lo.reshape(bin_centers_1d_lo.size, 1)
-    bin_centers_1d_hi = bin_centers_1d_hi.reshape(bin_centers_1d_hi.size, 1)
+        bin_centers_1d_lo = bin_centers_1d_lo.reshape(bin_centers_1d_lo.size, 1)
+        bin_centers_1d_hi = bin_centers_1d_hi.reshape(bin_centers_1d_hi.size, 1)
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
-    obs_mag_q = lc_phot.obs_mags_q[:, mag_thresh_column]
-    lc_phot_weights_q = jnp.where(
-        obs_mag_q < mag_thresh, lc_phot.weights_q, jnp.zeros_like(lc_phot.weights_q)
-    )
+        N_q = diffndhist.tw_ndhist_weighted(
+            obs_mags_q,
+            sig,
+            lc_phot_weights_q * lc_nhalos * cat_weight,
+            bin_centers_1d_lo,
+            bin_centers_1d_hi,
+        )
 
-    obs_mag_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_thresh_column]
-    lc_phot_weights_smooth_ms = jnp.where(
-        obs_mag_smooth_ms < mag_thresh,
-        lc_phot.weights_smooth_ms,
-        jnp.zeros_like(lc_phot.weights_smooth_ms),
-    )
+        N_smooth_ms = diffndhist.tw_ndhist_weighted(
+            obs_mags_smooth_ms,
+            sig,
+            lc_phot_weights_smooth_ms * lc_nhalos * cat_weight,
+            bin_centers_1d_lo,
+            bin_centers_1d_hi,
+        )
 
-    obs_mag_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_thresh_column]
-    lc_phot_weights_bursty_ms = jnp.where(
-        obs_mag_bursty_ms < mag_thresh,
-        lc_phot.weights_bursty_ms,
-        jnp.zeros_like(lc_phot.weights_bursty_ms),
-    )
+        N_bursty_ms = diffndhist.tw_ndhist_weighted(
+            obs_mags_bursty_ms,
+            sig,
+            lc_phot_weights_bursty_ms * lc_nhalos * cat_weight,
+            bin_centers_1d_lo,
+            bin_centers_1d_hi,
+        )
 
-    # correction added on 02/09/2026. The fraction of objects remaining after all bands included have totflux !=-99.
-    cat_weight = jnp.ones_like(lc_phot_weights_q) * frac_cat
-    ###################################################################
+        N_model = N_q + N_smooth_ms + N_bursty_ms
 
-    N_q = diffndhist.tw_ndhist_weighted(
-        obs_mags_q,
-        sig,
-        lc_phot_weights_q * lc_nhalos * cat_weight,
-        bin_centers_1d_lo,
-        bin_centers_1d_hi,
-    )
-
-    N_smooth_ms = diffndhist.tw_ndhist_weighted(
-        obs_mags_smooth_ms,
-        sig,
-        lc_phot_weights_smooth_ms * lc_nhalos * cat_weight,
-        bin_centers_1d_lo,
-        bin_centers_1d_hi,
-    )
-
-    N_bursty_ms = diffndhist.tw_ndhist_weighted(
-        obs_mags_bursty_ms,
-        sig,
-        lc_phot_weights_bursty_ms * lc_nhalos * cat_weight,
-        bin_centers_1d_lo,
-        bin_centers_1d_hi,
-    )
-
-    N_model = N_q + N_smooth_ms + N_bursty_ms
-
-    lg_n_model_1d_err.append(get_n_data_err(N_model, lc_vol_mpc3))
+        lg_n_model_1d_err.append(get_n_data_err(N_model, lc_vol_mpc3))
 
     return jnp.asarray(lg_n_model_1d_err)
 
