@@ -118,7 +118,7 @@ def _loss_kern_1d(
     scatter_params,
     bin_centers_1d,
     dmag,
-    mag_column,
+    mag_columns,
     mag_thresh_column,
     mag_thresh,
     fit_columns,
@@ -183,7 +183,7 @@ def _loss_kern_1d(
         ssp_err_pop_params,
         bin_centers_1d,
         dmag,
-        mag_column,
+        mag_columns,
         mag_thresh_column,
         mag_thresh,
         cosmo_params,
@@ -219,13 +219,22 @@ def _loss_kern_1d(
             fb,
         )
         halpha_L = dpop_halpha.diffstarpop_halpha_kern(*halpha_args)
+
+        halpha_LF_zmin = halpha_LF_z - (halpha_LF_delta_z / 2)
+        halpha_LF_zmax = halpha_LF_z + (halpha_LF_delta_z / 2)
+        halpha_LF_z_sel = (lc_z_obs > halpha_LF_zmin) & (lc_z_obs < halpha_LF_zmax)
+        halpha_LF_z_sel = jnp.float64(halpha_LF_z_sel)
+
         (
             _,
             halpha_lf_weighted_q,
             halpha_lf_weighted_smooth_ms,
             halpha_lf_weighted_bursty_ms,
         ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
-            halpha_L, lc_nhalos, sig=0.05, lgL_bin_edges=lg_halpha_Lbin_edges
+            halpha_L,
+            lc_nhalos * halpha_LF_z_sel,
+            sig=0.05,
+            lgL_bin_edges=lg_halpha_Lbin_edges,
         )
 
         halpha_lf_weighted_composite = (
@@ -233,7 +242,16 @@ def _loss_kern_1d(
             + halpha_lf_weighted_smooth_ms
             + halpha_lf_weighted_bursty_ms
         )
-        lg_halpha_LF_model = jnp.log10(halpha_lf_weighted_composite / lc_vol_mpc3)
+        # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
+        N_0 = 1e-12
+        N_floor = 0.5
+        halpha_lf_weighted_composite = jnp.where(
+            halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
+        )
+
+        lg_halpha_LF_model = jnp.log10(
+            halpha_lf_weighted_composite / halpha_LF_delta_z_vol_Mpc3
+        )
 
         loss += _mse_w(
             lg_halpha_LF_model,
@@ -269,7 +287,7 @@ def fit_n_1d(
     scatter_params,
     bin_centers_1d,
     dmag,
-    mag_column,
+    mag_columns,
     mag_thresh_column,
     mag_thresh,
     fit_columns,
@@ -307,7 +325,7 @@ def fit_n_1d(
         scatter_params,
         bin_centers_1d,
         dmag,
-        mag_column,
+        mag_columns,
         mag_thresh_column,
         mag_thresh,
         fit_columns,
@@ -408,7 +426,7 @@ def fit_n_1d_multi_z(
     scatter_params,
     bin_centers_1d,
     dmag,
-    mag_column,
+    mag_columns,
     mag_thresh_column,
     mag_thresh,
     fit_columns,
@@ -446,7 +464,7 @@ def fit_n_1d_multi_z(
         scatter_params,
         bin_centers_1d,
         dmag,
-        mag_column,
+        mag_columns,
         mag_thresh_column,
         mag_thresh,
         fit_columns,
