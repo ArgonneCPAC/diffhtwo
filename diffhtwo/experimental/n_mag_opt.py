@@ -128,6 +128,9 @@ def _loss_kern_1d(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
+    halpha_LF_z=None,
+    halpha_LF_delta_z=None,
+    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
@@ -278,6 +281,9 @@ def fit_n_1d(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
+    halpha_LF_z=None,
+    halpha_LF_delta_z=None,
+    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -311,6 +317,9 @@ def fit_n_1d(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
+        halpha_LF_z,
+        halpha_LF_delta_z,
+        halpha_LF_delta_z_vol_Mpc3,
     )
 
     def _opt_update(opt_state, i):
@@ -356,6 +365,9 @@ _L_1d = (
     None,
     None,
     0,
+    0,
+    0,
+    None,
     0,
 )
 _loss_kern_1d_multi_z = jjit(
@@ -408,6 +420,9 @@ def fit_n_1d_multi_z(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
+    halpha_LF_z=None,
+    halpha_LF_delta_z=None,
+    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -441,6 +456,9 @@ def fit_n_1d_multi_z(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
+        halpha_LF_z,
+        halpha_LF_delta_z,
+        halpha_LF_delta_z_vol_Mpc3,
     )
 
     def _opt_update(opt_state, i):
