@@ -254,7 +254,7 @@ def _loss_kern_1d(
             halpha_lf_weighted_composite / halpha_LF_delta_z_vol_Mpc3
         )
 
-        loss += 50 * _mse_w(
+        loss += _mse_w(
             lg_halpha_LF_model,
             lg_halpha_LF_target[0],
             lg_halpha_LF_target[1],
@@ -386,7 +386,7 @@ _L_1d = (
     0,
     0,
     0,
-    None,
+    0,
     0,
 )
 _loss_kern_1d_multi_z = jjit(
@@ -775,7 +775,7 @@ _L = (
     0,
     0,
     0,
-    None,
+    0,
     0,
 )
 _loss_kern_multi_z = jjit(
