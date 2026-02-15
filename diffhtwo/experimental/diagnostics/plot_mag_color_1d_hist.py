@@ -244,7 +244,7 @@ def plot_n_mag(
 
         ax[i].set_yscale("log")
         ax[i].set_xlabel(dimension_labels[i], fontsize=14)
-        ax[i].set_ylim(1e-6, 1e-3)
+        ax[i].set_ylim(1e-6, 5e-3)
         if i != 0:
             ax[i].set_yticklabels([])
 
