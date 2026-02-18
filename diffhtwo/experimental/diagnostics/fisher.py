@@ -30,7 +30,7 @@ def log_likelihood(diffstarpop_theta_sub, idx, *args):
 
 @jjit
 def get_fisher(diffstarpop_theta_sub, idx, *args):
-    return -jax.hessian(log_likelihood)(diffstarpop_theta_sub, *args)
+    return -jax.hessian(log_likelihood)(diffstarpop_theta_sub, idx, *args)
 
 
 def sample_fisher_gaussian(Fisher, diffstarpop_theta, nsamp=20000, subset=None):
