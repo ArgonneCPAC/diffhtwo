@@ -17,12 +17,9 @@ DIFFSTARPOP_U_UM_plus_exsitu = DiffstarPop_UParams_Diffstarpopfits_mgash["smdpl_
 DIFFSTARPOP_UM_plus_exsitu_theta, unravel_fn = ravel_pytree(DIFFSTARPOP_UM_plus_exsitu)
 
 
-IDX = jnp.arange(16, 21, 1)
-
-
 @jjit
-def log_likelihood(diffstarpop_theta_sub, *args):
-    diffstarpop_theta_full = DIFFSTARPOP_UM_plus_exsitu_theta.at[IDX].set(
+def log_likelihood(diffstarpop_theta_sub, idx, *args):
+    diffstarpop_theta_full = DIFFSTARPOP_UM_plus_exsitu_theta.at[idx].set(
         diffstarpop_theta_sub
     )
     diffstarpop_params = unravel_fn(diffstarpop_theta_full)
@@ -32,7 +29,7 @@ def log_likelihood(diffstarpop_theta_sub, *args):
 
 
 @jjit
-def get_fisher(diffstarpop_theta_sub, *args):
+def get_fisher(diffstarpop_theta_sub, idx, *args):
     return -jax.hessian(log_likelihood)(diffstarpop_theta_sub, *args)
 
 
