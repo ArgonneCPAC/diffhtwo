@@ -26,7 +26,8 @@ from ..utils import zbin_volume
 
 try:
     from matplotlib import pyplot as plt
-    from matplotlib.lines import Line2D
+
+    # from matplotlib.lines import Line2D
 
     HAS_MATPLOTLIB = True
 except ImportError:
