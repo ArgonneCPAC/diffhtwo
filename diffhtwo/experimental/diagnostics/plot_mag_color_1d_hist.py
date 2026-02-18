@@ -297,7 +297,8 @@ def plot_n(
         *lc_args, cosmo_params=cosmo_params, lgmp_max=lgmp_max
     )
     lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
-    data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
+    if data_sky_area_degsq is not None:
+        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
 
     n_z_phot_table = 15
 
