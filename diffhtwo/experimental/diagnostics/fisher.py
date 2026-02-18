@@ -1,3 +1,4 @@
+import jax
 import jax.numpy as jnp
 import numpy as np
 from diffsky.experimental import lc_phot_kern
@@ -6,101 +7,49 @@ from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
 from diffsky.ssp_err_model import ssp_err_model
 from diffstar.defaults import FB, T_TABLE_MIN
+from diffstar.diffstarpop import get_unbounded_diffstarpop_params
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
+    DiffstarPop_Params_Diffstarpopfits_mgash,
+    DiffstarPop_UParams_Diffstarpopfits_mgash,
+)
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.metallicity import umzr
 from jax import jacfwd
+from jax import jit as jjit
 from jax.flatten_util import ravel_pytree
 
-from diffhtwo.experimental import n_mag
+from diffhtwo.experimental import n_mag, n_mag_opt
+
+DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
+DIFFSTARPOP_U_UM_plus_exsitu = DiffstarPop_UParams_Diffstarpopfits_mgash["smdpl_dr1"]
 
 DEFAULT_DIFFSTARPOP_THETA, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
 
 
-def n_mag_kern_wrapper(diffstarpop_theta, *args):
-    diffstarpop_params = unravel_fn(diffstarpop_theta)
-    lg_n, _ = n_mag.n_mag_kern(diffstarpop_params, *args)
-
-    return lg_n
+IDX = jnp.arange(16, 18, 1)
 
 
-def get_fisher_matrix(
-    diffstarpop_theta,
-    tcurves,
-    ssp_data,
-    n_key,
-    lc_halopop,
-    lh_centroids,
-    dmag_centroids,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    zmin=0.2,
-    zmax=0.5,
-):
-    n_z_phot_table = 15
-
-    z_phot_table = jnp.linspace(zmin, zmax, n_z_phot_table)
-    t_0 = flat_wcdm.age_at_z0(*DEFAULT_COSMOLOGY)
-    lgt0 = jnp.log10(t_0)
-    t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
-
-    # params
-    spspop_params = DEFAULT_SPSPOP_PARAMS
-    mzr_params = umzr.DEFAULT_MZR_PARAMS
-    scatter_params = DEFAULT_SCATTER_PARAMS
-    ssp_err_pop_params = ssp_err_model.ZERO_SSPERR_PARAMS
-
-    precomputed_ssp_mag_table = psspp.get_precompute_ssp_mag_redshift_table(
-        tcurves, ssp_data, z_phot_table, DEFAULT_COSMOLOGY
+@jjit
+def log_likelihood(diffstarpop_theta_sub, *args):
+    diffstarpop_theta_full = DIFFSTARPOP_UM_plus_exsitu.at[IDX].set(
+        diffstarpop_theta_sub
     )
+    diffstarpop_params = unravel_fn(diffstarpop_theta_full)
+    u_diffstarpop_params = get_unbounded_diffstarpop_params(diffstarpop_params)
+    u_diffstarpop_theta, u_unravel_fn = ravel_pytree(u_diffstarpop_params)
+    return -0.5 * n_mag_opt._loss_kern(u_diffstarpop_theta, *args)
 
-    wave_eff_table = lc_phot_kern.get_wave_eff_table(z_phot_table, tcurves)
-    args = (
-        spspop_params,
-        n_key,
-        lc_halopop["z_obs"],
-        lc_halopop["t_obs"],
-        lc_halopop["mah_params"],
-        lc_halopop["logmp0"],
-        lc_halopop["nhalos"],
-        lc_halopop["lc_vol_Mpc3"],
-        t_table,
-        ssp_data,
-        precomputed_ssp_mag_table,
-        z_phot_table,
-        wave_eff_table,
-        mzr_params,
-        scatter_params,
-        ssp_err_pop_params,
-        lh_centroids,
-        dmag_centroids,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
-        DEFAULT_COSMOLOGY,
-        FB,
-    )
 
-    # Get the Jacobian
-    Jacobian = jacfwd(n_mag_kern_wrapper)(diffstarpop_theta, *args)
-
-    # Get error
-    diffstarpop_params = unravel_fn(diffstarpop_theta)
-    _, lg_n_avg_err = n_mag.n_mag_kern(diffstarpop_params, *args)
-    w = 1.0 / lg_n_avg_err**2  # weights per number density bin
-
-    # Compute the Fisher matrix
-    Fisher = Jacobian.T @ (w[:, None] * Jacobian)
-
-    return Fisher
+def get_fisher(log_likelihood, diffstarpop_theta_sub, *args):
+    return -jax.hessian(log_likelihood)(diffstarpop_theta_sub, *args)
 
 
 def sample_fisher_gaussian(Fisher, diffstarpop_theta, nsamp=20000, subset=None):
     """
     Fisher : Fisher matrix (n_params, n_params)
-    theta0 : fiducial parameter vector (n_params,)
+    diffstarpop_theta : flat diffstarpop array (n_params,)
     labels : list of parameter names (optional)
     nsamp  : number of Gaussian samples to draw
     subset : optional list of parameter indices to keep for plotting
