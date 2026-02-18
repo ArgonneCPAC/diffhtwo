@@ -17,7 +17,7 @@ DIFFSTARPOP_U_UM_plus_exsitu = DiffstarPop_UParams_Diffstarpopfits_mgash["smdpl_
 DIFFSTARPOP_UM_plus_exsitu_theta, unravel_fn = ravel_pytree(DIFFSTARPOP_UM_plus_exsitu)
 
 
-IDX = jnp.arange(16, 18, 1)
+IDX = jnp.arange(16, 21, 1)
 
 
 @jjit
