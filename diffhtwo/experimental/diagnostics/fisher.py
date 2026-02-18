@@ -33,26 +33,8 @@ def get_fisher(diffstarpop_theta_sub, idx, *args):
     return -jax.hessian(log_likelihood)(diffstarpop_theta_sub, idx, *args)
 
 
-def sample_fisher_gaussian(Fisher, diffstarpop_theta, nsamp=20000, subset=None):
-    """
-    Fisher : Fisher matrix (n_params, n_params)
-    diffstarpop_theta : flat diffstarpop array (n_params,)
-    labels : list of parameter names (optional)
-    nsamp  : number of Gaussian samples to draw
-    subset : optional list of parameter indices to keep for plotting
-             (e.g., range(20) or [0,1,2,10,11,...])
-    """
-
-    Sigma = np.linalg.pinv(Fisher)
-
-    npar = len(diffstarpop_theta)
-
-    if subset is not None:
-        idx = np.array(subset)
-        Sigma = Sigma[np.ix_(idx, idx)]
-        diffstarpop_theta = diffstarpop_theta[idx]
-    else:
-        idx = np.arange(npar)
+def sample_fisher_gaussian(Fisher, diffstarpop_theta_sub, nsamp=20000):
+    C = np.linalg.pinv(Fisher)
 
     # draw Gaussian samples
-    return np.random.multivariate_normal(diffstarpop_theta, Sigma, size=nsamp)
+    return np.random.multivariate_normal(diffstarpop_theta_sub, C, size=nsamp)
