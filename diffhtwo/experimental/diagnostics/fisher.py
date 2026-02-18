@@ -1,31 +1,20 @@
 import jax
 import jax.numpy as jnp
 import numpy as np
-from diffsky.experimental import lc_phot_kern
-from diffsky.experimental import precompute_ssp_phot as psspp
-from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
-from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
-from diffsky.ssp_err_model import ssp_err_model
-from diffstar.defaults import FB, T_TABLE_MIN
 from diffstar.diffstarpop import get_unbounded_diffstarpop_params
-from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
 from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
     DiffstarPop_Params_Diffstarpopfits_mgash,
     DiffstarPop_UParams_Diffstarpopfits_mgash,
 )
-from dsps.cosmology import flat_wcdm
-from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
-from dsps.metallicity import umzr
-from jax import jacfwd
 from jax import jit as jjit
 from jax.flatten_util import ravel_pytree
 
-from diffhtwo.experimental import n_mag, n_mag_opt
+from diffhtwo.experimental import n_mag_opt
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
 DIFFSTARPOP_U_UM_plus_exsitu = DiffstarPop_UParams_Diffstarpopfits_mgash["smdpl_dr1"]
 
-DEFAULT_DIFFSTARPOP_THETA, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
+DIFFSTARPOP_UM_plus_exsitu_theta, unravel_fn = ravel_pytree(DIFFSTARPOP_UM_plus_exsitu)
 
 
 IDX = jnp.arange(16, 18, 1)
@@ -33,7 +22,7 @@ IDX = jnp.arange(16, 18, 1)
 
 @jjit
 def log_likelihood(diffstarpop_theta_sub, *args):
-    diffstarpop_theta_full = DIFFSTARPOP_UM_plus_exsitu.at[IDX].set(
+    diffstarpop_theta_full = DIFFSTARPOP_UM_plus_exsitu_theta.at[IDX].set(
         diffstarpop_theta_sub
     )
     diffstarpop_params = unravel_fn(diffstarpop_theta_full)
