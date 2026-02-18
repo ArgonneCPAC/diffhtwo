@@ -69,6 +69,7 @@ wave_eff_table = lc_phot_kern.get_wave_eff_table(z_phot_table, tcurves)
 bin_edges = np.arange(18.0 - dmag / 2, 26.0, dmag)
 bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2
 bin_centers = bin_centers.reshape(bin_centers.size, 1)
+dmag_centers = jnp.ones((bin_centers.shape[0], 1)) * dmag
 lg_n_thresh = -8
 
 ran_key, n_key = jran.split(ran_key, 2)
@@ -91,7 +92,7 @@ lg_n_true, lg_n_avg_err_true = n_mag.n_mag_kern(
     DEFAULT_SCATTER_PARAMS,
     ZERO_SSPERR_PARAMS,
     bin_centers,
-    dmag,
+    dmag_centers,
     mag_column,
     mag_thresh_column,
     mag_thresh,
@@ -121,7 +122,7 @@ loss_hist, grad_hist, u_theta_fit = n_mag_opt.fit_n(
     DEFAULT_MZR_PARAMS,
     DEFAULT_SCATTER_PARAMS,
     bin_centers,
-    dmag,
+    dmag_centers,
     mag_column,
     mag_thresh_column,
     mag_thresh,

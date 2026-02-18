@@ -111,6 +111,8 @@ z_phot_table_multi_z = []
 wave_eff_table_multi_z = []
 
 lh_centroids_multi_z = []
+dmag_centroids_multi_z = []
+
 for zbin in range(0, len(zbins)):
     zmin = zbins[zbin][0]
     zmax = zbins[zbin][1]
@@ -140,6 +142,7 @@ for zbin in range(0, len(zbins)):
             )
         )
     )
+    dmag_centroids = jnp.ones((lh_centroids.shape[0], 1)) * dmag
 
     lc_halopop_z_obs_multi_z.append(lc_halopop["z_obs"])
     lc_halopop_t_obs_multi_z.append(lc_halopop["t_obs"])
@@ -152,6 +155,7 @@ for zbin in range(0, len(zbins)):
     z_phot_table_multi_z.append(z_phot_table)
     wave_eff_table_multi_z.append(wave_eff_table)
     lh_centroids_multi_z.append(lh_centroids)
+    dmag_centroids_multi_z.append(dmag_centroids)
 
 lc_halopop_z_obs_multi_z = jnp.asarray(lc_halopop_z_obs_multi_z)
 lc_halopop_t_obs_multi_z = jnp.asarray(lc_halopop_t_obs_multi_z)
@@ -164,6 +168,7 @@ precomputed_ssp_mag_table_multi_z = jnp.asarray(precomputed_ssp_mag_table_multi_
 z_phot_table_multi_z = jnp.asarray(z_phot_table_multi_z)
 wave_eff_table_multi_z = jnp.asarray(wave_eff_table_multi_z)
 lh_centroids_multi_z = jnp.asarray(lh_centroids_multi_z)
+dmag_centroids_multi_z = jnp.asarray(dmag_centroids_multi_z)
 
 
 ran_key, n_key = jran.split(ran_key, 2)
@@ -185,7 +190,7 @@ n_args_multi_z = (
     DEFAULT_SCATTER_PARAMS,
     ZERO_SSPERR_PARAMS,
     lh_centroids_multi_z,
-    dmag,
+    dmag_centroids_multi_z,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -227,7 +232,7 @@ loss_args_multi_z = (
     DEFAULT_MZR_PARAMS,
     DEFAULT_SCATTER_PARAMS,
     lh_centroids_multi_z,
-    dmag,
+    dmag_centroids_multi_z,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -273,6 +278,7 @@ for zbin in range(0, len(zbins)):
             )
         )
     )
+    dmag_centroids = jnp.ones((lh_centroids.shape[0], 1)) * dmag
 
     n_args_single_z = (
         DIFFSTARPOP_UM_plus_exsitu,
@@ -293,7 +299,7 @@ for zbin in range(0, len(zbins)):
         DEFAULT_SCATTER_PARAMS,
         ZERO_SSPERR_PARAMS,
         lh_centroids,
-        dmag,
+        dmag_centroids,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -320,7 +326,7 @@ for zbin in range(0, len(zbins)):
         DEFAULT_MZR_PARAMS,
         DEFAULT_SCATTER_PARAMS,
         lh_centroids,
-        dmag,
+        dmag_centroids,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
