@@ -5,7 +5,7 @@ from diffsky.experimental import precompute_ssp_phot as psspp
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
 from diffsky.ssp_err_model import ssp_err_model
-from diffstar.defaults import T_TABLE_MIN
+from diffstar.defaults import FB, T_TABLE_MIN
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
@@ -36,8 +36,6 @@ def get_fisher_matrix(
     mag_columns,
     mag_thresh_column,
     mag_thresh,
-    cosmo_params,
-    fb,
     zmin=0.2,
     zmax=0.5,
 ):
@@ -81,8 +79,8 @@ def get_fisher_matrix(
         mag_columns,
         mag_thresh_column,
         mag_thresh,
-        cosmo_params,
-        fb,
+        DEFAULT_COSMOLOGY,
+        FB,
     )
 
     # Get the Jacobian

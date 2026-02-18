@@ -1,4 +1,4 @@
-import corner
+# import corner
 import jax.numpy as jnp
 import numpy as np
 
