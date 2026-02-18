@@ -34,7 +34,7 @@ tcurves.append(retrieve_tcurves.HSC_I)
 
 ran_key = jran.key(0)
 dmag = 0.2
-mag_column = 0
+mag_columns = [0]
 mag_thresh_column = 0
 mag_thresh = 24.5
 
@@ -93,7 +93,7 @@ lg_n_true, lg_n_avg_err_true = n_mag.n_mag_kern(
     ZERO_SSPERR_PARAMS,
     bin_centers,
     dmag_centers,
-    mag_column,
+    mag_columns,
     mag_thresh_column,
     mag_thresh,
     DEFAULT_COSMOLOGY,
@@ -123,7 +123,7 @@ loss_hist, grad_hist, u_theta_fit = n_mag_opt.fit_n(
     DEFAULT_SCATTER_PARAMS,
     bin_centers,
     dmag_centers,
-    mag_column,
+    mag_columns,
     mag_thresh_column,
     mag_thresh,
     DEFAULT_COSMOLOGY,
