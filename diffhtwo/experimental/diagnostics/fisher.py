@@ -42,7 +42,8 @@ def log_likelihood(diffstarpop_theta_sub, *args):
     return -0.5 * n_mag_opt._loss_kern(u_diffstarpop_theta, *args)
 
 
-def get_fisher(log_likelihood, diffstarpop_theta_sub, *args):
+@jjit
+def get_fisher(diffstarpop_theta_sub, *args):
     return -jax.hessian(log_likelihood)(diffstarpop_theta_sub, *args)
 
 
