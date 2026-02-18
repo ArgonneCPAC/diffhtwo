@@ -177,6 +177,7 @@ def n_mag_kern(
     )
 
     N_model = N_q + N_smooth_ms + N_bursty_ms
+    print("N_model:{}", N_model)
 
     lg_n, lg_n_avg_err = get_n_data_err(N_model, lc_vol_mpc3)
 
