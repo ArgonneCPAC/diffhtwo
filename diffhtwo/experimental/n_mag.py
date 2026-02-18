@@ -122,8 +122,8 @@ def n_mag_kern(
     obs_colors_mag_smooth_ms = jnp.asarray(obs_colors_mag_smooth_ms).T
     obs_colors_mag_bursty_ms = jnp.asarray(obs_colors_mag_bursty_ms).T
 
-    # sig = jnp.zeros(obs_colors_mag_q.shape) + (dmag / 2)
-    sig = jnp.zeros(lh_centroids.shape) + (dmag_centroids / 2)
+    sig = jnp.zeros(obs_colors_mag_q.shape) + (dmag_centroids[0] / 2)
+    # sig = jnp.zeros(lh_centroids.shape) + (dmag_centroids / 2)
 
     lh_centroids_lo = lh_centroids - (dmag_centroids / 2)
     lh_centroids_hi = lh_centroids + (dmag_centroids / 2)
@@ -152,7 +152,7 @@ def n_mag_kern(
     cat_weight = jnp.ones_like(lc_phot_weights_q) * frac_cat
     ###################################################################
 
-    N_q = diffndhist2.tw_ndhist_weighted(
+    N_q = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_q,
         sig,
         lc_phot_weights_q * lc_nhalos * cat_weight,
@@ -160,7 +160,7 @@ def n_mag_kern(
         lh_centroids_hi,
     )
 
-    N_smooth_ms = diffndhist2.tw_ndhist_weighted(
+    N_smooth_ms = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_smooth_ms,
         sig,
         lc_phot_weights_smooth_ms * lc_nhalos * cat_weight,
@@ -168,7 +168,7 @@ def n_mag_kern(
         lh_centroids_hi,
     )
 
-    N_bursty_ms = diffndhist2.tw_ndhist_weighted(
+    N_bursty_ms = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_bursty_ms,
         sig,
         lc_phot_weights_bursty_ms * lc_nhalos * cat_weight,
