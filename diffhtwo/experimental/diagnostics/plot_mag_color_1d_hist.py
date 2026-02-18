@@ -262,8 +262,6 @@ def plot_n(
     spspop_params2,
     ssp_err_pop_params1,
     ssp_err_pop_params2,
-    dataset_colors_mag,
-    data_sky_area_degsq,
     tcurves,
     mag_columns,
     mag_thresh_column,
@@ -281,6 +279,8 @@ def plot_n(
     label1,
     label2,
     saveAs,
+    dataset_colors_mag=None,
+    data_sky_area_degsq=None,
     lh_centroids=None,
     lg_n_data_err_lh=None,
     lg_n_thresh=None,
@@ -546,14 +546,15 @@ def plot_n(
         )
 
         # data
-        ax[i].hist(
-            dataset_colors_mag[:, i],
-            weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
-            bins=bins,
-            color="navajowhite",
-            alpha=1,
-            label="data",
-        )
+        if dataset_colors_mag is not None:
+            ax[i].hist(
+                dataset_colors_mag[:, i],
+                weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
+                bins=bins,
+                color="navajowhite",
+                alpha=1,
+                label="data",
+            )
 
         ax[i].set_yscale("log")
         ax[i].set_xlabel(dimension_labels[i], fontsize=14)
