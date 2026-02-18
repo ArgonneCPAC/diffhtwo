@@ -27,13 +27,17 @@ def n_mag_kern_wrapper(diffstarpop_theta, *args):
 
 def get_fisher_matrix(
     diffstarpop_theta,
-    lc_halopop,
-    lh_centroids,
-    dmag,
-    mag_column,
     tcurves,
     ssp_data,
     n_key,
+    lc_halopop,
+    lh_centroids,
+    dmag_centroids,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    cosmo_params,
+    fb,
     zmin=0.2,
     zmax=0.5,
 ):
@@ -45,6 +49,7 @@ def get_fisher_matrix(
     t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
 
     # params
+    spspop_params = DEFAULT_SPSPOP_PARAMS
     mzr_params = umzr.DEFAULT_MZR_PARAMS
     scatter_params = DEFAULT_SCATTER_PARAMS
     ssp_err_pop_params = ssp_err_model.ZERO_SSPERR_PARAMS
@@ -54,11 +59,15 @@ def get_fisher_matrix(
     )
 
     wave_eff_table = lc_phot_kern.get_wave_eff_table(z_phot_table, tcurves)
-
     args = (
-        DEFAULT_SPSPOP_PARAMS,
+        spspop_params,
         n_key,
-        lc_halopop,
+        lc_halopop["z_obs"],
+        lc_halopop["t_obs"],
+        lc_halopop["mah_params"],
+        lc_halopop["logmp0"],
+        lc_halopop["nhalos"],
+        lc_halopop["lc_vol_Mpc3"],
         t_table,
         ssp_data,
         precomputed_ssp_mag_table,
@@ -68,8 +77,12 @@ def get_fisher_matrix(
         scatter_params,
         ssp_err_pop_params,
         lh_centroids,
-        dmag,
-        mag_column,
+        dmag_centroids,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        cosmo_params,
+        fb,
     )
 
     # Get the Jacobian
