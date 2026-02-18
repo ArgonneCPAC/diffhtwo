@@ -1,4 +1,4 @@
-import corner
+# import corner
 import jax.numpy as jnp
 import numpy as np
 
@@ -26,7 +26,8 @@ from ..utils import zbin_volume
 
 try:
     from matplotlib import pyplot as plt
-    from matplotlib.lines import Line2D
+
+    # from matplotlib.lines import Line2D
 
     HAS_MATPLOTLIB = True
 except ImportError:
@@ -43,8 +44,9 @@ def plot_n_mag(
     dataset_mags,
     data_sky_area_degsq,
     tcurves,
-    mag_column,
+    mag_thresh_column,
     mag_thresh,
+    frac_cat,
     dimension_labels,
     dmag,
     ran_key,
@@ -109,10 +111,10 @@ def plot_n_mag(
     lc_phot1 = lc_phot_kern.multiband_lc_phot_kern(*phot_args1)
     num_halos, n_bands = lc_phot1.obs_mags_q.shape
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_column]
-    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_column]
-    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_column]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q1 = jnp.where(
         obs_mag_q1 < mag_thresh, lc_phot1.weights_q, jnp.zeros_like(lc_phot1.weights_q)
@@ -134,6 +136,10 @@ def plot_n_mag(
             lc_phot_weights_bursty_ms1,
         ]
     )
+    # correction added on 02/09/2026. The fraction of objects remaining after all bands
+    # included have totflux !=-99.
+    cat_weight = jnp.ones_like(N_weights1) * frac_cat
+    ###################################################################
 
     ran_key, phot_key2 = jran.split(ran_key, 2)
     phot_args2 = (
@@ -159,10 +165,10 @@ def plot_n_mag(
     lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
     num_halos, n_bands = lc_phot2.obs_mags_q.shape
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_column]
-    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_column]
-    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_column]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q2 = jnp.where(
         obs_mag_q2 < mag_thresh, lc_phot2.weights_q, jnp.zeros_like(lc_phot2.weights_q)
@@ -185,9 +191,9 @@ def plot_n_mag(
         ]
     )
 
-    fig, ax = plt.subplots(1, n_bands, figsize=(2.4 * n_bands, 3))
+    fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
-    fig.suptitle(title)
+    fig.suptitle(title, fontsize=18)
 
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
     for i in range(0, n_bands):
@@ -200,7 +206,7 @@ def plot_n_mag(
         )
         ax[i].hist(
             lc_phot1_obs_mags,
-            weights=N_weights1 * (1 / lc_vol_mpc3),
+            weights=N_weights1 * (1 / lc_vol_mpc3) * cat_weight,
             bins=mag_bin_edges,
             histtype="step",
             color="deepskyblue",
@@ -218,7 +224,7 @@ def plot_n_mag(
 
         ax[i].hist(
             lc_phot2_obs_mags,
-            weights=N_weights2 * (1 / lc_vol_mpc3),
+            weights=N_weights2 * (1 / lc_vol_mpc3) * cat_weight,
             bins=mag_bin_edges,
             histtype="step",
             color="magenta",
@@ -238,15 +244,14 @@ def plot_n_mag(
         )
 
         ax[i].set_yscale("log")
-        ax[i].set_xlabel(dimension_labels[i])
-
-    ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[-1].legend(framealpha=0.5)
-
-    for i in range(0, n_bands):
+        ax[i].set_xlabel(dimension_labels[i], fontsize=14)
         ax[i].set_ylim(1e-6, 5e-3)
         if i != 0:
             ax[i].set_yticklabels([])
+
+    ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=14)
+    plt.rcParams["legend.fontsize"] = 14
+    ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
     plt.savefig(saveAs + ".pdf")
     plt.show()
 
@@ -258,11 +263,11 @@ def plot_n(
     spspop_params2,
     ssp_err_pop_params1,
     ssp_err_pop_params2,
-    dataset_colors_mag,
-    data_sky_area_degsq,
     tcurves,
-    mag_column,
+    mag_columns,
+    mag_thresh_column,
     mag_thresh,
+    frac_cat,
     dimension_labels,
     dmag,
     ran_key,
@@ -275,6 +280,8 @@ def plot_n(
     label1,
     label2,
     saveAs,
+    dataset_colors_mag=None,
+    data_sky_area_degsq=None,
     lh_centroids=None,
     lg_n_data_err_lh=None,
     lg_n_thresh=None,
@@ -291,7 +298,8 @@ def plot_n(
         *lc_args, cosmo_params=cosmo_params, lgmp_max=lgmp_max
     )
     lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
-    data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
+    if data_sky_area_degsq is not None:
+        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
 
     n_z_phot_table = 15
 
@@ -334,15 +342,15 @@ def plot_n(
         obs_colors_mag_q1,
         obs_colors_mag_smooth_ms1,
         obs_colors_mag_bursty_ms1,
-    ) = get_obs_colors_mag(lc_phot1, mag_column)
+    ) = get_obs_colors_mag(lc_phot1, mag_columns)
     obs_colors_mag1 = np.concatenate(
         [obs_colors_mag_q1, obs_colors_mag_smooth_ms1, obs_colors_mag_bursty_ms1]
     )
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q1 = obs_colors_mag_q1[:, -1]
-    obs_mag_smooth_ms1 = obs_colors_mag_smooth_ms1[:, -1]
-    obs_mag_bursty_ms1 = obs_colors_mag_bursty_ms1[:, -1]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms1 = lc_phot1.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms1 = lc_phot1.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q1 = jnp.where(
         obs_mag_q1 < mag_thresh, lc_phot1.weights_q, jnp.zeros_like(lc_phot1.weights_q)
@@ -364,6 +372,10 @@ def plot_n(
             lc_phot_weights_bursty_ms1,
         ]
     )
+    # correction added on 02/09/2026. The fraction of objects remaining after all bands
+    # included have totflux !=-99.
+    cat_weight = jnp.ones_like(N_weights1) * frac_cat
+    ###################################################################
 
     ran_key, phot_key2 = jran.split(ran_key, 2)
     phot_args2 = (
@@ -393,14 +405,14 @@ def plot_n(
         obs_colors_mag_q2,
         obs_colors_mag_smooth_ms2,
         obs_colors_mag_bursty_ms2,
-    ) = get_obs_colors_mag(lc_phot2, mag_column)
+    ) = get_obs_colors_mag(lc_phot2, mag_columns)
     obs_colors_mag2 = np.concatenate(
         [obs_colors_mag_q2, obs_colors_mag_smooth_ms2, obs_colors_mag_bursty_ms2]
     )
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_column
-    obs_mag_q2 = obs_colors_mag_q2[:, -1]
-    obs_mag_smooth_ms2 = obs_colors_mag_smooth_ms2[:, -1]
-    obs_mag_bursty_ms2 = obs_colors_mag_bursty_ms2[:, -1]
+    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
+    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_thresh_column]
+    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_thresh_column]
 
     lc_phot_weights_q2 = jnp.where(
         obs_mag_q2 < mag_thresh, lc_phot2.weights_q, jnp.zeros_like(lc_phot2.weights_q)
@@ -427,246 +439,96 @@ def plot_n(
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
 
     # Plot corner
-    ranges = [(color_bin_edges[0], color_bin_edges[-1])] * (len(dimension_labels) - 1)
-    ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
-    fig_corner = corner.corner(
-        obs_colors_mag1,
-        weights=N_weights1,
-        labels=dimension_labels,
-        color="deepskyblue",
-        # smooth=1.5,
-        # bins=80,
-        # smooth_1d=2,
-        plot_datapoints=False,
-        levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
-        fill_contours=False,
-        range=ranges,
-    )
+    # ranges = [(color_bin_edges[0], color_bin_edges[-1])] * (
+    #     len(dimension_labels) - len(mag_columns)
+    # )
+    # for m in range(0, len(mag_columns)):
+    #     ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
 
-    fig_corner.suptitle(title)
+    # fig_corner = corner.corner(
+    #     obs_colors_mag1,
+    #     weights=N_weights1 * cat_weight,
+    #     labels=dimension_labels,
+    #     color="deepskyblue",
+    #     # smooth=1.5,
+    #     # bins=80,
+    #     # smooth_1d=2,
+    #     plot_datapoints=False,
+    #     levels=[0.68, 0.95],
+    #     hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
+    #     fill_contours=False,
+    #     range=ranges,
+    # )
 
-    corner.corner(
-        obs_colors_mag2,
-        weights=N_weights2,
-        fig=fig_corner,
-        color="magenta",
-        # smooth=False,
-        # bins=80,
-        # smooth_1d=1.5,
-        plot_datapoints=False,
-        levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 1, "density": True},
-        hist2d_kwargs={"weights": N_weights2},
-        fill_contours=False,
-        show_titles=True,
-        title_fmt=".2f",
-        title_kwargs={"fontsize": 12},
-        range=ranges,
-    )
+    # fig_corner.suptitle(title)
 
-    # Plot smooth gaussian curves over 1d histograms
-    # axs = np.array(fig_corner.axes).reshape((5, 5))
+    # corner.corner(
+    #     obs_colors_mag2,
+    #     weights=N_weights2 * cat_weight,
+    #     fig=fig_corner,
+    #     color="magenta",
+    #     # smooth=False,
+    #     # bins=80,
+    #     # smooth_1d=1.5,
+    #     plot_datapoints=False,
+    #     levels=[0.68, 0.95],
+    #     hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 1, "density": True},
+    #     hist2d_kwargs={"weights": N_weights2},
+    #     fill_contours=False,
+    #     show_titles=True,
+    #     title_fmt=".2f",
+    #     title_kwargs={"fontsize": 12},
+    #     range=ranges,
+    # )
 
-    # for i in range(5):
-    #     x1 = obs_colors_mag1[:, i]
-    #     kde = gaussian_kde(x1, bw_method=0.3)
-    #     xs1 = np.linspace(x1.min(), x1.max(), 500)
-    #     axs[i, i].plot(xs1, kde(xs1), lw=1, color="magenta")
+    # corner.corner(
+    #     dataset_colors_mag,
+    #     fig=fig_corner,
+    #     color="navajowhite",
+    #     plot_datapoints=False,
+    #     # smooth=1.5,
+    #     # bins=80,
+    #     # smooth_1d=1.5,
+    #     levels=[0.68, 0.95],
+    #     hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "density": True},
+    #     fill_contours=False,
+    #     range=ranges,
+    # )
+    # # proxy artists
+    # handles = [
+    #     Line2D([], [], color="deepskyblue", lw=1, label=label1),
+    #     Line2D([], [], color="magenta", lw=1, label=label2),
+    #     Line2D([], [], color="navajowhite", lw=1, label="data"),
+    # ]
 
-    #     x2 = obs_colors_mag2[:, i]
-    #     kde = gaussian_kde(x2, bw_method=0.3)
-    #     xs2 = np.linspace(x2.min(), x1.max(), 500)
-    #     axs[i, i].plot(xs2, kde(xs2), lw=1, color="magenta")
-
-    corner.corner(
-        dataset_colors_mag,
-        fig=fig_corner,
-        color="navajowhite",
-        plot_datapoints=False,
-        # smooth=1.5,
-        # bins=80,
-        # smooth_1d=1.5,
-        levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "density": True},
-        fill_contours=False,
-        range=ranges,
-    )
-    # proxy artists
-    handles = [
-        Line2D([], [], color="deepskyblue", lw=1, label=label1),
-        Line2D([], [], color="magenta", lw=1, label=label2),
-        Line2D([], [], color="navajowhite", lw=1, label="data"),
-    ]
-
-    # attach legend to one axis (corner has many axes!)
-    fig_corner.axes[0].legend(
-        handles=handles,
-        loc="center left",
-        bbox_to_anchor=(1.0, 0.5),
-        frameon=False,
-    )
-    plt.savefig(saveAs + "_corner.pdf")
-    plt.show()
+    # # attach legend to one axis (corner has many axes!)
+    # fig_corner.axes[0].legend(
+    #     handles=handles,
+    #     loc="center left",
+    #     bbox_to_anchor=(1.0, 0.5),
+    #     frameon=False,
+    # )
+    # plt.savefig(saveAs + "_corner.pdf")
+    # plt.show()
 
     # Plot 1D histograms
-    fig, ax = plt.subplots(1, n_bands, figsize=(2.4 * n_bands, 3))
+    fig, ax = plt.subplots(
+        1,
+        n_bands - 1 + len(mag_columns),
+        figsize=(2.5 * n_bands - 1 + len(mag_columns), 4),
+    )
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
-    fig.suptitle(title)
+    fig.suptitle(title, fontsize=18)
 
-    for i in range(0, n_bands):
-        if i == n_bands - 1:
-            bins = mag_bin_edges
-        else:
+    for i in range(0, n_bands - 1 + len(mag_columns)):
+        if i < n_bands - 1:
             bins = color_bin_edges
-
-        obs_colors_mag1 = np.concatenate(
-            [
-                obs_colors_mag_q1[:, i],
-                obs_colors_mag_smooth_ms1[:, i],
-                obs_colors_mag_bursty_ms1[:, i],
-            ]
-        )
-
-        # diffndhist
-        # bins_lo = bins[:-1]
-        # bins_hi = bins[1:]
-        # bins_lo = bins_lo.reshape(bins_lo.size, 1)
-        # bins_hi = bins_hi.reshape(bins_hi.size, 1)
-        # dataset_colors_mag_i = dataset_colors_mag[:, i].reshape(dataset_colors_mag[:, i].size, 1)
-        # dataset_colors_mag_sig_i = jnp.zeros_like(dataset_colors_mag_i)
-        # dataset_colors_mag_weights_i = jnp.ones_like(dataset_colors_mag_i) / data_vol_mpc3
-
-        # n_data1 = diffndhist.tw_ndhist_weighted(
-        #     dataset_colors_mag_i,
-        #     dataset_colors_mag_sig_i,
-        #     dataset_colors_mag_weights_i,
-        #     bins_lo,
-        #     bins_hi,
-        # )
-
-        # # q1
-        # obs_colors_mag_q1_i = obs_colors_mag_q1[:, i]
-        # obs_colors_mag_q1_i = obs_colors_mag_q1_i.reshape(obs_colors_mag_q1_i.size, 1)
-        # sig = jnp.zeros(obs_colors_mag_q1_i.shape) + (dmag / 8)
-        # lc_phot1_weights_q_i = lc_phot1.weights_q.reshape(lc_phot1.weights_q.size, 1)
-
-        # N_q1 = diffndhist.tw_ndhist_weighted(
-        #     obs_colors_mag_q1_i,
-        #     sig,
-        #     lc_phot1_weights_q_i,
-        #     bins_lo,
-        #     bins_hi,
-        # )
-
-        # # smooth_ms1
-        # obs_colors_mag_smooth_ms1_i = obs_colors_mag_smooth_ms1[:, i]
-        # obs_colors_mag_smooth_ms1_i = obs_colors_mag_smooth_ms1_i.reshape(
-        #     obs_colors_mag_smooth_ms1_i.size, 1
-        # )
-        # lc_phot1_weights_smooth_ms_i = lc_phot1.weights_smooth_ms.reshape(
-        #     lc_phot1.weights_smooth_ms.size, 1
-        # )
-
-        # N_smooth_ms1 = diffndhist.tw_ndhist_weighted(
-        #     obs_colors_mag_smooth_ms1_i,
-        #     sig,
-        #     lc_phot1_weights_smooth_ms_i,
-        #     bins_lo,
-        #     bins_hi,
-        # )
-
-        # # bursty_ms1
-        # obs_colors_mag_bursty_ms1_i = obs_colors_mag_bursty_ms1[:, i]
-        # obs_colors_mag_bursty_ms1_i = obs_colors_mag_bursty_ms1_i.reshape(
-        #     obs_colors_mag_bursty_ms1_i.size, 1
-        # )
-        # lc_phot1_weights_bursty_ms_i = lc_phot1.weights_bursty_ms.reshape(
-        #     lc_phot1.weights_bursty_ms.size, 1
-        # )
-
-        # N_bursty_ms1 = diffndhist.tw_ndhist_weighted(
-        #     obs_colors_mag_bursty_ms1_i,
-        #     sig,
-        #     lc_phot1_weights_bursty_ms_i,
-        #     bins_lo,
-        #     bins_hi,
-        # )
-        # N1 = N_q1 + N_smooth_ms1 + N_bursty_ms1
-        # n1 = N1 / lc_vol_mpc3
-
-        # # q2
-        # obs_colors_mag_q2_i = obs_colors_mag_q2[:, i]
-        # obs_colors_mag_q2_i = obs_colors_mag_q2_i.reshape(obs_colors_mag_q2_i.size, 1)
-        # sig = jnp.zeros(obs_colors_mag_q2_i.shape) + (dmag / 2)
-        # lc_phot2_weights_q_i = lc_phot2.weights_q.reshape(lc_phot2.weights_q.size, 1)
-
-        # N_q2 = diffndhist.tw_ndhist_weighted(
-        #     obs_colors_mag_q2_i,
-        #     sig,
-        #     lc_phot2_weights_q_i,
-        #     bins_lo,
-        #     bins_hi,
-        # )
-
-        # # smooth_ms2
-        # obs_colors_mag_smooth_ms2_i = obs_colors_mag_smooth_ms2[:, i]
-        # obs_colors_mag_smooth_ms2_i = obs_colors_mag_smooth_ms2_i.reshape(
-        #     obs_colors_mag_smooth_ms2_i.size, 1
-        # )
-        # lc_phot2_weights_smooth_ms_i = lc_phot2.weights_smooth_ms.reshape(
-        #     lc_phot2.weights_smooth_ms.size, 1
-        # )
-
-        # N_smooth_ms2 = diffndhist.tw_ndhist_weighted(
-        #     obs_colors_mag_smooth_ms2_i,
-        #     sig,
-        #     lc_phot2_weights_smooth_ms_i,
-        #     bins_lo,
-        #     bins_hi,
-        # )
-
-        # # bursty_ms2
-        # obs_colors_mag_bursty_ms2_i = obs_colors_mag_bursty_ms2[:, i]
-        # obs_colors_mag_bursty_ms2_i = obs_colors_mag_bursty_ms2_i.reshape(
-        #     obs_colors_mag_bursty_ms2_i.size, 1
-        # )
-        # lc_phot2_weights_bursty_ms_i = lc_phot2.weights_bursty_ms.reshape(
-        #     lc_phot2.weights_bursty_ms.size, 1
-        # )
-
-        # N_bursty_ms2 = diffndhist.tw_ndhist_weighted(
-        #     obs_colors_mag_bursty_ms2_i,
-        #     sig,
-        #     lc_phot2_weights_bursty_ms_i,
-        #     bins_lo,
-        #     bins_hi,
-        # )
-        # N2 = N_q2 + N_smooth_ms2 + N_bursty_ms2
-        # n2 = N2 / lc_vol_mpc3
-
-        # data not weighted with volume
-        # N_data = diffndhist.tw_ndhist(
-        #     dataset_colors_mag_i,
-        #     dataset_colors_mag_sig_i,
-        #     bins_lo,
-        #     bins_hi,
-        # )
-        # n_data2 = N_data / data_vol_mpc3
-
-        # bin_centers = (bins[1:] + bins[:-1]) / 2
-        # ax[i].scatter(bin_centers, n1, label=label1, c="magenta")
-        # ax[i].scatter(bin_centers, n2, label=label2, c="green")
-        # ax[i].scatter(
-        #     bin_centers, n_data1, label="weighted" + label2, c="cyan", alpha=0.5
-        # )
-        # ax[i].scatter(bin_centers, n_data2, label=label2, c="magenta", alpha=0.5)
-
-        ####
+        else:
+            bins = mag_bin_edges
 
         ax[i].hist(
-            obs_colors_mag1,
-            weights=N_weights1 * (1 / lc_vol_mpc3),
+            obs_colors_mag1[:, i],
+            weights=N_weights1 * (1 / lc_vol_mpc3) * cat_weight,
             bins=bins,
             histtype="step",
             color="deepskyblue",
@@ -674,17 +536,9 @@ def plot_n(
             label=label1,
         )
 
-        obs_colors_mag2 = np.concatenate(
-            [
-                obs_colors_mag_q2[:, i],
-                obs_colors_mag_smooth_ms2[:, i],
-                obs_colors_mag_bursty_ms2[:, i],
-            ]
-        )
-
         ax[i].hist(
-            obs_colors_mag2,
-            weights=N_weights2 * (1 / lc_vol_mpc3),
+            obs_colors_mag2[:, i],
+            weights=N_weights2 * (1 / lc_vol_mpc3) * cat_weight,
             bins=bins,
             histtype="step",
             color="magenta",
@@ -694,24 +548,26 @@ def plot_n(
         )
 
         # data
-        ax[i].hist(
-            dataset_colors_mag[:, i],
-            weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
-            bins=bins,
-            color="navajowhite",
-            alpha=1,
-            label="data",
-        )
+        if dataset_colors_mag is not None:
+            ax[i].hist(
+                dataset_colors_mag[:, i],
+                weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
+                bins=bins,
+                color="navajowhite",
+                alpha=1,
+                label="data",
+            )
 
         ax[i].set_yscale("log")
-        ax[i].set_xlabel(dimension_labels[i])
-
-    ax[0].set_ylabel("number density [Mpc$^{-3}$]")
-    ax[-1].legend(framealpha=0.5)
-    for i in range(0, n_bands):
+        ax[i].set_xlabel(dimension_labels[i], fontsize=14)
         ax[i].set_ylim(1e-6, 3e-2)
         if i != 0:
             ax[i].set_yticklabels([])
+
+    ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=14)
+    plt.rcParams["legend.fontsize"] = 14
+    ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
+
     plt.savefig(saveAs + ".pdf")
     plt.show()
 
@@ -754,6 +610,7 @@ def plot_n(
         u_theta1 = (u_diffstarpop_theta1, u_spspop_theta1, u_ssp_err_pop_theta1)
         u_theta2 = (u_diffstarpop_theta2, u_spspop_theta2, u_ssp_err_pop_theta2)
 
+        dmag_for_loss = 0.5
         loss_args = (
             lg_n_thresh,
             n_key,
@@ -771,11 +628,13 @@ def plot_n(
             DEFAULT_MZR_PARAMS,
             DEFAULT_SCATTER_PARAMS,
             lh_centroids,
-            dmag,
-            mag_column,
+            dmag_for_loss,
+            mag_columns,
+            mag_thresh_column,
             mag_thresh,
             DEFAULT_COSMOLOGY,
             FB,
+            frac_cat,
         )
 
         loss1 = n_mag_opt._loss_kern(u_theta1, lg_n_data_err_lh, *loss_args)
@@ -785,7 +644,7 @@ def plot_n(
         print(f"fit loss = {loss2:.2f}")
 
 
-def get_obs_colors_mag(lc_phot, mag_column):
+def get_obs_colors_mag(lc_phot, mag_columns):
     num_halos, n_bands = lc_phot.obs_mags_q.shape
 
     obs_colors_mag_q = []
@@ -807,16 +666,18 @@ def get_obs_colors_mag(lc_phot, mag_column):
         obs_colors_mag_bursty_ms.append(obs_color_bursty_ms)
 
     """mag_column"""
-    obs_mag_q = lc_phot.obs_mags_q[:, mag_column]
-    obs_colors_mag_q.append(obs_mag_q)
+    for mag_column in mag_columns:
+        obs_mag_q = lc_phot.obs_mags_q[:, mag_column]
+        obs_colors_mag_q.append(obs_mag_q)
+
+        obs_mag_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_column]
+        obs_colors_mag_smooth_ms.append(obs_mag_smooth_ms)
+
+        obs_mag_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_column]
+        obs_colors_mag_bursty_ms.append(obs_mag_bursty_ms)
+
     obs_colors_mag_q = jnp.asarray(obs_colors_mag_q).T
-
-    obs_mag_smooth_ms = lc_phot.obs_mags_smooth_ms[:, mag_column]
-    obs_colors_mag_smooth_ms.append(obs_mag_smooth_ms)
     obs_colors_mag_smooth_ms = jnp.asarray(obs_colors_mag_smooth_ms).T
-
-    obs_mag_bursty_ms = lc_phot.obs_mags_bursty_ms[:, mag_column]
-    obs_colors_mag_bursty_ms.append(obs_mag_bursty_ms)
     obs_colors_mag_bursty_ms = jnp.asarray(obs_colors_mag_bursty_ms).T
 
     return obs_colors_mag_q, obs_colors_mag_smooth_ms, obs_colors_mag_bursty_ms

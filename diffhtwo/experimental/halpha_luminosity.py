@@ -5,8 +5,6 @@ from dsps.utils import cumulative_mstar_formed
 from jax import jit as jjit
 from jax import vmap
 
-from .utils import safe_log10
-
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
@@ -56,7 +54,13 @@ get_L_halpha_vmap = jjit(
 
 @jjit
 def get_halpha_luminosity_func(
-    L_halpha_cgs, weights, sig=0.05, dlgL_bin=0.2, lgL_min=38.0, lgL_max=45.0
+    L_halpha_cgs,
+    weights,
+    dlgL_bin=0.2,
+    lgL_min=38.0,
+    lgL_max=45.0,
+    sig=None,
+    lgL_bin_edges=None,
 ):
     """
     Calculates the h-alpha LF regardless of where the h-alpha Luminosities come from,
@@ -85,10 +89,11 @@ def get_halpha_luminosity_func(
 
     # mask: valid (strictly positive & finite)
     valid = jnp.isfinite(L_halpha) & (L_halpha > 0)
+    L_halpha = jnp.where(valid, L_halpha, 10)
 
-    # safe log10: put invalids far below the underflow bin (won't matter b/c weight=0)
-    lg_floor = lgL_min - 10.0
-    lgL_halpha = jnp.where(valid, safe_log10(L_halpha), lg_floor)
+    # # safe log10: put invalids far below the underflow bin (won't matter b/c weight=0)
+    # lg_floor = lgL_min - 10.0
+    lgL_halpha = jnp.log10(L_halpha)
 
     # weights: zero-out invalids
     w = jnp.where(
@@ -101,9 +106,14 @@ def get_halpha_luminosity_func(
         0.0,
     )
 
-    sig_arr = jnp.zeros_like(lgL_halpha) + sig
+    if sig is None:
+        sig_arr = jnp.zeros_like(lgL_halpha) + (dlgL_bin / 2)
+    else:
+        sig_arr = jnp.zeros_like(lgL_halpha) + sig
 
-    lgL_bin_edges = jnp.arange(lgL_min, lgL_max, dlgL_bin)
+    if lgL_bin_edges is None:
+        lgL_bin_edges = jnp.arange(lgL_min, lgL_max, dlgL_bin)
+
     lgL_bin_lo = lgL_bin_edges[:-1].reshape(lgL_bin_edges[:-1].size, 1)
     lgL_bin_hi = lgL_bin_edges[1:].reshape(lgL_bin_edges[1:].size, 1)
 

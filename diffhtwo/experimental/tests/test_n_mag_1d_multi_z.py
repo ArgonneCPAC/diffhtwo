@@ -84,8 +84,11 @@ tcurves = [
     retrieve_tcurves.HSC_Z,
 ]
 
-mag_column = 3
+mag_columns = [3]
+mag_thresh_column = 3
+mag_thresh = 24.5
 dmag = 0.5
+frac_cat = 1.0
 fit_columns = jnp.arange(0, len(tcurves), 1)
 
 n_z_phot_table = 15
@@ -170,9 +173,12 @@ n_args_multi_z = (
     ZERO_SSPERR_PARAMS,
     bin_centers_1d,
     dmag,
-    mag_column,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
     DEFAULT_COSMOLOGY,
     FB,
+    frac_cat,
 )
 
 lg_n_1d_multi_z = n_mag.n_mag_kern_1d_multi_z(
@@ -208,13 +214,24 @@ loss_args_multi_z = (
     DEFAULT_SCATTER_PARAMS,
     bin_centers_1d,
     dmag,
-    mag_column,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
     fit_columns,
     DEFAULT_COSMOLOGY,
     FB,
+    frac_cat,
 )
 loss_multi_z = n_mag_opt._loss_kern_1d_multi_z(
-    u_theta2, lg_n_1d_multi_z, *loss_args_multi_z
+    u_theta2,
+    lg_n_1d_multi_z,
+    *loss_args_multi_z,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
 )
 
 for zbin in range(0, len(zbins)):
@@ -254,7 +271,9 @@ for zbin in range(0, len(zbins)):
         ZERO_SSPERR_PARAMS,
         bin_centers_1d,
         dmag,
-        mag_column,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
         DEFAULT_COSMOLOGY,
         FB,
     )
@@ -279,7 +298,9 @@ for zbin in range(0, len(zbins)):
         DEFAULT_SCATTER_PARAMS,
         bin_centers_1d,
         dmag,
-        mag_column,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
         fit_columns,
         DEFAULT_COSMOLOGY,
         FB,
