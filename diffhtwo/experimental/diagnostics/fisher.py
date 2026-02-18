@@ -1,5 +1,4 @@
 import jax
-import jax.numpy as jnp
 import numpy as np
 from diffstar.diffstarpop import get_unbounded_diffstarpop_params
 from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
