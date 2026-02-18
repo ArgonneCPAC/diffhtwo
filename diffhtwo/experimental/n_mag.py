@@ -124,9 +124,11 @@ def n_mag_kern(
 
     sig = jnp.zeros(obs_colors_mag_q.shape) + (dmag_centroids[0] / 2)
     # sig = jnp.zeros(lh_centroids.shape) + (dmag_centroids / 2)
-
+    print("sig.shape:{}", sig.shape)
     lh_centroids_lo = lh_centroids - (dmag_centroids / 2)
     lh_centroids_hi = lh_centroids + (dmag_centroids / 2)
+    print("lh_centroids_lo.shape:{}", lh_centroids_lo.shape)
+    print("lh_centroids_lo:{}", lh_centroids_lo)
 
     # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
     obs_mag_q = lc_phot.obs_mags_q[:, mag_thresh_column]
@@ -152,6 +154,7 @@ def n_mag_kern(
     cat_weight = jnp.ones_like(lc_phot_weights_q) * frac_cat
     ###################################################################
 
+    print("obs_colors_mag_q:{}", obs_colors_mag_q)
     N_q = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_q,
         sig,
@@ -160,6 +163,7 @@ def n_mag_kern(
         lh_centroids_hi,
     )
 
+    print("obs_colors_mag_smooth_ms:{}", obs_colors_mag_smooth_ms)
     N_smooth_ms = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_smooth_ms,
         sig,
@@ -168,6 +172,7 @@ def n_mag_kern(
         lh_centroids_hi,
     )
 
+    print("obs_colors_mag_bursty_ms:{}", obs_colors_mag_bursty_ms)
     N_bursty_ms = diffndhist.tw_ndhist_weighted(
         obs_colors_mag_bursty_ms,
         sig,
