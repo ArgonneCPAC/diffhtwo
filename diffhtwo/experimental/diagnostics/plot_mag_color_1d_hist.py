@@ -364,15 +364,14 @@ def plot_n_corner(
         handles = [
             Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1),
             Line2D([], [], color="magenta", lw=lw + 1, label=label2),
-            Line2D([], [], color="navajowhite", lw=lw, label="data"),
+            Line2D([], [], color="navajowhite", lw=lw, label="FENIKS-UDS"),
         ]
     else:
         handles = [
             Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1),
-            Line2D([], [], color="navajowhite", lw=lw, label="data"),
+            Line2D([], [], color="navajowhite", lw=lw, label="FENIKS-UDS"),
         ]
 
-    # attach legend to one axis (corner has many axes!)
     fig_corner.axes[0].legend(
         handles=handles,
         loc="center left",
@@ -383,7 +382,7 @@ def plot_n_corner(
 
     for ax in fig_corner.get_axes():
         ax.tick_params(axis="both", labelsize=12)
-    # plt.savefig(saveAs + "_corner.pdf")
+    plt.savefig(saveAs + "_corner.pdf")
     plt.show()
 
 
