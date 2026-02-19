@@ -16,10 +16,12 @@ from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
-from scipy.stats import gaussian_kde
 
 from .. import n_mag_opt
 from ..utils import zbin_volume
+
+# from scipy.stats import gaussian_kde
+
 
 # from scipy.stats import gaussian_kde
 # yellow7 = pplt.scale_luminance('yellow7', 1.05)
@@ -288,7 +290,13 @@ def plot_n_corner(
         # smooth_1d=2,
         plot_datapoints=False,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 2, "density": True},
+        hist_kwargs={
+            "histtype": "step",
+            "alpha": 0.9,
+            "lw": 2,
+            "density": True,
+            "bins": 100,
+        },
         fill_contours=False,
         range=ranges,
     )
@@ -306,7 +314,13 @@ def plot_n_corner(
             # smooth_1d=1.5,
             plot_datapoints=False,
             levels=[0.68, 0.95],
-            hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 2, "density": True},
+            hist_kwargs={
+                "histtype": "step",
+                "alpha": 0.9,
+                "lw": 2,
+                "density": True,
+                "bins": 100,
+            },
             # hist2d_kwargs={"weights": weights2},
             fill_contours=False,
             show_titles=True,
@@ -325,68 +339,16 @@ def plot_n_corner(
         # bins=80,
         # smooth_1d=1.5,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "stepfilled", "alpha": 0.5, "lw": 2, "density": True},
+        hist_kwargs={
+            "histtype": "stepfilled",
+            "alpha": 0.5,
+            "lw": 2,
+            "density": True,
+            "bins": 100,
+        },
         fill_contours=True,
         range=ranges,
     )
-
-    # ....
-    ndim = dataset_colors_mag.shape[1]
-    axes = np.array(fig_corner.axes).reshape((ndim, ndim))
-
-    # Put your physical bounds here (use None if unbounded)
-    # Example: first param is >=0, second is [0,1], others unbounded
-    bounds = [
-        (0.0, None),  # i=0 lower-bounded
-        (0.0, 1.0),  # i=1 bounded both sides
-    ] + [(None, None)] * (ndim - 2)
-
-    for i in range(ndim):
-        ax = axes[i, i]
-        x = np.asarray(dataset_colors_mag[:, i], dtype=float)
-
-        lo, hi = bounds[i]
-
-        # Choose plot grid using *bounds* if provided, not x.min/x.max
-        x_lo = lo if lo is not None else x.min()
-        x_hi = hi if hi is not None else x.max()
-
-        # Give a little padding on the open side so the curve doesn't touch the frame
-        pad = 0.05 * (x_hi - x_lo) if x_hi > x_lo else 1.0
-        if lo is None:
-            x_lo = x_lo - pad
-        if hi is None:
-            x_hi = x_hi + pad
-
-        xgrid = np.linspace(x_lo, x_hi, 600)
-
-        # --- Boundary-respecting KDE ---
-        # Lower bound reflection (x >= lo)
-        x_kde = x
-        if lo is not None:
-            x_kde = np.concatenate([x, 2 * lo - x])  # reflect around lo
-
-        # Upper bound reflection (x <= hi)
-        if hi is not None:
-            x_kde = np.concatenate([x_kde, 2 * hi - x_kde])  # reflect around hi
-
-        # KDE with slightly tighter bandwidth than default (optional)
-        kde = gaussian_kde(x_kde, bw_method=0.8)
-
-        pdf = kde(xgrid)
-
-        # Renormalize on the allowed domain (important when using reflections / truncation)
-        area = np.trapz(pdf, xgrid)
-        if area > 0:
-            pdf = pdf / area
-
-        ax.plot(xgrid, pdf, lw=2, color="tab:orange")
-
-        # Show hard boundaries
-        if lo is not None:
-            ax.axvline(lo, ls="--", lw=1, alpha=0.7)
-        if hi is not None:
-            ax.axvline(hi, ls="--", lw=1, alpha=0.7)
 
     # ndim = dataset_colors_mag.shape[1]
     # axes = np.array(fig_corner.axes).reshape((ndim, ndim))
