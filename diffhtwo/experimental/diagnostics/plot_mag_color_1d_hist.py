@@ -1,4 +1,4 @@
-# import corner
+import corner
 import jax.numpy as jnp
 import numpy as np
 
@@ -26,8 +26,7 @@ from ..utils import zbin_volume
 
 try:
     from matplotlib import pyplot as plt
-
-    # from matplotlib.lines import Line2D
+    from matplotlib.lines import Line2D
 
     HAS_MATPLOTLIB = True
 except ImportError:
@@ -256,6 +255,94 @@ def plot_n_mag(
     plt.show()
 
 
+def plot_n_corner(
+    obs_colors_mag1,
+    weights1,
+    obs_colors_mag2,
+    weights2,
+    dataset_colors_mag,
+    mag_columns,
+    color_bin_edges,
+    mag_bin_edges,
+    dimension_labels,
+    title,
+    label1,
+    label2,
+    saveAs,
+):
+    ranges = [(color_bin_edges[0], color_bin_edges[-1])] * (
+        len(dimension_labels) - len(mag_columns)
+    )
+    for m in range(0, len(mag_columns)):
+        ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
+
+    fig_corner = corner.corner(
+        obs_colors_mag1,
+        weights=weights1,
+        labels=dimension_labels,
+        color="deepskyblue",
+        # smooth=1.5,
+        # bins=80,
+        # smooth_1d=2,
+        plot_datapoints=False,
+        levels=[0.68, 0.95],
+        hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
+        fill_contours=False,
+        range=ranges,
+    )
+
+    fig_corner.suptitle(title)
+
+    corner.corner(
+        obs_colors_mag2,
+        weights=weights2,
+        fig=fig_corner,
+        color="magenta",
+        # smooth=False,
+        # bins=80,
+        # smooth_1d=1.5,
+        plot_datapoints=False,
+        levels=[0.68, 0.95],
+        hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 1, "density": True},
+        hist2d_kwargs={"weights": weights2},
+        fill_contours=False,
+        show_titles=True,
+        title_fmt=".2f",
+        title_kwargs={"fontsize": 12},
+        range=ranges,
+    )
+
+    corner.corner(
+        dataset_colors_mag,
+        fig=fig_corner,
+        color="navajowhite",
+        plot_datapoints=False,
+        # smooth=1.5,
+        # bins=80,
+        # smooth_1d=1.5,
+        levels=[0.68, 0.95],
+        hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "density": True},
+        fill_contours=False,
+        range=ranges,
+    )
+    # proxy artists
+    handles = [
+        Line2D([], [], color="deepskyblue", lw=1, label=label1),
+        Line2D([], [], color="magenta", lw=1, label=label2),
+        Line2D([], [], color="navajowhite", lw=1, label="data"),
+    ]
+
+    # attach legend to one axis (corner has many axes!)
+    fig_corner.axes[0].legend(
+        handles=handles,
+        loc="center left",
+        bbox_to_anchor=(1.0, 0.5),
+        frameon=False,
+    )
+    # plt.savefig(saveAs + "_corner.pdf")
+    plt.show()
+
+
 def plot_n(
     diffstarpop_params1,
     diffstarpop_params2,
@@ -282,6 +369,7 @@ def plot_n(
     saveAs,
     dataset_colors_mag=None,
     data_sky_area_degsq=None,
+    plot_corner=True,
     lh_centroids=None,
     lg_n_data_err_lh=None,
     lg_n_thresh=None,
@@ -439,77 +527,22 @@ def plot_n(
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
 
     # Plot corner
-    # ranges = [(color_bin_edges[0], color_bin_edges[-1])] * (
-    #     len(dimension_labels) - len(mag_columns)
-    # )
-    # for m in range(0, len(mag_columns)):
-    #     ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
-
-    # fig_corner = corner.corner(
-    #     obs_colors_mag1,
-    #     weights=N_weights1 * cat_weight,
-    #     labels=dimension_labels,
-    #     color="deepskyblue",
-    #     # smooth=1.5,
-    #     # bins=80,
-    #     # smooth_1d=2,
-    #     plot_datapoints=False,
-    #     levels=[0.68, 0.95],
-    #     hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
-    #     fill_contours=False,
-    #     range=ranges,
-    # )
-
-    # fig_corner.suptitle(title)
-
-    # corner.corner(
-    #     obs_colors_mag2,
-    #     weights=N_weights2 * cat_weight,
-    #     fig=fig_corner,
-    #     color="magenta",
-    #     # smooth=False,
-    #     # bins=80,
-    #     # smooth_1d=1.5,
-    #     plot_datapoints=False,
-    #     levels=[0.68, 0.95],
-    #     hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 1, "density": True},
-    #     hist2d_kwargs={"weights": N_weights2},
-    #     fill_contours=False,
-    #     show_titles=True,
-    #     title_fmt=".2f",
-    #     title_kwargs={"fontsize": 12},
-    #     range=ranges,
-    # )
-
-    # corner.corner(
-    #     dataset_colors_mag,
-    #     fig=fig_corner,
-    #     color="navajowhite",
-    #     plot_datapoints=False,
-    #     # smooth=1.5,
-    #     # bins=80,
-    #     # smooth_1d=1.5,
-    #     levels=[0.68, 0.95],
-    #     hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "density": True},
-    #     fill_contours=False,
-    #     range=ranges,
-    # )
-    # # proxy artists
-    # handles = [
-    #     Line2D([], [], color="deepskyblue", lw=1, label=label1),
-    #     Line2D([], [], color="magenta", lw=1, label=label2),
-    #     Line2D([], [], color="navajowhite", lw=1, label="data"),
-    # ]
-
-    # # attach legend to one axis (corner has many axes!)
-    # fig_corner.axes[0].legend(
-    #     handles=handles,
-    #     loc="center left",
-    #     bbox_to_anchor=(1.0, 0.5),
-    #     frameon=False,
-    # )
-    # plt.savefig(saveAs + "_corner.pdf")
-    # plt.show()
+    if plot_corner == True:
+        plot_n_corner(
+            obs_colors_mag1,
+            N_weights1 * cat_weight,
+            obs_colors_mag2,
+            N_weights2 * cat_weight,
+            dataset_colors_mag,
+            mag_columns,
+            color_bin_edges,
+            mag_bin_edges,
+            dimension_labels,
+            title,
+            label1,
+            label2,
+            saveAs,
+        )
 
     # Plot 1D histograms
     fig, ax = plt.subplots(
