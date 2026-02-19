@@ -16,6 +16,7 @@ from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
+from scipy.stats import gaussian_kde
 
 from .. import n_mag_opt
 from ..utils import zbin_volume
@@ -317,16 +318,28 @@ def plot_n_corner(
     corner.corner(
         dataset_colors_mag,
         fig=fig_corner,
-        color="navajowhite",
+        color="tab:orange",
         plot_datapoints=False,
+        plot_density=False,
         smooth=1.0,
         # bins=80,
         # smooth_1d=1.5,
         levels=[0.68, 0.95],
         hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "lw": 2, "density": True},
-        fill_contours=False,
+        fill_contours=True,
         range=ranges,
     )
+
+    ndim = dataset_colors_mag.shape[1]
+    axes = np.array(fig_corner.axes).reshape((ndim, ndim))
+
+    for i in range(ndim):
+        ax = axes[i, i]
+        x = dataset_colors_mag[:, i]
+
+        kde = gaussian_kde(x)
+        xgrid = np.linspace(x.min(), x.max(), 500)
+        ax.plot(xgrid, kde(xgrid), lw=2)
     # proxy artists
     handles = [
         Line2D([], [], color="deepskyblue", lw=1, label=label1),
