@@ -385,6 +385,13 @@ def plot_n_corner(
         fontsize=16,
     )
 
+    # log-scale only the 1D hist x-axis
+    ndim = dataset_colors_mag.shape[1]
+    axes = np.array(fig_corner.axes).reshape((ndim, ndim))
+    for i in range(ndim):
+        ax = axes[i, i]
+        ax.set_xscale("log")
+
     for ax in fig_corner.get_axes():
         ax.tick_params(axis="both", labelsize=12)
     plt.savefig(saveAs + "_corner.pdf")
