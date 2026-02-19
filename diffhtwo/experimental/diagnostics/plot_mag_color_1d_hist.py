@@ -340,6 +340,9 @@ def plot_n_corner(
         bbox_to_anchor=(1.0, 0.5),
         frameon=False,
     )
+
+    for ax in fig_corner.get_axes():
+        ax.tick_params(axis="both", labelsize=12)
     # plt.savefig(saveAs + "_corner.pdf")
     plt.show()
 
