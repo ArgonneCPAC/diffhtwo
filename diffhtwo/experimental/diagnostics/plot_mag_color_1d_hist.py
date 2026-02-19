@@ -280,6 +280,7 @@ def plot_n_corner(
         obs_colors_mag1,
         weights=weights1,
         labels=dimension_labels,
+        label_kwargs={"fontsize": 16},
         color="deepskyblue",
         # smooth=1.5,
         # bins=80,
