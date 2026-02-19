@@ -280,12 +280,15 @@ def plot_n_corner(
         ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
 
     lw = 2.0
+    color1 = "deepskyblue"
+    color2 = "magenta"
+    color_data = "orange"
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=weights1,
         labels=dimension_labels,
         label_kwargs={"fontsize": 16},
-        color="orange",
+        color=color1,
         smooth=1.0,
         # bins=40,
         # smooth_1d=2,
@@ -308,7 +311,7 @@ def plot_n_corner(
             obs_colors_mag2,
             weights=weights2,
             fig=fig_corner,
-            color="magenta",
+            color=color2,
             smooth=1.0,
             # bins=40,
             # smooth_1d=1.5,
@@ -331,7 +334,7 @@ def plot_n_corner(
     corner.corner(
         dataset_colors_mag,
         fig=fig_corner,
-        color="deepskyblue",
+        color=color_data,
         plot_datapoints=False,
         plot_density=False,
         smooth=1.0,
@@ -362,14 +365,14 @@ def plot_n_corner(
     # proxy artists
     if label2 is not None:
         handles = [
-            Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1),
-            Line2D([], [], color="magenta", lw=lw + 1, label=label2),
-            Line2D([], [], color="navajowhite", lw=lw, label="FENIKS-UDS"),
+            Line2D([], [], color=color1, lw=lw + 1, label=label1),
+            Line2D([], [], color=color2, lw=lw + 1, label=label2),
+            Line2D([], [], color=color_data, lw=lw, label="FENIKS-UDS"),
         ]
     else:
         handles = [
-            Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1),
-            Line2D([], [], color="navajowhite", lw=lw, label="FENIKS-UDS"),
+            Line2D([], [], color=color1, lw=lw + 1, label=label1),
+            Line2D([], [], color=color_data, lw=lw, label="FENIKS-UDS"),
         ]
 
     fig_corner.axes[0].legend(
