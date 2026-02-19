@@ -362,14 +362,14 @@ def plot_n_corner(
     # proxy artists
     if label2 is not None:
         handles = [
-            Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1, fontsize=16),
-            Line2D([], [], color="magenta", lw=lw + 1, label=label2, fontsize=16),
-            Line2D([], [], color="navajowhite", lw=lw, label="data", fontsize=16),
+            Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1),
+            Line2D([], [], color="magenta", lw=lw + 1, label=label2),
+            Line2D([], [], color="navajowhite", lw=lw, label="data"),
         ]
     else:
         handles = [
-            Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1, fontsize=16),
-            Line2D([], [], color="navajowhite", lw=lw, label="data", fontsize=16),
+            Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1),
+            Line2D([], [], color="navajowhite", lw=lw, label="data"),
         ]
 
     # attach legend to one axis (corner has many axes!)
@@ -378,6 +378,7 @@ def plot_n_corner(
         loc="center left",
         bbox_to_anchor=(1.0, 0.5),
         frameon=False,
+        fontsize=16,
     )
 
     for ax in fig_corner.get_axes():
