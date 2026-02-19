@@ -576,17 +576,17 @@ def plot_n(
             alpha=0.7,
             label=label1,
         )
-
-        ax[i].hist(
-            obs_colors_mag2[:, i],
-            weights=N_weights2 * (1 / lc_vol_mpc3) * cat_weight,
-            bins=bins,
-            histtype="step",
-            color="magenta",
-            alpha=0.7,
-            lw=1,
-            label=label2,
-        )
+        if diffstarpop_params2 is not None:
+            ax[i].hist(
+                obs_colors_mag2[:, i],
+                weights=N_weights2 * (1 / lc_vol_mpc3) * cat_weight,
+                bins=bins,
+                histtype="step",
+                color="magenta",
+                alpha=0.7,
+                lw=1,
+                label=label2,
+            )
 
         # data
         if dataset_colors_mag is not None:
