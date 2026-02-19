@@ -263,6 +263,7 @@ def plot_n_corner(
     weights1,
     label1,
     dataset_colors_mag,
+    dataset_weights,
     mag_columns,
     color_bin_edges,
     mag_bin_edges,
@@ -298,7 +299,7 @@ def plot_n_corner(
             "histtype": "step",
             "alpha": 1.0,
             "lw": lw + 1,
-            "density": True,
+            "density": False,
         },
         fill_contours=False,
         range=ranges,
@@ -321,7 +322,7 @@ def plot_n_corner(
                 "histtype": "step",
                 "alpha": 1.0,
                 "lw": lw + 1,
-                "density": True,
+                "density": False,
             },
             # hist2d_kwargs={"weights": weights2},
             fill_contours=False,
@@ -333,6 +334,7 @@ def plot_n_corner(
 
     corner.corner(
         dataset_colors_mag,
+        weights=dataset_weights,
         fig=fig_corner,
         color=color_data,
         plot_datapoints=False,
@@ -345,7 +347,7 @@ def plot_n_corner(
             "histtype": "stepfilled",
             "alpha": 1.0,
             "lw": lw,
-            "density": True,
+            "density": False,
         },
         fill_contours=True,
         range=ranges,
@@ -508,7 +510,7 @@ def plot_n(
     )
     # correction added on 02/09/2026. The fraction of objects remaining after all bands
     # included have totflux !=-99.
-    cat_weight = jnp.ones_like(N_weights1) * frac_cat
+    # cat_weight = jnp.ones_like(N_weights1) * frac_cat
     ###################################################################
 
     if diffstarpop_params2 is not None:
@@ -579,9 +581,10 @@ def plot_n(
     if plot_corner == True:
         plot_n_corner(
             obs_colors_mag1,
-            N_weights1 * cat_weight,
+            N_weights1 * (1 / lc_vol_mpc3) * frac_cat,
             label1,
             dataset_colors_mag,
+            np.ones_like(dataset_colors_mag[:, 0]) / data_vol_mpc3,
             mag_columns,
             color_bin_edges,
             mag_bin_edges,
@@ -589,7 +592,7 @@ def plot_n(
             title,
             saveAs,
             # obs_colors_mag2,
-            # N_weights2 * cat_weight,
+            # N_weights2 * (1 / lc_vol_mpc3) * frac_cat,
             # label2,
         )
 
@@ -610,7 +613,7 @@ def plot_n(
 
         ax[i].hist(
             obs_colors_mag1[:, i],
-            weights=N_weights1 * (1 / lc_vol_mpc3) * cat_weight,
+            weights=N_weights1 * (1 / lc_vol_mpc3) * frac_cat,
             bins=bins,
             histtype="step",
             color="deepskyblue",
@@ -620,7 +623,7 @@ def plot_n(
         if diffstarpop_params2 is not None:
             ax[i].hist(
                 obs_colors_mag2[:, i],
-                weights=N_weights2 * (1 / lc_vol_mpc3) * cat_weight,
+                weights=N_weights2 * (1 / lc_vol_mpc3) * frac_cat,
                 bins=bins,
                 histtype="step",
                 color="magenta",
