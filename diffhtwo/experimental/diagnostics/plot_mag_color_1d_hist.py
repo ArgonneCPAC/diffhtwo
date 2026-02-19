@@ -390,7 +390,7 @@ def plot_n_corner(
     axes = np.array(fig_corner.axes).reshape((ndim, ndim))
     for i in range(ndim):
         ax = axes[i, i]
-        ax.set_xscale("log")
+        ax.set_yscale("log")
 
     for ax in fig_corner.get_axes():
         ax.tick_params(axis="both", labelsize=12)
