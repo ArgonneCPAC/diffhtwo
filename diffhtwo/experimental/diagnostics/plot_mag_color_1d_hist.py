@@ -280,9 +280,9 @@ def plot_n_corner(
         ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
 
     lw = 2.0
-    color1 = "deepskyblue"
+    color1 = "k"
     color2 = "magenta"
-    color_data = "orange"
+    color_data = "deepskyblue"
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=weights1,
