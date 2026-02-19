@@ -318,7 +318,7 @@ def plot_n_corner(
         fig=fig_corner,
         color="navajowhite",
         plot_datapoints=False,
-        # smooth=1.5,
+        smooth=5,
         # bins=80,
         # smooth_1d=1.5,
         levels=[0.68, 0.95],
