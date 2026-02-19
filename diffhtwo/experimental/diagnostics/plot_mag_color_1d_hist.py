@@ -279,6 +279,7 @@ def plot_n_corner(
     for m in range(0, len(mag_columns)):
         ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
 
+    lw = 2.0
     fig_corner = corner.corner(
         obs_colors_mag1,
         weights=weights1,
@@ -286,14 +287,14 @@ def plot_n_corner(
         label_kwargs={"fontsize": 16},
         color="deepskyblue",
         smooth=1.0,
-        bins=40,
+        # bins=40,
         # smooth_1d=2,
         plot_datapoints=False,
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "step",
-            "alpha": 0.9,
-            "lw": 2,
+            "alpha": 1.0,
+            "lw": lw,
             "density": True,
         },
         fill_contours=False,
@@ -309,14 +310,14 @@ def plot_n_corner(
             fig=fig_corner,
             color="magenta",
             smooth=1.0,
-            bins=40,
+            # bins=40,
             # smooth_1d=1.5,
             plot_datapoints=False,
             levels=[0.68, 0.95],
             hist_kwargs={
                 "histtype": "step",
-                "alpha": 0.9,
-                "lw": 2,
+                "alpha": 1.0,
+                "lw": lw,
                 "density": True,
             },
             # hist2d_kwargs={"weights": weights2},
@@ -330,17 +331,17 @@ def plot_n_corner(
     corner.corner(
         dataset_colors_mag,
         fig=fig_corner,
-        color="tab:orange",
+        color="orange",
         plot_datapoints=False,
         plot_density=False,
         smooth=1.0,
-        bins=40,
+        # bins=40,
         # smooth_1d=1.5,
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "stepfilled",
-            "alpha": 0.5,
-            "lw": 2,
+            "alpha": 1.0,
+            "lw": lw,
             "density": True,
         },
         fill_contours=True,
@@ -359,11 +360,17 @@ def plot_n_corner(
     #     ax.plot(xgrid, kde(xgrid), lw=2, color="tab:orange")
 
     # proxy artists
-    handles = [
-        Line2D([], [], color="deepskyblue", lw=1, label=label1),
-        Line2D([], [], color="magenta", lw=1, label=label2),
-        Line2D([], [], color="navajowhite", lw=1, label="data"),
-    ]
+    if label2 is not None:
+        handles = [
+            Line2D([], [], color="deepskyblue", lw=lw, label=label1),
+            Line2D([], [], color="magenta", lw=lw, label=label2),
+            Line2D([], [], color="navajowhite", lw=lw, label="data"),
+        ]
+    else:
+        handles = [
+            Line2D([], [], color="deepskyblue", lw=lw, label=label1),
+            Line2D([], [], color="navajowhite", lw=lw, label="data"),
+        ]
 
     # attach legend to one axis (corner has many axes!)
     fig_corner.axes[0].legend(
