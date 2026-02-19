@@ -285,7 +285,7 @@ def plot_n_corner(
         weights=weights1,
         labels=dimension_labels,
         label_kwargs={"fontsize": 16},
-        color="deepskyblue",
+        color="orange",
         smooth=1.0,
         # bins=40,
         # smooth_1d=2,
@@ -294,7 +294,7 @@ def plot_n_corner(
         hist_kwargs={
             "histtype": "step",
             "alpha": 1.0,
-            "lw": lw,
+            "lw": lw + 1,
             "density": True,
         },
         fill_contours=False,
@@ -317,7 +317,7 @@ def plot_n_corner(
             hist_kwargs={
                 "histtype": "step",
                 "alpha": 1.0,
-                "lw": lw,
+                "lw": lw + 1,
                 "density": True,
             },
             # hist2d_kwargs={"weights": weights2},
@@ -331,7 +331,7 @@ def plot_n_corner(
     corner.corner(
         dataset_colors_mag,
         fig=fig_corner,
-        color="orange",
+        color="deepskyblue",
         plot_datapoints=False,
         plot_density=False,
         smooth=1.0,
@@ -362,14 +362,14 @@ def plot_n_corner(
     # proxy artists
     if label2 is not None:
         handles = [
-            Line2D([], [], color="deepskyblue", lw=lw, label=label1),
-            Line2D([], [], color="magenta", lw=lw, label=label2),
-            Line2D([], [], color="navajowhite", lw=lw, label="data"),
+            Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1, fontsize=16),
+            Line2D([], [], color="magenta", lw=lw + 1, label=label2, fontsize=16),
+            Line2D([], [], color="navajowhite", lw=lw, label="data", fontsize=16),
         ]
     else:
         handles = [
-            Line2D([], [], color="deepskyblue", lw=lw, label=label1),
-            Line2D([], [], color="navajowhite", lw=lw, label="data"),
+            Line2D([], [], color="deepskyblue", lw=lw + 1, label=label1, fontsize=16),
+            Line2D([], [], color="navajowhite", lw=lw, label="data", fontsize=16),
         ]
 
     # attach legend to one axis (corner has many axes!)
