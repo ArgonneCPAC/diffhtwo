@@ -287,7 +287,7 @@ def plot_n_corner(
         # smooth_1d=2,
         plot_datapoints=False,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "step", "alpha": 0.9, "density": True},
+        hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 2, "density": True},
         fill_contours=False,
         range=ranges,
     )
@@ -305,7 +305,7 @@ def plot_n_corner(
             # smooth_1d=1.5,
             plot_datapoints=False,
             levels=[0.68, 0.95],
-            hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 1, "density": True},
+            hist_kwargs={"histtype": "step", "alpha": 0.9, "lw": 2, "density": True},
             # hist2d_kwargs={"weights": weights2},
             fill_contours=False,
             show_titles=True,
@@ -323,7 +323,7 @@ def plot_n_corner(
         # bins=80,
         # smooth_1d=1.5,
         levels=[0.68, 0.95],
-        hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "density": True},
+        hist_kwargs={"histtype": "stepfilled", "alpha": 1.0, "lw": 2, "density": True},
         fill_contours=False,
         range=ranges,
     )
