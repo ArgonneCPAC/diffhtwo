@@ -283,10 +283,10 @@ def plot_n_corner(
     lw = 2.0
     # blue = "#1E90FF"  # DodgerBlue
     # orange = "#FF8C00"  # DarkOrange
-    blue = "#4169E1"  # RoyalBlue
-    orange = "#D2691E"  # Chocolate
-    # blue = "#00BFFF"      # DeepSkyBlue
-    # orange = "#FFA500"    # Orange
+    # blue = "#4169E1"  # RoyalBlue
+    # orange = "#D2691E"  # Chocolate
+    blue = "#00BFFF"  # DeepSkyBlue
+    orange = "#FFA500"  # Orange
 
     color1 = orange
     color2 = "magenta"
@@ -628,10 +628,10 @@ def plot_n(
     lw = 2
     # blue = "#1E90FF"  # DodgerBlue
     # orange = "#FF8C00"  # DarkOrange
-    blue = "#4169E1"  # RoyalBlue
-    orange = "#D2691E"  # Chocolate
-    # blue = "#00BFFF"      # DeepSkyBlue
-    # orange = "#FFA500"    # Orange
+    # blue = "#4169E1"  # RoyalBlue
+    # orange = "#D2691E"  # Chocolate
+    blue = "#00BFFF"  # DeepSkyBlue
+    orange = "#FFA500"  # Orange
 
     color1 = orange
     color2 = "magenta"
