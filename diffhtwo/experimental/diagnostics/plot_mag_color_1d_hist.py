@@ -611,7 +611,10 @@ def plot_n(
     )
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title, fontsize=18)
-
+    lw = 2
+    color1 = "k"
+    color2 = "magenta"
+    color_data = "deepskyblue"
     for i in range(0, n_bands - 1 + len(mag_columns)):
         if i < n_bands - 1:
             bins = color_bin_edges
@@ -623,8 +626,9 @@ def plot_n(
             weights=N_weights1 * (1 / lc_vol_mpc3) * frac_cat,
             bins=bins,
             histtype="step",
-            color="deepskyblue",
-            alpha=0.7,
+            color=color1,
+            alpha=1,
+            lw=lw,
             label=label1,
         )
         if diffstarpop_params2 is not None:
@@ -633,9 +637,9 @@ def plot_n(
                 weights=N_weights2 * (1 / lc_vol_mpc3) * frac_cat,
                 bins=bins,
                 histtype="step",
-                color="magenta",
-                alpha=0.7,
-                lw=1,
+                color=color2,
+                alpha=1,
+                lw=lw,
                 label=label2,
             )
 
@@ -645,8 +649,9 @@ def plot_n(
                 dataset_colors_mag[:, i],
                 weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
                 bins=bins,
-                color="navajowhite",
+                color=color_data,
                 alpha=1,
+                lw=2,
                 label="data",
             )
 
