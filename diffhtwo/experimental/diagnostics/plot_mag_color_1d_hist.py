@@ -518,9 +518,9 @@ def plot_n(
     )
     N_weights1 = np.concatenate(
         [
-            lc_phot_weights_q1,
-            lc_phot_weights_smooth_ms1,
-            lc_phot_weights_bursty_ms1,
+            lc_phot_weights_q1 * frac_cat,
+            lc_phot_weights_smooth_ms1 * frac_cat,
+            lc_phot_weights_bursty_ms1 * frac_cat,
         ]
     )
     # correction added on 02/09/2026. The fraction of objects remaining after all bands
@@ -583,9 +583,9 @@ def plot_n(
         )
         N_weights2 = np.concatenate(
             [
-                lc_phot_weights_q2,
-                lc_phot_weights_smooth_ms2,
-                lc_phot_weights_bursty_ms2,
+                lc_phot_weights_q2 * frac_cat,
+                lc_phot_weights_smooth_ms2 * frac_cat,
+                lc_phot_weights_bursty_ms2 * frac_cat,
             ]
         )
 
@@ -596,10 +596,10 @@ def plot_n(
     if plot_corner is True:
         plot_n_corner(
             obs_colors_mag1,
-            N_weights1 * (1 / lc_vol_mpc3) * frac_cat,
+            N_weights1 * (1 / lc_vol_mpc3),
             label1,
             dataset_colors_mag,
-            np.ones_like(dataset_colors_mag[:, 0]) / data_vol_mpc3,
+            np.ones_like(dataset_colors_mag[:, 0]) * (1 / data_vol_mpc3),
             mag_columns,
             color_bin_edges,
             mag_bin_edges,
@@ -633,7 +633,7 @@ def plot_n(
 
         ax[i].hist(
             obs_colors_mag1[:, i],
-            weights=N_weights1 * (1 / lc_vol_mpc3) * frac_cat,
+            weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=bins,
             histtype="step",
             color=color1,
@@ -644,7 +644,7 @@ def plot_n(
         if diffstarpop_params2 is not None:
             ax[i].hist(
                 obs_colors_mag2[:, i],
-                weights=N_weights2 * (1 / lc_vol_mpc3) * frac_cat,
+                weights=N_weights2 * (1 / lc_vol_mpc3),
                 bins=bins,
                 histtype="step",
                 color=color2,
@@ -657,7 +657,7 @@ def plot_n(
         if dataset_colors_mag is not None:
             ax[i].hist(
                 dataset_colors_mag[:, i],
-                weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
+                weights=np.ones_like(dataset_colors_mag[:, i]) * (1 / data_vol_mpc3),
                 bins=bins,
                 color=color_data,
                 alpha=0.7,
