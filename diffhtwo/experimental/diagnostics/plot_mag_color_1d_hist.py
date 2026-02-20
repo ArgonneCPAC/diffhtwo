@@ -666,13 +666,13 @@ def plot_n(
             )
 
         ax[i].set_yscale("log")
-        ax[i].set_xlabel(dimension_labels[i], fontsize=14)
+        ax[i].set_xlabel(dimension_labels[i], fontsize=20)
         ax[i].set_ylim(1e-6, 3e-2)
         ax[i].tick_params(axis="both", direction="in", labelsize=12)
         if i != 0:
             ax[i].set_yticklabels([])
 
-    ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=14)
+    ax[0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=20)
     plt.rcParams["legend.fontsize"] = 14
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
 
