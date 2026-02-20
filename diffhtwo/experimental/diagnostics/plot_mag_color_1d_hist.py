@@ -302,7 +302,7 @@ def plot_n_corner(
             "density": True,
         },
         fill_contours=True,
-        contour_kwargs={"linewidths": 2.5},
+        contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
         range=ranges,
     )
 
@@ -327,7 +327,7 @@ def plot_n_corner(
             },
             # hist2d_kwargs={"weights": weights2},
             fill_contours=True,
-            contour_kwargs={"linewidths": 2.5},
+            contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
             show_titles=True,
             title_fmt=".2f",
             title_kwargs={"fontsize": 12},
@@ -346,12 +346,12 @@ def plot_n_corner(
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "stepfilled",
-            "alpha": 1.0,
+            "alpha": 0.75,
             "lw": lw,
             "density": True,
         },
         fill_contours=True,
-        contour_kwargs={"linewidths": 2.5},
+        contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
         range=ranges,
     )
 
@@ -652,7 +652,7 @@ def plot_n(
                 weights=np.ones_like(dataset_colors_mag[:, i]) / data_vol_mpc3,
                 bins=bins,
                 color=color_data,
-                alpha=1,
+                alpha=0.7,
                 lw=lw,
                 label="data",
             )
