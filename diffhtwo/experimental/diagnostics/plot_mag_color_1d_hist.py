@@ -596,10 +596,10 @@ def plot_n(
     if plot_corner is True:
         plot_n_corner(
             obs_colors_mag1,
-            N_weights1 * (1 / lc_vol_mpc3),
+            N_weights1,
             label1,
             dataset_colors_mag,
-            np.ones_like(dataset_colors_mag[:, 0]) * (1 / data_vol_mpc3),
+            np.ones_like(dataset_colors_mag[:, 0]),
             mag_columns,
             color_bin_edges,
             mag_bin_edges,
