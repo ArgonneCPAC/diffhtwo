@@ -281,7 +281,7 @@ def plot_n_corner(
         ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
 
     lw = 2.0
-    color1 = "k"
+    color1 = "orange"
     color2 = "magenta"
     color_data = "deepskyblue"
     fig_corner = corner.corner(
@@ -612,7 +612,7 @@ def plot_n(
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title, fontsize=18)
     lw = 2
-    color1 = "k"
+    color1 = "orange"
     color2 = "magenta"
     color_data = "deepskyblue"
     for i in range(0, n_bands - 1 + len(mag_columns)):
