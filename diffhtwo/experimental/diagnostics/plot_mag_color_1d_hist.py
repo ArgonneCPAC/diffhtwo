@@ -385,7 +385,7 @@ def plot_n_corner(
         loc="center left",
         bbox_to_anchor=(1.0, 0.5),
         frameon=False,
-        fontsize=16,
+        fontsize=20,
     )
 
     # log-scale only the 1D hist x-axis
