@@ -290,6 +290,8 @@ def plot_n_corner(
         dataset_colors_mag,
         weights=dataset_weights,
         color=color_data,
+        labels=dimension_labels,
+        label_kwargs={"fontsize": 20},
         plot_datapoints=False,
         smooth=1.0,
         # bins=40,
@@ -306,15 +308,13 @@ def plot_n_corner(
         range=ranges,
     )
 
-    fig_corner.suptitle(title)
+    fig_corner.suptitle(title, fontsize=20)
 
     # model 1
     corner.corner(
         obs_colors_mag1,
         weights=weights1,
         fig=fig_corner,
-        labels=dimension_labels,
-        label_kwargs={"fontsize": 16},
         color=color1,
         smooth=1.0,
         # bins=40,
@@ -323,7 +323,7 @@ def plot_n_corner(
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "step",
-            "alpha": 1.0,
+            "alpha": 0.75,
             "lw": lw + 1,
             "density": True,
         },
@@ -346,7 +346,7 @@ def plot_n_corner(
             levels=[0.68, 0.95],
             hist_kwargs={
                 "histtype": "step",
-                "alpha": 1.0,
+                "alpha": 0.75,
                 "lw": lw + 1,
                 "density": True,
             },
