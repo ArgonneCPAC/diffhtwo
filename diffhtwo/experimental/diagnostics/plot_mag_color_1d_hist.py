@@ -281,10 +281,10 @@ def plot_n_corner(
         ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
 
     lw = 2.0
-    blue = "#1E90FF"  # DodgerBlue
-    orange = "#FF8C00"  # DarkOrange
-    # blue = "#4169E1"      # RoyalBlue
-    # orange = "#D2691E"    # Chocolate
+    # blue = "#1E90FF"  # DodgerBlue
+    # orange = "#FF8C00"  # DarkOrange
+    blue = "#4169E1"  # RoyalBlue
+    orange = "#D2691E"  # Chocolate
     # blue = "#00BFFF"      # DeepSkyBlue
     # orange = "#FFA500"    # Orange
 
@@ -626,10 +626,10 @@ def plot_n(
     fig.suptitle(title, fontsize=18)
 
     lw = 2
-    blue = "#1E90FF"  # DodgerBlue
-    orange = "#FF8C00"  # DarkOrange
-    # blue = "#4169E1"      # RoyalBlue
-    # orange = "#D2691E"    # Chocolate
+    # blue = "#1E90FF"  # DodgerBlue
+    # orange = "#FF8C00"  # DarkOrange
+    blue = "#4169E1"  # RoyalBlue
+    orange = "#D2691E"  # Chocolate
     # blue = "#00BFFF"      # DeepSkyBlue
     # orange = "#FFA500"    # Orange
 
