@@ -284,9 +284,35 @@ def plot_n_corner(
     color1 = "orange"
     color2 = "magenta"
     color_data = "deepskyblue"
+
+    # data
     fig_corner = corner.corner(
+        dataset_colors_mag,
+        weights=dataset_weights,
+        color=color_data,
+        plot_datapoints=False,
+        smooth=1.0,
+        # bins=40,
+        # smooth_1d=1.5,
+        levels=[0.68, 0.95],
+        hist_kwargs={
+            "histtype": "stepfilled",
+            "alpha": 0.75,
+            "lw": lw,
+            "density": True,
+        },
+        fill_contours=True,
+        contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
+        range=ranges,
+    )
+
+    fig_corner.suptitle(title)
+
+    # model 1
+    corner.corner(
         obs_colors_mag1,
         weights=weights1,
+        fig=fig_corner,
         labels=dimension_labels,
         label_kwargs={"fontsize": 16},
         color=color1,
@@ -306,8 +332,7 @@ def plot_n_corner(
         range=ranges,
     )
 
-    fig_corner.suptitle(title)
-
+    # model 2
     if obs_colors_mag2 is not None:
         corner.corner(
             obs_colors_mag2,
@@ -333,27 +358,6 @@ def plot_n_corner(
             title_kwargs={"fontsize": 12},
             range=ranges,
         )
-
-    corner.corner(
-        dataset_colors_mag,
-        weights=dataset_weights,
-        fig=fig_corner,
-        color=color_data,
-        plot_datapoints=False,
-        smooth=1.0,
-        # bins=40,
-        # smooth_1d=1.5,
-        levels=[0.68, 0.95],
-        hist_kwargs={
-            "histtype": "stepfilled",
-            "alpha": 0.75,
-            "lw": lw,
-            "density": True,
-        },
-        fill_contours=True,
-        contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
-        range=ranges,
-    )
 
     # ndim = dataset_colors_mag.shape[1]
     # axes = np.array(fig_corner.axes).reshape((ndim, ndim))
