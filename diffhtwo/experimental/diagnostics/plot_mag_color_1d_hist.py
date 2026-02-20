@@ -588,7 +588,7 @@ def plot_n(
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
 
     # Plot corner
-    if plot_corner == True:
+    if plot_corner is True:
         plot_n_corner(
             obs_colors_mag1,
             N_weights1 * (1 / lc_vol_mpc3) * frac_cat,
@@ -631,7 +631,7 @@ def plot_n(
             histtype="step",
             color=color1,
             alpha=1,
-            lw=lw,
+            lw=lw + 1,
             label=label1,
         )
         if diffstarpop_params2 is not None:
@@ -654,7 +654,7 @@ def plot_n(
                 bins=bins,
                 color=color_data,
                 alpha=1,
-                lw=2,
+                lw=lw,
                 label="data",
             )
 
