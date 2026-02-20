@@ -20,11 +20,12 @@ from jax.flatten_util import ravel_pytree
 from .. import n_mag_opt
 from ..utils import zbin_volume
 
-# from scipy.stats import gaussian_kde
-
-
-# from scipy.stats import gaussian_kde
-# yellow7 = pplt.scale_luminance('yellow7', 1.05)
+blue = "#1E90FF"  # DodgerBlue
+orange = "#FF8C00"  # DarkOrange
+# blue = "#4169E1"  # RoyalBlue
+# orange = "#D2691E"  # Chocolate
+# blue = "#00BFFF"  # DeepSkyBlue
+# orange = "#FFA500"  # Orange
 
 
 try:
@@ -281,12 +282,6 @@ def plot_n_corner(
         ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
 
     lw = 2.0
-    # blue = "#1E90FF"  # DodgerBlue
-    # orange = "#FF8C00"  # DarkOrange
-    # blue = "#4169E1"  # RoyalBlue
-    # orange = "#D2691E"  # Chocolate
-    blue = "#00BFFF"  # DeepSkyBlue
-    orange = "#FFA500"  # Orange
 
     color1 = orange
     color2 = "magenta"
@@ -626,13 +621,6 @@ def plot_n(
     fig.suptitle(title, fontsize=18)
 
     lw = 2
-    # blue = "#1E90FF"  # DodgerBlue
-    # orange = "#FF8C00"  # DarkOrange
-    # blue = "#4169E1"  # RoyalBlue
-    # orange = "#D2691E"  # Chocolate
-    blue = "#00BFFF"  # DeepSkyBlue
-    orange = "#FFA500"  # Orange
-
     color1 = orange
     color2 = "magenta"
     color_data = blue
