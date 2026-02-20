@@ -242,7 +242,7 @@ def plot_n_mag(
             bins=mag_bin_edges,
             color="navajowhite",
             alpha=1,
-            label="data",
+            label="FENIKS-UDS",
         )
 
         ax[i].set_yscale("log")
@@ -658,7 +658,7 @@ def plot_n(
                 color=color_data,
                 alpha=0.7,
                 lw=lw,
-                label="data",
+                label="FENIKS-UDS",
             )
 
         ax[i].set_yscale("log")
