@@ -310,7 +310,7 @@ def plot_n_corner(
         range=ranges,
     )
 
-    fig_corner.suptitle(title, fontsize=20)
+    fig_corner.suptitle(title, fontsize=24)
 
     # model 1
     corner.corner(
@@ -668,6 +668,7 @@ def plot_n(
         ax[i].set_yscale("log")
         ax[i].set_xlabel(dimension_labels[i], fontsize=14)
         ax[i].set_ylim(1e-6, 3e-2)
+        ax[i].tick_params(axis="both", direction="in", labelsize=12)
         if i != 0:
             ax[i].set_yticklabels([])
 
