@@ -222,8 +222,9 @@ def plot_n_mag(
             bins=mag_bin_edges,
             histtype="step",
             color=color1,
-            alpha=0.7,
+            alpha=1,
             label=label1,
+            lw=lw + 1,
         )
 
         # model 2
@@ -242,8 +243,8 @@ def plot_n_mag(
                 bins=mag_bin_edges,
                 histtype="step",
                 color=color2,
-                alpha=0.7,
-                lw=1,
+                alpha=1,
+                lw=lw,
                 label=label2,
             )
 
@@ -254,6 +255,8 @@ def plot_n_mag(
             bins=mag_bin_edges,
             color=color_data,
             alpha=1,
+            lw=lw,
+            alpha=0.7,
             label="FENIKS-UDS",
         )
 
