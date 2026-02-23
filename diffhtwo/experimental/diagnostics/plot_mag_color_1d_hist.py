@@ -26,6 +26,13 @@ orange = "#FF8C00"  # DarkOrange
 # orange = "#D2691E"  # Chocolate
 # blue = "#00BFFF"  # DeepSkyBlue
 # orange = "#FFA500"  # Orange
+color1 = orange
+color2 = "magenta"
+color_data = blue
+lw = 2
+fontsize = 20
+labelsize = 12
+legend_fontsize = 14
 
 
 try:
@@ -39,13 +46,9 @@ except ImportError:
 
 def plot_n_mag(
     diffstarpop_params1,
-    diffstarpop_params2,
     spspop_params1,
-    spspop_params2,
     ssp_err_pop_params1,
-    ssp_err_pop_params2,
-    dataset_mags,
-    data_sky_area_degsq,
+    label1,
     tcurves,
     mag_thresh_column,
     mag_thresh,
@@ -59,9 +62,13 @@ def plot_n_mag(
     mzr_params,
     scatter_params,
     title,
-    label1,
-    label2,
     saveAs,
+    dataset_mags=None,
+    data_sky_area_degsq=None,
+    diffstarpop_params2=None,
+    spspop_params2=None,
+    ssp_err_pop_params2=None,
+    label2=None,
     lgmp_min=10.0,
     lgmp_max=15.0,
     sky_area_degsq=0.1,
@@ -75,7 +82,8 @@ def plot_n_mag(
         *lc_args, cosmo_params=cosmo_params, lgmp_max=lgmp_max
     )
     lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
-    data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
+    if data_sky_area_degsq is not None:
+        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
 
     n_z_phot_table = 15
 
@@ -134,72 +142,73 @@ def plot_n_mag(
     )
     N_weights1 = np.concatenate(
         [
-            lc_phot_weights_q1,
-            lc_phot_weights_smooth_ms1,
-            lc_phot_weights_bursty_ms1,
+            lc_phot_weights_q1 * frac_cat,
+            lc_phot_weights_smooth_ms1 * frac_cat,
+            lc_phot_weights_bursty_ms1 * frac_cat,
         ]
     )
-    # correction added on 02/09/2026. The fraction of objects remaining after all bands
-    # included have totflux !=-99.
-    cat_weight = jnp.ones_like(N_weights1) * frac_cat
-    ###################################################################
 
-    ran_key, phot_key2 = jran.split(ran_key, 2)
-    phot_args2 = (
-        phot_key2,
-        lc_halopop["z_obs"],
-        lc_halopop["t_obs"],
-        lc_halopop["mah_params"],
-        lc_halopop["logmp0"],
-        t_table,
-        ssp_data,
-        precomputed_ssp_mag_table,
-        z_phot_table,
-        wave_eff_table,
-        diffstarpop_params2,
-        mzr_params,
-        spspop_params2,
-        scatter_params,
-        ssp_err_pop_params2,
-        cosmo_params,
-        fb,
-    )
+    if diffstarpop_params2 is not None:
+        ran_key, phot_key2 = jran.split(ran_key, 2)
+        phot_args2 = (
+            phot_key2,
+            lc_halopop["z_obs"],
+            lc_halopop["t_obs"],
+            lc_halopop["mah_params"],
+            lc_halopop["logmp0"],
+            t_table,
+            ssp_data,
+            precomputed_ssp_mag_table,
+            z_phot_table,
+            wave_eff_table,
+            diffstarpop_params2,
+            mzr_params,
+            spspop_params2,
+            scatter_params,
+            ssp_err_pop_params2,
+            cosmo_params,
+            fb,
+        )
 
-    lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
-    num_halos, n_bands = lc_phot2.obs_mags_q.shape
+        lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
+        num_halos, n_bands = lc_phot2.obs_mags_q.shape
 
-    # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
-    obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
-    obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_thresh_column]
-    obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_thresh_column]
+        # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
+        obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
+        obs_mag_smooth_ms2 = lc_phot2.obs_mags_smooth_ms[:, mag_thresh_column]
+        obs_mag_bursty_ms2 = lc_phot2.obs_mags_bursty_ms[:, mag_thresh_column]
 
-    lc_phot_weights_q2 = jnp.where(
-        obs_mag_q2 < mag_thresh, lc_phot2.weights_q, jnp.zeros_like(lc_phot2.weights_q)
-    )
-    lc_phot_weights_smooth_ms2 = jnp.where(
-        obs_mag_smooth_ms2 < mag_thresh,
-        lc_phot2.weights_smooth_ms,
-        jnp.zeros_like(lc_phot2.weights_smooth_ms),
-    )
-    lc_phot_weights_bursty_ms2 = jnp.where(
-        obs_mag_bursty_ms2 < mag_thresh,
-        lc_phot2.weights_bursty_ms,
-        jnp.zeros_like(lc_phot2.weights_bursty_ms),
-    )
-    N_weights2 = np.concatenate(
-        [
-            lc_phot_weights_q2,
-            lc_phot_weights_smooth_ms2,
-            lc_phot_weights_bursty_ms2,
-        ]
-    )
+        lc_phot_weights_q2 = jnp.where(
+            obs_mag_q2 < mag_thresh,
+            lc_phot2.weights_q,
+            jnp.zeros_like(lc_phot2.weights_q),
+        )
+        lc_phot_weights_smooth_ms2 = jnp.where(
+            obs_mag_smooth_ms2 < mag_thresh,
+            lc_phot2.weights_smooth_ms,
+            jnp.zeros_like(lc_phot2.weights_smooth_ms),
+        )
+        lc_phot_weights_bursty_ms2 = jnp.where(
+            obs_mag_bursty_ms2 < mag_thresh,
+            lc_phot2.weights_bursty_ms,
+            jnp.zeros_like(lc_phot2.weights_bursty_ms),
+        )
+        N_weights2 = np.concatenate(
+            [
+                lc_phot_weights_q2 * frac_cat,
+                lc_phot_weights_smooth_ms2 * frac_cat,
+                lc_phot_weights_bursty_ms2 * frac_cat,
+            ]
+        )
 
     fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4))
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title, fontsize=18)
 
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
+
     for i in range(0, n_bands):
+        # model 1
         lc_phot1_obs_mags = np.concatenate(
             [
                 lc_phot1.obs_mags_q[:, i],
@@ -209,10 +218,10 @@ def plot_n_mag(
         )
         ax[i].hist(
             lc_phot1_obs_mags,
-            weights=N_weights1 * (1 / lc_vol_mpc3) * cat_weight,
+            weights=N_weights1 * (1 / lc_vol_mpc3),
             bins=mag_bin_edges,
             histtype="step",
-            color="deepskyblue",
+            color=color1,
             alpha=0.7,
             label=label1,
         )
@@ -225,23 +234,25 @@ def plot_n_mag(
             ]
         )
 
-        ax[i].hist(
-            lc_phot2_obs_mags,
-            weights=N_weights2 * (1 / lc_vol_mpc3) * cat_weight,
-            bins=mag_bin_edges,
-            histtype="step",
-            color="magenta",
-            alpha=0.7,
-            lw=1,
-            label=label2,
-        )
+        # model 2
+        if diffstarpop_params2 is not None:
+            ax[i].hist(
+                lc_phot2_obs_mags,
+                weights=N_weights2 * (1 / lc_vol_mpc3),
+                bins=mag_bin_edges,
+                histtype="step",
+                color=color2,
+                alpha=0.7,
+                lw=1,
+                label=label2,
+            )
 
         # data
         ax[i].hist(
             dataset_mags[:, i],
-            weights=np.ones_like(dataset_mags[:, i]) / data_vol_mpc3,
+            weights=np.ones_like(dataset_mags[:, i]) * (1 / data_vol_mpc3),
             bins=mag_bin_edges,
-            color="navajowhite",
+            color=color_data,
             alpha=1,
             label="FENIKS-UDS",
         )
@@ -253,7 +264,7 @@ def plot_n_mag(
             ax[i].set_yticklabels([])
 
     ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=14)
-    plt.rcParams["legend.fontsize"] = 14
+    plt.rcParams["legend.fontsize"] = legend_fontsize
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
     plt.savefig(saveAs + ".pdf")
     plt.show()
@@ -281,12 +292,6 @@ def plot_n_corner(
     for m in range(0, len(mag_columns)):
         ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
 
-    lw = 2.0
-
-    color1 = orange
-    color2 = "magenta"
-    color_data = blue
-
     # data
     fig_corner = corner.corner(
         dataset_colors_mag,
@@ -310,7 +315,7 @@ def plot_n_corner(
         range=ranges,
     )
 
-    fig_corner.suptitle(title, fontsize=24)
+    fig_corner.suptitle(title, fontsize=fontsize + 4)
 
     # model 1
     corner.corner(
@@ -355,24 +360,9 @@ def plot_n_corner(
             # hist2d_kwargs={"weights": weights2},
             fill_contours=True,
             contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
-            show_titles=True,
-            title_fmt=".2f",
-            title_kwargs={"fontsize": 12},
             range=ranges,
         )
 
-    # ndim = dataset_colors_mag.shape[1]
-    # axes = np.array(fig_corner.axes).reshape((ndim, ndim))
-
-    # for i in range(ndim):
-    #     ax = axes[i, i]
-    #     x = dataset_colors_mag[:, i]
-
-    #     kde = gaussian_kde(x)
-    #     xgrid = np.linspace(x.min(), x.max(), 500)
-    #     ax.plot(xgrid, kde(xgrid), lw=2, color="tab:orange")
-
-    # proxy artists
     if label2 is not None:
         handles = [
             Line2D([], [], color=color1, lw=lw + 1, label=label1),
@@ -390,18 +380,11 @@ def plot_n_corner(
         loc="center left",
         bbox_to_anchor=(1.0, 0.5),
         frameon=False,
-        fontsize=20,
+        fontsize=fontsize,
     )
 
-    # log-scale only the 1D hist x-axis
-    # ndim = dataset_colors_mag.shape[1]
-    # axes = np.array(fig_corner.axes).reshape((ndim, ndim))
-    # for i in range(ndim):
-    #     ax = axes[i, i]
-    #     ax.set_yscale("log")
-
     for ax in fig_corner.get_axes():
-        ax.tick_params(axis="both", direction="in", labelsize=12)
+        ax.tick_params(axis="both", direction="in", labelsize=labelsize)
     plt.savefig(saveAs + "_corner.pdf")
     plt.show()
 
@@ -523,10 +506,6 @@ def plot_n(
             lc_phot_weights_bursty_ms1 * frac_cat,
         ]
     )
-    # correction added on 02/09/2026. The fraction of objects remaining after all bands
-    # included have totflux !=-99.
-    # cat_weight = jnp.ones_like(N_weights1) * frac_cat
-    ###################################################################
 
     if diffstarpop_params2 is not None:
         ran_key, phot_key2 = jran.split(ran_key, 2)
@@ -620,11 +599,6 @@ def plot_n(
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title, fontsize=18)
 
-    lw = 2
-    color1 = orange
-    color2 = "magenta"
-    color_data = blue
-
     for i in range(0, n_bands - 1 + len(mag_columns)):
         if i < n_bands - 1:
             bins = color_bin_edges
@@ -666,14 +640,14 @@ def plot_n(
             )
 
         ax[i].set_yscale("log")
-        ax[i].set_xlabel(dimension_labels[i], fontsize=20)
+        ax[i].set_xlabel(dimension_labels[i], fontsize=fontsize)
         ax[i].set_ylim(1e-6, 3e-2)
-        ax[i].tick_params(axis="both", direction="in", labelsize=12)
+        ax[i].tick_params(axis="both", direction="in", labelsize=labelsize)
         if i != 0:
             ax[i].set_yticklabels([])
 
-    ax[0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=20)
-    plt.rcParams["legend.fontsize"] = 14
+    ax[0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
+    plt.rcParams["legend.fontsize"] = legend_fontsize
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
 
     plt.savefig(saveAs + ".pdf")
