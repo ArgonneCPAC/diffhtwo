@@ -254,7 +254,6 @@ def plot_n_mag(
             weights=np.ones_like(dataset_mags[:, i]) * (1 / data_vol_mpc3),
             bins=mag_bin_edges,
             color=color_data,
-            alpha=1,
             lw=lw,
             alpha=0.7,
             label="FENIKS-UDS",
