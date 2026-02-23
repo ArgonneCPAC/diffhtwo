@@ -226,16 +226,16 @@ def plot_n_mag(
             label=label1,
         )
 
-        lc_phot2_obs_mags = np.concatenate(
-            [
-                lc_phot2.obs_mags_q[:, i],
-                lc_phot2.obs_mags_smooth_ms[:, i],
-                lc_phot2.obs_mags_bursty_ms[:, i],
-            ]
-        )
-
         # model 2
         if diffstarpop_params2 is not None:
+            lc_phot2_obs_mags = np.concatenate(
+                [
+                    lc_phot2.obs_mags_q[:, i],
+                    lc_phot2.obs_mags_smooth_ms[:, i],
+                    lc_phot2.obs_mags_bursty_ms[:, i],
+                ]
+            )
+
             ax[i].hist(
                 lc_phot2_obs_mags,
                 weights=N_weights2 * (1 / lc_vol_mpc3),
@@ -258,12 +258,12 @@ def plot_n_mag(
         )
 
         ax[i].set_yscale("log")
-        ax[i].set_xlabel(dimension_labels[i], fontsize=14)
+        ax[i].set_xlabel(dimension_labels[i], fontsize=fontsize)
         ax[i].set_ylim(1e-6, 5e-3)
         if i != 0:
             ax[i].set_yticklabels([])
 
-    ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=14)
+    ax[0].set_ylabel("number density [Mpc$^{-3}$]", fontsize=fontsize)
     plt.rcParams["legend.fontsize"] = legend_fontsize
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
     plt.savefig(saveAs + ".pdf")
