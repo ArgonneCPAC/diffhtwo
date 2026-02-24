@@ -308,7 +308,7 @@ def plot_n_corner(
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "stepfilled",
-            "alpha": 0.75,
+            "alpha": 0.4,
             "lw": lw,
             "density": True,
         },
@@ -575,22 +575,37 @@ def plot_n(
 
     # Plot corner
     if plot_corner is True:
-        plot_n_corner(
-            obs_colors_mag1,
-            N_weights1,
-            label1,
-            dataset_colors_mag,
-            np.ones_like(dataset_colors_mag[:, 0]),
-            mag_columns,
-            color_bin_edges,
-            mag_bin_edges,
-            dimension_labels,
-            title,
-            saveAs,
-            # obs_colors_mag2,
-            # N_weights2 * (1 / lc_vol_mpc3) * frac_cat,
-            # label2,
-        )
+        if diffstarpop_params2 is not None:
+            plot_n_corner(
+                obs_colors_mag1,
+                N_weights1,
+                label1,
+                dataset_colors_mag,
+                np.ones_like(dataset_colors_mag[:, 0]),
+                mag_columns,
+                color_bin_edges,
+                mag_bin_edges,
+                dimension_labels,
+                title,
+                saveAs,
+                obs_colors_mag2=obs_colors_mag2,
+                weights2=N_weights2,
+                label2=label2,
+            )
+        else:
+            plot_n_corner(
+                obs_colors_mag1,
+                N_weights1,
+                label1,
+                dataset_colors_mag,
+                np.ones_like(dataset_colors_mag[:, 0]),
+                mag_columns,
+                color_bin_edges,
+                mag_bin_edges,
+                dimension_labels,
+                title,
+                saveAs,
+            )
 
     # Plot 1D histograms
     fig, ax = plt.subplots(
