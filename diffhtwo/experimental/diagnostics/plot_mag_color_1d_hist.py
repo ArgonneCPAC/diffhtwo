@@ -332,7 +332,7 @@ def plot_n_corner(
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "step",
-            "alpha": 0.75,
+            "alpha": 0.4,
             "lw": lw + 1,
             "density": True,
         },
@@ -355,7 +355,7 @@ def plot_n_corner(
             levels=[0.68, 0.95],
             hist_kwargs={
                 "histtype": "step",
-                "alpha": 0.75,
+                "alpha": 0.4,
                 "lw": lw + 1,
                 "density": True,
             },
