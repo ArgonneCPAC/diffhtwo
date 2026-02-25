@@ -31,7 +31,7 @@ color1 = orange
 color2 = "k"
 color_data = blue
 
-alpha1 = 0.7
+alpha1 = 1.0
 alpha2 = 0.7
 alpha_data = 0.5
 
