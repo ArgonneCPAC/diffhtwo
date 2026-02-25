@@ -31,8 +31,8 @@ color1 = orange
 color2 = "k"
 color_data = blue
 
-alpha1 = 0.5
-alpha2 = 0.5
+alpha1 = 0.7
+alpha2 = 0.7
 alpha_data = 0.5
 
 
@@ -315,7 +315,7 @@ def plot_n_corner(
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "stepfilled",
-            "alpha": alpha_data,
+            "alpha": 0.5,
             "lw": lw,
             "density": True,
         },
@@ -339,7 +339,7 @@ def plot_n_corner(
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "step",
-            "alpha": alpha1,
+            "alpha": 0.5,
             "lw": lw + 1,
             "density": True,
         },
@@ -362,7 +362,7 @@ def plot_n_corner(
             levels=[0.68, 0.95],
             hist_kwargs={
                 "histtype": "step",
-                "alpha": alpha2,
+                "alpha": 0.5,
                 "lw": lw + 1,
                 "density": True,
             },
