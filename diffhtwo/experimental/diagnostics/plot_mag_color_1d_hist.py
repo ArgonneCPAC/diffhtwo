@@ -26,9 +26,16 @@ orange = "#FF8C00"  # DarkOrange
 # orange = "#D2691E"  # Chocolate
 # blue = "#00BFFF"  # DeepSkyBlue
 # orange = "#FFA500"  # Orange
+
 color1 = orange
 color2 = "k"
 color_data = blue
+
+alpha1 = 0.5
+alpha2 = 0.5
+alpha_data = 0.5
+
+
 lw = 2
 fontsize = 20
 labelsize = 12
@@ -222,7 +229,7 @@ def plot_n_mag(
             bins=mag_bin_edges,
             histtype="step",
             color=color1,
-            alpha=1,
+            alpha=alpha1,
             label=label1,
             lw=lw + 1,
         )
@@ -243,7 +250,7 @@ def plot_n_mag(
                 bins=mag_bin_edges,
                 histtype="step",
                 color=color2,
-                alpha=1,
+                alpha=alpha2,
                 lw=lw,
                 label=label2,
             )
@@ -255,7 +262,7 @@ def plot_n_mag(
             bins=mag_bin_edges,
             color=color_data,
             lw=lw,
-            alpha=0.4,
+            alpha=alpha_data,
             label="FENIKS-UDS",
         )
 
@@ -308,7 +315,7 @@ def plot_n_corner(
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "stepfilled",
-            "alpha": 0.4,
+            "alpha": alpha_data,
             "lw": lw,
             "density": True,
         },
@@ -332,7 +339,7 @@ def plot_n_corner(
         levels=[0.68, 0.95],
         hist_kwargs={
             "histtype": "step",
-            "alpha": 0.4,
+            "alpha": alpha1,
             "lw": lw + 1,
             "density": True,
         },
@@ -355,7 +362,7 @@ def plot_n_corner(
             levels=[0.68, 0.95],
             hist_kwargs={
                 "histtype": "step",
-                "alpha": 0.4,
+                "alpha": alpha2,
                 "lw": lw + 1,
                 "density": True,
             },
@@ -628,7 +635,7 @@ def plot_n(
             bins=bins,
             histtype="step",
             color=color1,
-            alpha=1,
+            alpha=alpha1,
             lw=lw + 1,
             label=label1,
         )
@@ -639,7 +646,7 @@ def plot_n(
                 bins=bins,
                 histtype="step",
                 color=color2,
-                alpha=1,
+                alpha=alpha2,
                 lw=lw,
                 label=label2,
             )
@@ -651,7 +658,7 @@ def plot_n(
                 weights=np.ones_like(dataset_colors_mag[:, i]) * (1 / data_vol_mpc3),
                 bins=bins,
                 color=color_data,
-                alpha=0.4,
+                alpha=alpha_data,
                 lw=lw,
                 label="FENIKS-UDS",
             )
