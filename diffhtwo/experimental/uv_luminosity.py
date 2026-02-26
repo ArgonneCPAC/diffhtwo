@@ -47,15 +47,20 @@ def _get_integrated_luminosity(wave, sed):
 
 
 @jjit
-def calc_singlegal_rest_uv_luminosity(ssp_data, weights):
+def calc_singlegal_rest_uv_luminosity(ssp_data, ssp_weights, ftrans):
     """
     ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
     weights: combined age metallicity weights with shape (n_met, n_age)
     """
+
+    n_met, n_age = ssp_weights.shape
+
+    # broadcast ftrans due to dust across metallicity
+    ssp_weights_w_ftrans = ssp_weights * ftrans.reshape(1, n_age)
+
     # get weighted sed
-    n_met, n_ages = weights.shape
     sed_weighted = jnp.sum(
-        ssp_data.ssp_flux * weights.reshape((n_met, n_ages, 1)), axis=(0, 1)
+        ssp_data.ssp_flux * ssp_weights_w_ftrans.reshape((n_met, n_age, 1)), axis=(0, 1)
     )
 
     # get integrated uv luminosity within UV tophat window
@@ -70,7 +75,7 @@ def calc_singlegal_rest_uv_luminosity(ssp_data, weights):
     return integrated_uv_luminosity  # [Lsun/Msun]
 
 
-_S = (None, 0)
+_S = (None, 0, 0)
 calc_rest_uv_luminosity = vmap(calc_singlegal_rest_uv_luminosity, in_axes=_S)
 
 
@@ -116,8 +121,6 @@ def compute_uv_luminosity(
 
     ssp_weights, burst_params, mc_sfh_type = _res
 
-    L_UV_unit = calc_rest_uv_luminosity(ssp_data, ssp_weights)  # [Lsun/Msun]
-
     ftrans_args = (
         spspop_params.dustpop_params,
         UV_WAVELENGTH_AA,
@@ -130,17 +133,20 @@ def compute_uv_luminosity(
         phot_randoms.uran_funo,
         scatter_params,
     )
-    _res_dust = calc_dust_ftrans_vmap(
-        *ftrans_args
-    )  # _res_dust = ftrans, noisy_ftrans, dust_params, noisy_dust_params
-    frac_trans = _res_dust[1]  # ftrans.shape = (n_gals, n_bands, n_age)
+
+    # _res_dust = ftrans, noisy_ftrans, dust_params, noisy_dust_params
+    _res_dust = calc_dust_ftrans_vmap(*ftrans_args)
+
+    # frac_trans.shape = (n_gals, n_age)
     # dust_params = _res_dust[3]  # fields = ('av', 'delta', 'funo')
+    frac_trans = _res_dust[1]
+
+    L_UV_unit = calc_rest_uv_luminosity(
+        ssp_data, ssp_weights, frac_trans
+    )  # [Lsun/Msun]
 
     _mstar = 10**logsm_obs
 
-    print("frac_trans.shape:{}", frac_trans.shape)
-    print("L_UV_unit.shape:{}", L_UV_unit.shape)
-    print("_mstar.shape:{}", _mstar.shape)
-    # L_UV_cgs = L_UV_unit * frac_trans * L_SUN_CGS * _mstar  # [erg/s]
+    L_UV_cgs = L_UV_unit * L_SUN_CGS * _mstar  # [erg/s]
 
-    # return L_UV_cgs
+    return L_UV_cgs
