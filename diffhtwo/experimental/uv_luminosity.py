@@ -48,16 +48,26 @@ def _get_integrated_luminosity(wave, sed):
 
 
 @jjit
-def calc_singlegal_rest_uv_luminosity(ssp_flux, weights):
+def calc_singlegal_rest_uv_luminosity(ssp_data, weights):
     """
     ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
     weights: combined age metallicity weights with shape (n_met, n_age)
     """
-    wave = jnp.linspace(UV_WAVELENGTH_AA - 50, UV_WAVELENGTH_AA + 50, 100)
+    # get weighted sed
     n_met, n_ages = weights.shape
+    sed_weighted = jnp.sum(
+        ssp_data.ssp_flux * weights.reshape((n_met, n_ages, 1)), axis=(0, 1)
+    )
 
-    sed_weighted = jnp.sum(ssp_flux * weights.reshape((n_met, n_ages, 1)), axis=(0, 1))
-    integrated_uv_luminosity = _get_integrated_luminosity(wave, sed_weighted)
+    # get integrated uv luminosity within UV tophat window
+    uv_tophat = (ssp_data.wave > UV_WAVELENGTH_AA - 50) & (
+        ssp_data.wave < UV_WAVELENGTH_AA - 50
+    )
+    clipped_wave = jnp.where(uv_tophat, ssp_data.wave, 0.0)
+    clipped_sed_weighted = jnp.where(uv_tophat, sed_weighted, 0.0)
+    integrated_uv_luminosity = _get_integrated_luminosity(
+        clipped_wave, clipped_sed_weighted
+    )
     return integrated_uv_luminosity  # [Lsun/Msun]
 
 
@@ -107,7 +117,7 @@ def compute_uv_luminosity(
 
     ssp_weights, burst_params, mc_sfh_type = _res
 
-    L_UV_unit = calc_rest_uv_luminosity(ssp_data.ssp_flux, ssp_weights)  # [Lsun/Msun]
+    L_UV_unit = calc_rest_uv_luminosity(ssp_data, ssp_weights)  # [Lsun/Msun]
 
     ftrans_args = (
         spspop_params.dustpop_params,
