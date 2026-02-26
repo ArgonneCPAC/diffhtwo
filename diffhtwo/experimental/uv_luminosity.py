@@ -66,6 +66,8 @@ def _get_integrated_luminosity(wave, sed, mask):
     """
     freq = C / (wave * 1e-10)
     freq = jnp.flip(freq)
+    print("freq:{}", freq)
+    print("sed:{}", sed)
 
     integrated_luminosity = masked_trapz(sed, freq, mask)  # [Lsun/Msun]
 
