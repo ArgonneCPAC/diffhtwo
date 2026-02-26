@@ -138,7 +138,7 @@ def compute_uv_luminosity(
 
     print("frac_trans.shape:{}", frac_trans.shape)
 
-    _mstar = 10**logsm_obs
-    L_UV_cgs = L_UV_unit * frac_trans * L_SUN_CGS * _mstar  # [erg/s]
+    # _mstar = 10**logsm_obs
+    # L_UV_cgs = L_UV_unit * frac_trans * L_SUN_CGS * _mstar  # [erg/s]
 
-    return L_UV_cgs
+    # return L_UV_cgs
