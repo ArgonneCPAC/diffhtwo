@@ -36,6 +36,24 @@ calc_dust_ftrans_vmap = jjit(
 
 
 @jjit
+def masked_trapz(y, x, mask):
+    """
+    y: values (e.g. sed)
+    x: grid (e.g. freq)
+    mask: boolean array selecting window
+    """
+
+    # trapezoid segments
+    dx = x[1:] - x[:-1]
+    avg = 0.5 * (y[1:] + y[:-1])
+
+    # keep segments that overlap the mask
+    seg_on = mask[:-1] | mask[1:]
+
+    return jnp.sum(jnp.where(seg_on, avg * dx, 0.0))
+
+
+@jjit
 def _get_integrated_luminosity(wave, sed, mask):
     """
     Parameters:
@@ -49,7 +67,7 @@ def _get_integrated_luminosity(wave, sed, mask):
     freq = C / (wave * 1e-10)
     freq = jnp.flip(freq)
 
-    integrated_luminosity = jnp.trapezoid(sed[mask], freq[mask])  # [Lsun/Msun]
+    integrated_luminosity = masked_trapz(sed, freq, mask)  # [Lsun/Msun]
 
     return integrated_luminosity
 
