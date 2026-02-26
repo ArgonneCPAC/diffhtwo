@@ -137,11 +137,11 @@ def compute_uv_luminosity(
     uv_tophat = (ssp_data.ssp_wave > UV_WAVELENGTH_AA - 50) & (
         ssp_data.ssp_wave < UV_WAVELENGTH_AA - 50
     )
-    ssp_wave = ssp_data.ssp_wave[uv_tophat]
-    ssp_flux = ssp_data.ssp_flux[uv_tophat]
+    ssp_wave_masked = jnp.where(uv_tophat, ssp_data.ssp_wave, 0.0)
+    ssp_flux_masked = jnp.where(uv_tophat, ssp_data.ssp_flux, 0.0)
 
     L_UV_unit = calc_rest_uv_luminosity(
-        ssp_wave, ssp_flux, ssp_weights, frac_trans
+        ssp_wave_masked, ssp_flux_masked, ssp_weights, frac_trans
     )  # [Lsun/Msun]
 
     _mstar = 10**logsm_obs
