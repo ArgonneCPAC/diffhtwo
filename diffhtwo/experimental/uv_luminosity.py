@@ -5,8 +5,7 @@ from diffsky.experimental.kernels import mc_phot_kernels as mcpk
 from diffsky.experimental.kernels import ssp_weight_kernels as sspwk
 from jax import jit as jjit
 from jax import vmap
-
-# from jax.debug import print
+from jax.debug import print
 
 LGMET_SCATTER = 0.2
 
@@ -136,6 +135,8 @@ def compute_uv_luminosity(
     )  # _res_dust = ftrans, noisy_ftrans, dust_params, noisy_dust_params
     frac_trans = _res_dust[1]  # ftrans.shape = (n_gals, n_bands, n_age)
     # dust_params = _res_dust[3]  # fields = ('av', 'delta', 'funo')
+
+    print("frac_trans.shape:{}", frac_trans.shape)
 
     _mstar = 10**logsm_obs
     L_UV_cgs = L_UV_unit * frac_trans * L_SUN_CGS * _mstar  # [erg/s]
