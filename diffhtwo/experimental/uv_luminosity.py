@@ -5,14 +5,16 @@ from diffsky.experimental.kernels import mc_phot_kernels as mcpk
 from diffsky.experimental.kernels import ssp_weight_kernels as sspwk
 from jax import jit as jjit
 from jax import vmap
-from jax.debug import print
 
-from .precompute_line_luminosity_kern import _get_integrated_luminosity
+# from jax.debug import print
 
 LGMET_SCATTER = 0.2
 
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
+
+# copied from astropy.constants.c.value in m/s
+C = 299792458.0
 
 # rest UV wavelength for continuum calculation in Angstroms
 UV_WAVELENGTH_AA = 1500
@@ -24,6 +26,25 @@ calc_dust_ftrans_vmap = jjit(
         in_axes=_D,
     )
 )
+
+
+@jjit
+def _get_integrated_luminosity(wave, sed):
+    """
+    Parameters:
+            wave - wavelength array in units of Angstrom
+            sed - [Lsun/Hz/Msun]
+
+    Returns:
+            integrated_luminosity - integrated sed in units of [Lsun/Msun]
+
+    """
+    freq = C / (wave * 1e-10)
+    freq = jnp.flip(freq)
+
+    integrated_luminosity = jnp.trapezoid(sed, freq)  # [Lsun/Msun]
+
+    return integrated_luminosity
 
 
 @jjit
