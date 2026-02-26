@@ -67,7 +67,6 @@ def _get_integrated_luminosity(wave, sed, mask):
     freq = C / (wave * 1e-10)
     freq = jnp.flip(freq)
     mask = jnp.flip(mask)
-    print("jnp.sum(sed):{}", jnp.sum(sed))
 
     integrated_luminosity = masked_trapz(sed, freq, mask)  # [Lsun/Msun]
 
@@ -90,8 +89,6 @@ def calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, mask, ssp_weights, ftr
     sed_weighted = jnp.sum(
         ssp_flux * ssp_weights_w_ftrans.reshape((n_met, n_age, 1)), axis=(0, 1)
     )
-    print("ssp_wave.shape:{}", ssp_wave.shape)
-    print("sed_weighted.shape:{}", sed_weighted.shape)
 
     integrated_uv_luminosity = _get_integrated_luminosity(ssp_wave, sed_weighted, mask)
     return integrated_uv_luminosity  # [Lsun/Msun]
