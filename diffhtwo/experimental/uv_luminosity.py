@@ -1,3 +1,10 @@
+# flake8: noqa: E402
+""" """
+import jax
+
+jax.config.update("jax_enable_x64", True)
+jax.config.update("jax_debug_nans", True)
+jax.config.update("jax_debug_infs", True)
 import jax.numpy as jnp
 from diffsky.dustpop import tw_dustpop_mono_noise
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
@@ -5,7 +12,8 @@ from diffsky.experimental.kernels import mc_phot_kernels as mcpk
 from diffsky.experimental.kernels import ssp_weight_kernels as sspwk
 from jax import jit as jjit
 from jax import vmap
-from jax.debug import print
+
+# from jax.debug import print
 
 LGMET_SCATTER = 0.2
 
