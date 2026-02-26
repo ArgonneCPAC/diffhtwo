@@ -36,7 +36,7 @@ calc_dust_ftrans_vmap = jjit(
 
 
 @jjit
-def _get_integrated_luminosity(wave, sed):
+def _get_integrated_luminosity(wave, sed, mask):
     """
     Parameters:
             wave - wavelength array in units of Angstrom
@@ -49,13 +49,13 @@ def _get_integrated_luminosity(wave, sed):
     freq = C / (wave * 1e-10)
     freq = jnp.flip(freq)
 
-    integrated_luminosity = jnp.trapezoid(sed, freq)  # [Lsun/Msun]
+    integrated_luminosity = jnp.trapezoid(sed[mask], freq[mask])  # [Lsun/Msun]
 
     return integrated_luminosity
 
 
 @jjit
-def calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, ssp_weights, ftrans):
+def calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, mask, ssp_weights, ftrans):
     """
     ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
     weights: combined age metallicity weights with shape (n_met, n_age)
@@ -71,11 +71,11 @@ def calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, ssp_weights, ftrans):
         ssp_flux * ssp_weights_w_ftrans.reshape((n_met, n_age, 1)), axis=(0, 1)
     )
 
-    integrated_uv_luminosity = _get_integrated_luminosity(ssp_wave, sed_weighted)
+    integrated_uv_luminosity = _get_integrated_luminosity(ssp_wave, sed_weighted, mask)
     return integrated_uv_luminosity  # [Lsun/Msun]
 
 
-_S = (None, None, 0, 0)
+_S = (None, None, None, 0, 0)
 calc_rest_uv_luminosity = vmap(calc_singlegal_rest_uv_luminosity, in_axes=_S)
 
 
@@ -142,14 +142,12 @@ def compute_uv_luminosity(
     frac_trans = _res_dust[1]
 
     # get integrated uv luminosity within UV tophat window
-    uv_tophat = (ssp_data.ssp_wave > UV_WAVELENGTH_AA - 50) & (
+    uv_tophat_mask = (ssp_data.ssp_wave > UV_WAVELENGTH_AA - 50) & (
         ssp_data.ssp_wave < UV_WAVELENGTH_AA - 50
     )
-    ssp_wave_masked = jnp.where(uv_tophat, ssp_data.ssp_wave, 0.0)
-    ssp_flux_masked = jnp.where(uv_tophat, ssp_data.ssp_flux, 0.0)
 
     L_UV_unit = calc_rest_uv_luminosity(
-        ssp_wave_masked, ssp_flux_masked, ssp_weights, frac_trans
+        ssp_data.ssp_wave, ssp_data.ssp_flux, uv_tophat_mask, ssp_weights, frac_trans
     )  # [Lsun/Msun]
 
     _mstar = 10**logsm_obs
