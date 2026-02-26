@@ -60,10 +60,10 @@ def calc_singlegal_rest_uv_luminosity(ssp_data, weights):
     )
 
     # get integrated uv luminosity within UV tophat window
-    uv_tophat = (ssp_data.wave > UV_WAVELENGTH_AA - 50) & (
-        ssp_data.wave < UV_WAVELENGTH_AA - 50
+    uv_tophat = (ssp_data.ssp_wave > UV_WAVELENGTH_AA - 50) & (
+        ssp_data.ssp_wave < UV_WAVELENGTH_AA - 50
     )
-    clipped_wave = jnp.where(uv_tophat, ssp_data.wave, 0.0)
+    clipped_wave = jnp.where(uv_tophat, ssp_data.ssp_wave, 0.0)
     clipped_sed_weighted = jnp.where(uv_tophat, sed_weighted, 0.0)
     integrated_uv_luminosity = _get_integrated_luminosity(
         clipped_wave, clipped_sed_weighted
