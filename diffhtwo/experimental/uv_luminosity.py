@@ -136,9 +136,11 @@ def compute_uv_luminosity(
     frac_trans = _res_dust[1]  # ftrans.shape = (n_gals, n_bands, n_age)
     # dust_params = _res_dust[3]  # fields = ('av', 'delta', 'funo')
 
-    print("frac_trans.shape:{}", frac_trans.shape)
+    _mstar = 10**logsm_obs
 
-    # _mstar = 10**logsm_obs
+    print("frac_trans.shape:{}", frac_trans.shape)
+    print("L_UV_unit.shape:{}", L_UV_unit.shape)
+    print("_mstar.shape:{}", _mstar.shape)
     # L_UV_cgs = L_UV_unit * frac_trans * L_SUN_CGS * _mstar  # [erg/s]
 
     # return L_UV_cgs
