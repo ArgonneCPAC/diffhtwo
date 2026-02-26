@@ -1,4 +1,4 @@
-# import jax.numpy as jnp
+import jax.numpy as jnp
 from diffsky.dustpop import tw_dustpop_mono_noise
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
 from diffsky.experimental.kernels import mc_phot_kernels as mcpk
@@ -7,7 +7,12 @@ from jax import jit as jjit
 from jax import vmap
 from jax.debug import print
 
+from .precompute_line_luminosity_kern import _get_integrated_luminosity
+
 LGMET_SCATTER = 0.2
+
+# copied from astropy.constants.L_sun.cgs.value
+L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
 # rest UV wavelength for continuum calculation in Angstroms
 UV_WAVELENGTH_AA = 1500
@@ -21,17 +26,22 @@ calc_dust_ftrans_vmap = jjit(
 )
 
 
-# @jjit
-# def calc_singlegal_rest_uv_luminosity(ssp_flux, weights):
-#     n_met, n_ages = weights.shape
-#     sed_unit_mstar = jnp.sum(
-#         ssp_flux * weights.reshape((n_met, n_ages, 1)), axis=(0, 1)
-#     )
-#     return sed_unit_mstar
+@jjit
+def calc_singlegal_rest_uv_luminosity(ssp_flux, weights):
+    """
+    ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
+    weights: combined age metallicity weights with shape (n_met, n_age)
+    """
+    wave = jnp.linspace(UV_WAVELENGTH_AA - 50, UV_WAVELENGTH_AA + 50, 100)
+    n_met, n_ages = weights.shape
+
+    sed_weighted = jnp.sum(ssp_flux * weights.reshape((n_met, n_ages, 1)), axis=(0, 1))
+    integrated_uv_luminosity = _get_integrated_luminosity(wave, sed_weighted)
+    return integrated_uv_luminosity  # [Lsun/Msun]
 
 
-# _S = (None, 0)
-# calc_rest_uv_luminosity = vmap(calc_singlegal_rest_uv_luminosity, in_axes=_S)
+_S = (None, 0)
+calc_rest_uv_luminosity = vmap(calc_singlegal_rest_uv_luminosity, in_axes=_S)
 
 
 @jjit
@@ -76,24 +86,27 @@ def compute_uv_luminosity(
 
     ssp_weights, burst_params, mc_sfh_type = _res
 
-    print("ssp_weights.shape:{}", ssp_weights.shape)
+    L_UV_unit = calc_rest_uv_luminosity(ssp_data.ssp_flux, ssp_weights)  # [Lsun/Msun]
 
-    # L_UV = calc_rest_uv_luminosity(ssp_data.ssp_flux, ssp_weights)
-
-    # ftrans_args = (
-    #     spspop_params.dustpop_params,
-    #     UV_WAVELENGTH_AA,
-    #     logsm_obs,
-    #     logssfr_obs,
-    #     z_obs,
-    #     ssp_data.ssp_lg_age_gyr,
-    #     phot_randoms.uran_av,
-    #     phot_randoms.uran_delta,
-    #     phot_randoms.uran_funo,
-    #     scatter_params,
-    # )
-    # _res_dust = calc_dust_ftrans_vmap(
-    #     *ftrans_args
-    # )  # _res_dust = ftrans, noisy_ftrans, dust_params, noisy_dust_params
-    # frac_trans = _res_dust[1]  # ftrans.shape = (n_gals, n_bands, n_age)
+    ftrans_args = (
+        spspop_params.dustpop_params,
+        UV_WAVELENGTH_AA,
+        logsm_obs,
+        logssfr_obs,
+        z_obs,
+        ssp_data.ssp_lg_age_gyr,
+        phot_randoms.uran_av,
+        phot_randoms.uran_delta,
+        phot_randoms.uran_funo,
+        scatter_params,
+    )
+    _res_dust = calc_dust_ftrans_vmap(
+        *ftrans_args
+    )  # _res_dust = ftrans, noisy_ftrans, dust_params, noisy_dust_params
+    frac_trans = _res_dust[1]  # ftrans.shape = (n_gals, n_bands, n_age)
     # dust_params = _res_dust[3]  # fields = ('av', 'delta', 'funo')
+
+    _mstar = 10**logsm_obs
+    L_UV_cgs = L_UV_unit * frac_trans * L_SUN_CGS * _mstar  # [erg/s]
+
+    return L_UV_cgs
