@@ -46,9 +46,9 @@ def compute_uv_luminosity(
     scatter_params,
     t_table,
     ssp_data,
-    lgmet_scatter,
     cosmo_params,
     fb,
+    lgmet_scatter=LGMET_SCATTER,
     n_t_table=mcdw.N_T_TABLE,
 ):
     phot_randoms, sfh_params = mcpk.get_mc_phot_randoms(
