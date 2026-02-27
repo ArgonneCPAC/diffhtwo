@@ -28,7 +28,7 @@ UV_WAVELENGTH_AA = 1500 + 1.713
 UV_FREQUENCY_HZ = C / (UV_WAVELENGTH_AA * 1e-10)
 
 _D = (None, None, 0, 0, 0, None, 0, 0, 0, None)
-calc_dust_ftrans_vmap = jjit(
+_calc_dust_ftrans_vmap = jjit(
     vmap(
         tw_dustpop_mono_noise.calc_ftrans_singlegal_singlewave_from_dustpop_params,
         in_axes=_D,
@@ -37,7 +37,7 @@ calc_dust_ftrans_vmap = jjit(
 
 
 @jjit
-def calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, ssp_weights, ftrans):
+def _calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, ssp_weights, ftrans):
     """
     ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
     weights: combined age metallicity weights with shape (n_met, n_age)
@@ -64,7 +64,7 @@ def calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, ssp_weights, ftrans):
 
 
 _S = (None, None, 0, 0)
-calc_galpop_rest_uv_luminosity = vmap(calc_singlegal_rest_uv_luminosity, in_axes=_S)
+_calc_galpop_rest_uv_luminosity = vmap(_calc_singlegal_rest_uv_luminosity, in_axes=_S)
 
 
 @jjit
@@ -123,13 +123,13 @@ def compute_uv_luminosity(
     )
 
     # _res_dust = ftrans, noisy_ftrans, dust_params, noisy_dust_params
-    _res_dust = calc_dust_ftrans_vmap(*ftrans_args)
+    _res_dust = _calc_dust_ftrans_vmap(*ftrans_args)
 
     # frac_trans.shape = (n_gals, n_age)
     # dust_params = _res_dust[3]  # fields = ('av', 'delta', 'funo')
     frac_trans = _res_dust[1]
 
-    L_UV_unit = calc_galpop_rest_uv_luminosity(
+    L_UV_unit = _calc_galpop_rest_uv_luminosity(
         ssp_data.ssp_wave, ssp_data.ssp_flux, ssp_weights, frac_trans
     )  # [Lsun/Msun]
 

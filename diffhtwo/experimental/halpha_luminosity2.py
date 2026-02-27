@@ -27,7 +27,7 @@ C = 299792458.0
 HALPHA_CENTER_AA = 6564.5131
 
 _D = (None, None, 0, 0, 0, None, 0, 0, 0, None)
-calc_dust_ftrans_vmap = jjit(
+_calc_dust_ftrans_vmap = jjit(
     vmap(
         tw_dustpop_mono_noise.calc_ftrans_singlegal_singlewave_from_dustpop_params,
         in_axes=_D,
@@ -92,7 +92,7 @@ def compute_halpha_luminosity(
     )
 
     # _res_dust = ftrans, noisy_ftrans, dust_params, noisy_dust_params
-    _res_dust = calc_dust_ftrans_vmap(*ftrans_args)
+    _res_dust = _calc_dust_ftrans_vmap(*ftrans_args)
 
     # dust_params = _res_dust[3]  # fields = ('av', 'delta', 'funo')
     frac_trans = _res_dust[1]
