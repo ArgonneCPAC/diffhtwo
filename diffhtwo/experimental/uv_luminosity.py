@@ -161,7 +161,7 @@ def compute_uv_luminosity(
     frac_trans = _res_dust[1]
 
     # get integrated uv luminosity within UV tophat window
-    d_UV_AA = 100 / 2
+    d_UV_AA = 10 / 2
     uv_tophat_mask = (ssp_data.ssp_wave > UV_WAVELENGTH_AA - d_UV_AA) & (
         ssp_data.ssp_wave < UV_WAVELENGTH_AA + d_UV_AA
     )
