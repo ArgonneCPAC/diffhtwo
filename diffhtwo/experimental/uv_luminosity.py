@@ -24,7 +24,7 @@ L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 C = 299792458.0
 
 # rest UV wavelength for continuum calculation in Angstroms
-UV_WAVELENGTH_AA = 1500
+UV_WAVELENGTH_AA = 1500 + 1.713
 UV_FREQUENCY_HZ = C / (UV_WAVELENGTH_AA * 1e-10)
 
 _D = (None, None, 0, 0, 0, None, 0, 0, 0, None)
