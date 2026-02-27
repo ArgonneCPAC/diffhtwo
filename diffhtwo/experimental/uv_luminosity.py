@@ -89,9 +89,10 @@ def calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, mask, ssp_weights, ftr
     sed_weighted = jnp.sum(
         ssp_flux * ssp_weights_w_ftrans.reshape((n_met, n_age, 1)), axis=(0, 1)
     )
+    uv_luminosity = jnp.interp(UV_WAVELENGTH_AA, ssp_wave, sed_weighted)
 
-    integrated_uv_luminosity = _get_integrated_luminosity(ssp_wave, sed_weighted, mask)
-    return integrated_uv_luminosity  # [Lsun/Msun]
+    # integrated_uv_luminosity = _get_integrated_luminosity(ssp_wave, sed_weighted, mask)
+    return uv_luminosity  # [Lsun/Msun]
 
 
 _S = (None, None, None, 0, 0)
