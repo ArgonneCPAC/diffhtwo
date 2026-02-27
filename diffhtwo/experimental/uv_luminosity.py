@@ -89,10 +89,9 @@ def calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, mask, ssp_weights, ftr
     sed_weighted = jnp.sum(
         ssp_flux * ssp_weights_w_ftrans.reshape((n_met, n_age, 1)), axis=(0, 1)
     )
-    uv_luminosity = jnp.interp(UV_WAVELENGTH_AA, ssp_wave, sed_weighted)
 
-    # integrated_uv_luminosity = _get_integrated_luminosity(ssp_wave, sed_weighted, mask)
-    return uv_luminosity  # [Lsun/Msun]
+    integrated_uv_luminosity = _get_integrated_luminosity(ssp_wave, sed_weighted, mask)
+    return integrated_uv_luminosity  # [Lsun/Msun]
 
 
 _S = (None, None, None, 0, 0)
@@ -162,10 +161,8 @@ def compute_uv_luminosity(
     frac_trans = _res_dust[1]
 
     # get integrated uv luminosity within UV tophat window
-    d_UV_AA = 10 / 2
-    uv_tophat_mask = (ssp_data.ssp_wave > UV_WAVELENGTH_AA - d_UV_AA) & (
-        ssp_data.ssp_wave < UV_WAVELENGTH_AA + d_UV_AA
-    )
+    # d_UV_AA = 10 / 2
+    uv_tophat_mask = (ssp_data.ssp_wave > 1200) & (ssp_data.ssp_wave < 3000)
 
     L_UV_unit = calc_rest_uv_luminosity(
         ssp_data.ssp_wave, ssp_data.ssp_flux, uv_tophat_mask, ssp_weights, frac_trans
