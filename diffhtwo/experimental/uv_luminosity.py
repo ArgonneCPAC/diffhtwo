@@ -37,44 +37,6 @@ calc_dust_ftrans_vmap = jjit(
 
 
 @jjit
-def masked_trapz(y, x, mask):
-    """
-    y: values (e.g. sed)
-    x: grid (e.g. freq)
-    mask: boolean array selecting window
-    """
-
-    # trapezoid segments
-    dx = x[1:] - x[:-1]
-    avg = 0.5 * (y[1:] + y[:-1])
-
-    # keep segments that overlap the mask
-    seg_on = mask[:-1] | mask[1:]
-
-    return jnp.sum(jnp.where(seg_on, avg * dx, 0.0))
-
-
-@jjit
-def _get_integrated_luminosity(wave, sed, mask):
-    """
-    Parameters:
-            wave - wavelength array in units of Angstrom
-            sed - [Lsun/Hz/Msun]
-
-    Returns:
-            integrated_luminosity - integrated sed in units of [Lsun/Msun]
-
-    """
-    freq = C / (wave * 1e-10)
-    freq = jnp.flip(freq)
-    mask = jnp.flip(mask)
-
-    integrated_luminosity = masked_trapz(sed, freq, mask)  # [Lsun/Msun]
-
-    return integrated_luminosity
-
-
-@jjit
 def calc_singlegal_rest_uv_luminosity(ssp_wave, ssp_flux, ssp_weights, ftrans):
     """
     ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
@@ -166,10 +128,6 @@ def compute_uv_luminosity(
     # frac_trans.shape = (n_gals, n_age)
     # dust_params = _res_dust[3]  # fields = ('av', 'delta', 'funo')
     frac_trans = _res_dust[1]
-
-    # get integrated uv luminosity within UV tophat window
-    # d_UV_AA = 10 / 2
-    # uv_tophat_mask = (ssp_data.ssp_wave > 1200) & (ssp_data.ssp_wave < 3000)
 
     L_UV_unit = calc_galpop_rest_uv_luminosity(
         ssp_data.ssp_wave, ssp_data.ssp_flux, ssp_weights, frac_trans
