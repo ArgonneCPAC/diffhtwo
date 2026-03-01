@@ -26,6 +26,12 @@ C = 299792458.0
 UV_WAVELENGTH_AA = 1500 + 1.713
 UV_FREQUENCY_HZ = C / (UV_WAVELENGTH_AA * 1e-10)
 
+_A = (None, None, 0)
+interp_vmap = jjit(vmap(jnp.interp, in_axes=_A))
+
+_B = (None, None, 1)
+interp_vmap2 = jjit(vmap(interp_vmap, in_axes=_B))
+
 _D = (None, None, 0, 0, 0, None, 0, 0, 0, None)
 _calc_dust_ftrans_vmap = jjit(
     vmap(
@@ -36,38 +42,67 @@ _calc_dust_ftrans_vmap = jjit(
 
 
 @jjit
-def _calc_singlegal_rest_uv_luminosity(
-    ssp_wave, ssp_flux, ssp_weights, ftrans, dust=True
-):
+def precompute_uv_luminosity(ssp_data):
+    uv_luminosity_per_hz = interp_vmap2(
+        UV_WAVELENGTH_AA, ssp_data.ssp_wave, ssp_data.ssp_flux
+    ).T
+    # get uv_luminosity in units of Lsun/Msun
+    uv_luminosity = UV_FREQUENCY_HZ * uv_luminosity_per_hz
+    return uv_luminosity
+
+
+# @jjit
+# def _calc_singlegal_rest_uv_luminosity(
+#     ssp_wave, ssp_flux, ssp_weights, ftrans, dust=True
+# ):
+#     """
+#     ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
+#     ssp_weights: combined age metallicity weights with shape (n_met, n_age)
+#     """
+
+#     n_met, n_age = ssp_weights.shape
+
+#     # print("jnp.sum(ssp_weights):{}", jnp.sum(ssp_weights))
+
+#     # if dust is True:
+#     #     # broadcast ftrans due to dust across metallicity
+#     #     ssp_weights = ssp_weights * ftrans.reshape(1, n_age)
+#     #     print("jnp.sum(ssp_weights_w_dust):{}", jnp.sum(ssp_weights))
+
+#     # get weighted sed
+#     sed_weighted = jnp.sum(
+#         ssp_flux * ssp_weights.reshape((n_met, n_age, 1)), axis=(0, 1)
+#     )
+
+#     # uv_luminosity in units of Lsun/Msun/Hz
+#     uv_luminosity_per_hz = jnp.interp(UV_WAVELENGTH_AA, ssp_wave, sed_weighted)
+
+#     # get uv_luminosity in units of Lsun/Msun
+#     uv_luminosity = UV_FREQUENCY_HZ * uv_luminosity_per_hz * ftrans
+
+#     return uv_luminosity
+
+
+@jjit
+def _calc_singlegal_rest_uv_luminosity(precomputed_uv_luminosity, ssp_weights, ftrans):
     """
     ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
-    weights: combined age metallicity weights with shape (n_met, n_age)
+    ssp_weights: combined age metallicity weights with shape (n_met, n_age)
     """
 
     n_met, n_age = ssp_weights.shape
 
-    print("jnp.sum(ssp_weights):{}", jnp.sum(ssp_weights))
+    # broadcast ftrans due to dust across metallicity
+    ftrans = ftrans.reshape(1, n_age)
 
-    if dust is True:
-        # broadcast ftrans due to dust across metallicity
-        ssp_weights = ssp_weights * ftrans.reshape(1, n_age)
-        print("jnp.sum(ssp_weights_w_dust):{}", jnp.sum(ssp_weights))
+    # get ssp weighted uv luminosity with ftrans due to dust incorporated. Units: [Lsun/Msun]
+    integrand = precomputed_uv_luminosity * ssp_weights * ftrans
+    uv_luminosity_weighted_w_dust = jnp.sum(integrand, axis=(0, 1))
 
-    # get weighted sed
-    sed_weighted = jnp.sum(
-        ssp_flux * ssp_weights.reshape((n_met, n_age, 1)), axis=(0, 1)
-    )
-
-    # uv_luminosity in units of Lsun/Msun/Hz
-    uv_luminosity_per_hz = jnp.interp(UV_WAVELENGTH_AA, ssp_wave, sed_weighted)
-
-    # get uv_luminosity in units of Lsun/Msun
-    uv_luminosity = UV_FREQUENCY_HZ * uv_luminosity_per_hz
-
-    return uv_luminosity
+    return uv_luminosity_weighted_w_dust
 
 
-_S = (None, None, 0, 0, None)
+_S = (None, 0, 0)
 _calc_galpop_rest_uv_luminosity = vmap(_calc_singlegal_rest_uv_luminosity, in_axes=_S)
 
 
@@ -83,6 +118,7 @@ def compute_uv_luminosity(
     scatter_params,
     t_table,
     ssp_data,
+    precomputed_uv_luminosity,
     cosmo_params,
     fb,
     lgmet_scatter=LGMET_SCATTER,
@@ -113,6 +149,7 @@ def compute_uv_luminosity(
     )
 
     ssp_weights, burst_params, mc_sfh_type = _res
+    print("ssp_weights.shape:{}", ssp_weights.shape)
 
     ftrans_args = (
         spspop_params.dustpop_params,
@@ -135,7 +172,7 @@ def compute_uv_luminosity(
     frac_trans = _res_dust[1]
 
     L_UV_unit = _calc_galpop_rest_uv_luminosity(
-        ssp_data.ssp_wave, ssp_data.ssp_flux, ssp_weights, frac_trans, dust
+        precomputed_uv_luminosity, ssp_weights, frac_trans
     )  # [Lsun/Msun]
 
     _mstar = 10**logsm_obs
