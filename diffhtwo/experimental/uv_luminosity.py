@@ -147,4 +147,12 @@ def compute_uv_luminosity(
 
     L_UV_cgs = L_UV_unit * L_SUN_CGS * _mstar  # [erg/s]
 
-    return L_UV_cgs
+    # no dust
+    frac_trans_nodust = jnp.ones_like(frac_trans)
+    L_UV_unit_nodust = _calc_galpop_rest_uv_luminosity(
+        precomputed_uv_luminosity, ssp_weights, frac_trans_nodust
+    )  # [Lsun/Msun]
+
+    L_UV_cgs_nodust = L_UV_unit_nodust * L_SUN_CGS * _mstar  # [erg/s]
+
+    return L_UV_cgs, L_UV_cgs_nodust
