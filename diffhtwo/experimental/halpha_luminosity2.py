@@ -103,4 +103,8 @@ def compute_halpha_luminosity(
     integrand = ssp_halpha_luminosity * ssp_weights * frac_trans
     L_halpha_cgs = jnp.sum(integrand, axis=(1, 2)) * (L_SUN_CGS * _mstar)
 
-    return L_halpha_cgs
+    # no dust
+    integrand_nodust = ssp_halpha_luminosity * ssp_weights
+    L_halpha_cgs_nodust = jnp.sum(integrand_nodust, axis=(1, 2)) * (L_SUN_CGS * _mstar)
+
+    return L_halpha_cgs, L_halpha_cgs_nodust
