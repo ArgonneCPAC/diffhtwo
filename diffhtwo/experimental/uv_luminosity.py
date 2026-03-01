@@ -51,7 +51,7 @@ def _calc_singlegal_rest_uv_luminosity(
     if dust is True:
         # broadcast ftrans due to dust across metallicity
         ssp_weights = ssp_weights * ftrans.reshape(1, n_age)
-        print("jnp.sum(ssp_weights):{}", jnp.sum(ssp_weights))
+        print("jnp.sum(ssp_weights_w_dust):{}", jnp.sum(ssp_weights))
 
     # get weighted sed
     sed_weighted = jnp.sum(
@@ -142,4 +142,4 @@ def compute_uv_luminosity(
 
     L_UV_cgs = L_UV_unit * L_SUN_CGS * _mstar  # [erg/s]
 
-    return L_UV_cgs
+    return L_UV_cgs, frac_trans
