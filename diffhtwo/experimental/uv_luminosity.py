@@ -51,43 +51,12 @@ def precompute_uv_luminosity(ssp_data):
     return uv_luminosity
 
 
-# @jjit
-# def _calc_singlegal_rest_uv_luminosity(
-#     ssp_wave, ssp_flux, ssp_weights, ftrans, dust=True
-# ):
-#     """
-#     ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
-#     ssp_weights: combined age metallicity weights with shape (n_met, n_age)
-#     """
-
-#     n_met, n_age = ssp_weights.shape
-
-#     # print("jnp.sum(ssp_weights):{}", jnp.sum(ssp_weights))
-
-#     # if dust is True:
-#     #     # broadcast ftrans due to dust across metallicity
-#     #     ssp_weights = ssp_weights * ftrans.reshape(1, n_age)
-#     #     print("jnp.sum(ssp_weights_w_dust):{}", jnp.sum(ssp_weights))
-
-#     # get weighted sed
-#     sed_weighted = jnp.sum(
-#         ssp_flux * ssp_weights.reshape((n_met, n_age, 1)), axis=(0, 1)
-#     )
-
-#     # uv_luminosity in units of Lsun/Msun/Hz
-#     uv_luminosity_per_hz = jnp.interp(UV_WAVELENGTH_AA, ssp_wave, sed_weighted)
-
-#     # get uv_luminosity in units of Lsun/Msun
-#     uv_luminosity = UV_FREQUENCY_HZ * uv_luminosity_per_hz * ftrans
-
-#     return uv_luminosity
-
-
 @jjit
 def _calc_singlegal_rest_uv_luminosity(precomputed_uv_luminosity, ssp_weights, ftrans):
     """
-    ssp_flux: ssp flux from ssp_data in default units of Lsun/Hz/Msun
-    ssp_weights: combined age metallicity weights with shape (n_met, n_age)
+    precomputed_uv_luminosity: (nmet, nage)
+    ssp_weights: (n_met, n_age)
+    ftrans : (nage,)
     """
 
     n_met, n_age = ssp_weights.shape
@@ -149,7 +118,6 @@ def compute_uv_luminosity(
     )
 
     ssp_weights, burst_params, mc_sfh_type = _res
-    print("ssp_weights.shape:{}", ssp_weights.shape)
 
     ftrans_args = (
         spspop_params.dustpop_params,
@@ -179,4 +147,4 @@ def compute_uv_luminosity(
 
     L_UV_cgs = L_UV_unit * L_SUN_CGS * _mstar  # [erg/s]
 
-    return L_UV_cgs, frac_trans
+    return L_UV_cgs
