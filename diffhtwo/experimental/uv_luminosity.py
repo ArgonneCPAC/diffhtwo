@@ -140,4 +140,4 @@ def compute_uv_luminosity(
 
     L_UV_cgs = L_UV_unit * L_SUN_CGS * _mstar  # [erg/s]
 
-    return L_UV_cgs, frac_trans
+    return L_UV_cgs
