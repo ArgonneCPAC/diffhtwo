@@ -12,8 +12,7 @@ from diffsky.experimental.kernels import mc_phot_kernels as mcpk
 from diffsky.experimental.kernels import ssp_weight_kernels as sspwk
 from jax import jit as jjit
 from jax import vmap
-
-# from jax.debug import print
+from jax.debug import print
 
 LGMET_SCATTER = 0.2
 
@@ -47,9 +46,12 @@ def _calc_singlegal_rest_uv_luminosity(
 
     n_met, n_age = ssp_weights.shape
 
+    print("jnp.sum(ssp_weights):{}", jnp.sum(ssp_weights))
+
     if dust is True:
         # broadcast ftrans due to dust across metallicity
         ssp_weights = ssp_weights * ftrans.reshape(1, n_age)
+        print("jnp.sum(ssp_weights):{}", jnp.sum(ssp_weights))
 
     # get weighted sed
     sed_weighted = jnp.sum(
