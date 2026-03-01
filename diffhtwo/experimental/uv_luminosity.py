@@ -133,7 +133,7 @@ def compute_uv_luminosity(
     frac_trans = _res_dust[1]
 
     L_UV_unit = _calc_galpop_rest_uv_luminosity(
-        ssp_data.ssp_wave, ssp_data.ssp_flux, ssp_weights, frac_trans, dust=dust
+        ssp_data.ssp_wave, ssp_data.ssp_flux, ssp_weights, frac_trans, dust
     )  # [Lsun/Msun]
 
     _mstar = 10**logsm_obs
