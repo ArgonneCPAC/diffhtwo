@@ -39,7 +39,7 @@ u_zero_ssp_err_pop_theta, u_zero_ssp_err_pop_unravel = ravel_pytree(
     ZERO_SSPERR_U_PARAMS
 )
 
-
+# used for fisher analysis
 # @jjit
 # def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err, lg_n_thresh):
 #     mask = lg_n_target > lg_n_thresh
