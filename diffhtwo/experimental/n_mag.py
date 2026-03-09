@@ -332,9 +332,6 @@ def n_mag_kern_1d(
         if custom_weight is None:
             custom_weight = jnp.ones_like(lc_phot_weights_q)
 
-        print("lc_phot_weights_q.shape:{}", lc_phot_weights_q.shape)
-        print("custom_weight.shape:{}", custom_weight.shape)
-
         N_q = diffndhist.tw_ndhist_weighted(
             obs_color_q,
             sig,
