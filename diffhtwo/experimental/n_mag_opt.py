@@ -978,7 +978,7 @@ def compute_nb_loss(nb_args, nb_idx):
         0.0,
     )
 
-    return nb_loss
+    return nb_args, nb_loss
 
 
 # Latin Hypercube bins based fitting + NBs separately in 1Ds
@@ -1118,7 +1118,7 @@ def _loss_kern_w_nbs(
         lg_n_thresh,
     )
     nb_idx = jnp.arange(len(nb_z))
-    nb_losses = lax.scan(compute_nb_loss, nb_args, nb_idx)
+    _, nb_losses = lax.scan(compute_nb_loss, nb_args, nb_idx)
     loss += jnp.sum(nb_losses)
 
     if lg_halpha_LF_target is not None:
