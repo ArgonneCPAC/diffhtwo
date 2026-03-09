@@ -1116,7 +1116,7 @@ def _loss_kern_w_nbs(
         lg_n_thresh,
     )
     indices = jnp.arange(len(nb_z))
-    nb_losses = jax.lax.scan(compute_nb_loss, nb_args, indices)
+    nb_losses = jax.lax.scan(compute_nb_loss, *nb_args, indices)
     loss += jnp.sum(nb_losses)
 
     if lg_halpha_LF_target is not None:
