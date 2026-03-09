@@ -381,6 +381,9 @@ def n_mag_kern_1d(
         bin_centers_1d_lo = bin_centers_1d_lo.reshape(bin_centers_1d_lo.size, 1)
         bin_centers_1d_hi = bin_centers_1d_hi.reshape(bin_centers_1d_hi.size, 1)
 
+        if custom_weight is None:
+            custom_weight = jnp.ones_like(lc_phot_weights_q)
+
         N_q = diffndhist.tw_ndhist_weighted(
             obs_mags_q,
             sig,
