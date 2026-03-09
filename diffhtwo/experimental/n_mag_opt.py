@@ -897,38 +897,39 @@ def fit_n_multi_z(
 
 
 @jjit
-def compute_nb_loss(
-    diffstarpop_params,
-    spspop_params,
-    ran_key,
-    lc_z_obs,
-    lc_t_obs,
-    lc_mah_params,
-    lc_logmp0,
-    lc_nhalos,
-    lc_vol_mpc3,
-    t_table,
-    ssp_data,
-    nb_precomputed_ssp_mag_table,
-    z_phot_table,
-    nb_wave_eff_table,
-    mzr_params,
-    scatter_params,
-    ssp_err_pop_params,
-    nb_bin_centers_1d,
-    nb_dmag,
-    nb_mag_columns,
-    nb_mag_thresh_column,
-    mag_thresh,
-    cosmo_params,
-    fb,
-    frac_cat,
-    nb_z,
-    nb_delta_z,
-    lg_n_target_1d_nbs,
-    lg_n_thresh,
-    nb_idx,
-):
+def compute_nb_loss(nb_args, nb_idx):
+    (
+        diffstarpop_params,
+        spspop_params,
+        ran_key,
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
+        lc_nhalos,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        nb_precomputed_ssp_mag_table,
+        z_phot_table,
+        nb_wave_eff_table,
+        mzr_params,
+        scatter_params,
+        ssp_err_pop_params,
+        nb_bin_centers_1d,
+        nb_dmag,
+        nb_mag_columns,
+        nb_mag_thresh_column,
+        mag_thresh,
+        cosmo_params,
+        fb,
+        frac_cat,
+        nb_z,
+        nb_delta_z,
+        lg_n_target_1d_nbs,
+        lg_n_thresh,
+    ) = nb_args
+
     nb_zval = nb_z[nb_idx]
     nb_zmin = nb_zval - (nb_delta_z / 2)
     nb_zmax = nb_zval + (nb_delta_z / 2)
@@ -1116,7 +1117,7 @@ def _loss_kern_w_nbs(
         lg_n_thresh,
     )
     indices = jnp.arange(len(nb_z))
-    nb_losses = jax.lax.scan(compute_nb_loss, *nb_args, indices)
+    nb_losses = jax.lax.scan(compute_nb_loss, nb_args, indices)
     loss += jnp.sum(nb_losses)
 
     if lg_halpha_LF_target is not None:
