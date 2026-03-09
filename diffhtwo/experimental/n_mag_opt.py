@@ -1035,14 +1035,18 @@ def _loss_kern_w_nbs(
             frac_cat,
             nb_z_weight,
         )
-        print("lg_n_model_1d_nb.shape:{}", lg_n_model_1d_nb.shape)
-        print("lg_n_target_1d_nbs[nb][0].shape:{}", lg_n_target_1d_nbs[nb][0].shape)
 
-        loss += _mse_w(
-            lg_n_model_1d_nb[0][0],
-            lg_n_target_1d_nbs[nb][0],
-            lg_n_target_1d_nbs[nb][1],
-            lg_n_thresh,
+        nb_in_lc = (nb_z[nb] > lc_z_obs.min()) & (nb_z[nb] <= lc_z_obs.max())
+
+        loss += jnp.where(
+            nb_in_lc,
+            _mse_w(
+                lg_n_model_1d_nb[0][0],
+                lg_n_target_1d_nbs[nb][0],
+                lg_n_target_1d_nbs[nb][1],
+                lg_n_thresh,
+            ),
+            0.0,
         )
 
     if lg_halpha_LF_target is not None:
