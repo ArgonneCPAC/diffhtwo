@@ -896,7 +896,90 @@ def fit_n_multi_z(
     return loss_hist, grad_hist, u_theta_fit
 
 
-# Latin Hypercube bins based fitting
+@jjit
+def compute_nb_loss(
+    diffstarpop_params,
+    spspop_params,
+    ran_key,
+    lc_z_obs,
+    lc_t_obs,
+    lc_mah_params,
+    lc_logmp0,
+    lc_nhalos,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    nb_precomputed_ssp_mag_table,
+    z_phot_table,
+    nb_wave_eff_table,
+    mzr_params,
+    scatter_params,
+    ssp_err_pop_params,
+    nb_bin_centers_1d,
+    nb_dmag,
+    nb_mag_columns,
+    nb_mag_thresh_column,
+    mag_thresh,
+    cosmo_params,
+    fb,
+    frac_cat,
+    nb_z,
+    nb_delta_z,
+    lg_n_target_1d_nbs,
+    lg_n_thresh,
+    nb_idx,
+):
+    nb_zval = nb_z[nb_idx]
+    nb_zmin = nb_zval - (nb_delta_z / 2)
+    nb_zmax = nb_zval + (nb_delta_z / 2)
+    nb_z_weight = jnp.float64((lc_z_obs > nb_zmin) & (lc_z_obs <= nb_zmax))
+
+    lg_n_model_1d_nb = n_mag_kern_nocolor(
+        diffstarpop_params,
+        spspop_params,
+        ran_key,
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
+        lc_nhalos,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        nb_precomputed_ssp_mag_table[:, nb_idx : nb_idx + 1, :, :],
+        z_phot_table,
+        nb_wave_eff_table[:, nb_idx : nb_idx + 1],
+        mzr_params,
+        scatter_params,
+        ssp_err_pop_params,
+        nb_bin_centers_1d,
+        nb_dmag,
+        nb_mag_columns[nb_idx : nb_idx + 1],  # slice instead of list
+        nb_mag_thresh_column,
+        mag_thresh,
+        cosmo_params,
+        fb,
+        frac_cat,
+        nb_z_weight,
+    )
+
+    nb_in_lc = (nb_zval > lc_z_obs.min()) & (nb_zval <= lc_z_obs.max())
+
+    nb_loss = jnp.where(
+        nb_in_lc,
+        _mse_w(
+            lg_n_model_1d_nb[0][0],
+            lg_n_target_1d_nbs[nb_idx][0],
+            lg_n_target_1d_nbs[nb_idx][1],
+            lg_n_thresh,
+        ),
+        0.0,
+    )
+
+    return nb_loss
+
+
+# Latin Hypercube bins based fitting + NBs separately in 1Ds
 @jjit
 def _loss_kern_w_nbs(
     u_theta,
@@ -1001,53 +1084,40 @@ def _loss_kern_w_nbs(
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     # Narrow band loss calculation
-    for nb in range(0, len(nb_z)):
-        nb_zmin = nb_z[nb] - (nb_delta_z / 2)
-        nb_zmax = nb_z[nb] + (nb_delta_z / 2)
-        nb_z_weight = (lc_z_obs > nb_zmin) & (lc_z_obs <= nb_zmax)
-        nb_z_weight = jnp.float64(nb_z_weight)
-
-        lg_n_model_1d_nb = n_mag_kern_nocolor(
-            diffstarpop_params,
-            spspop_params,
-            ran_key,
-            lc_z_obs,
-            lc_t_obs,
-            lc_mah_params,
-            lc_logmp0,
-            lc_nhalos,
-            lc_vol_mpc3,
-            t_table,
-            ssp_data,
-            nb_precomputed_ssp_mag_table[:, nb : nb + 1, :, :],
-            z_phot_table,
-            nb_wave_eff_table[:, nb : nb + 1],
-            mzr_params,
-            scatter_params,
-            ssp_err_pop_params,
-            nb_bin_centers_1d,
-            nb_dmag,
-            [nb_mag_columns[nb]],
-            nb_mag_thresh_column,
-            mag_thresh,
-            cosmo_params,
-            fb,
-            frac_cat,
-            nb_z_weight,
-        )
-
-        nb_in_lc = (nb_z[nb] > lc_z_obs.min()) & (nb_z[nb] <= lc_z_obs.max())
-
-        loss += jnp.where(
-            nb_in_lc,
-            _mse_w(
-                lg_n_model_1d_nb[0][0],
-                lg_n_target_1d_nbs[nb][0],
-                lg_n_target_1d_nbs[nb][1],
-                lg_n_thresh,
-            ),
-            0.0,
-        )
+    nb_args = (
+        diffstarpop_params,
+        spspop_params,
+        ran_key,
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
+        lc_nhalos,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        nb_precomputed_ssp_mag_table,
+        z_phot_table,
+        nb_wave_eff_table,
+        mzr_params,
+        scatter_params,
+        ssp_err_pop_params,
+        nb_bin_centers_1d,
+        nb_dmag,
+        nb_mag_columns,
+        nb_mag_thresh_column,
+        mag_thresh,
+        cosmo_params,
+        fb,
+        frac_cat,
+        nb_z,
+        nb_delta_z,
+        lg_n_target_1d_nbs,
+        lg_n_thresh,
+    )
+    indices = jnp.arange(len(nb_z))
+    nb_losses = jax.lax.scan(compute_nb_loss, nb_args, indices)
+    loss += jnp.sum(nb_losses)
 
     if lg_halpha_LF_target is not None:
         halpha_args = (
