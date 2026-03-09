@@ -1002,46 +1002,47 @@ def _loss_kern_w_nbs(
 
     # Narrow band loss calculation
     for nb in range(0, len(nb_z)):
-        nb_zmin = nb_z[nb] - (nb_delta_z / 2)
-        nb_zmax = nb_z[nb] + (nb_delta_z / 2)
-        nb_z_weight = (lc_z_obs > nb_zmin) & (lc_z_obs < nb_zmax)
-        nb_z_weight = jnp.float64(nb_z_weight)
+        if nb_z[nb] > lc_z_obs.min() and nb_z[nb] < lc_z_obs.max():
+            nb_zmin = nb_z[nb] - (nb_delta_z / 2)
+            nb_zmax = nb_z[nb] + (nb_delta_z / 2)
+            nb_z_weight = (lc_z_obs > nb_zmin) & (lc_z_obs <= nb_zmax)
+            nb_z_weight = jnp.float64(nb_z_weight)
 
-        lg_n_model_1d_nb = n_mag_kern_nocolor(
-            diffstarpop_params,
-            spspop_params,
-            ran_key,
-            lc_z_obs,
-            lc_t_obs,
-            lc_mah_params,
-            lc_logmp0,
-            lc_nhalos,
-            lc_vol_mpc3,
-            t_table,
-            ssp_data,
-            nb_precomputed_ssp_mag_table[:, nb : nb + 1, :, :],
-            z_phot_table,
-            nb_wave_eff_table[:, nb : nb + 1, :, :],
-            mzr_params,
-            scatter_params,
-            ssp_err_pop_params,
-            nb_bin_centers_1d,
-            nb_dmag,
-            [nb_mag_columns[nb]],
-            nb_mag_thresh_column,
-            mag_thresh,
-            cosmo_params,
-            fb,
-            frac_cat,
-            nb_z_weight,
-        )
+            lg_n_model_1d_nb = n_mag_kern_nocolor(
+                diffstarpop_params,
+                spspop_params,
+                ran_key,
+                lc_z_obs,
+                lc_t_obs,
+                lc_mah_params,
+                lc_logmp0,
+                lc_nhalos,
+                lc_vol_mpc3,
+                t_table,
+                ssp_data,
+                nb_precomputed_ssp_mag_table[:, nb : nb + 1, :, :],
+                z_phot_table,
+                nb_wave_eff_table[:, nb : nb + 1, :, :],
+                mzr_params,
+                scatter_params,
+                ssp_err_pop_params,
+                nb_bin_centers_1d,
+                nb_dmag,
+                [nb_mag_columns[nb]],
+                nb_mag_thresh_column,
+                mag_thresh,
+                cosmo_params,
+                fb,
+                frac_cat,
+                nb_z_weight,
+            )
 
-        loss += _mse_w(
-            lg_n_model_1d_nb[0][0],
-            lg_n_target_1d_nbs[nb][0],
-            lg_n_target_1d_nbs[nb][1],
-            lg_n_thresh,
-        )
+            loss += _mse_w(
+                lg_n_model_1d_nb[0][0],
+                lg_n_target_1d_nbs[nb][0],
+                lg_n_target_1d_nbs[nb][1],
+                lg_n_thresh,
+            )
 
     if lg_halpha_LF_target is not None:
         halpha_args = (
