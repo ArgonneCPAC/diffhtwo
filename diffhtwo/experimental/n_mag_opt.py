@@ -930,7 +930,8 @@ def compute_nb_loss(nb_args, nb_idx):
         lg_n_thresh,
     ) = nb_args
 
-    nb_zval = nb_z[nb_idx]
+    # dynamic_slice_in_dim(arr, start, size, axis)
+    nb_zval = lax.dynamic_slice_in_dim(nb_z, nb_idx, 1, axis=0)
     nb_zmin = nb_zval - (nb_delta_z / 2)
     nb_zmax = nb_zval + (nb_delta_z / 2)
     nb_z_weight = jnp.float64((lc_z_obs > nb_zmin) & (lc_z_obs <= nb_zmax))
