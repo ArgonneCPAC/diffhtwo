@@ -553,8 +553,8 @@ def n_mag_kern_nocolor(
 
         sig = jnp.zeros(obs_mags_q.shape) + (dmag / 2)
 
-        bin_centers_1d_lo = bin_centers_1d[-1] - (dmag / 2)
-        bin_centers_1d_hi = bin_centers_1d[-1] + (dmag / 2)
+        bin_centers_1d_lo = bin_centers_1d - (dmag / 2)
+        bin_centers_1d_hi = bin_centers_1d + (dmag / 2)
 
         bin_centers_1d_lo = bin_centers_1d_lo.reshape(bin_centers_1d_lo.size, 1)
         bin_centers_1d_hi = bin_centers_1d_hi.reshape(bin_centers_1d_hi.size, 1)
