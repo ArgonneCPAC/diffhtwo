@@ -1021,7 +1021,7 @@ def _loss_kern_w_nbs(
             ssp_data,
             nb_precomputed_ssp_mag_table[:, nb : nb + 1, :, :],
             z_phot_table,
-            nb_wave_eff_table[:, nb : nb + 1, :, :],
+            nb_wave_eff_table[:, nb : nb + 1],
             mzr_params,
             scatter_params,
             ssp_err_pop_params,
