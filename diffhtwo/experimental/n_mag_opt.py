@@ -1035,6 +1035,8 @@ def _loss_kern_w_nbs(
             frac_cat,
             nb_z_weight,
         )
+        print("lg_n_model_1d_nb.shape:{}", lg_n_model_1d_nb.shape)
+        print("lg_n_target_1d_nbs[nb][0].shape:{}", lg_n_target_1d_nbs[nb][0].shape)
 
         loss += _mse_w(
             lg_n_model_1d_nb[0][0],
