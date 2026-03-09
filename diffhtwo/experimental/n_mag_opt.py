@@ -925,6 +925,7 @@ def _loss_kern_w_nbs(
     fb,
     lg_n_target_1d_nbs,
     nb_z,
+    nb_delta_z,
     nb_precomputed_ssp_mag_table,
     nb_wave_eff_table,
     nb_bin_centers_1d,
@@ -1000,7 +1001,7 @@ def _loss_kern_w_nbs(
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     # Narrow band loss calculation
-    for nb in nb_z:
+    for nb in range(0, len(nb_z)):
         nb_zmin = nb_z[nb] - (nb_delta_z / 2)
         nb_zmax = nb_z[nb] + (nb_delta_z / 2)
         nb_z_weight = (lc_z_obs > nb_zmin) & (lc_z_obs < nb_zmax)
@@ -1026,7 +1027,7 @@ def _loss_kern_w_nbs(
             ssp_err_pop_params,
             nb_bin_centers_1d,
             nb_dmag,
-            nb_mag_columns,
+            [nb_mag_columns[nb]],
             nb_mag_thresh_column,
             mag_thresh,
             cosmo_params,
@@ -1140,6 +1141,7 @@ _L_w_nbs = (
     None,
     None,
     None,
+    None,
     0,
     0,
     0,
@@ -1191,6 +1193,7 @@ def fit_n_w_nbs_multi_z(
     fb,
     lg_n_target_1d_nbs,
     nb_z,
+    nb_delta_z,
     nb_precomputed_ssp_mag_table,
     nb_wave_eff_table,
     nb_bin_centers_1d,
@@ -1236,6 +1239,7 @@ def fit_n_w_nbs_multi_z(
         fb,
         lg_n_target_1d_nbs,
         nb_z,
+        nb_delta_z,
         nb_precomputed_ssp_mag_table,
         nb_wave_eff_table,
         nb_bin_centers_1d,
