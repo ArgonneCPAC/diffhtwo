@@ -148,14 +148,10 @@ def n_mag_kern(
         jnp.zeros_like(lc_phot.weights_bursty_ms),
     )
 
-    # correction added on 02/09/2026. The fraction of objects remaining after all bands included have totflux !=-99.
-    cat_weight = jnp.ones_like(lc_phot_weights_q) * frac_cat
-    ###################################################################
-
     N_q = diffndhist2.tw_ndhist_weighted(
         obs_colors_mag_q,
         sig,
-        lc_phot_weights_q * lc_nhalos * cat_weight,
+        lc_phot_weights_q * lc_nhalos * frac_cat,
         lh_centroids_lo,
         lh_centroids_hi,
     )
@@ -163,7 +159,7 @@ def n_mag_kern(
     N_smooth_ms = diffndhist2.tw_ndhist_weighted(
         obs_colors_mag_smooth_ms,
         sig,
-        lc_phot_weights_smooth_ms * lc_nhalos * cat_weight,
+        lc_phot_weights_smooth_ms * lc_nhalos * frac_cat,
         lh_centroids_lo,
         lh_centroids_hi,
     )
@@ -171,7 +167,7 @@ def n_mag_kern(
     N_bursty_ms = diffndhist2.tw_ndhist_weighted(
         obs_colors_mag_bursty_ms,
         sig,
-        lc_phot_weights_bursty_ms * lc_nhalos * cat_weight,
+        lc_phot_weights_bursty_ms * lc_nhalos * frac_cat,
         lh_centroids_lo,
         lh_centroids_hi,
     )
@@ -245,6 +241,7 @@ def n_mag_kern_1d(
     cosmo_params,
     fb,
     frac_cat=1.0,
+    custom_weight=None,
 ):
     """Kernel for calculating number density in N-dimensional mag-color space based on
     diffstarpop/bursty/dust parameters
@@ -309,10 +306,6 @@ def n_mag_kern_1d(
         jnp.zeros_like(lc_phot.weights_bursty_ms),
     )
 
-    # correction added on 02/09/2026. The fraction of objects remaining after all bands included have totflux !=-99.
-    cat_weight = jnp.ones_like(lc_phot_weights_q) * frac_cat
-    ###################################################################
-
     lg_n_model_1d_err = []
     for i in range(n_bands - 1):
         obs_color_q = lc_phot.obs_mags_q[:, i] - lc_phot.obs_mags_q[:, i + 1]
@@ -336,10 +329,13 @@ def n_mag_kern_1d(
         bin_centers_1d_lo = bin_centers_1d_lo.reshape(bin_centers_1d_lo.size, 1)
         bin_centers_1d_hi = bin_centers_1d_hi.reshape(bin_centers_1d_hi.size, 1)
 
+        if custom_weight is None:
+            custom_weight = jnp.ones_like(lc_phot_weights_q)
+
         N_q = diffndhist.tw_ndhist_weighted(
             obs_color_q,
             sig,
-            lc_phot_weights_q * lc_nhalos * cat_weight,
+            lc_phot_weights_q * lc_nhalos * frac_cat * custom_weight,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -347,7 +343,7 @@ def n_mag_kern_1d(
         N_smooth_ms = diffndhist.tw_ndhist_weighted(
             obs_color_smooth_ms,
             sig,
-            lc_phot_weights_smooth_ms * lc_nhalos * cat_weight,
+            lc_phot_weights_smooth_ms * lc_nhalos * frac_cat * custom_weight,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -355,7 +351,7 @@ def n_mag_kern_1d(
         N_bursty_ms = diffndhist.tw_ndhist_weighted(
             obs_color_bursty_ms,
             sig,
-            lc_phot_weights_bursty_ms * lc_nhalos * cat_weight,
+            lc_phot_weights_bursty_ms * lc_nhalos * frac_cat * custom_weight,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -385,7 +381,7 @@ def n_mag_kern_1d(
         N_q = diffndhist.tw_ndhist_weighted(
             obs_mags_q,
             sig,
-            lc_phot_weights_q * lc_nhalos * cat_weight,
+            lc_phot_weights_q * lc_nhalos * frac_cat * custom_weight,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -393,7 +389,7 @@ def n_mag_kern_1d(
         N_smooth_ms = diffndhist.tw_ndhist_weighted(
             obs_mags_smooth_ms,
             sig,
-            lc_phot_weights_smooth_ms * lc_nhalos * cat_weight,
+            lc_phot_weights_smooth_ms * lc_nhalos * frac_cat * custom_weight,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )
@@ -401,7 +397,7 @@ def n_mag_kern_1d(
         N_bursty_ms = diffndhist.tw_ndhist_weighted(
             obs_mags_bursty_ms,
             sig,
-            lc_phot_weights_bursty_ms * lc_nhalos * cat_weight,
+            lc_phot_weights_bursty_ms * lc_nhalos * frac_cat * custom_weight,
             bin_centers_1d_lo,
             bin_centers_1d_hi,
         )

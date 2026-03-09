@@ -894,3 +894,207 @@ def fit_n_multi_z(
     u_theta_fit = get_params(opt_state)
 
     return loss_hist, grad_hist, u_theta_fit
+
+
+# Latin Hypercube bins based fitting
+@jjit
+def _loss_kern_w_nbs(
+    u_theta,
+    lg_n_target,
+    lg_n_thresh,
+    ran_key,
+    lc_z_obs,
+    lc_t_obs,
+    lc_mah_params,
+    lc_logmp0,
+    lc_nhalos,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    precomputed_ssp_mag_table,
+    z_phot_table,
+    wave_eff_table,
+    mzr_params,
+    scatter_params,
+    lh_centroids,
+    dmag_centroids,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    cosmo_params,
+    fb,
+    nb_z,
+    nb_precomputed_ssp_mag_table,
+    nb_wave_eff_table,
+    frac_cat=1.0,
+    ssp_halpha_luminosity=None,
+    lg_halpha_LF_target=None,
+    lg_halpha_Lbin_edges=None,
+    halpha_LF_z=None,
+    halpha_LF_delta_z=None,
+    halpha_LF_delta_z_vol_Mpc3=None,
+):
+    # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
+    if len(u_theta) == 3:
+        u_diffstarpop_theta, u_spspop_theta, u_ssp_err_pop_theta = u_theta
+
+        u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+        u_spspop_params = u_spspop_unravel(u_spspop_theta)
+        spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+        u_ssp_err_pop_params = u_zero_ssp_err_pop_unravel(u_ssp_err_pop_theta)
+        ssp_err_pop_params = get_bounded_ssperr_params(u_ssp_err_pop_params)
+
+    elif len(u_theta) == 2:
+        u_diffstarpop_theta, u_spspop_theta = u_theta
+
+        u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+        u_spspop_params = u_spspop_unravel(u_spspop_theta)
+        spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+        ssp_err_pop_params = ZERO_SSPERR_PARAMS
+
+    else:
+        u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
+        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+        spspop_params = DEFAULT_SPSPOP_PARAMS
+        ssp_err_pop_params = ZERO_SSPERR_PARAMS
+
+    lg_n_model, _ = n_mag_kern(
+        diffstarpop_params,
+        spspop_params,
+        ran_key,
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
+        lc_nhalos,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        mzr_params,
+        scatter_params,
+        ssp_err_pop_params,
+        lh_centroids,
+        dmag_centroids,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        cosmo_params,
+        fb,
+        frac_cat,
+    )
+    loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
+
+    # Narrow band loss calculation
+    for nb in nb_z:
+        nb_zmin = nb_z[nb] - (nb_delta_z / 2)
+        nb_zmax = nb_z[nb] + (nb_delta_z / 2)
+        nb_z_weight = (lc_z_obs > nb_zmin) & (lc_z_obs < nb_zmax)
+        nb_z_weight = jnp.float64(nb_z_weight)
+
+        lg_n_model_1d_nb = n_mag_kern_1d(
+            diffstarpop_params,
+            spspop_params,
+            ran_key,
+            lc_z_obs,
+            lc_t_obs,
+            lc_mah_params,
+            lc_logmp0,
+            lc_nhalos,
+            lc_vol_mpc3,
+            t_table,
+            ssp_data,
+            nb_precomputed_ssp_mag_table[:, nb : nb + 1, :, :],
+            z_phot_table,
+            nb_wave_eff_table[:, nb : nb + 1, :, :],
+            mzr_params,
+            scatter_params,
+            ssp_err_pop_params,
+            bin_centers_1d,
+            dmag,
+            mag_columns,
+            mag_thresh_column,
+            mag_thresh,
+            cosmo_params,
+            fb,
+            frac_cat,
+            nb_z_weight,
+        )
+
+        loss += _mse_w(
+            lg_n_model_1d_nb[0],
+            lg_n_target_1d_nbs[nb][0],
+            lg_n_target_1d_nbs[nb][1],
+            lg_n_thresh,
+        )
+
+    if lg_halpha_LF_target is not None:
+        halpha_args = (
+            diffstarpop_params,
+            ran_key,
+            lc_z_obs,
+            lc_t_obs,
+            lc_mah_params,
+            lc_logmp0,
+            t_table,
+            ssp_data,
+            ssp_halpha_luminosity,
+            z_phot_table,
+            mzr_params,
+            spspop_params,
+            scatter_params,
+            cosmo_params,
+            fb,
+        )
+        halpha_L = dpop_halpha.diffstarpop_halpha_kern(*halpha_args)
+
+        halpha_LF_zmin = halpha_LF_z - (halpha_LF_delta_z / 2)
+        halpha_LF_zmax = halpha_LF_z + (halpha_LF_delta_z / 2)
+        halpha_LF_z_sel = (lc_z_obs > halpha_LF_zmin) & (lc_z_obs < halpha_LF_zmax)
+        halpha_LF_z_sel = jnp.float64(halpha_LF_z_sel)
+        (
+            _,
+            halpha_lf_weighted_q,
+            halpha_lf_weighted_smooth_ms,
+            halpha_lf_weighted_bursty_ms,
+        ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
+            halpha_L,
+            lc_nhalos * halpha_LF_z_sel,
+            sig=0.05,
+            lgL_bin_edges=lg_halpha_Lbin_edges,
+        )
+
+        halpha_lf_weighted_composite = (
+            halpha_lf_weighted_q
+            + halpha_lf_weighted_smooth_ms
+            + halpha_lf_weighted_bursty_ms
+        )
+
+        # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
+        N_0 = 1e-12
+        N_floor = 0.5
+        halpha_lf_weighted_composite = jnp.where(
+            halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
+        )
+
+        lg_halpha_LF_model = jnp.log10(
+            halpha_lf_weighted_composite / halpha_LF_delta_z_vol_Mpc3
+        )
+
+        loss += _mse_w(
+            lg_halpha_LF_model,
+            lg_halpha_LF_target[0],
+            lg_halpha_LF_target[1],
+            lg_n_thresh,
+        )
+
+    return loss
