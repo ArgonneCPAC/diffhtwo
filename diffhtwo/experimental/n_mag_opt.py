@@ -29,7 +29,7 @@ from jax.flatten_util import ravel_pytree
 from diffhtwo.experimental.utils import safe_log10
 
 from . import diffstarpop_halpha as dpop_halpha
-from .n_mag import n_mag_kern, n_mag_kern_1d
+from .n_mag import n_mag_kern, n_mag_kern_1d, n_mag_kern_nocolor
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
@@ -923,9 +923,14 @@ def _loss_kern_w_nbs(
     mag_thresh,
     cosmo_params,
     fb,
+    lg_n_target_1d_nbs,
     nb_z,
     nb_precomputed_ssp_mag_table,
     nb_wave_eff_table,
+    nb_bin_centers_1d,
+    nb_dmag,
+    nb_mag_columns,
+    nb_mag_thresh_column,
     frac_cat=1.0,
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
@@ -1001,7 +1006,7 @@ def _loss_kern_w_nbs(
         nb_z_weight = (lc_z_obs > nb_zmin) & (lc_z_obs < nb_zmax)
         nb_z_weight = jnp.float64(nb_z_weight)
 
-        lg_n_model_1d_nb = n_mag_kern_1d(
+        lg_n_model_1d_nb = n_mag_kern_nocolor(
             diffstarpop_params,
             spspop_params,
             ran_key,
@@ -1019,10 +1024,10 @@ def _loss_kern_w_nbs(
             mzr_params,
             scatter_params,
             ssp_err_pop_params,
-            bin_centers_1d,
-            dmag,
-            mag_columns,
-            mag_thresh_column,
+            nb_bin_centers_1d,
+            nb_dmag,
+            nb_mag_columns,
+            nb_mag_thresh_column,
             mag_thresh,
             cosmo_params,
             fb,
@@ -1031,7 +1036,7 @@ def _loss_kern_w_nbs(
         )
 
         loss += _mse_w(
-            lg_n_model_1d_nb[0],
+            lg_n_model_1d_nb[0][0],
             lg_n_target_1d_nbs[nb][0],
             lg_n_target_1d_nbs[nb][1],
             lg_n_thresh,
@@ -1098,3 +1103,167 @@ def _loss_kern_w_nbs(
         )
 
     return loss
+
+
+_L_w_nbs = (
+    None,
+    0,
+    None,
+    None,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    None,
+    0,
+    0,
+    0,
+    None,
+    None,
+    0,
+    0,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    None,
+    0,
+    0,
+    0,
+    0,
+    0,
+)
+_loss_kern_w_nbs_multi_z = jjit(
+    vmap(
+        _loss_kern_w_nbs,
+        in_axes=_L_w_nbs,
+    )
+)
+
+
+@jjit
+def _loss_w_nbs_total_multi_z(*args):
+    return jnp.sum(_loss_kern_w_nbs_multi_z(*args))
+
+
+loss_and_grad_w_nbs_multi_z = jjit(value_and_grad(_loss_w_nbs_total_multi_z))
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_n_w_nbs_multi_z(
+    u_theta_init,
+    trainable,
+    lg_n_target,
+    lg_n_thresh,
+    ran_key,
+    lc_z_obs,
+    lc_t_obs,
+    lc_mah_params,
+    lc_logmp0,
+    lc_nhalos,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    precomputed_ssp_mag_table,
+    z_phot_table,
+    wave_eff_table,
+    mzr_params,
+    scatter_params,
+    lh_centroids,
+    dmag_centroids,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    cosmo_params,
+    fb,
+    lg_n_target_1d_nbs,
+    nb_z,
+    nb_precomputed_ssp_mag_table,
+    nb_wave_eff_table,
+    nb_bin_centers_1d,
+    nb_dmag,
+    nb_mag_columns,
+    nb_mag_thresh_column,
+    frac_cat=1.0,
+    n_steps=2,
+    step_size=0.1,
+    ssp_halpha_luminosity=None,
+    lg_halpha_LF_target=None,
+    lg_halpha_Lbin_edges=None,
+    halpha_LF_z=None,
+    halpha_LF_delta_z=None,
+    halpha_LF_delta_z_vol_Mpc3=None,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    other = (
+        lg_n_target,
+        lg_n_thresh,
+        ran_key,
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
+        lc_nhalos,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        mzr_params,
+        scatter_params,
+        lh_centroids,
+        dmag_centroids,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        cosmo_params,
+        fb,
+        lg_n_target_1d_nbs,
+        nb_z,
+        nb_precomputed_ssp_mag_table,
+        nb_wave_eff_table,
+        nb_bin_centers_1d,
+        nb_dmag,
+        nb_mag_columns,
+        nb_mag_thresh_column,
+        frac_cat,
+        ssp_halpha_luminosity,
+        lg_halpha_LF_target,
+        lg_halpha_Lbin_edges,
+        halpha_LF_z,
+        halpha_LF_delta_z,
+        halpha_LF_delta_z_vol_Mpc3,
+    )
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss, grads = loss_and_grad_w_nbs_multi_z(u_theta, *other)
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, (loss, grads)
+
+    (opt_state, (loss_hist, grad_hist)) = lax.scan(
+        _opt_update, opt_state, jnp.arange(n_steps)
+    )
+    u_theta_fit = get_params(opt_state)
+
+    return loss_hist, grad_hist, u_theta_fit
