@@ -210,6 +210,7 @@ def plot_n_mag(
         )
 
     fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4), squeeze=False)
+    ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title, fontsize=18)
 
@@ -621,6 +622,7 @@ def plot_n(
         figsize=(2.5 * n_bands - 1 + len(mag_columns), 4),
         squeeze=False,
     )
+    ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title, fontsize=18)
 
