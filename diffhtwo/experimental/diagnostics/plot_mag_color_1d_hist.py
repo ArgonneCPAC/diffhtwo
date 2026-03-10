@@ -93,9 +93,18 @@ def plot_n_mag(
     if data_sky_area_degsq is not None:
         data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
 
-    n_z_phot_table = 15
+    n_z_phot_table = 33
 
-    z_phot_table = jnp.linspace(zmin, zmax, n_z_phot_table)
+    if (zmin < 0.24) & (zmax > 0.24):
+        nb_z = jnp.array([0.2445706, 0.40185568])
+        nb816_zspan = np.linspace(nb_z[0] - 0.02, nb_z[0] + 0.02, 11)
+        nb921_zspan = np.linspace(nb_z[1] - 0.02, nb_z[1] + 0.02, 11)
+        z1_zspan = np.linspace(0.2, 0.5, 11)
+        z_phot_table = np.concatenate((nb816_zspan, nb921_zspan, z1_zspan))
+        z_phot_table.sort()
+    else:
+        z_phot_table = jnp.linspace(zmin, zmax, n_z_phot_table)
+
     t_0 = flat_wcdm.age_at_z0(*DEFAULT_COSMOLOGY)
     lgt0 = jnp.log10(t_0)
     t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
