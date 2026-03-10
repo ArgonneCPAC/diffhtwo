@@ -36,7 +36,7 @@ alpha2 = 0.7
 alpha_data = 0.5
 
 
-lw = 2
+lw = 1
 fontsize = 20
 labelsize = 12
 legend_fontsize = 14
