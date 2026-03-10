@@ -71,6 +71,7 @@ def plot_n_mag(
     title,
     saveAs,
     dataset_mags=None,
+    n_bands=None,
     data_sky_area_degsq=None,
     diffstarpop_params2=None,
     spspop_params2=None,
@@ -127,7 +128,8 @@ def plot_n_mag(
     )
 
     lc_phot1 = lc_phot_kern.multiband_lc_phot_kern(*phot_args1)
-    num_halos, n_bands = lc_phot1.obs_mags_q.shape
+    if n_bands is None:
+        num_halos, n_bands = lc_phot1.obs_mags_q.shape
 
     # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
     obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_thresh_column]
@@ -178,7 +180,6 @@ def plot_n_mag(
         )
 
         lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
-        num_halos, n_bands = lc_phot2.obs_mags_q.shape
 
         # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
         obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
@@ -539,7 +540,6 @@ def plot_n(
         )
 
         lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
-        num_halos, n_bands = lc_phot2.obs_mags_q.shape
 
         (
             obs_colors_mag_q2,
