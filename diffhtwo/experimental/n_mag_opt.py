@@ -513,6 +513,9 @@ def fit_n_1d_multi_z(
     return loss_hist, grad_hist, u_theta_fit
 
 
+HALPHA_LOSS_LC_SKY_AREA_DEGSQ = 1.0
+
+
 @jjit
 def get_halpha_loss(
     diffstarpop_params,
@@ -530,15 +533,15 @@ def get_halpha_loss(
     halpha_LF_z,
     halpha_LF_delta_z,
     halpha_LF_delta_z_vol_Mpc3,
+    num_halos=1000,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    lc_sky_area_degsq=HALPHA_LOSS_LC_SKY_AREA_DEGSQ,
 ):
     halpha_LF_zmin = halpha_LF_z - (halpha_LF_delta_z / 2)
     halpha_LF_zmax = halpha_LF_z + (halpha_LF_delta_z / 2)
 
     """weighted mc lightcone"""
-    lgmp_min = 10.0
-    sky_area_degsq = 1
-    num_halos = 1000
-    lgmp_max = mc_hosts.LGMH_MAX
     lc_args = (
         lc_key,
         num_halos,
@@ -546,7 +549,7 @@ def get_halpha_loss(
         halpha_LF_zmax,
         lgmp_min,
         lgmp_max,
-        sky_area_degsq,
+        lc_sky_area_degsq,
     )
     lc_halopop = mclh.mc_weighted_halo_lightcone(*lc_args)
 
