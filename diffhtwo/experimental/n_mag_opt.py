@@ -513,13 +513,20 @@ def fit_n_1d_multi_z(
     return loss_hist, grad_hist, u_theta_fit
 
 
-HALPHA_LOSS_LC_SKY_AREA_DEGSQ = 1.0
-
-
 @jjit
 def get_halpha_loss(
     diffstarpop_params,
-    lc_key,
+    ran_key,
+    lg_halpha_LF_target,
+    lg_halpha_Lbin_edges,
+    halpha_LF_zmin,
+    halpha_LF_zmax,
+    lc_z_obs,
+    lc_t_obs,
+    lc_mah_params,
+    lc_logmp0,
+    lc_nhalos,
+    lc_vol_mpc3,
     t_table,
     ssp_data,
     ssp_halpha_luminosity,
@@ -528,39 +535,15 @@ def get_halpha_loss(
     scatter_params,
     cosmo_params,
     fb,
-    lg_halpha_LF_target,
-    lg_halpha_Lbin_edges,
-    halpha_LF_z,
-    halpha_LF_delta_z,
-    halpha_LF_delta_z_vol_Mpc3,
-    num_halos=1000,
-    lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
-    lc_sky_area_degsq=HALPHA_LOSS_LC_SKY_AREA_DEGSQ,
 ):
-    halpha_LF_zmin = halpha_LF_z - (halpha_LF_delta_z / 2)
-    halpha_LF_zmax = halpha_LF_z + (halpha_LF_delta_z / 2)
-
-    """weighted mc lightcone"""
-    lc_args = (
-        lc_key,
-        num_halos,
-        halpha_LF_zmin,
-        halpha_LF_zmax,
-        lgmp_min,
-        lgmp_max,
-        lc_sky_area_degsq,
-    )
-    lc_halopop = mclh.mc_weighted_halo_lightcone(*lc_args)
-
     z_phot_table = jnp.linspace(halpha_LF_zmin, halpha_LF_zmax, 10)
     halpha_args = (
         diffstarpop_params,
         ran_key,
-        lc_halopop["z_obs"],
-        lc_halopop["t_obs"],
-        lc_halopop["mah_params"],
-        lc_halopop["logmp0"],
+        lc_z_obs,
+        lc_t_obs,
+        lc_mah_params,
+        lc_logmp0,
         t_table,
         ssp_data,
         ssp_halpha_luminosity,
@@ -580,7 +563,7 @@ def get_halpha_loss(
         halpha_lf_weighted_bursty_ms,
     ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
         halpha_L,
-        lc_halopop["nhalos"],
+        lc_nhalos,
         sig=sig,
         lgL_bin_edges=lg_halpha_Lbin_edges,
     )
@@ -598,9 +581,7 @@ def get_halpha_loss(
         halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
     )
 
-    lg_halpha_LF_model = jnp.log10(
-        halpha_lf_weighted_composite / halpha_LF_delta_z_vol_Mpc3
-    )
+    lg_halpha_LF_model = jnp.log10(halpha_lf_weighted_composite / lc_vol_mpc3)
 
     return _mse_w(
         lg_halpha_LF_model,
@@ -641,9 +622,14 @@ def _loss_kern(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_z=None,
-    halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
+    halpha_LF_zmin=None,
+    halpha_LF_zmax=None,
+    halpha_lc_z_obs=None,
+    halpha_lc_t_obs=None,
+    halpha_lc_mah_params=None,
+    halpha_lc_logmp0=None,
+    halpha_lc_nhalos=None,
+    halpha_lc_vol_mpc3=None,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
@@ -709,6 +695,16 @@ def _loss_kern(
         halpha_loss_args = (
             diffstarpop_params,
             ran_key,
+            lg_halpha_LF_target,
+            lg_halpha_Lbin_edges,
+            halpha_LF_zmin,
+            halpha_LF_zmax,
+            halpha_lc_z_obs,
+            halpha_lc_t_obs,
+            halpha_lc_mah_params,
+            halpha_lc_logmp0,
+            halpha_lc_nhalos,
+            halpha_lc_vol_mpc3,
             t_table,
             ssp_data,
             ssp_halpha_luminosity,
@@ -717,11 +713,6 @@ def _loss_kern(
             scatter_params,
             cosmo_params,
             fb,
-            lg_halpha_LF_target,
-            lg_halpha_Lbin_edges,
-            halpha_LF_z,
-            halpha_LF_delta_z,
-            halpha_LF_delta_z_vol_Mpc3,
         )
         loss += get_halpha_loss(*halpha_loss_args)
 
@@ -763,9 +754,14 @@ def fit_n(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_z=None,
-    halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
+    halpha_LF_zmin=None,
+    halpha_LF_zmax=None,
+    halpha_lc_z_obs=None,
+    halpha_lc_t_obs=None,
+    halpha_lc_mah_params=None,
+    halpha_lc_logmp0=None,
+    halpha_lc_nhalos=None,
+    halpha_lc_vol_mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -798,9 +794,14 @@ def fit_n(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
-        halpha_LF_z,
-        halpha_LF_delta_z,
-        halpha_LF_delta_z_vol_Mpc3,
+        halpha_LF_zmin,
+        halpha_LF_zmax,
+        halpha_lc_z_obs,
+        halpha_lc_t_obs,
+        halpha_lc_mah_params,
+        halpha_lc_logmp0,
+        halpha_lc_nhalos,
+        halpha_lc_vol_mpc3,
     )
 
     def _opt_update(opt_state, i):
@@ -844,6 +845,11 @@ _L = (
     None,
     None,
     None,
+    0,
+    0,
+    0,
+    0,
+    0,
     0,
     0,
     0,
@@ -899,9 +905,14 @@ def fit_n_multi_z(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_z=None,
-    halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
+    halpha_LF_zmin=None,
+    halpha_LF_zmax=None,
+    halpha_lc_z_obs=None,
+    halpha_lc_t_obs=None,
+    halpha_lc_mah_params=None,
+    halpha_lc_logmp0=None,
+    halpha_lc_nhalos=None,
+    halpha_lc_vol_mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -934,9 +945,14 @@ def fit_n_multi_z(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
-        halpha_LF_z,
-        halpha_LF_delta_z,
-        halpha_LF_delta_z_vol_Mpc3,
+        halpha_LF_zmin,
+        halpha_LF_zmax,
+        halpha_lc_z_obs,
+        halpha_lc_t_obs,
+        halpha_lc_mah_params,
+        halpha_lc_logmp0,
+        halpha_lc_nhalos,
+        halpha_lc_vol_mpc3,
     )
 
     def _opt_update(opt_state, i):
@@ -1083,9 +1099,14 @@ def _loss_kern_w_nbs(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_z=None,
-    halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
+    halpha_LF_zmin=None,
+    halpha_LF_zmax=None,
+    halpha_lc_z_obs=None,
+    halpha_lc_t_obs=None,
+    halpha_lc_mah_params=None,
+    halpha_lc_logmp0=None,
+    halpha_lc_nhalos=None,
+    halpha_lc_vol_mpc3=None,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
@@ -1187,6 +1208,16 @@ def _loss_kern_w_nbs(
         halpha_loss_args = (
             diffstarpop_params,
             ran_key,
+            lg_halpha_LF_target,
+            lg_halpha_Lbin_edges,
+            halpha_LF_zmin,
+            halpha_LF_zmax,
+            halpha_lc_z_obs,
+            halpha_lc_t_obs,
+            halpha_lc_mah_params,
+            halpha_lc_logmp0,
+            halpha_lc_nhalos,
+            halpha_lc_vol_mpc3,
             t_table,
             ssp_data,
             ssp_halpha_luminosity,
@@ -1195,11 +1226,6 @@ def _loss_kern_w_nbs(
             scatter_params,
             cosmo_params,
             fb,
-            lg_halpha_LF_target,
-            lg_halpha_Lbin_edges,
-            halpha_LF_z,
-            halpha_LF_delta_z,
-            halpha_LF_delta_z_vol_Mpc3,
         )
         loss += get_halpha_loss(*halpha_loss_args)
 
@@ -1243,6 +1269,11 @@ _L_w_nbs = (
     None,
     None,
     None,
+    0,
+    0,
+    0,
+    0,
+    0,
     0,
     0,
     0,
@@ -1308,9 +1339,14 @@ def fit_n_w_nbs_multi_z(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_z=None,
-    halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
+    halpha_LF_zmin=None,
+    halpha_LF_zmax=None,
+    halpha_lc_z_obs=None,
+    halpha_lc_t_obs=None,
+    halpha_lc_mah_params=None,
+    halpha_lc_logmp0=None,
+    halpha_lc_nhalos=None,
+    halpha_lc_vol_mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -1353,9 +1389,14 @@ def fit_n_w_nbs_multi_z(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
-        halpha_LF_z,
-        halpha_LF_delta_z,
-        halpha_LF_delta_z_vol_Mpc3,
+        halpha_LF_zmin,
+        halpha_LF_zmax,
+        halpha_lc_z_obs,
+        halpha_lc_t_obs,
+        halpha_lc_mah_params,
+        halpha_lc_logmp0,
+        halpha_lc_nhalos,
+        halpha_lc_vol_mpc3,
     )
 
     def _opt_update(opt_state, i):
