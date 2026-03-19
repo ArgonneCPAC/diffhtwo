@@ -36,6 +36,7 @@ def safe_log10(x, EPS=1e-12):
     return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
 
 
+@jjit
 def zbin_volume(sky_area_degsq, zlow=0.2, zhigh=0.5, slices=1000):
     """
     Calculate Comoving Volume in Mpc3/h units for a given z-bin and area of survey.
@@ -44,12 +45,12 @@ def zbin_volume(sky_area_degsq, zlow=0.2, zhigh=0.5, slices=1000):
     slices: number of slices used for integration of dV/dz over z
     A: Survey area in deg2
     """
-    z = np.linspace(zlow, zhigh, slices)
-    dV_dz = np.zeros(len(z))
+    z = jnp.linspace(zlow, zhigh, slices)
+    dV_dz = jnp.zeros(len(z))
     A = sky_area_degsq * u.deg**2
     for i in range(0, len(z)):
         dV_dz[i] = COSMO.differential_comoving_volume(z[i]).value
-    volume = (np.trapezoid(dV_dz, z) * u.Mpc**3 / u.sr) * A.to(u.sr)
+    volume = (jnp.trapezoid(dV_dz, z) * u.Mpc**3 / u.sr) * A.to(u.sr)
 
     # Mpc3 units (no h dependence)
     return volume
