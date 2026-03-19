@@ -527,7 +527,6 @@ def get_halpha_loss(
     lg_halpha_Lbin_edges,
     halpha_LF_z,
     halpha_LF_delta_z,
-    halpha_LF_delta_z_vol_Mpc3,
 ):
     halpha_LF_zmin = halpha_LF_z - (halpha_LF_delta_z / 2)
     halpha_LF_zmax = halpha_LF_z + (halpha_LF_delta_z / 2)
@@ -641,7 +640,6 @@ def _loss_kern(
     lg_halpha_Lbin_edges=None,
     halpha_LF_z=None,
     halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
@@ -704,17 +702,13 @@ def _loss_kern(
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     if lg_halpha_LF_target is not None:
+        ran_key, halpha_lc_key = jran.split(ran_key, 2)
         halpha_loss_args = (
             diffstarpop_params,
-            ran_key,
-            lc_z_obs,
-            lc_t_obs,
-            lc_mah_params,
-            lc_logmp0,
+            halpha_lc_key,
             t_table,
             ssp_data,
             ssp_halpha_luminosity,
-            z_phot_table,
             mzr_params,
             spspop_params,
             scatter_params,
@@ -724,7 +718,6 @@ def _loss_kern(
             lg_halpha_Lbin_edges,
             halpha_LF_z,
             halpha_LF_delta_z,
-            halpha_LF_delta_z_vol_Mpc3,
         )
         loss += get_halpha_loss(*halpha_loss_args)
 
@@ -768,7 +761,6 @@ def fit_n(
     lg_halpha_Lbin_edges=None,
     halpha_LF_z=None,
     halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -803,7 +795,6 @@ def fit_n(
         lg_halpha_Lbin_edges,
         halpha_LF_z,
         halpha_LF_delta_z,
-        halpha_LF_delta_z_vol_Mpc3,
     )
 
     def _opt_update(opt_state, i):
@@ -847,7 +838,6 @@ _L = (
     None,
     None,
     None,
-    0,
     0,
     0,
     0,
@@ -904,7 +894,6 @@ def fit_n_multi_z(
     lg_halpha_Lbin_edges=None,
     halpha_LF_z=None,
     halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -939,7 +928,6 @@ def fit_n_multi_z(
         lg_halpha_Lbin_edges,
         halpha_LF_z,
         halpha_LF_delta_z,
-        halpha_LF_delta_z_vol_Mpc3,
     )
 
     def _opt_update(opt_state, i):
@@ -1088,7 +1076,6 @@ def _loss_kern_w_nbs(
     lg_halpha_Lbin_edges=None,
     halpha_LF_z=None,
     halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
@@ -1187,17 +1174,13 @@ def _loss_kern_w_nbs(
     loss += jnp.sum(nb_losses)
 
     if lg_halpha_LF_target is not None:
+        ran_key, halpha_lc_key = jran.split(ran_key, 2)
         halpha_loss_args = (
             diffstarpop_params,
-            ran_key,
-            lc_z_obs,
-            lc_t_obs,
-            lc_mah_params,
-            lc_logmp0,
+            halpha_lc_key,
             t_table,
             ssp_data,
             ssp_halpha_luminosity,
-            z_phot_table,
             mzr_params,
             spspop_params,
             scatter_params,
@@ -1207,7 +1190,6 @@ def _loss_kern_w_nbs(
             lg_halpha_Lbin_edges,
             halpha_LF_z,
             halpha_LF_delta_z,
-            halpha_LF_delta_z_vol_Mpc3,
         )
         loss += get_halpha_loss(*halpha_loss_args)
 
@@ -1251,7 +1233,6 @@ _L_w_nbs = (
     None,
     None,
     None,
-    0,
     0,
     0,
     0,
@@ -1318,7 +1299,6 @@ def fit_n_w_nbs_multi_z(
     lg_halpha_Lbin_edges=None,
     halpha_LF_z=None,
     halpha_LF_delta_z=None,
-    halpha_LF_delta_z_vol_Mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -1363,7 +1343,6 @@ def fit_n_w_nbs_multi_z(
         lg_halpha_Lbin_edges,
         halpha_LF_z,
         halpha_LF_delta_z,
-        halpha_LF_delta_z_vol_Mpc3,
     )
 
     def _opt_update(opt_state, i):
