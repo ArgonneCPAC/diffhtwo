@@ -706,10 +706,9 @@ def _loss_kern(
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     if lg_halpha_LF_target is not None:
-        ran_key, halpha_lc_key = jran.split(ran_key, 2)
         halpha_loss_args = (
             diffstarpop_params,
-            halpha_lc_key,
+            ran_key,
             t_table,
             ssp_data,
             ssp_halpha_luminosity,
@@ -1185,10 +1184,9 @@ def _loss_kern_w_nbs(
     loss += jnp.sum(nb_losses)
 
     if lg_halpha_LF_target is not None:
-        ran_key, halpha_lc_key = jran.split(ran_key, 2)
         halpha_loss_args = (
             diffstarpop_params,
-            halpha_lc_key,
+            ran_key,
             t_table,
             ssp_data,
             ssp_halpha_luminosity,
