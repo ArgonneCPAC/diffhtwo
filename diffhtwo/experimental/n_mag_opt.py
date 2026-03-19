@@ -8,6 +8,8 @@ jax.config.update("jax_debug_infs", True)
 from functools import partial
 
 import jax.numpy as jnp
+from diffsky.experimental import mc_lightcone_halos as mclh
+from diffsky.mass_functions import mc_hosts
 from diffsky.param_utils.spspop_param_utils import (
     DEFAULT_SPSPOP_PARAMS,
     DEFAULT_SPSPOP_U_PARAMS,
@@ -509,6 +511,103 @@ def fit_n_1d_multi_z(
     return loss_hist, grad_hist, u_theta_fit
 
 
+@jjit
+def get_halpha_loss(
+    diffstarpop_params,
+    lc_key,
+    t_table,
+    ssp_data,
+    ssp_halpha_luminosity,
+    mzr_params,
+    spspop_params,
+    scatter_params,
+    cosmo_params,
+    fb,
+    lg_halpha_LF_target,
+    lg_halpha_Lbin_edges,
+    halpha_LF_z,
+    halpha_LF_delta_z,
+    halpha_LF_delta_z_vol_Mpc3,
+):
+    halpha_LF_zmin = halpha_LF_z - (halpha_LF_delta_z / 2)
+    halpha_LF_zmax = halpha_LF_z + (halpha_LF_delta_z / 2)
+
+    """weighted mc lightcone"""
+    lgmp_min = 10.0
+    sky_area_degsq = 1
+    lc_vol = zbin_volume(
+        sky_area_degsq, zlow=halpha_LF_zmin, zhigh=halpha_LF_zmax
+    ).value
+    lc_vol = jnp.array(lc_vol)
+
+    num_halos = 1000
+    lgmp_max = mc_hosts.LGMH_MAX
+    lc_args = (
+        lc_key,
+        num_halos,
+        halpha_LF_zmin,
+        halpha_LF_zmax,
+        lgmp_min,
+        lgmp_max,
+        sky_area_degsq,
+    )
+    lc_halopop = mclh.mc_weighted_halo_lightcone(*lc_args)
+
+    z_phot_table = jnp.linspace(halpha_LF_zmin, halpha_LF_zmax, 10)
+    halpha_args = (
+        diffstarpop_params,
+        ran_key,
+        lc_halopop["z_obs"],
+        lc_halopop["t_obs"],
+        lc_halopop["mah_params"],
+        lc_halopop["logmp0"],
+        t_table,
+        ssp_data,
+        ssp_halpha_luminosity,
+        z_phot_table,
+        mzr_params,
+        spspop_params,
+        scatter_params,
+        cosmo_params,
+        fb,
+    )
+    halpha_L = dpop_halpha.diffstarpop_halpha_kern(*halpha_args)
+    sig = jnp.mean(jnp.diff(lg_halpha_Lbin_edges)) / 2
+    (
+        _,
+        halpha_lf_weighted_q,
+        halpha_lf_weighted_smooth_ms,
+        halpha_lf_weighted_bursty_ms,
+    ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
+        halpha_L,
+        lc_halopop["nhalos"],
+        sig=sig,
+        lgL_bin_edges=lg_halpha_Lbin_edges,
+    )
+
+    halpha_lf_weighted_composite = (
+        halpha_lf_weighted_q
+        + halpha_lf_weighted_smooth_ms
+        + halpha_lf_weighted_bursty_ms
+    )
+
+    # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
+    N_0 = 1e-12
+    N_floor = 0.5
+    halpha_lf_weighted_composite = jnp.where(
+        halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
+    )
+
+    lg_halpha_LF_model = jnp.log10(halpha_lf_weighted_composite / lc_vol)
+
+    return _mse_w(
+        lg_halpha_LF_model,
+        lg_halpha_LF_target[0],
+        lg_halpha_LF_target[1],
+        lg_n_thresh,
+    )
+
+
 # Latin Hypercube bins based fitting
 @jjit
 def _loss_kern(
@@ -605,7 +704,7 @@ def _loss_kern(
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     if lg_halpha_LF_target is not None:
-        halpha_args = (
+        halpha_loss_args = (
             diffstarpop_params,
             ran_key,
             lc_z_obs,
@@ -621,48 +720,13 @@ def _loss_kern(
             scatter_params,
             cosmo_params,
             fb,
+            lg_halpha_LF_target,
+            lg_halpha_Lbin_edges,
+            halpha_LF_z,
+            halpha_LF_delta_z,
+            halpha_LF_delta_z_vol_Mpc3,
         )
-        halpha_L = dpop_halpha.diffstarpop_halpha_kern(*halpha_args)
-
-        halpha_LF_zmin = halpha_LF_z - (halpha_LF_delta_z / 2)
-        halpha_LF_zmax = halpha_LF_z + (halpha_LF_delta_z / 2)
-        halpha_LF_z_sel = (lc_z_obs > halpha_LF_zmin) & (lc_z_obs < halpha_LF_zmax)
-        halpha_LF_z_sel = jnp.float64(halpha_LF_z_sel)
-        (
-            _,
-            halpha_lf_weighted_q,
-            halpha_lf_weighted_smooth_ms,
-            halpha_lf_weighted_bursty_ms,
-        ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
-            halpha_L,
-            lc_nhalos * halpha_LF_z_sel,
-            sig=0.05,
-            lgL_bin_edges=lg_halpha_Lbin_edges,
-        )
-
-        halpha_lf_weighted_composite = (
-            halpha_lf_weighted_q
-            + halpha_lf_weighted_smooth_ms
-            + halpha_lf_weighted_bursty_ms
-        )
-
-        # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
-        N_0 = 1e-12
-        N_floor = 0.5
-        halpha_lf_weighted_composite = jnp.where(
-            halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
-        )
-
-        lg_halpha_LF_model = jnp.log10(
-            halpha_lf_weighted_composite / halpha_LF_delta_z_vol_Mpc3
-        )
-
-        loss += _mse_w(
-            lg_halpha_LF_model,
-            lg_halpha_LF_target[0],
-            lg_halpha_LF_target[1],
-            lg_n_thresh,
-        )
+        loss += get_halpha_loss(*halpha_loss_args)
 
     return loss
 
@@ -767,7 +831,7 @@ _L = (
     0,
     0,
     0,
-    0,
+    None,
     None,
     0,
     0,
@@ -1123,7 +1187,7 @@ def _loss_kern_w_nbs(
     loss += jnp.sum(nb_losses)
 
     if lg_halpha_LF_target is not None:
-        halpha_args = (
+        halpha_loss_args = (
             diffstarpop_params,
             ran_key,
             lc_z_obs,
@@ -1139,48 +1203,13 @@ def _loss_kern_w_nbs(
             scatter_params,
             cosmo_params,
             fb,
+            lg_halpha_LF_target,
+            lg_halpha_Lbin_edges,
+            halpha_LF_z,
+            halpha_LF_delta_z,
+            halpha_LF_delta_z_vol_Mpc3,
         )
-        halpha_L = dpop_halpha.diffstarpop_halpha_kern(*halpha_args)
-
-        halpha_LF_zmin = halpha_LF_z - (halpha_LF_delta_z / 2)
-        halpha_LF_zmax = halpha_LF_z + (halpha_LF_delta_z / 2)
-        halpha_LF_z_sel = (lc_z_obs > halpha_LF_zmin) & (lc_z_obs < halpha_LF_zmax)
-        halpha_LF_z_sel = jnp.float64(halpha_LF_z_sel)
-        (
-            _,
-            halpha_lf_weighted_q,
-            halpha_lf_weighted_smooth_ms,
-            halpha_lf_weighted_bursty_ms,
-        ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
-            halpha_L,
-            lc_nhalos * halpha_LF_z_sel,
-            sig=0.05,
-            lgL_bin_edges=lg_halpha_Lbin_edges,
-        )
-
-        halpha_lf_weighted_composite = (
-            halpha_lf_weighted_q
-            + halpha_lf_weighted_smooth_ms
-            + halpha_lf_weighted_bursty_ms
-        )
-
-        # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
-        N_0 = 1e-12
-        N_floor = 0.5
-        halpha_lf_weighted_composite = jnp.where(
-            halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
-        )
-
-        lg_halpha_LF_model = jnp.log10(
-            halpha_lf_weighted_composite / halpha_LF_delta_z_vol_Mpc3
-        )
-
-        loss += _mse_w(
-            lg_halpha_LF_model,
-            lg_halpha_LF_target[0],
-            lg_halpha_LF_target[1],
-            lg_n_thresh,
-        )
+        loss += get_halpha_loss(*halpha_loss_args)
 
     return loss
 
@@ -1196,7 +1225,7 @@ _L_w_nbs = (
     0,
     0,
     0,
-    0,
+    None,
     None,
     0,
     0,
