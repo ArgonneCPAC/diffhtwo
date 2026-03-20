@@ -21,6 +21,8 @@ from jax.flatten_util import ravel_pytree
 from diffhtwo.experimental import n_mag, n_mag_opt
 from diffhtwo.experimental.data_loaders import retrieve_tcurves
 
+from ..data_loaders import retrieve_fake_fsps_halpha
+
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
@@ -135,3 +137,99 @@ loss_hist, grad_hist, u_theta_fit = n_mag_opt.fit_n(
 assert np.isfinite(loss_hist).all()
 assert np.isfinite(grad_hist).all()
 assert np.isfinite(u_theta_fit).all()
+
+ssp_halpha_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
+
+# Sobral+13 (HiZELS) z=0.4 halpha LF copied
+lg_halpha_LF_target = jnp.array(
+    [
+        [
+            -1.70275854,
+            -1.74275854,
+            -1.85275854,
+            -1.97275854,
+            -2.00275854,
+            -2.07275854,
+            -2.16275854,
+            -2.31275854,
+            -2.33275854,
+            -2.46275854,
+            -2.50275854,
+            -2.61275854,
+            -2.73275854,
+            -2.77275854,
+            -2.92275854,
+            -3.07275854,
+            -3.60275854,
+            -3.75275854,
+        ],
+        [
+            0.04,
+            0.04,
+            0.04,
+            0.05,
+            0.07,
+            0.07,
+            0.09,
+            0.08,
+            0.09,
+            0.1,
+            0.11,
+            0.13,
+            0.19,
+            0.17,
+            0.2,
+            0.35,
+            0.51,
+            0.71,
+        ],
+    ]
+)
+
+lg_halpha_Lbin_edges = jnp.array(
+    [
+        40.05,
+        40.15,
+        40.25,
+        40.35,
+        40.45,
+        40.55,
+        40.65,
+        40.75,
+        40.85,
+        40.95,
+        41.05,
+        41.15,
+        41.25,
+        41.35,
+        41.45,
+        41.55,
+        41.7,
+        41.95,
+        42.25,
+    ]
+)
+halpha_loss = n_mag_opt.get_halpha_loss(
+    DIFFSTARPOP_UM_plus_exsitu,
+    ran_key,
+    lg_halpha_LF_target,
+    lg_halpha_Lbin_edges,
+    lg_n_thresh,
+    zmin,
+    zmax,
+    lc_halopop["z_obs"],
+    lc_halopop["t_obs"],
+    lc_halopop["mah_params"],
+    lc_halopop["logmp0"],
+    lc_halopop["nhalos"],
+    lc_vol,
+    t_table,
+    ssp_data,
+    ssp_halpha_luminosity,
+    DEFAULT_MZR_PARAMS,
+    DEFAULT_SPSPOP_PARAMS,
+    DEFAULT_SCATTER_PARAMS,
+    DEFAULT_COSMOLOGY,
+    FB,
+)
+assert np.isfinite(halpha_loss)
