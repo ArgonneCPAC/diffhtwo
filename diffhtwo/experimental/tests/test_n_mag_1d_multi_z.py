@@ -99,7 +99,6 @@ lc_halopop_mah_params_multi_z = []
 lc_halopop_nhalos_multi_z = []
 lc_halopop_logmp0_multi_z = []
 lc_halopop_vol_mpc3_multi_z = []
-t_table_multi_z = []
 precomputed_ssp_mag_table_multi_z = []
 z_phot_table_multi_z = []
 wave_eff_table_multi_z = []
@@ -114,14 +113,15 @@ bin_edges_1d = (
 )
 bin_centers_1d = [(b[1:] + b[:-1]) / 2 for b in bin_edges_1d]
 
+t_0 = flat_wcdm.age_at_z0(*DEFAULT_COSMOLOGY)
+lgt0 = jnp.log10(t_0)
+t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
+
 for zbin in range(0, len(zbins)):
     zmin = zbins[zbin][0]
     zmax = zbins[zbin][1]
 
     z_phot_table = jnp.linspace(zmin, zmax, n_z_phot_table)
-    t_0 = flat_wcdm.age_at_z0(*DEFAULT_COSMOLOGY)
-    lgt0 = jnp.log10(t_0)
-    t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
 
     precomputed_ssp_mag_table = psspp.get_precompute_ssp_mag_redshift_table(
         tcurves, ssp_data, z_phot_table, DEFAULT_COSMOLOGY
@@ -137,7 +137,6 @@ for zbin in range(0, len(zbins)):
     lc_halopop_logmp0_multi_z.append(lc_halopop["logmp0"])
     lc_halopop_nhalos_multi_z.append(lc_halopop["nhalos"])
     lc_halopop_vol_mpc3_multi_z.append(lc_halopop["lc_vol_Mpc3"])
-    t_table_multi_z.append(t_table)
     precomputed_ssp_mag_table_multi_z.append(precomputed_ssp_mag_table)
     z_phot_table_multi_z.append(z_phot_table)
     wave_eff_table_multi_z.append(wave_eff_table)
@@ -148,7 +147,6 @@ lc_halopop_mah_params_multi_z = jnp.asarray(lc_halopop_mah_params_multi_z)
 lc_halopop_logmp0_multi_z = jnp.asarray(lc_halopop_logmp0_multi_z)
 lc_halopop_nhalos_multi_z = jnp.asarray(lc_halopop_nhalos_multi_z)
 lc_halopop_vol_mpc3_multi_z = jnp.asarray(lc_halopop_vol_mpc3_multi_z)
-t_table_multi_z = jnp.asarray(t_table_multi_z)
 precomputed_ssp_mag_table_multi_z = jnp.asarray(precomputed_ssp_mag_table_multi_z)
 z_phot_table_multi_z = jnp.asarray(z_phot_table_multi_z)
 wave_eff_table_multi_z = jnp.asarray(wave_eff_table_multi_z)
@@ -163,7 +161,7 @@ n_args_multi_z = (
     lc_halopop_logmp0_multi_z,
     lc_halopop_nhalos_multi_z,
     lc_halopop_vol_mpc3_multi_z,
-    t_table_multi_z,
+    t_table,
     ssp_data,
     precomputed_ssp_mag_table_multi_z,
     z_phot_table_multi_z,
@@ -205,7 +203,7 @@ loss_args_multi_z = (
     lc_halopop_logmp0_multi_z,
     lc_halopop_nhalos_multi_z,
     lc_halopop_vol_mpc3_multi_z,
-    t_table_multi_z,
+    t_table,
     ssp_data,
     precomputed_ssp_mag_table_multi_z,
     z_phot_table_multi_z,
@@ -239,9 +237,6 @@ for zbin in range(0, len(zbins)):
     zmax = zbins[zbin][1]
 
     z_phot_table = jnp.linspace(zmin, zmax, n_z_phot_table)
-    t_0 = flat_wcdm.age_at_z0(*DEFAULT_COSMOLOGY)
-    lgt0 = jnp.log10(t_0)
-    t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
 
     precomputed_ssp_mag_table = psspp.get_precompute_ssp_mag_redshift_table(
         tcurves, ssp_data, z_phot_table, DEFAULT_COSMOLOGY
