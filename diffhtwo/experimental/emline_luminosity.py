@@ -20,12 +20,6 @@ LGMET_SCATTER = 0.2
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 
-# copied from astropy.constants.c.value in m/s
-C = 299792458.0
-
-# halpha rest wavelength center in fsps
-HALPHA_CENTER_AA = 6564.5131
-
 _D = (None, None, 0, 0, 0, None, 0, 0, 0, None)
 _calc_dust_ftrans_vmap = jjit(
     vmap(
@@ -36,7 +30,7 @@ _calc_dust_ftrans_vmap = jjit(
 
 
 @jjit
-def compute_halpha_luminosity(
+def compute_emline_luminosity(
     ran_key,
     z_obs,
     t_obs,
@@ -47,7 +41,8 @@ def compute_halpha_luminosity(
     scatter_params,
     t_table,
     ssp_data,
-    ssp_halpha_luminosity,
+    emline_wave_aa,
+    ssp_emline_luminosity,
     cosmo_params,
     fb,
     lgmet_scatter=LGMET_SCATTER,
@@ -80,7 +75,7 @@ def compute_halpha_luminosity(
 
     ftrans_args = (
         spspop_params.dustpop_params,
-        HALPHA_CENTER_AA,
+        emline_wave_aa,
         logsm_obs,
         logssfr_obs,
         z_obs,
@@ -100,11 +95,11 @@ def compute_halpha_luminosity(
     frac_trans = frac_trans.reshape(n_gals, 1, n_age)
 
     _mstar = 10**logsm_obs
-    integrand = ssp_halpha_luminosity * ssp_weights * frac_trans
-    L_halpha_cgs = jnp.sum(integrand, axis=(1, 2)) * (L_SUN_CGS * _mstar)
+    integrand = ssp_emline_luminosity * ssp_weights * frac_trans
+    L_emline_cgs = jnp.sum(integrand, axis=(1, 2)) * (L_SUN_CGS * _mstar)
 
     # no dust
-    integrand_nodust = ssp_halpha_luminosity * ssp_weights
-    L_halpha_cgs_nodust = jnp.sum(integrand_nodust, axis=(1, 2)) * (L_SUN_CGS * _mstar)
+    integrand_nodust = ssp_emline_luminosity * ssp_weights
+    L_emline_cgs_nodust = jnp.sum(integrand_nodust, axis=(1, 2)) * (L_SUN_CGS * _mstar)
 
-    return L_halpha_cgs, L_halpha_cgs_nodust
+    return L_emline_cgs, L_emline_cgs_nodust
