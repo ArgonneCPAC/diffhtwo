@@ -33,6 +33,7 @@ from jax.flatten_util import ravel_pytree
 from diffhtwo.experimental.utils import safe_log10
 
 from . import diffstarpop_halpha as dpop_halpha
+from . import emline_luminosity
 from .n_mag import n_mag_kern, n_mag_kern_1d, n_mag_kern_nocolor
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
@@ -520,8 +521,6 @@ def get_halpha_loss(
     lg_halpha_LF_target,
     lg_halpha_Lbin_edges,
     lg_n_thresh,
-    halpha_LF_zmin,
-    halpha_LF_zmax,
     lc_z_obs,
     lc_t_obs,
     lc_mah_params,
@@ -537,52 +536,34 @@ def get_halpha_loss(
     cosmo_params,
     fb,
 ):
-    z_phot_table = jnp.linspace(halpha_LF_zmin, halpha_LF_zmax, 10)
-    halpha_args = (
-        diffstarpop_params,
+    L_halpha_cgs, _ = emline_luminosity.compute_emline_luminosity(
         ran_key,
         lc_z_obs,
         lc_t_obs,
         lc_mah_params,
-        lc_logmp0,
+        diffstarpop_params,
+        spspop_params,
+        mzr_params,
+        scatter_params,
         t_table,
         ssp_data,
+        halpha_wave_aa,
         ssp_halpha_luminosity,
-        z_phot_table,
-        mzr_params,
-        spspop_params,
-        scatter_params,
         cosmo_params,
         fb,
     )
-    halpha_L = dpop_halpha.diffstarpop_halpha_kern(*halpha_args)
-    sig = jnp.mean(jnp.diff(lg_halpha_Lbin_edges)) / 2
-    (
-        _,
-        halpha_lf_weighted_q,
-        halpha_lf_weighted_smooth_ms,
-        halpha_lf_weighted_bursty_ms,
-    ) = dpop_halpha.diffstarpop_halpha_lf_weighted_lc_weighted(
-        halpha_L,
-        lc_nhalos,
-        sig=sig,
-        lgL_bin_edges=lg_halpha_Lbin_edges,
-    )
 
-    halpha_lf_weighted_composite = (
-        halpha_lf_weighted_q
-        + halpha_lf_weighted_smooth_ms
-        + halpha_lf_weighted_bursty_ms
+    sig = jnp.mean(jnp.diff(lg_halpha_Lbin_edges)) / 2
+    _, halpha_N = emline_luminosity.get_emline_luminosity_func(
+        L_halpha_cgs, lc_nhalos, sig=sig, lgL_bin_edges=lg_halpha_Lbin_edges
     )
 
     # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
     N_0 = 1e-12
     N_floor = 0.5
-    halpha_lf_weighted_composite = jnp.where(
-        halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
-    )
+    halpha_N = jnp.where(halpha_N > N_floor, halpha_N, N_0)
 
-    lg_halpha_LF_model = jnp.log10(halpha_lf_weighted_composite / lc_vol_mpc3)
+    lg_halpha_LF_model = jnp.log10(halpha_N / lc_vol_mpc3)
 
     return _mse_w(
         lg_halpha_LF_model,
@@ -623,8 +604,6 @@ def _loss_kern(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_zmin=None,
-    halpha_LF_zmax=None,
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
@@ -699,8 +678,6 @@ def _loss_kern(
             lg_halpha_LF_target,
             lg_halpha_Lbin_edges,
             lg_n_thresh,
-            halpha_LF_zmin,
-            halpha_LF_zmax,
             halpha_lc_z_obs,
             halpha_lc_t_obs,
             halpha_lc_mah_params,
@@ -756,8 +733,6 @@ def fit_n(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_zmin=None,
-    halpha_LF_zmax=None,
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
@@ -796,8 +771,6 @@ def fit_n(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
-        halpha_LF_zmin,
-        halpha_LF_zmax,
         halpha_lc_z_obs,
         halpha_lc_t_obs,
         halpha_lc_mah_params,
@@ -847,8 +820,6 @@ _L = (
     None,
     None,
     None,
-    0,
-    0,
     0,
     0,
     0,
@@ -907,8 +878,6 @@ def fit_n_multi_z(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_zmin=None,
-    halpha_LF_zmax=None,
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
@@ -947,8 +916,6 @@ def fit_n_multi_z(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
-        halpha_LF_zmin,
-        halpha_LF_zmax,
         halpha_lc_z_obs,
         halpha_lc_t_obs,
         halpha_lc_mah_params,
@@ -1101,8 +1068,6 @@ def _loss_kern_w_nbs(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_zmin=None,
-    halpha_LF_zmax=None,
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
@@ -1213,8 +1178,6 @@ def _loss_kern_w_nbs(
             lg_halpha_LF_target,
             lg_halpha_Lbin_edges,
             lg_n_thresh,
-            halpha_LF_zmin,
-            halpha_LF_zmax,
             halpha_lc_z_obs,
             halpha_lc_t_obs,
             halpha_lc_mah_params,
@@ -1272,8 +1235,6 @@ _L_w_nbs = (
     None,
     None,
     None,
-    0,
-    0,
     0,
     0,
     0,
@@ -1342,8 +1303,6 @@ def fit_n_w_nbs_multi_z(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_LF_zmin=None,
-    halpha_LF_zmax=None,
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
@@ -1392,8 +1351,6 @@ def fit_n_w_nbs_multi_z(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
-        halpha_LF_zmin,
-        halpha_LF_zmax,
         halpha_lc_z_obs,
         halpha_lc_t_obs,
         halpha_lc_mah_params,
