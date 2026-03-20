@@ -537,6 +537,7 @@ def get_halpha_loss(
     cosmo_params,
     fb,
 ):
+    print("lc_mah_params.shape:{}", lc_mah_params.shape)
     L_halpha_cgs, _ = emline_luminosity.compute_emline_luminosity(
         ran_key,
         lc_z_obs,
