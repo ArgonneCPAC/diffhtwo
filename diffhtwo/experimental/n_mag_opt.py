@@ -672,6 +672,7 @@ def _loss_kern(
         frac_cat,
     )
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
+    print("loss:{}", loss)
 
     if lg_halpha_LF_target is not None:
         halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
