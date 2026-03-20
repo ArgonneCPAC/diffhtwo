@@ -35,7 +35,7 @@ from diffhtwo.experimental.utils import safe_log10
 
 from . import diffstarpop_halpha as dpop_halpha
 from . import emline_luminosity
-from .n_mag import n_mag_kern, n_mag_kern_1d, n_mag_kern_nocolor
+from .n_mag import N_0, N_FLOOR, n_mag_kern, n_mag_kern_1d, n_mag_kern_nocolor
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
@@ -263,10 +263,8 @@ def _loss_kern_1d(
             + halpha_lf_weighted_bursty_ms
         )
         # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
-        N_0 = 1e-12
-        N_floor = 0.5
         halpha_lf_weighted_composite = jnp.where(
-            halpha_lf_weighted_composite > N_floor, halpha_lf_weighted_composite, N_0
+            halpha_lf_weighted_composite > N_FLOOR, halpha_lf_weighted_composite, N_0
         )
 
         lg_halpha_LF_model = jnp.log10(
@@ -562,9 +560,7 @@ def get_halpha_loss(
     )
 
     # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
-    N_0 = 1e-12
-    N_floor = 0.5
-    halpha_N = jnp.where(halpha_N > N_floor, halpha_N, N_0)
+    halpha_N = jnp.where(halpha_N > N_FLOOR, halpha_N, N_0)
 
     lg_halpha_LF_model = jnp.log10(halpha_N / lc_vol_mpc3)
 
