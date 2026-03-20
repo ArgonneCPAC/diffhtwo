@@ -103,3 +103,72 @@ def compute_emline_luminosity(
     L_emline_cgs_nodust = jnp.sum(integrand_nodust, axis=(1, 2)) * (L_SUN_CGS * _mstar)
 
     return L_emline_cgs, L_emline_cgs_nodust
+
+
+@jjit
+def get_emline_luminosity_func(
+    L_emline_cgs,
+    weights,
+    dlgL_bin=0.2,
+    lgL_min=38.0,
+    lgL_max=45.0,
+    sig=None,
+    lgL_bin_edges=None,
+):
+    """
+    Calculates the emline LF
+
+    Parameters
+    ----------
+    L_emline_cgs : array of shape (n,) or (n, 1)
+        h-alpha Luminosities in [erg/s]
+
+    weights : array of shape (n,)
+        weights to multiply with L_emline_cgs
+
+    Returns
+    -------
+    lgL_bin_edges : array of luminosity function bin edges in log10-space
+        defined using default arguments of this function.
+    tw_hist_weighted:
+        luminosity function - weighted histogram counts using diffsky.diffndhist
+    """
+
+    n_L = L_emline_cgs.size
+    L_emline = L_emline_cgs.reshape(n_L, 1)
+
+    # mask: valid (strictly positive & finite)
+    valid = jnp.isfinite(L_emline) & (L_emline > 0)
+    L_emline = jnp.where(valid, L_emline, 10)
+
+    # # safe log10: put invalids far below the underflow bin (won't matter b/c weight=0)
+    # lg_floor = lgL_min - 10.0
+    lgL_emline = jnp.log10(L_emline)
+
+    # weights: zero-out invalids
+    w = jnp.where(
+        valid.reshape(
+            n_L,
+        ),
+        weights.reshape(
+            n_L,
+        ),
+        0.0,
+    )
+
+    if sig is None:
+        sig_arr = jnp.zeros_like(lgL_emline) + (dlgL_bin / 2)
+    else:
+        sig_arr = jnp.zeros_like(lgL_emline) + sig
+
+    if lgL_bin_edges is None:
+        lgL_bin_edges = jnp.arange(lgL_min, lgL_max, dlgL_bin)
+
+    lgL_bin_lo = lgL_bin_edges[:-1].reshape(lgL_bin_edges[:-1].size, 1)
+    lgL_bin_hi = lgL_bin_edges[1:].reshape(lgL_bin_edges[1:].size, 1)
+
+    tw_hist_weighted = diffndhist.tw_ndhist_weighted(
+        lgL_emline, sig_arr, w, lgL_bin_lo, lgL_bin_hi
+    )
+
+    return lgL_bin_edges, tw_hist_weighted
