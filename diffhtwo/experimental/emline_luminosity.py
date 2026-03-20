@@ -6,13 +6,14 @@ jax.config.update("jax_enable_x64", True)
 jax.config.update("jax_debug_nans", True)
 jax.config.update("jax_debug_infs", True)
 import jax.numpy as jnp
-from diffsky import diffndhist
 from diffsky.dustpop import tw_dustpop_mono_noise
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
 from diffsky.experimental.kernels import mc_phot_kernels as mcpk
 from diffsky.experimental.kernels import ssp_weight_kernels as sspwk
 from jax import jit as jjit
 from jax import vmap
+
+from . import diffndhist as diffndhist2
 
 # from jax.debug import print
 
@@ -127,6 +128,9 @@ def get_emline_luminosity_func(
     weights : array of shape (n,)
         weights to multiply with L_emline_cgs
 
+    sig : array of shape (nbins, 1)
+        bin dependent sigma for diffndhist
+
     Returns
     -------
     lgL_bin_edges : array of luminosity function bin edges in log10-space
@@ -141,9 +145,6 @@ def get_emline_luminosity_func(
     # mask: valid (strictly positive & finite)
     valid = jnp.isfinite(L_emline) & (L_emline > 0)
     L_emline = jnp.where(valid, L_emline, 10)
-
-    # # safe log10: put invalids far below the underflow bin (won't matter b/c weight=0)
-    # lg_floor = lgL_min - 10.0
     lgL_emline = jnp.log10(L_emline)
 
     # weights: zero-out invalids
@@ -157,19 +158,17 @@ def get_emline_luminosity_func(
         0.0,
     )
 
-    if sig is None:
-        sig_arr = jnp.zeros_like(lgL_emline) + (dlgL_bin / 2)
-    else:
-        sig_arr = jnp.zeros_like(lgL_emline) + sig
-
     if lgL_bin_edges is None:
         lgL_bin_edges = jnp.arange(lgL_min, lgL_max, dlgL_bin)
 
     lgL_bin_lo = lgL_bin_edges[:-1].reshape(lgL_bin_edges[:-1].size, 1)
     lgL_bin_hi = lgL_bin_edges[1:].reshape(lgL_bin_edges[1:].size, 1)
 
-    tw_hist_weighted = diffndhist.tw_ndhist_weighted(
-        lgL_emline, sig_arr, w, lgL_bin_lo, lgL_bin_hi
+    if sig is None:
+        sig = jnp.zeros_like(lgL_bin_lo) + (dlgL_bin / 2)
+
+    tw_hist_weighted = diffndhist2.tw_ndhist_weighted(
+        lgL_emline, sig, w, lgL_bin_lo, lgL_bin_hi
     )
 
     return lgL_bin_edges, tw_hist_weighted
