@@ -6,6 +6,7 @@ jax.config.update("jax_enable_x64", True)
 jax.config.update("jax_debug_nans", True)
 jax.config.update("jax_debug_infs", True)
 import jax.numpy as jnp
+from diffsky import diffndhist
 from diffsky.dustpop import tw_dustpop_mono_noise
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
 from diffsky.experimental.kernels import mc_phot_kernels as mcpk
