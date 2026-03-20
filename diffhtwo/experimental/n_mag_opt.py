@@ -558,11 +558,15 @@ def get_halpha_loss(
     _, halpha_N = emline_luminosity.get_emline_luminosity_func(
         L_halpha_cgs, lc_nhalos, sig=sig, lgL_bin_edges=lg_halpha_Lbin_edges
     )
+    print("halpha_N:{}", halpha_N)
+    print("jnp.sum(halpha_N):{}", jnp.sum(halpha_N))
 
     # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
     halpha_N = jnp.where(halpha_N > N_FLOOR, halpha_N, N_0)
 
     lg_halpha_LF_model = jnp.log10(halpha_N / lc_vol_mpc3)
+
+    print("lg_halpha_LF_model:{}", lg_halpha_LF_model)
 
     return _mse_w(
         lg_halpha_LF_model,
