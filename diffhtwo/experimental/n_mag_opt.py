@@ -691,6 +691,7 @@ def _loss_kern(
             cosmo_params,
             fb,
         )
+        print("halpha_loss:{}", get_halpha_loss(*halpha_loss_args))
         loss += get_halpha_loss(*halpha_loss_args)
 
     return loss
