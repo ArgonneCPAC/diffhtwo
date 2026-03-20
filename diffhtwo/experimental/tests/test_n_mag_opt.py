@@ -218,7 +218,6 @@ halpha_loss = n_mag_opt.get_halpha_loss(
     lc_halopop["z_obs"],
     lc_halopop["t_obs"],
     lc_halopop["mah_params"],
-    lc_halopop["logmp0"],
     lc_halopop["nhalos"],
     lc_vol,
     t_table,

@@ -250,7 +250,6 @@ loss_multi_z = n_mag_opt._loss_kern_multi_z(
     None,
     None,
     None,
-    None,
 )
 
 for zbin in range(0, len(zbins)):

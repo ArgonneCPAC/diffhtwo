@@ -44,6 +44,8 @@ u_zero_ssp_err_pop_theta, u_zero_ssp_err_pop_unravel = ravel_pytree(
     ZERO_SSPERR_U_PARAMS
 )
 
+HALPHA_WAVE_AA = 6565.09893918  # halpha_line_center_c3k
+
 # used for fisher analysis
 # @jjit
 # def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err, lg_n_thresh):
@@ -524,7 +526,6 @@ def get_halpha_loss(
     lc_z_obs,
     lc_t_obs,
     lc_mah_params,
-    lc_logmp0,
     lc_nhalos,
     lc_vol_mpc3,
     t_table,
@@ -547,7 +548,7 @@ def get_halpha_loss(
         scatter_params,
         t_table,
         ssp_data,
-        halpha_wave_aa,
+        HALPHA_WAVE_AA,
         ssp_halpha_luminosity,
         cosmo_params,
         fb,
@@ -607,7 +608,6 @@ def _loss_kern(
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
-    halpha_lc_logmp0=None,
     halpha_lc_nhalos=None,
     halpha_lc_vol_mpc3=None,
 ):
@@ -681,7 +681,6 @@ def _loss_kern(
             halpha_lc_z_obs,
             halpha_lc_t_obs,
             halpha_lc_mah_params,
-            halpha_lc_logmp0,
             halpha_lc_nhalos,
             halpha_lc_vol_mpc3,
             t_table,
@@ -736,7 +735,6 @@ def fit_n(
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
-    halpha_lc_logmp0=None,
     halpha_lc_nhalos=None,
     halpha_lc_vol_mpc3=None,
 ):
@@ -774,7 +772,6 @@ def fit_n(
         halpha_lc_z_obs,
         halpha_lc_t_obs,
         halpha_lc_mah_params,
-        halpha_lc_logmp0,
         halpha_lc_nhalos,
         halpha_lc_vol_mpc3,
     )
@@ -820,7 +817,6 @@ _L = (
     None,
     None,
     None,
-    0,
     0,
     0,
     0,
@@ -881,7 +877,6 @@ def fit_n_multi_z(
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
-    halpha_lc_logmp0=None,
     halpha_lc_nhalos=None,
     halpha_lc_vol_mpc3=None,
 ):
@@ -919,7 +914,6 @@ def fit_n_multi_z(
         halpha_lc_z_obs,
         halpha_lc_t_obs,
         halpha_lc_mah_params,
-        halpha_lc_logmp0,
         halpha_lc_nhalos,
         halpha_lc_vol_mpc3,
     )
@@ -1071,7 +1065,6 @@ def _loss_kern_w_nbs(
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
-    halpha_lc_logmp0=None,
     halpha_lc_nhalos=None,
     halpha_lc_vol_mpc3=None,
 ):
@@ -1181,7 +1174,6 @@ def _loss_kern_w_nbs(
             halpha_lc_z_obs,
             halpha_lc_t_obs,
             halpha_lc_mah_params,
-            halpha_lc_logmp0,
             halpha_lc_nhalos,
             halpha_lc_vol_mpc3,
             t_table,
@@ -1235,7 +1227,6 @@ _L_w_nbs = (
     None,
     None,
     None,
-    0,
     0,
     0,
     0,
@@ -1306,7 +1297,6 @@ def fit_n_w_nbs_multi_z(
     halpha_lc_z_obs=None,
     halpha_lc_t_obs=None,
     halpha_lc_mah_params=None,
-    halpha_lc_logmp0=None,
     halpha_lc_nhalos=None,
     halpha_lc_vol_mpc3=None,
 ):
@@ -1354,7 +1344,6 @@ def fit_n_w_nbs_multi_z(
         halpha_lc_z_obs,
         halpha_lc_t_obs,
         halpha_lc_mah_params,
-        halpha_lc_logmp0,
         halpha_lc_nhalos,
         halpha_lc_vol_mpc3,
     )
