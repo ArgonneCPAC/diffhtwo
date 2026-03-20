@@ -8,6 +8,7 @@ jax.config.update("jax_debug_infs", True)
 from functools import partial
 
 import jax.numpy as jnp
+from diffmah.defaults import DiffmahParams
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.mass_functions import mc_hosts
 from diffsky.param_utils.spspop_param_utils import (
@@ -537,7 +538,6 @@ def get_halpha_loss(
     cosmo_params,
     fb,
 ):
-    print("lc_mah_params.shape:{}", lc_mah_params.shape)
     L_halpha_cgs, _ = emline_luminosity.compute_emline_luminosity(
         ran_key,
         lc_z_obs,
@@ -673,6 +673,7 @@ def _loss_kern(
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     if lg_halpha_LF_target is not None:
+        halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
         halpha_loss_args = (
             diffstarpop_params,
             ran_key,
@@ -1166,6 +1167,7 @@ def _loss_kern_w_nbs(
     loss += jnp.sum(nb_losses)
 
     if lg_halpha_LF_target is not None:
+        halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
         halpha_loss_args = (
             diffstarpop_params,
             ran_key,
