@@ -36,7 +36,7 @@ alpha2 = 0.7
 alpha_data = 0.5
 
 
-lw = 2
+lw = 1
 fontsize = 20
 labelsize = 12
 legend_fontsize = 14
@@ -71,6 +71,7 @@ def plot_n_mag(
     title,
     saveAs,
     dataset_mags=None,
+    n_bands=None,
     data_sky_area_degsq=None,
     diffstarpop_params2=None,
     spspop_params2=None,
@@ -92,9 +93,18 @@ def plot_n_mag(
     if data_sky_area_degsq is not None:
         data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=zmin, zhigh=zmax).value
 
-    n_z_phot_table = 15
+    n_z_phot_table = 33
 
-    z_phot_table = jnp.linspace(zmin, zmax, n_z_phot_table)
+    if (zmin < 0.24) & (zmax > 0.24):
+        nb_z = jnp.array([0.2445706, 0.40185568])
+        nb816_zspan = np.linspace(nb_z[0] - 0.02, nb_z[0] + 0.02, 11)
+        nb921_zspan = np.linspace(nb_z[1] - 0.02, nb_z[1] + 0.02, 11)
+        z1_zspan = np.linspace(0.2, 0.5, 11)
+        z_phot_table = np.concatenate((nb816_zspan, nb921_zspan, z1_zspan))
+        z_phot_table.sort()
+    else:
+        z_phot_table = jnp.linspace(zmin, zmax, n_z_phot_table)
+
     t_0 = flat_wcdm.age_at_z0(*DEFAULT_COSMOLOGY)
     lgt0 = jnp.log10(t_0)
     t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
@@ -127,7 +137,8 @@ def plot_n_mag(
     )
 
     lc_phot1 = lc_phot_kern.multiband_lc_phot_kern(*phot_args1)
-    num_halos, n_bands = lc_phot1.obs_mags_q.shape
+    if n_bands is None:
+        num_halos, n_bands = lc_phot1.obs_mags_q.shape
 
     # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
     obs_mag_q1 = lc_phot1.obs_mags_q[:, mag_thresh_column]
@@ -178,7 +189,6 @@ def plot_n_mag(
         )
 
         lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
-        num_halos, n_bands = lc_phot2.obs_mags_q.shape
 
         # set weights=0 for mag > mag_thresh for the band indicated by mag_thresh_column
         obs_mag_q2 = lc_phot2.obs_mags_q[:, mag_thresh_column]
@@ -208,7 +218,8 @@ def plot_n_mag(
             ]
         )
 
-    fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4))
+    fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4), squeeze=False)
+    ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title, fontsize=18)
 
@@ -539,7 +550,6 @@ def plot_n(
         )
 
         lc_phot2 = lc_phot_kern.multiband_lc_phot_kern(*phot_args2)
-        num_halos, n_bands = lc_phot2.obs_mags_q.shape
 
         (
             obs_colors_mag_q2,
@@ -619,7 +629,9 @@ def plot_n(
         1,
         n_bands - 1 + len(mag_columns),
         figsize=(2.5 * n_bands - 1 + len(mag_columns), 4),
+        squeeze=False,
     )
+    ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
     fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
     fig.suptitle(title, fontsize=18)
 
