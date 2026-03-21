@@ -54,7 +54,6 @@ def compute_emline_luminosity(
     phot_randoms, sfh_params = mcpk.get_mc_phot_randoms(
         ran_key, diffstarpop_params, mah_params, cosmo_params
     )
-    print("phot_randoms:{}", phot_randoms)
 
     t_table, sfh_table, logsm_obs, logssfr_obs = mcdw.compute_diffstar_info(
         mah_params, sfh_params, t_obs, cosmo_params, fb, n_t_table
@@ -102,13 +101,9 @@ def compute_emline_luminosity(
     integrand = ssp_emline_luminosity * ssp_weights * frac_trans
     L_emline_cgs = jnp.sum(integrand, axis=(1, 2)) * (L_SUN_CGS * _mstar)
 
-    print("L_emline_cgs:{}", L_emline_cgs)
-
     # no dust
     integrand_nodust = ssp_emline_luminosity * ssp_weights
     L_emline_cgs_nodust = jnp.sum(integrand_nodust, axis=(1, 2)) * (L_SUN_CGS * _mstar)
-
-    print("L_emline_cgs_nodust:{}", L_emline_cgs_nodust)
 
     return L_emline_cgs, L_emline_cgs_nodust
 
