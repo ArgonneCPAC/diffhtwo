@@ -555,7 +555,7 @@ def get_halpha_loss(
 
     sig = jnp.diff(lg_halpha_Lbin_edges) / 2
     sig = sig.reshape(sig.size, 1)
-    print("lg_halpha_Lbin_edges"{}, lg_halpha_Lbin_edges)
+    print("lg_halpha_Lbin_edges:{}", lg_halpha_Lbin_edges)
     print("sig:{}", sig)
     _, halpha_N = emline_luminosity.get_emline_luminosity_func(
         L_halpha_cgs, lc_nhalos, sig=sig, lgL_bin_edges=lg_halpha_Lbin_edges
