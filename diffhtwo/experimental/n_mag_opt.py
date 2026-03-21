@@ -560,7 +560,7 @@ def get_halpha_loss(
     )
 
     # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
-    halpha_N = jnp.where(halpha_N > N_FLOOR, halpha_N, N_0)
+    halpha_N = jnp.where(halpha_N > N_FLOOR, halpha_N, 1e-1)
     print("halpha_N:{}", halpha_N)
     print("lc_vol_mpc3:{}", lc_vol_mpc3)
 
