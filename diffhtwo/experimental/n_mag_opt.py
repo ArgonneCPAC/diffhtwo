@@ -27,7 +27,6 @@ from jax import jit as jjit
 from jax import lax
 from jax import random as jran
 from jax import value_and_grad, vmap
-from jax.debug import print
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
@@ -555,12 +554,9 @@ def get_halpha_loss(
 
     sig = jnp.diff(lg_halpha_Lbin_edges) / 2
     sig = sig.reshape(sig.size, 1)
-    print("lg_halpha_Lbin_edges:{}", lg_halpha_Lbin_edges)
-    print("sig:{}", sig)
     _, halpha_N = emline_luminosity.get_emline_luminosity_func(
         L_halpha_cgs, lc_nhalos, sig=sig, lgL_bin_edges=lg_halpha_Lbin_edges
     )
-    print("halpha_N:{}", halpha_N)
     # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
     halpha_N = jnp.where(halpha_N > N_FLOOR, halpha_N, N_0)
 
@@ -670,7 +666,6 @@ def _loss_kern(
         frac_cat,
     )
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
-    print("loss:{}", loss)
 
     if lg_halpha_LF_target is not None:
         halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
@@ -694,7 +689,6 @@ def _loss_kern(
             cosmo_params,
             fb,
         )
-        print("halpha_loss:{}", get_halpha_loss(*halpha_loss_args))
         loss += get_halpha_loss(*halpha_loss_args)
 
     return loss

@@ -12,11 +12,8 @@ from diffsky.experimental.kernels import mc_phot_kernels as mcpk
 from diffsky.experimental.kernels import ssp_weight_kernels as sspwk
 from jax import jit as jjit
 from jax import vmap
-from jax.debug import print
 
 from . import diffndhist as diffndhist2
-
-# from jax.debug import print
 
 LGMET_SCATTER = 0.2
 
