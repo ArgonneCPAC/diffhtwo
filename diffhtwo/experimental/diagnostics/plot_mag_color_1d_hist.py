@@ -218,9 +218,11 @@ def plot_n_mag(
             ]
         )
 
-    fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4), squeeze=False)
+    fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4.5), squeeze=False)
     ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
-    fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
+    fig.subplots_adjust(
+        left=0.05, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0
+    )
     fig.suptitle(title, fontsize=18)
 
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
@@ -352,7 +354,7 @@ def plot_n_corner(
         hist_kwargs={
             "histtype": "step",
             "alpha": 0.5,
-            "lw": lw + 1,
+            "lw": lw + 2,
             "density": True,
         },
         fill_contours=False,
@@ -376,7 +378,7 @@ def plot_n_corner(
             hist_kwargs={
                 "histtype": "step",
                 "alpha": 0.5,
-                "lw": lw + 1,
+                "lw": lw + 2,
                 "density": True,
             },
             # hist2d_kwargs={"weights": weights2},
@@ -631,11 +633,13 @@ def plot_n(
     fig, ax = plt.subplots(
         1,
         n_bands - 1 + len(mag_columns),
-        figsize=(2.5 * n_bands - 1 + len(mag_columns), 4),
+        figsize=(2.5 * n_bands - 1 + len(mag_columns), 4.5),
         squeeze=False,
     )
     ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
-    fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
+    fig.subplots_adjust(
+        left=0.05, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0
+    )
     fig.suptitle(title, fontsize=18)
 
     for i in range(0, n_bands - 1 + len(mag_columns)):
