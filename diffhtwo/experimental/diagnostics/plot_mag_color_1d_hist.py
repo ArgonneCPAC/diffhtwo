@@ -331,6 +331,7 @@ def plot_n_corner(
             "density": True,
         },
         fill_contours=False,
+        plot_density=False,
         contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
         range=ranges,
     )
@@ -355,6 +356,7 @@ def plot_n_corner(
             "density": True,
         },
         fill_contours=False,
+        plot_density=False,
         contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
         range=ranges,
     )
@@ -378,6 +380,7 @@ def plot_n_corner(
                 "density": True,
             },
             # hist2d_kwargs={"weights": weights2},
+            plot_density=False,
             fill_contours=False,
             contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
             range=ranges,
