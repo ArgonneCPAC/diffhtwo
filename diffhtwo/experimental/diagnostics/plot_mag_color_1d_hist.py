@@ -36,7 +36,7 @@ alpha2 = 0.7
 alpha_data = 0.5
 
 
-lw = 1
+lw = 1.5
 fontsize = 20
 labelsize = 12
 legend_fontsize = 14
@@ -332,7 +332,7 @@ def plot_n_corner(
         },
         fill_contours=False,
         plot_density=False,
-        contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
+        contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
         range=ranges,
     )
 
@@ -357,7 +357,7 @@ def plot_n_corner(
         },
         fill_contours=False,
         plot_density=False,
-        contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
+        contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
         range=ranges,
     )
 
@@ -382,7 +382,7 @@ def plot_n_corner(
             # hist2d_kwargs={"weights": weights2},
             plot_density=False,
             fill_contours=False,
-            contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
+            contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
             range=ranges,
         )
 
