@@ -286,7 +286,7 @@ def plot_n_mag(
     ax[0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
     plt.rcParams["legend.fontsize"] = legend_fontsize
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
-    plt.savefig(saveAs + ".pdf")
+    plt.savefig(saveAs + ".png")
     plt.show()
 
 
@@ -405,7 +405,7 @@ def plot_n_corner(
 
     for ax in fig_corner.get_axes():
         ax.tick_params(axis="both", direction="in", labelsize=labelsize)
-    plt.savefig(saveAs + "_corner.pdf")
+    plt.savefig(saveAs + "_corner.png")
     plt.show()
 
 
@@ -686,7 +686,7 @@ def plot_n(
     plt.rcParams["legend.fontsize"] = legend_fontsize
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
 
-    plt.savefig(saveAs + ".pdf")
+    plt.savefig(saveAs + ".png")
     plt.show()
 
     # Output loss based on lh_centroids, not 1D histograms as above,
