@@ -11,6 +11,7 @@ import jax.numpy as jnp
 from diffhalos.lightcone_generators.mc_lightcone_halos import weighted_lc_halos
 from diffmah.defaults import DiffmahParams
 from diffsky.experimental import mc_lightcone_halos as mclh
+from diffsky.experimental.lightcone_generators import weighted_lc_halos_photdata
 from diffsky.mass_functions import mc_hosts
 from diffsky.param_utils.spspop_param_utils import (
     DEFAULT_SPSPOP_PARAMS,
@@ -41,9 +42,7 @@ u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
 )
 u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
-u_zero_ssp_err_pop_theta, u_zero_ssp_err_pop_unravel = ravel_pytree(
-    ZERO_SSPERR_U_PARAMS
-)
+u_zero_ssperrpop_theta, u_zero_ssperrpop_unravel = ravel_pytree(ZERO_SSPERR_U_PARAMS)
 
 HALPHA_WAVE_AA = 6565.09893918  # halpha_line_center_c3k
 
@@ -153,7 +152,7 @@ def _loss_kern_1d(
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
-        u_diffstarpop_theta, u_spspop_theta, u_ssp_err_pop_theta = u_theta
+        u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
 
         u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
@@ -161,8 +160,8 @@ def _loss_kern_1d(
         u_spspop_params = u_spspop_unravel(u_spspop_theta)
         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-        u_ssp_err_pop_params = u_zero_ssp_err_pop_unravel(u_ssp_err_pop_theta)
-        ssp_err_pop_params = get_bounded_ssperr_params(u_ssp_err_pop_params)
+        u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
+        ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
 
     elif len(u_theta) == 2:
         u_diffstarpop_theta, u_spspop_theta = u_theta
@@ -173,14 +172,14 @@ def _loss_kern_1d(
         u_spspop_params = u_spspop_unravel(u_spspop_theta)
         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-        ssp_err_pop_params = ZERO_SSPERR_PARAMS
+        ssperrpop_params = ZERO_SSPERR_PARAMS
 
     else:
         u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
         spspop_params = DEFAULT_SPSPOP_PARAMS
-        ssp_err_pop_params = ZERO_SSPERR_PARAMS
+        ssperrpop_params = ZERO_SSPERR_PARAMS
 
     lg_n_model_1d = n_mag_kern_1d(
         diffstarpop_params,
@@ -199,7 +198,7 @@ def _loss_kern_1d(
         wave_eff_table,
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
+        ssperrpop_params,
         bin_centers_1d,
         dmag,
         mag_columns,
@@ -576,6 +575,93 @@ def get_halpha_loss(
     )
 
 
+@jjit
+def get_phot_loss(
+    u_theta,
+    lg_n_target,
+    lg_n_thresh,
+    ran_key,
+    mzr_params,
+    scatter_params,
+    lh_centroids,
+    dmag_centroids,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    lc_z_min,
+    lc_z_max,
+    lc_vol_mpc3,
+    lgmp_min,
+    lgmp_max,
+    ssp_data,
+    tcurves,
+    z_phot_table,
+    cosmo_params,
+    fb,
+    num_halos=1000,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    sky_area_degsq=0.1,
+):
+    # get bounded params
+    u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
+
+    u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+    diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+    u_spspop_params = u_spspop_unravel(u_spspop_theta)
+    spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+    u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
+    ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
+
+    # generate lightcone and photometry data
+    lc_photdata = weighted_lc_halos_photdata(
+        ran_key,
+        num_halos,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+        cosmo_params=cosmo_params,
+    )
+
+    lg_n_model, _ = n_mag_kern(
+        diffstarpop_params,
+        spspop_params,
+        ran_key,
+        lc_photdata.z_obs,
+        lc_photdata.t_obs,
+        lc_photdata.mah_params,
+        lc_photdata.logmp0,
+        lc_photdata.nhalos,
+        lc_vol_mpc3,
+        lc_photdata.t_table,
+        lc_photdata.ssp_data,
+        lc_photdata.precomputed_ssp_mag_table,
+        lc_photdata.z_phot_table,
+        lc_photdata.wave_eff_table,
+        mzr_params,
+        scatter_params,
+        ssperrpop_params,
+        lh_centroids,
+        dmag_centroids,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        cosmo_params,
+        fb,
+        frac_cat,
+    )
+    phot_loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
+
+    return phot_loss
+
+
 # Latin Hypercube bins based fitting
 @jjit
 def _loss_kern(
@@ -613,7 +699,7 @@ def _loss_kern(
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
-        u_diffstarpop_theta, u_spspop_theta, u_ssp_err_pop_theta = u_theta
+        u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
 
         u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
@@ -621,8 +707,8 @@ def _loss_kern(
         u_spspop_params = u_spspop_unravel(u_spspop_theta)
         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-        u_ssp_err_pop_params = u_zero_ssp_err_pop_unravel(u_ssp_err_pop_theta)
-        ssp_err_pop_params = get_bounded_ssperr_params(u_ssp_err_pop_params)
+        u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
+        ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
 
     elif len(u_theta) == 2:
         u_diffstarpop_theta, u_spspop_theta = u_theta
@@ -633,14 +719,14 @@ def _loss_kern(
         u_spspop_params = u_spspop_unravel(u_spspop_theta)
         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-        ssp_err_pop_params = ZERO_SSPERR_PARAMS
+        ssperrpop_params = ZERO_SSPERR_PARAMS
 
     else:
         u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
         spspop_params = DEFAULT_SPSPOP_PARAMS
-        ssp_err_pop_params = ZERO_SSPERR_PARAMS
+        ssperrpop_params = ZERO_SSPERR_PARAMS
 
     lg_n_model, _ = n_mag_kern(
         diffstarpop_params,
@@ -659,7 +745,7 @@ def _loss_kern(
         wave_eff_table,
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
+        ssperrpop_params,
         lh_centroids,
         dmag_centroids,
         mag_columns,
@@ -944,7 +1030,7 @@ def compute_nb_loss(nb_args, nb_idx):
         nb_wave_eff_table,
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
+        ssperrpop_params,
         nb_bin_centers_1d,
         nb_dmag,
         nb_mag_columns,
@@ -982,7 +1068,7 @@ def compute_nb_loss(nb_args, nb_idx):
         lax.dynamic_slice_in_dim(nb_wave_eff_table, nb_idx, 1, axis=1),
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
+        ssperrpop_params,
         nb_bin_centers_1d,
         nb_dmag,
         lax.dynamic_slice_in_dim(nb_mag_columns, nb_idx, 1, axis=0),
@@ -1057,7 +1143,7 @@ def _loss_kern_w_nbs(
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
     if len(u_theta) == 3:
-        u_diffstarpop_theta, u_spspop_theta, u_ssp_err_pop_theta = u_theta
+        u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
 
         u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
@@ -1065,8 +1151,8 @@ def _loss_kern_w_nbs(
         u_spspop_params = u_spspop_unravel(u_spspop_theta)
         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-        u_ssp_err_pop_params = u_zero_ssp_err_pop_unravel(u_ssp_err_pop_theta)
-        ssp_err_pop_params = get_bounded_ssperr_params(u_ssp_err_pop_params)
+        u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
+        ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
 
     elif len(u_theta) == 2:
         u_diffstarpop_theta, u_spspop_theta = u_theta
@@ -1077,14 +1163,14 @@ def _loss_kern_w_nbs(
         u_spspop_params = u_spspop_unravel(u_spspop_theta)
         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-        ssp_err_pop_params = ZERO_SSPERR_PARAMS
+        ssperrpop_params = ZERO_SSPERR_PARAMS
 
     else:
         u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
         spspop_params = DEFAULT_SPSPOP_PARAMS
-        ssp_err_pop_params = ZERO_SSPERR_PARAMS
+        ssperrpop_params = ZERO_SSPERR_PARAMS
 
     lg_n_model, _ = n_mag_kern(
         diffstarpop_params,
@@ -1103,7 +1189,7 @@ def _loss_kern_w_nbs(
         wave_eff_table,
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
+        ssperrpop_params,
         lh_centroids,
         dmag_centroids,
         mag_columns,
@@ -1133,7 +1219,7 @@ def _loss_kern_w_nbs(
         nb_wave_eff_table,
         mzr_params,
         scatter_params,
-        ssp_err_pop_params,
+        ssperrpop_params,
         nb_bin_centers_1d,
         nb_dmag,
         nb_mag_columns,
