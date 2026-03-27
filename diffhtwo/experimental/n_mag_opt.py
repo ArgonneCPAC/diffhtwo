@@ -749,7 +749,7 @@ def _loss_kern(
     u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
     ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
 
-    loss = get_phot_loss(
+    phot_loss_args = (
         diffstarpop_params,
         spspop_params,
         ssperrpop_params,
@@ -775,6 +775,7 @@ def _loss_kern(
         fb,
         frac_cat,
     )
+    loss = get_phot_loss(*phot_loss_args)
 
     if ssp_emline_luminosity is not None:
         emline_loss_args = (
@@ -796,7 +797,7 @@ def _loss_kern(
             cosmo_params,
             fb,
         )
-        loss += get_emline_loss(emline_loss_args)
+        loss += get_emline_loss(*emline_loss_args)
 
     return loss
 
