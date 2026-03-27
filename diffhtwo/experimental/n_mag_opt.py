@@ -592,8 +592,9 @@ def get_phot_loss(
     lc_z_max,
     lc_vol_mpc3,
     ssp_data,
-    tcurves,
+    precomputed_ssp_mag_table,
     z_phot_table,
+    wave_eff_table,
     cosmo_params,
     fb,
     frac_cat=1.0,
@@ -615,35 +616,25 @@ def get_phot_loss(
     ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
 
     # generate lightcone and photometry data
-    lc_photdata = weighted_lc_halos_photdata(
-        ran_key,
-        num_halos,
-        lc_z_min,
-        lc_z_max,
-        lgmp_min,
-        lgmp_max,
-        sky_area_degsq,
-        ssp_data,
-        tcurves,
-        z_phot_table,
-        cosmo_params=cosmo_params,
+    lc_halopop = weighted_lc_halos(
+        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, sky_area_degsq
     )
 
     lg_n_model, _ = n_mag_kern(
         diffstarpop_params,
         spspop_params,
         ran_key,
-        lc_photdata.z_obs,
-        lc_photdata.t_obs,
-        lc_photdata.mah_params,
+        lc_halopop.z_obs,
+        lc_halopop.t_obs,
+        lc_halopop.mah_params,
         lc_photdata.logmp0,
-        lc_photdata.nhalos,
+        lc_halopop.nhalos,
         lc_vol_mpc3,
-        lc_photdata.t_table,
-        lc_photdata.ssp_data,
-        lc_photdata.precomputed_ssp_mag_table,
-        lc_photdata.z_phot_table,
-        lc_photdata.wave_eff_table,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
         mzr_params,
         scatter_params,
         ssperrpop_params,
