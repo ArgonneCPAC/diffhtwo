@@ -121,7 +121,7 @@ def _get_integrated_luminosity(wave, sed):
     freq = C / (wave * 1e-10)
     freq = jnp.flip(freq)
 
-    integrated_luminosity = np.trapezoid(sed, freq)  # [Lsun/Msun]
+    integrated_luminosity = jnp.trapezoid(sed, freq)  # [Lsun/Msun]
 
     return integrated_luminosity
 
