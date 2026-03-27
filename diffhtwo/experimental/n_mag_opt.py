@@ -842,6 +842,7 @@ _loss_phot_kern_multi_z = jjit(
     )
 )
 
+
 def _loss_emline_kern(
     u_theta,
     ssp_emline_luminosity,
@@ -865,26 +866,27 @@ def _loss_emline_kern(
     ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
 
     emline_loss_args = (
-            ran_key,
-            emline_wave_aa,
-            lg_emline_LF_target,
-            lg_emline_Lbin_edges,
-            lg_n_thresh,
-            emline_lc_z_min,
-            emline_lc_z_max,
-            emline_lc_vol_mpc3,
-            t_table,
-            ssp_data,
-            ssp_emline_luminosity,
-            diffstarpop_params,
-            spspop_params,
-            mzr_params,
-            scatter_params,
-            cosmo_params,
-            fb,
-        )
-        emline_loss = get_emline_loss(*emline_loss_args)
+        ran_key,
+        emline_wave_aa,
+        lg_emline_LF_target,
+        lg_emline_Lbin_edges,
+        lg_n_thresh,
+        emline_lc_z_min,
+        emline_lc_z_max,
+        emline_lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        ssp_emline_luminosity,
+        diffstarpop_params,
+        spspop_params,
+        mzr_params,
+        scatter_params,
+        cosmo_params,
+        fb,
+    )
+    emline_loss = get_emline_loss(*emline_loss_args)
     return emline_loss
+
 
 @jjit
 def _loss_phot_and_emline_multi_z(
@@ -910,7 +912,7 @@ def _loss_phot_and_emline_multi_z(
     cosmo_params,
     fb,
     frac_cat,
-    ssp_emline_luminosity, # emline args, need to be multi-z arrays to loop over
+    ssp_emline_luminosity,  # emline args, need to be multi-z arrays to loop over
     emline_wave_aa,
     lg_emline_LF_target,
     lg_emline_Lbin_edges,
