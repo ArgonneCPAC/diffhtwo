@@ -576,6 +576,68 @@ def get_halpha_loss(
 
 
 @jjit
+def get_emline_loss(
+    ran_key,
+    emline_wave_aa,
+    lg_emline_LF_target,
+    lg_emline_Lbin_edges,
+    lg_n_thresh,
+    lc_z_min,
+    lc_z_max,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    ssp_emline_luminosity,
+    diffstarpop_params,
+    spspop_params,
+    mzr_params,
+    scatter_params,
+    cosmo_params,
+    fb,
+    num_halos=1000,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    sky_area_degsq=0.1,
+):
+    lc_halopop = weighted_lc_halos(
+        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, sky_area_degsq
+    )
+    L_emline_cgs, _ = emline_luminosity.compute_emline_luminosity(
+        ran_key,
+        lc_halopop.z_obs,
+        lc_halopop.t_obs,
+        lc_halopop.mah_params,
+        diffstarpop_params,
+        spspop_params,
+        mzr_params,
+        scatter_params,
+        t_table,
+        ssp_data,
+        emline_wave_aa,
+        ssp_emline_luminosity,
+        cosmo_params,
+        fb,
+    )
+
+    sig = jnp.diff(lg_emline_Lbin_edges) / 2
+    sig = sig.reshape(sig.size, 1)
+    _, emline_N = emline_luminosity.get_emline_luminosity_func(
+        L_emline_cgs, lc_halopop.nhalos, sig=sig, lgL_bin_edges=lg_emline_Lbin_edges
+    )
+    # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
+    emline_N = jnp.where(emline_N > N_FLOOR, emline_N, N_0)
+
+    lg_emline_LF_model = jnp.log10(emline_N / lc_vol_mpc3)
+
+    return _mse_w(
+        lg_emline_LF_model,
+        lg_emline_LF_target[0],
+        lg_emline_LF_target[1],
+        lg_n_thresh,
+    )
+
+
+@jjit
 def get_phot_loss(
     u_theta,
     lg_n_target,
@@ -677,12 +739,13 @@ def _loss_kern(
     cosmo_params,
     fb,
     frac_cat,
-    ssp_halpha_luminosity=None,
-    lg_halpha_LF_target=None,
-    lg_halpha_Lbin_edges=None,
-    halpha_lc_z_min=None,
-    halpha_lc_z_max=None,
-    halpha_lc_vol_mpc3=None,
+    ssp_emline_luminosity=None,
+    emline_wave_aa=None,
+    lg_emline_LF_target=None,
+    lg_emline_Lbin_edges=None,
+    emline_lc_z_min=None,
+    emline_lc_z_max=None,
+    emline_lc_vol_mpc3=None,
 ):
     loss = get_phot_loss(
         u_theta,
@@ -709,26 +772,27 @@ def _loss_kern(
         frac_cat,
     )
 
-    # if lg_halpha_LF_target is not None:
-    #     halpha_loss_args = (
-    #         diffstarpop_params,
-    #         ran_key,
-    #         lg_halpha_LF_target,
-    #         lg_halpha_Lbin_edges,
-    #         lg_n_thresh,
-    #         halpha_lc_z_min,
-    #         halpha_lc_z_max,
-    #         halpha_lc_vol_mpc3,
-    #         t_table,
-    #         ssp_data,
-    #         ssp_halpha_luminosity,
-    #         mzr_params,
-    #         spspop_params,
-    #         scatter_params,
-    #         cosmo_params,
-    #         fb,
-    #     )
-    #     loss += get_halpha_loss(*halpha_loss_args)
+    if ssp_emline_luminosity is not None:
+        emline_loss_args = (
+            ran_key,
+            emline_wave_aa,
+            lg_emline_LF_target,
+            lg_emline_Lbin_edges,
+            lg_n_thresh,
+            emline_lc_z_min,
+            emline_lc_z_max,
+            emline_lc_vol_mpc3,
+            t_table,
+            ssp_data,
+            ssp_emline_luminosity,
+            diffstarpop_params,
+            spspop_params,
+            mzr_params,
+            scatter_params,
+            cosmo_params,
+            fb,
+        )
+        loss += get_emline_loss(emline_loss_args)
 
     return loss
 
@@ -755,6 +819,7 @@ _L = (
     0,
     0,
     0,
+    None,
     None,
     None,
     None,
