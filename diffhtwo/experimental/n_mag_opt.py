@@ -596,6 +596,7 @@ def get_phot_loss(
     z_phot_table,
     cosmo_params,
     fb,
+    frac_cat=1.0,
     num_halos=1000,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
