@@ -592,6 +592,8 @@ def get_phot_loss(
     lc_z_max,
     lc_vol_mpc3,
     ssp_data,
+    t_table,
+    ssp_data,
     precomputed_ssp_mag_table,
     z_phot_table,
     wave_eff_table,
