@@ -36,7 +36,7 @@ alpha2 = 0.7
 alpha_data = 0.5
 
 
-lw = 1
+lw = 1.5
 fontsize = 20
 labelsize = 12
 legend_fontsize = 14
@@ -218,9 +218,11 @@ def plot_n_mag(
             ]
         )
 
-    fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4), squeeze=False)
+    fig, ax = plt.subplots(1, n_bands, figsize=(2.5 * n_bands, 4.5), squeeze=False)
     ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
-    fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
+    fig.subplots_adjust(
+        left=0.05, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0
+    )
     fig.suptitle(title, fontsize=18)
 
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
@@ -286,7 +288,7 @@ def plot_n_mag(
     ax[0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
     plt.rcParams["legend.fontsize"] = legend_fontsize
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
-    plt.savefig(saveAs + ".pdf")
+    plt.savefig(saveAs + ".png")
     plt.show()
 
 
@@ -330,8 +332,9 @@ def plot_n_corner(
             "lw": lw,
             "density": True,
         },
-        fill_contours=True,
-        contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
+        fill_contours=False,
+        plot_density=False,
+        contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
         range=ranges,
     )
 
@@ -351,11 +354,12 @@ def plot_n_corner(
         hist_kwargs={
             "histtype": "step",
             "alpha": 0.5,
-            "lw": lw + 1,
+            "lw": lw + 2,
             "density": True,
         },
-        fill_contours=True,
-        contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
+        fill_contours=False,
+        plot_density=False,
+        contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
         range=ranges,
     )
 
@@ -374,12 +378,13 @@ def plot_n_corner(
             hist_kwargs={
                 "histtype": "step",
                 "alpha": 0.5,
-                "lw": lw + 1,
+                "lw": lw + 2,
                 "density": True,
             },
             # hist2d_kwargs={"weights": weights2},
-            fill_contours=True,
-            contour_kwargs={"linewidths": 2.5, "alpha": 0.75},
+            plot_density=False,
+            fill_contours=False,
+            contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
             range=ranges,
         )
 
@@ -405,7 +410,7 @@ def plot_n_corner(
 
     for ax in fig_corner.get_axes():
         ax.tick_params(axis="both", direction="in", labelsize=labelsize)
-    plt.savefig(saveAs + "_corner.pdf")
+    plt.savefig(saveAs + "_corner.png")
     plt.show()
 
 
@@ -628,11 +633,13 @@ def plot_n(
     fig, ax = plt.subplots(
         1,
         n_bands - 1 + len(mag_columns),
-        figsize=(2.5 * n_bands - 1 + len(mag_columns), 4),
+        figsize=(2.5 * n_bands - 1 + len(mag_columns), 4.5),
         squeeze=False,
     )
     ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
-    fig.subplots_adjust(left=0.1, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0)
+    fig.subplots_adjust(
+        left=0.05, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0
+    )
     fig.suptitle(title, fontsize=18)
 
     for i in range(0, n_bands - 1 + len(mag_columns)):
@@ -686,7 +693,7 @@ def plot_n(
     plt.rcParams["legend.fontsize"] = legend_fontsize
     ax[-1].legend(framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3)
 
-    plt.savefig(saveAs + ".pdf")
+    plt.savefig(saveAs + ".png")
     plt.show()
 
     # Output loss based on lh_centroids, not 1D histograms as above,

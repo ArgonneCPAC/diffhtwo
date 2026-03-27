@@ -16,6 +16,9 @@ from jax.debug import print
 
 from . import diffndhist as diffndhist2
 
+N_FLOOR = 0.5
+N_0 = 1e-12
+
 
 @jjit
 def n_mag_kern(
@@ -629,9 +632,8 @@ def Gehrels_low_eq12(Ngal):
 
 
 @jjit
-def get_n_data_err(N, vol, N_floor=0.5):
-    N_0 = 1e-12
-    non_zero = N > N_floor
+def get_n_data_err(N, vol):
+    non_zero = N > N_FLOOR
 
     N = jnp.where(non_zero, N, N_0)
     lg_n = jnp.log10(N / vol)
