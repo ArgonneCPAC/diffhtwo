@@ -802,7 +802,7 @@ def _loss_phot_kern(
     return phot_loss
 
 
-loss_and_grad = jjit(value_and_grad(_loss_kern))
+# loss_and_grad = jjit(value_and_grad(_loss_kern))
 
 _L_pk = (
     None,
