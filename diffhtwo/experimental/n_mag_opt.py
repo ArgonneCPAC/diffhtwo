@@ -8,6 +8,7 @@ jax.config.update("jax_debug_infs", True)
 from functools import partial
 
 import jax.numpy as jnp
+from diffhalos.lightcone_generators.mc_lightcone_halos import weighted_lc_halos
 from diffmah.defaults import DiffmahParams
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.mass_functions import mc_hosts
@@ -521,10 +522,8 @@ def get_halpha_loss(
     lg_halpha_LF_target,
     lg_halpha_Lbin_edges,
     lg_n_thresh,
-    lc_z_obs,
-    lc_t_obs,
-    lc_mah_params,
-    lc_nhalos,
+    lc_z_min,
+    lc_z_max,
     lc_vol_mpc3,
     t_table,
     ssp_data,
@@ -534,12 +533,19 @@ def get_halpha_loss(
     scatter_params,
     cosmo_params,
     fb,
+    num_halos=10000,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    sky_area_degsq=1.0,
 ):
+    lc_halopop = weighted_lc_halos(
+        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, sky_area_degsq
+    )
     L_halpha_cgs, _ = emline_luminosity.compute_emline_luminosity(
         ran_key,
-        lc_z_obs,
-        lc_t_obs,
-        lc_mah_params,
+        lc_halopop.z_obs,
+        lc_halopop.t_obs,
+        lc_halopop.mah_params,
         diffstarpop_params,
         spspop_params,
         mzr_params,
@@ -555,7 +561,7 @@ def get_halpha_loss(
     sig = jnp.diff(lg_halpha_Lbin_edges) / 2
     sig = sig.reshape(sig.size, 1)
     _, halpha_N = emline_luminosity.get_emline_luminosity_func(
-        L_halpha_cgs, lc_nhalos, sig=sig, lgL_bin_edges=lg_halpha_Lbin_edges
+        L_halpha_cgs, lc_halopop.nhalos, sig=sig, lgL_bin_edges=lg_halpha_Lbin_edges
     )
     # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
     halpha_N = jnp.where(halpha_N > N_FLOOR, halpha_N, N_0)
@@ -601,10 +607,8 @@ def _loss_kern(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_lc_z_obs=None,
-    halpha_lc_t_obs=None,
-    halpha_lc_mah_params=None,
-    halpha_lc_nhalos=None,
+    halpha_lc_z_min=None,
+    halpha_lc_z_max=None,
     halpha_lc_vol_mpc3=None,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
@@ -668,17 +672,15 @@ def _loss_kern(
     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     if lg_halpha_LF_target is not None:
-        halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
+        # halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
         halpha_loss_args = (
             diffstarpop_params,
             ran_key,
             lg_halpha_LF_target,
             lg_halpha_Lbin_edges,
             lg_n_thresh,
-            halpha_lc_z_obs,
-            halpha_lc_t_obs,
-            halpha_lc_mah_params,
-            halpha_lc_nhalos,
+            halpha_lc_z_min,
+            halpha_lc_z_max,
             halpha_lc_vol_mpc3,
             t_table,
             ssp_data,
@@ -729,10 +731,8 @@ def fit_n(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_lc_z_obs=None,
-    halpha_lc_t_obs=None,
-    halpha_lc_mah_params=None,
-    halpha_lc_nhalos=None,
+    halpha_lc_z_min=None,
+    halpha_lc_z_max=None,
     halpha_lc_vol_mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
@@ -766,10 +766,8 @@ def fit_n(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
-        halpha_lc_z_obs,
-        halpha_lc_t_obs,
-        halpha_lc_mah_params,
-        halpha_lc_nhalos,
+        halpha_lc_z_min,
+        halpha_lc_z_max,
         halpha_lc_vol_mpc3,
     )
 
@@ -814,8 +812,6 @@ _L = (
     None,
     None,
     None,
-    0,
-    0,
     0,
     0,
     0,
@@ -871,10 +867,8 @@ def fit_n_multi_z(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_lc_z_obs=None,
-    halpha_lc_t_obs=None,
-    halpha_lc_mah_params=None,
-    halpha_lc_nhalos=None,
+    halpha_lc_z_min=None,
+    halpha_lc_z_max=None,
     halpha_lc_vol_mpc3=None,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
@@ -908,10 +902,8 @@ def fit_n_multi_z(
         ssp_halpha_luminosity,
         lg_halpha_LF_target,
         lg_halpha_Lbin_edges,
-        halpha_lc_z_obs,
-        halpha_lc_t_obs,
-        halpha_lc_mah_params,
-        halpha_lc_nhalos,
+        halpha_lc_z_min,
+        halpha_lc_z_max,
         halpha_lc_vol_mpc3,
     )
 
@@ -1059,10 +1051,8 @@ def _loss_kern_w_nbs(
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
-    halpha_lc_z_obs=None,
-    halpha_lc_t_obs=None,
-    halpha_lc_mah_params=None,
-    halpha_lc_nhalos=None,
+    halpha_lc_z_min=None,
+    halpha_lc_z_max=None,
     halpha_lc_vol_mpc3=None,
 ):
     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
@@ -1162,17 +1152,15 @@ def _loss_kern_w_nbs(
     loss += jnp.sum(nb_losses)
 
     if lg_halpha_LF_target is not None:
-        halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
+        # halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
         halpha_loss_args = (
             diffstarpop_params,
             ran_key,
             lg_halpha_LF_target,
             lg_halpha_Lbin_edges,
             lg_n_thresh,
-            halpha_lc_z_obs,
-            halpha_lc_t_obs,
-            halpha_lc_mah_params,
-            halpha_lc_nhalos,
+            halpha_lc_z_min,
+            halpha_lc_z_max,
             halpha_lc_vol_mpc3,
             t_table,
             ssp_data,
@@ -1225,8 +1213,6 @@ _L_w_nbs = (
     None,
     None,
     None,
-    0,
-    0,
     0,
     0,
     0,
