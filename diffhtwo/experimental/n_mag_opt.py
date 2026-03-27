@@ -653,24 +653,12 @@ def get_phot_loss(
     return phot_loss
 
 
-# Latin Hypercube bins based fitting
 @jjit
 def _loss_kern(
     u_theta,
     lg_n_target,
     lg_n_thresh,
     ran_key,
-    lc_z_obs,
-    lc_t_obs,
-    lc_mah_params,
-    lc_logmp0,
-    lc_nhalos,
-    lc_vol_mpc3,
-    t_table,
-    ssp_data,
-    precomputed_ssp_mag_table,
-    z_phot_table,
-    wave_eff_table,
     mzr_params,
     scatter_params,
     lh_centroids,
@@ -678,9 +666,17 @@ def _loss_kern(
     mag_columns,
     mag_thresh_column,
     mag_thresh,
+    lc_z_min,
+    lc_z_max,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    precomputed_ssp_mag_table,
+    z_phot_table,
+    wave_eff_table,
     cosmo_params,
     fb,
-    frac_cat=1.0,
+    frac_cat,
     ssp_halpha_luminosity=None,
     lg_halpha_LF_target=None,
     lg_halpha_Lbin_edges=None,
@@ -688,188 +684,69 @@ def _loss_kern(
     halpha_lc_z_max=None,
     halpha_lc_vol_mpc3=None,
 ):
-    # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
-    if len(u_theta) == 3:
-        u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
-
-        u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
-        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
-
-        u_spspop_params = u_spspop_unravel(u_spspop_theta)
-        spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
-
-        u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
-        ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
-
-    elif len(u_theta) == 2:
-        u_diffstarpop_theta, u_spspop_theta = u_theta
-
-        u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
-        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
-
-        u_spspop_params = u_spspop_unravel(u_spspop_theta)
-        spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
-
-        ssperrpop_params = ZERO_SSPERR_PARAMS
-
-    else:
-        u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
-        diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
-
-        spspop_params = DEFAULT_SPSPOP_PARAMS
-        ssperrpop_params = ZERO_SSPERR_PARAMS
-
-    lg_n_model, _ = n_mag_kern(
-        diffstarpop_params,
-        spspop_params,
+    loss = get_phot_loss(
+        u_theta,
+        lg_n_target,
+        lg_n_thresh,
         ran_key,
-        lc_z_obs,
-        lc_t_obs,
-        lc_mah_params,
-        lc_logmp0,
-        lc_nhalos,
+        mzr_params,
+        scatter_params,
+        lh_centroids,
+        dmag_centroids,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        lc_z_min,
+        lc_z_max,
         lc_vol_mpc3,
         t_table,
         ssp_data,
         precomputed_ssp_mag_table,
         z_phot_table,
         wave_eff_table,
-        mzr_params,
-        scatter_params,
-        ssperrpop_params,
-        lh_centroids,
-        dmag_centroids,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
         cosmo_params,
         fb,
         frac_cat,
     )
-    loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
-    if lg_halpha_LF_target is not None:
-        # halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
-        halpha_loss_args = (
-            diffstarpop_params,
-            ran_key,
-            lg_halpha_LF_target,
-            lg_halpha_Lbin_edges,
-            lg_n_thresh,
-            halpha_lc_z_min,
-            halpha_lc_z_max,
-            halpha_lc_vol_mpc3,
-            t_table,
-            ssp_data,
-            ssp_halpha_luminosity,
-            mzr_params,
-            spspop_params,
-            scatter_params,
-            cosmo_params,
-            fb,
-        )
-        loss += get_halpha_loss(*halpha_loss_args)
+    # if lg_halpha_LF_target is not None:
+    #     halpha_loss_args = (
+    #         diffstarpop_params,
+    #         ran_key,
+    #         lg_halpha_LF_target,
+    #         lg_halpha_Lbin_edges,
+    #         lg_n_thresh,
+    #         halpha_lc_z_min,
+    #         halpha_lc_z_max,
+    #         halpha_lc_vol_mpc3,
+    #         t_table,
+    #         ssp_data,
+    #         ssp_halpha_luminosity,
+    #         mzr_params,
+    #         spspop_params,
+    #         scatter_params,
+    #         cosmo_params,
+    #         fb,
+    #     )
+    #     loss += get_halpha_loss(*halpha_loss_args)
 
     return loss
 
 
 loss_and_grad = jjit(value_and_grad(_loss_kern))
 
-
-@partial(jjit, static_argnames=["n_steps", "step_size"])
-def fit_n(
-    u_theta_init,
-    lg_n_target,
-    lg_n_thresh,
-    ran_key,
-    lc_z_obs,
-    lc_t_obs,
-    lc_mah_params,
-    lc_logmp0,
-    lc_nhalos,
-    lc_vol_mpc3,
-    t_table,
-    ssp_data,
-    precomputed_ssp_mag_table,
-    z_phot_table,
-    wave_eff_table,
-    mzr_params,
-    scatter_params,
-    lh_centroids,
-    dmag_centroids,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    cosmo_params,
-    fb,
-    frac_cat=1.0,
-    n_steps=2,
-    step_size=0.1,
-    ssp_halpha_luminosity=None,
-    lg_halpha_LF_target=None,
-    lg_halpha_Lbin_edges=None,
-    halpha_lc_z_min=None,
-    halpha_lc_z_max=None,
-    halpha_lc_vol_mpc3=None,
-):
-    opt_init, opt_update, get_params = jax_opt.adam(step_size)
-    opt_state = opt_init(u_theta_init)
-
-    other = (
-        lg_n_target,
-        lg_n_thresh,
-        ran_key,
-        lc_z_obs,
-        lc_t_obs,
-        lc_mah_params,
-        lc_logmp0,
-        lc_nhalos,
-        lc_vol_mpc3,
-        t_table,
-        ssp_data,
-        precomputed_ssp_mag_table,
-        z_phot_table,
-        wave_eff_table,
-        mzr_params,
-        scatter_params,
-        lh_centroids,
-        dmag_centroids,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
-        cosmo_params,
-        fb,
-        frac_cat,
-        ssp_halpha_luminosity,
-        lg_halpha_LF_target,
-        lg_halpha_Lbin_edges,
-        halpha_lc_z_min,
-        halpha_lc_z_max,
-        halpha_lc_vol_mpc3,
-    )
-
-    def _opt_update(opt_state, i):
-        u_theta = get_params(opt_state)
-        loss, grads = loss_and_grad(u_theta, *other)
-        opt_state = opt_update(i, grads, opt_state)
-        return opt_state, (loss, grads)
-
-    (opt_state, (loss_hist, grad_hist)) = lax.scan(
-        _opt_update, opt_state, jnp.arange(n_steps)
-    )
-    u_theta_fit = get_params(opt_state)
-
-    return loss_hist, grad_hist, u_theta_fit
-
-
 _L = (
     None,
     0,
     None,
     None,
+    None,
+    None,
     0,
     0,
-    0,
+    None,
+    None,
+    None,
     0,
     0,
     0,
@@ -880,8 +757,6 @@ _L = (
     0,
     None,
     None,
-    0,
-    0,
     None,
     None,
     None,
@@ -889,11 +764,6 @@ _L = (
     None,
     None,
     None,
-    0,
-    0,
-    0,
-    0,
-    0,
 )
 _loss_kern_multi_z = jjit(
     vmap(
@@ -903,103 +773,353 @@ _loss_kern_multi_z = jjit(
 )
 
 
-@jjit
-def _loss_total_multi_z(*args):
-    return jnp.sum(_loss_kern_multi_z(*args))
+# Latin Hypercube bins based fitting
+# @jjit
+# def _loss_kern(
+#     u_theta,
+#     lg_n_target,
+#     lg_n_thresh,
+#     ran_key,
+#     lc_z_obs,
+#     lc_t_obs,
+#     lc_mah_params,
+#     lc_logmp0,
+#     lc_nhalos,
+#     lc_vol_mpc3,
+#     t_table,
+#     ssp_data,
+#     precomputed_ssp_mag_table,
+#     z_phot_table,
+#     wave_eff_table,
+#     mzr_params,
+#     scatter_params,
+#     lh_centroids,
+#     dmag_centroids,
+#     mag_columns,
+#     mag_thresh_column,
+#     mag_thresh,
+#     cosmo_params,
+#     fb,
+#     frac_cat=1.0,
+#     ssp_halpha_luminosity=None,
+#     lg_halpha_LF_target=None,
+#     lg_halpha_Lbin_edges=None,
+#     halpha_lc_z_min=None,
+#     halpha_lc_z_max=None,
+#     halpha_lc_vol_mpc3=None,
+# ):
+#     # The if structure below assumes that if len(u_theta)==1, then it is just diffstarpop params
+#     if len(u_theta) == 3:
+#         u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
+
+#         u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+#         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+#         u_spspop_params = u_spspop_unravel(u_spspop_theta)
+#         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+#         u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
+#         ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
+
+#     elif len(u_theta) == 2:
+#         u_diffstarpop_theta, u_spspop_theta = u_theta
+
+#         u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+#         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+#         u_spspop_params = u_spspop_unravel(u_spspop_theta)
+#         spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+#         ssperrpop_params = ZERO_SSPERR_PARAMS
+
+#     else:
+#         u_diffstarpop_params = u_diffstarpop_unravel(u_theta)
+#         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+#         spspop_params = DEFAULT_SPSPOP_PARAMS
+#         ssperrpop_params = ZERO_SSPERR_PARAMS
+
+#     lg_n_model, _ = n_mag_kern(
+#         diffstarpop_params,
+#         spspop_params,
+#         ran_key,
+#         lc_z_obs,
+#         lc_t_obs,
+#         lc_mah_params,
+#         lc_logmp0,
+#         lc_nhalos,
+#         lc_vol_mpc3,
+#         t_table,
+#         ssp_data,
+#         precomputed_ssp_mag_table,
+#         z_phot_table,
+#         wave_eff_table,
+#         mzr_params,
+#         scatter_params,
+#         ssperrpop_params,
+#         lh_centroids,
+#         dmag_centroids,
+#         mag_columns,
+#         mag_thresh_column,
+#         mag_thresh,
+#         cosmo_params,
+#         fb,
+#         frac_cat,
+#     )
+#     loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
+
+#     if lg_halpha_LF_target is not None:
+#         # halpha_lc_mah_params = DiffmahParams(*halpha_lc_mah_params)
+#         halpha_loss_args = (
+#             diffstarpop_params,
+#             ran_key,
+#             lg_halpha_LF_target,
+#             lg_halpha_Lbin_edges,
+#             lg_n_thresh,
+#             halpha_lc_z_min,
+#             halpha_lc_z_max,
+#             halpha_lc_vol_mpc3,
+#             t_table,
+#             ssp_data,
+#             ssp_halpha_luminosity,
+#             mzr_params,
+#             spspop_params,
+#             scatter_params,
+#             cosmo_params,
+#             fb,
+#         )
+#         loss += get_halpha_loss(*halpha_loss_args)
+
+#     return loss
 
 
-loss_and_grad_multi_z = jjit(value_and_grad(_loss_total_multi_z))
+# loss_and_grad = jjit(value_and_grad(_loss_kern))
 
 
-@partial(jjit, static_argnames=["n_steps", "step_size"])
-def fit_n_multi_z(
-    u_theta_init,
-    trainable,
-    lg_n_target,
-    lg_n_thresh,
-    ran_key,
-    lc_z_obs,
-    lc_t_obs,
-    lc_mah_params,
-    lc_logmp0,
-    lc_nhalos,
-    lc_vol_mpc3,
-    t_table,
-    ssp_data,
-    precomputed_ssp_mag_table,
-    z_phot_table,
-    wave_eff_table,
-    mzr_params,
-    scatter_params,
-    lh_centroids,
-    dmag_centroids,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    cosmo_params,
-    fb,
-    frac_cat=1.0,
-    n_steps=2,
-    step_size=0.1,
-    ssp_halpha_luminosity=None,
-    lg_halpha_LF_target=None,
-    lg_halpha_Lbin_edges=None,
-    halpha_lc_z_min=None,
-    halpha_lc_z_max=None,
-    halpha_lc_vol_mpc3=None,
-):
-    opt_init, opt_update, get_params = jax_opt.adam(step_size)
-    opt_state = opt_init(u_theta_init)
+# @partial(jjit, static_argnames=["n_steps", "step_size"])
+# def fit_n(
+#     u_theta_init,
+#     lg_n_target,
+#     lg_n_thresh,
+#     ran_key,
+#     lc_z_obs,
+#     lc_t_obs,
+#     lc_mah_params,
+#     lc_logmp0,
+#     lc_nhalos,
+#     lc_vol_mpc3,
+#     t_table,
+#     ssp_data,
+#     precomputed_ssp_mag_table,
+#     z_phot_table,
+#     wave_eff_table,
+#     mzr_params,
+#     scatter_params,
+#     lh_centroids,
+#     dmag_centroids,
+#     mag_columns,
+#     mag_thresh_column,
+#     mag_thresh,
+#     cosmo_params,
+#     fb,
+#     frac_cat=1.0,
+#     n_steps=2,
+#     step_size=0.1,
+#     ssp_halpha_luminosity=None,
+#     lg_halpha_LF_target=None,
+#     lg_halpha_Lbin_edges=None,
+#     halpha_lc_z_min=None,
+#     halpha_lc_z_max=None,
+#     halpha_lc_vol_mpc3=None,
+# ):
+#     opt_init, opt_update, get_params = jax_opt.adam(step_size)
+#     opt_state = opt_init(u_theta_init)
 
-    other = (
-        lg_n_target,
-        lg_n_thresh,
-        ran_key,
-        lc_z_obs,
-        lc_t_obs,
-        lc_mah_params,
-        lc_logmp0,
-        lc_nhalos,
-        lc_vol_mpc3,
-        t_table,
-        ssp_data,
-        precomputed_ssp_mag_table,
-        z_phot_table,
-        wave_eff_table,
-        mzr_params,
-        scatter_params,
-        lh_centroids,
-        dmag_centroids,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
-        cosmo_params,
-        fb,
-        frac_cat,
-        ssp_halpha_luminosity,
-        lg_halpha_LF_target,
-        lg_halpha_Lbin_edges,
-        halpha_lc_z_min,
-        halpha_lc_z_max,
-        halpha_lc_vol_mpc3,
-    )
+#     other = (
+#         lg_n_target,
+#         lg_n_thresh,
+#         ran_key,
+#         lc_z_obs,
+#         lc_t_obs,
+#         lc_mah_params,
+#         lc_logmp0,
+#         lc_nhalos,
+#         lc_vol_mpc3,
+#         t_table,
+#         ssp_data,
+#         precomputed_ssp_mag_table,
+#         z_phot_table,
+#         wave_eff_table,
+#         mzr_params,
+#         scatter_params,
+#         lh_centroids,
+#         dmag_centroids,
+#         mag_columns,
+#         mag_thresh_column,
+#         mag_thresh,
+#         cosmo_params,
+#         fb,
+#         frac_cat,
+#         ssp_halpha_luminosity,
+#         lg_halpha_LF_target,
+#         lg_halpha_Lbin_edges,
+#         halpha_lc_z_min,
+#         halpha_lc_z_max,
+#         halpha_lc_vol_mpc3,
+#     )
 
-    def _opt_update(opt_state, i):
-        u_theta = get_params(opt_state)
-        loss, grads = loss_and_grad_multi_z(u_theta, *other)
-        # set grads for untrainable params to 0.0
-        grads = tuple(
-            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
-        )
-        opt_state = opt_update(i, grads, opt_state)
-        return opt_state, (loss, grads)
+#     def _opt_update(opt_state, i):
+#         u_theta = get_params(opt_state)
+#         loss, grads = loss_and_grad(u_theta, *other)
+#         opt_state = opt_update(i, grads, opt_state)
+#         return opt_state, (loss, grads)
 
-    (opt_state, (loss_hist, grad_hist)) = lax.scan(
-        _opt_update, opt_state, jnp.arange(n_steps)
-    )
-    u_theta_fit = get_params(opt_state)
+#     (opt_state, (loss_hist, grad_hist)) = lax.scan(
+#         _opt_update, opt_state, jnp.arange(n_steps)
+#     )
+#     u_theta_fit = get_params(opt_state)
 
-    return loss_hist, grad_hist, u_theta_fit
+#     return loss_hist, grad_hist, u_theta_fit
+
+
+# _L = (
+#     None,
+#     0,
+#     None,
+#     None,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     None,
+#     None,
+#     0,
+#     0,
+#     0,
+#     None,
+#     None,
+#     0,
+#     0,
+#     None,
+#     None,
+#     None,
+#     None,
+#     None,
+#     None,
+#     None,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+# )
+# _loss_kern_multi_z = jjit(
+#     vmap(
+#         _loss_kern,
+#         in_axes=_L,
+#     )
+# )
+
+
+# @jjit
+# def _loss_total_multi_z(*args):
+#     return jnp.sum(_loss_kern_multi_z(*args))
+
+
+# loss_and_grad_multi_z = jjit(value_and_grad(_loss_total_multi_z))
+
+
+# @partial(jjit, static_argnames=["n_steps", "step_size"])
+# def fit_n_multi_z(
+#     u_theta_init,
+#     trainable,
+#     lg_n_target,
+#     lg_n_thresh,
+#     ran_key,
+#     lc_z_obs,
+#     lc_t_obs,
+#     lc_mah_params,
+#     lc_logmp0,
+#     lc_nhalos,
+#     lc_vol_mpc3,
+#     t_table,
+#     ssp_data,
+#     precomputed_ssp_mag_table,
+#     z_phot_table,
+#     wave_eff_table,
+#     mzr_params,
+#     scatter_params,
+#     lh_centroids,
+#     dmag_centroids,
+#     mag_columns,
+#     mag_thresh_column,
+#     mag_thresh,
+#     cosmo_params,
+#     fb,
+#     frac_cat=1.0,
+#     n_steps=2,
+#     step_size=0.1,
+#     ssp_halpha_luminosity=None,
+#     lg_halpha_LF_target=None,
+#     lg_halpha_Lbin_edges=None,
+#     halpha_lc_z_min=None,
+#     halpha_lc_z_max=None,
+#     halpha_lc_vol_mpc3=None,
+# ):
+#     opt_init, opt_update, get_params = jax_opt.adam(step_size)
+#     opt_state = opt_init(u_theta_init)
+
+#     other = (
+#         lg_n_target,
+#         lg_n_thresh,
+#         ran_key,
+#         lc_z_obs,
+#         lc_t_obs,
+#         lc_mah_params,
+#         lc_logmp0,
+#         lc_nhalos,
+#         lc_vol_mpc3,
+#         t_table,
+#         ssp_data,
+#         precomputed_ssp_mag_table,
+#         z_phot_table,
+#         wave_eff_table,
+#         mzr_params,
+#         scatter_params,
+#         lh_centroids,
+#         dmag_centroids,
+#         mag_columns,
+#         mag_thresh_column,
+#         mag_thresh,
+#         cosmo_params,
+#         fb,
+#         frac_cat,
+#         ssp_halpha_luminosity,
+#         lg_halpha_LF_target,
+#         lg_halpha_Lbin_edges,
+#         halpha_lc_z_min,
+#         halpha_lc_z_max,
+#         halpha_lc_vol_mpc3,
+#     )
+
+#     def _opt_update(opt_state, i):
+#         u_theta = get_params(opt_state)
+#         loss, grads = loss_and_grad_multi_z(u_theta, *other)
+#         # set grads for untrainable params to 0.0
+#         grads = tuple(
+#             jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+#         )
+#         opt_state = opt_update(i, grads, opt_state)
+#         return opt_state, (loss, grads)
+
+#     (opt_state, (loss_hist, grad_hist)) = lax.scan(
+#         _opt_update, opt_state, jnp.arange(n_steps)
+#     )
+#     u_theta_fit = get_params(opt_state)
+
+#     return loss_hist, grad_hist, u_theta_fit
 
 
 @jjit
