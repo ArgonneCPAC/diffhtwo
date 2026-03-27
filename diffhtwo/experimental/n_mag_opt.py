@@ -706,7 +706,7 @@ def get_emline_loss(
 
 
 @jjit
-def _loss_kern(
+def _loss_phot_kern(
     u_theta,
     lg_n_target,
     lg_n_thresh,
@@ -729,13 +729,13 @@ def _loss_kern(
     cosmo_params,
     fb,
     frac_cat,
-    ssp_emline_luminosity=None,
-    emline_wave_aa=None,
-    lg_emline_LF_target=None,
-    lg_emline_Lbin_edges=None,
-    emline_lc_z_min=None,
-    emline_lc_z_max=None,
-    emline_lc_vol_mpc3=None,
+    # ssp_emline_luminosity=None,
+    # emline_wave_aa=None,
+    # lg_emline_LF_target=None,
+    # lg_emline_Lbin_edges=None,
+    # emline_lc_z_min=None,
+    # emline_lc_z_max=None,
+    # emline_lc_vol_mpc3=None,
 ):
     # get bounded params
     u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
@@ -775,10 +775,96 @@ def _loss_kern(
         fb,
         frac_cat,
     )
-    loss = get_phot_loss(*phot_loss_args)
+    phot_loss = get_phot_loss(*phot_loss_args)
 
-    if ssp_emline_luminosity is not None:
-        emline_loss_args = (
+    # if ssp_emline_luminosity is not None:
+    #     emline_loss_args = (
+    #         ran_key,
+    #         emline_wave_aa,
+    #         lg_emline_LF_target,
+    #         lg_emline_Lbin_edges,
+    #         lg_n_thresh,
+    #         emline_lc_z_min,
+    #         emline_lc_z_max,
+    #         emline_lc_vol_mpc3,
+    #         t_table,
+    #         ssp_data,
+    #         ssp_emline_luminosity,
+    #         diffstarpop_params,
+    #         spspop_params,
+    #         mzr_params,
+    #         scatter_params,
+    #         cosmo_params,
+    #         fb,
+    #     )
+    #     loss += get_emline_loss(*emline_loss_args)
+
+    return phot_loss
+
+
+loss_and_grad = jjit(value_and_grad(_loss_kern))
+
+_L_pk = (
+    None,
+    0,
+    None,
+    None,
+    None,
+    None,
+    0,
+    0,
+    None,
+    None,
+    None,
+    0,
+    0,
+    0,
+    None,
+    None,
+    0,
+    0,
+    0,
+    None,
+    None,
+    None,
+    # None,
+    # None,
+    # None,
+    # None,
+    # None,
+    # None,
+    # None,
+)
+_loss_phot_kern_multi_z = jjit(
+    vmap(
+        _loss_phot_kern,
+        in_axes=_L_pk,
+    )
+)
+
+def _loss_emline_kern(
+    u_theta,
+    ssp_emline_luminosity,
+    emline_wave_aa,
+    lg_emline_LF_target,
+    lg_emline_Lbin_edges,
+    emline_lc_z_min,
+    emline_lc_z_max,
+    emline_lc_vol_mpc3,
+):
+    # get bounded params
+    u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
+
+    u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+    diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+    u_spspop_params = u_spspop_unravel(u_spspop_theta)
+    spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+    u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
+    ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
+
+    emline_loss_args = (
             ran_key,
             emline_wave_aa,
             lg_emline_LF_target,
@@ -797,50 +883,81 @@ def _loss_kern(
             cosmo_params,
             fb,
         )
-        loss += get_emline_loss(*emline_loss_args)
+        emline_loss = get_emline_loss(*emline_loss_args)
+    return emline_loss
 
-    return loss
-
-
-loss_and_grad = jjit(value_and_grad(_loss_kern))
-
-_L = (
-    None,
-    0,
-    None,
-    None,
-    None,
-    None,
-    0,
-    0,
-    None,
-    None,
-    None,
-    0,
-    0,
-    0,
-    None,
-    None,
-    0,
-    0,
-    0,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-    None,
-)
-_loss_kern_multi_z = jjit(
-    vmap(
-        _loss_kern,
-        in_axes=_L,
+@jjit
+def _loss_phot_and_emline_multi_z(
+    u_theta,
+    lg_n_target,
+    lg_n_thresh,
+    ran_key,
+    mzr_params,
+    scatter_params,
+    lh_centroids,
+    dmag_centroids,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    lc_z_min,
+    lc_z_max,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    precomputed_ssp_mag_table,
+    z_phot_table,
+    wave_eff_table,
+    cosmo_params,
+    fb,
+    frac_cat,
+    ssp_emline_luminosity, # emline args, need to be multi-z arrays to loop over
+    emline_wave_aa,
+    lg_emline_LF_target,
+    lg_emline_Lbin_edges,
+    emline_lc_z_min,
+    emline_lc_z_max,
+    emline_lc_vol_mpc3,
+):
+    phot_multi_z_loss_args = (
+        u_theta,
+        lg_n_target,
+        lg_n_thresh,
+        ran_key,
+        mzr_params,
+        scatter_params,
+        lh_centroids,
+        dmag_centroids,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        lc_z_min,
+        lc_z_max,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        cosmo_params,
+        fb,
+        frac_cat,
     )
-)
+    phot_loss_multi_z = _loss_phot_kern_multi_z(*phot_multi_z_loss_args)
+
+    emline_loss_multi_z = 0.0
+    for z in range(0, len(lg_emline_LF_target)):
+        emline_loss_multi_z += _loss_emline_kern(
+            u_theta,
+            ssp_emline_luminosity,
+            emline_wave_aa,
+            lg_emline_LF_target[z],
+            lg_emline_Lbin_edges[z],
+            emline_lc_z_min[z],
+            emline_lc_z_max[z],
+            emline_lc_vol_mpc3[z],
+        )
+    phot_and_emline_loss_multi_z = jnp.sum(phot_loss_multi_z) + emline_loss_multi_z
+    return phot_and_emline_loss_multi_z
 
 
 # Latin Hypercube bins based fitting
