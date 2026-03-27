@@ -618,8 +618,8 @@ def get_phot_loss(
     lc_photdata = weighted_lc_halos_photdata(
         ran_key,
         num_halos,
-        z_min,
-        z_max,
+        lc_z_min,
+        lc_z_max,
         lgmp_min,
         lgmp_max,
         sky_area_degsq,
