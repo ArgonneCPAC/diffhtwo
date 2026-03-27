@@ -639,7 +639,9 @@ def get_emline_loss(
 
 @jjit
 def get_phot_loss(
-    u_theta,
+    diffstarpop_params,
+    spspop_params,
+    ssperrpop_params,
     lg_n_target,
     lg_n_thresh,
     ran_key,
@@ -666,18 +668,6 @@ def get_phot_loss(
     lgmp_max=mc_hosts.LGMH_MAX,
     sky_area_degsq=0.1,
 ):
-    # get bounded params
-    u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
-
-    u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
-    diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
-
-    u_spspop_params = u_spspop_unravel(u_spspop_theta)
-    spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
-
-    u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
-    ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
-
     # generate lightcone and photometry data
     lc_halopop = weighted_lc_halos(
         ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, sky_area_degsq
@@ -747,8 +737,22 @@ def _loss_kern(
     emline_lc_z_max=None,
     emline_lc_vol_mpc3=None,
 ):
+    # get bounded params
+    u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
+
+    u_diffstarpop_params = u_diffstarpop_unravel(u_diffstarpop_theta)
+    diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
+
+    u_spspop_params = u_spspop_unravel(u_spspop_theta)
+    spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
+
+    u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
+    ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
+
     loss = get_phot_loss(
-        u_theta,
+        diffstarpop_params,
+        spspop_params,
+        ssperrpop_params,
         lg_n_target,
         lg_n_thresh,
         ran_key,
