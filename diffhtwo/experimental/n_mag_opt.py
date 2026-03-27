@@ -591,8 +591,6 @@ def get_phot_loss(
     lc_z_min,
     lc_z_max,
     lc_vol_mpc3,
-    lgmp_min,
-    lgmp_max,
     ssp_data,
     tcurves,
     z_phot_table,
