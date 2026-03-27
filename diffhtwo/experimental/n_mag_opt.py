@@ -576,68 +576,6 @@ def get_halpha_loss(
 
 
 @jjit
-def get_emline_loss(
-    ran_key,
-    emline_wave_aa,
-    lg_emline_LF_target,
-    lg_emline_Lbin_edges,
-    lg_n_thresh,
-    lc_z_min,
-    lc_z_max,
-    lc_vol_mpc3,
-    t_table,
-    ssp_data,
-    ssp_emline_luminosity,
-    diffstarpop_params,
-    spspop_params,
-    mzr_params,
-    scatter_params,
-    cosmo_params,
-    fb,
-    num_halos=1000,
-    lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
-    sky_area_degsq=0.1,
-):
-    lc_halopop = weighted_lc_halos(
-        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, sky_area_degsq
-    )
-    L_emline_cgs, _ = emline_luminosity.compute_emline_luminosity(
-        ran_key,
-        lc_halopop.z_obs,
-        lc_halopop.t_obs,
-        lc_halopop.mah_params,
-        diffstarpop_params,
-        spspop_params,
-        mzr_params,
-        scatter_params,
-        t_table,
-        ssp_data,
-        emline_wave_aa,
-        ssp_emline_luminosity,
-        cosmo_params,
-        fb,
-    )
-
-    sig = jnp.diff(lg_emline_Lbin_edges) / 2
-    sig = sig.reshape(sig.size, 1)
-    _, emline_N = emline_luminosity.get_emline_luminosity_func(
-        L_emline_cgs, lc_halopop.nhalos, sig=sig, lgL_bin_edges=lg_emline_Lbin_edges
-    )
-    # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
-    emline_N = jnp.where(emline_N > N_FLOOR, emline_N, N_0)
-
-    lg_emline_LF_model = jnp.log10(emline_N / lc_vol_mpc3)
-
-    return _mse_w(
-        lg_emline_LF_model,
-        lg_emline_LF_target[0],
-        lg_emline_LF_target[1],
-        lg_n_thresh,
-    )
-
-
-@jjit
 def get_phot_loss(
     diffstarpop_params,
     spspop_params,
@@ -703,6 +641,68 @@ def get_phot_loss(
     phot_loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     return phot_loss
+
+
+@jjit
+def get_emline_loss(
+    ran_key,
+    emline_wave_aa,
+    lg_emline_LF_target,
+    lg_emline_Lbin_edges,
+    lg_n_thresh,
+    lc_z_min,
+    lc_z_max,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    ssp_emline_luminosity,
+    diffstarpop_params,
+    spspop_params,
+    mzr_params,
+    scatter_params,
+    cosmo_params,
+    fb,
+    num_halos=1000,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    sky_area_degsq=0.1,
+):
+    lc_halopop = weighted_lc_halos(
+        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, sky_area_degsq
+    )
+    L_emline_cgs, _ = emline_luminosity.compute_emline_luminosity(
+        ran_key,
+        lc_halopop.z_obs,
+        lc_halopop.t_obs,
+        lc_halopop.mah_params,
+        diffstarpop_params,
+        spspop_params,
+        mzr_params,
+        scatter_params,
+        t_table,
+        ssp_data,
+        emline_wave_aa,
+        ssp_emline_luminosity,
+        cosmo_params,
+        fb,
+    )
+
+    sig = jnp.diff(lg_emline_Lbin_edges) / 2
+    sig = sig.reshape(sig.size, 1)
+    _, emline_N = emline_luminosity.get_emline_luminosity_func(
+        L_emline_cgs, lc_halopop.nhalos, sig=sig, lgL_bin_edges=lg_emline_Lbin_edges
+    )
+    # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
+    emline_N = jnp.where(emline_N > N_FLOOR, emline_N, N_0)
+
+    lg_emline_LF_model = jnp.log10(emline_N / lc_vol_mpc3)
+
+    return _mse_w(
+        lg_emline_LF_model,
+        lg_emline_LF_target[0],
+        lg_emline_LF_target[1],
+        lg_n_thresh,
+    )
 
 
 @jjit
