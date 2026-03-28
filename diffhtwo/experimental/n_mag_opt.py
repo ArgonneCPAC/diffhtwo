@@ -856,8 +856,6 @@ def _loss_emline_kern(
     t_table,
     ssp_data,
     ssp_emline_luminosity,
-    diffstarpop_params,
-    spspop_params,
     mzr_params,
     scatter_params,
     cosmo_params,
