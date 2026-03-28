@@ -845,13 +845,23 @@ _loss_phot_kern_multi_z = jjit(
 
 def _loss_emline_kern(
     u_theta,
-    ssp_emline_luminosity,
+    ran_key,
     emline_wave_aa,
     lg_emline_LF_target,
     lg_emline_Lbin_edges,
+    lg_n_thresh,
     emline_lc_z_min,
     emline_lc_z_max,
     emline_lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    ssp_emline_luminosity,
+    diffstarpop_params,
+    spspop_params,
+    mzr_params,
+    scatter_params,
+    cosmo_params,
+    fb,
 ):
     # get bounded params
     u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
