@@ -920,7 +920,7 @@ def _loss_phot_and_emline_multi_z(
     cosmo_params,
     fb,
     frac_cat,
-    emline_wave_aa,  # multi-z loop over emline args
+    emline_wave_aa,
     lg_emline_LF_target,
     lg_emline_Lbin_edges,
     emline_lc_z_min,
@@ -978,6 +978,98 @@ def _loss_phot_and_emline_multi_z(
 
     phot_and_emline_loss_multi_z = jnp.sum(phot_loss_multi_z) + emline_loss_multi_z
     return phot_and_emline_loss_multi_z
+
+
+loss_and_grad_phot_and_emline_multi_z = jjit(
+    value_and_grad(_loss_phot_and_emline_multi_z)
+)
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_phot_and_emline_multi_z(
+    u_theta_init,
+    trainable,
+    lg_n_target,
+    lg_n_thresh,
+    ran_key,
+    mzr_params,
+    scatter_params,
+    lh_centroids,
+    dmag_centroids,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    lc_z_min,
+    lc_z_max,
+    lc_vol_mpc3,
+    t_table,
+    ssp_data,
+    precomputed_ssp_mag_table,
+    z_phot_table,
+    wave_eff_table,
+    cosmo_params,
+    fb,
+    frac_cat,
+    emline_wave_aa,
+    lg_emline_LF_target,
+    lg_emline_Lbin_edges,
+    emline_lc_z_min,
+    emline_lc_z_max,
+    emline_lc_vol_mpc3,
+    ssp_emline_luminosity,
+    n_steps=2,
+    step_size=0.1,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    other = (
+        lg_n_target,
+        lg_n_thresh,
+        ran_key,
+        mzr_params,
+        scatter_params,
+        lh_centroids,
+        dmag_centroids,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        lc_z_min,
+        lc_z_max,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        cosmo_params,
+        fb,
+        frac_cat,
+        emline_wave_aa,
+        lg_emline_LF_target,
+        lg_emline_Lbin_edges,
+        emline_lc_z_min,
+        emline_lc_z_max,
+        emline_lc_vol_mpc3,
+        ssp_emline_luminosity,
+    )
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss, grads = loss_and_grad_phot_and_emline_multi_z(u_theta, *other)
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, (loss, grads)
+
+    (opt_state, (loss_hist, grad_hist)) = lax.scan(
+        _opt_update, opt_state, jnp.arange(n_steps)
+    )
+    u_theta_fit = get_params(opt_state)
+
+    return loss_hist, grad_hist, u_theta_fit
 
 
 # Latin Hypercube bins based fitting
