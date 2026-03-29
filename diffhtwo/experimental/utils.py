@@ -55,6 +55,19 @@ def zbin_volume(sky_area_degsq, zlow=0.2, zhigh=0.5, slices=1000):
     return volume
 
 
+def zbin_area(comoving_volume, zlow=0.2, zhigh=0.5, slices=1000):
+    z = np.linspace(zlow, zhigh, slices)
+    dV_dz = np.zeros(len(z))
+    for i in range(0, len(z)):
+        dV_dz[i] = COSMO.differential_comoving_volume(z[i]).value
+    A_sr = (comoving_volume * u.Mpc**3) / (np.trapezoid(dV_dz, z) * u.Mpc**3 / u.sr)
+
+    A_deg2 = A_sr.to(u.deg**2)
+
+    # Mpc3 units (no h dependence)
+    return A_deg2
+
+
 def get_tcurve(get_filter_number, filter_info_filename, tcurves_filename):
     with open(filter_info_filename) as INFO:
         info = INFO.readlines()
