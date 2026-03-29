@@ -453,18 +453,19 @@ def plot_n(
     n_z_phot_table=15,
 ):
     # Plot 1D histograms
-    n_bands = 10
+    n_bands = len(tcurves)
+    n_dims = n_bands - 1 + len(mag_columns)
     n_zbins = len(zmins)
 
-    fig_width = 2.5 * n_bands - 1 + len(mag_columns)
+    fig_width = 2.5 * n_dims
     fig_height = n_zbins * 4.5
     fig, ax = plt.subplots(
         n_zbins,
-        n_bands - 1 + len(mag_columns),
+        n_dims,
         figsize=(fig_width, fig_height),
         squeeze=False,
     )
-    ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
+    # ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
     fig.subplots_adjust(
         left=0.05, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0
     )
