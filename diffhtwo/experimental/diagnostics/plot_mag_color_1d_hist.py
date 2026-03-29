@@ -18,7 +18,7 @@ from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
 from .. import n_mag_opt
-from ..utils import zbin_volume
+from ..utils import zbin_area, zbin_volume
 
 blue = "#1E90FF"  # DodgerBlue
 orange = "#FF8C00"  # DarkOrange
@@ -446,22 +446,41 @@ def plot_n(
     lg_n_thresh=None,
     lgmp_min=10.0,
     lgmp_max=15.0,
-    sky_area_degsq=0.1,
+    lc_vol_mpc3=7e4,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
     n_z_phot_table=15,
 ):
-    for z in range(0, len(zmins)):
+    # Plot 1D histograms
+    n_bands = 10
+    n_zbins = len(zmins)
+
+    fig_width = 2.5 * n_bands - 1 + len(mag_columns)
+    fig_height = n_zbins * 4.5
+    fig, ax = plt.subplots(
+        n_zbins,
+        n_bands - 1 + len(mag_columns),
+        figsize=(fig_width, fig_height),
+        squeeze=False,
+    )
+    ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
+    fig.subplots_adjust(
+        left=0.05, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0
+    )
+    fig.suptitle(title, fontsize=18)
+    for z in range(0, n_zbins):
         zmin = zmins[z]
         zmax = zmaxs[z]
+        dataset_colors_mag_z = np.array(dataset_colors_mag[z])
 
         """mc lightcone"""
         ran_key, lc_key = jran.split(ran_key, 2)
+        sky_area_degsq = zbin_area(lc_vol_mpc3, zlow=zmin, zhigh=zmax).value
         lc_args = (lc_key, lgmp_min, zmin, zmax, sky_area_degsq)
         lc_halopop = mclh.mc_lightcone_host_halo_diffmah(
             *lc_args, cosmo_params=cosmo_params, lgmp_max=lgmp_max
         )
-        lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
+        # lc_vol_mpc3 = zbin_volume(sky_area_degsq, zlow=zmin, zhigh=zmax).value
         if data_sky_area_degsq is not None:
             data_vol_mpc3 = zbin_volume(
                 data_sky_area_degsq, zlow=zmin, zhigh=zmax
@@ -613,8 +632,8 @@ def plot_n(
                     obs_colors_mag1,
                     N_weights1,
                     label1,
-                    dataset_colors_mag,
-                    np.ones_like(dataset_colors_mag[:, 0]),
+                    dataset_colors_mag_z,
+                    np.ones_like(dataset_colors_mag_z[:, 0]),
                     mag_columns,
                     color_bin_edges,
                     mag_bin_edges,
@@ -630,8 +649,8 @@ def plot_n(
                     obs_colors_mag1,
                     N_weights1,
                     label1,
-                    dataset_colors_mag,
-                    np.ones_like(dataset_colors_mag[:, 0]),
+                    dataset_colors_mag_z,
+                    np.ones_like(dataset_colors_mag_z[:, 0]),
                     mag_columns,
                     color_bin_edges,
                     mag_bin_edges,
@@ -640,26 +659,13 @@ def plot_n(
                     saveAs,
                 )
 
-        # Plot 1D histograms
-        fig, ax = plt.subplots(
-            1,
-            n_bands - 1 + len(mag_columns),
-            figsize=(2.5 * n_bands - 1 + len(mag_columns), 4.5),
-            squeeze=False,
-        )
-        ax = ax[0]  # flatten from shape (1, n_bands) → (n_bands,)
-        fig.subplots_adjust(
-            left=0.05, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0
-        )
-        fig.suptitle(title, fontsize=18)
-
         for i in range(0, n_bands - 1 + len(mag_columns)):
             if i < n_bands - 1:
                 bins = color_bin_edges
             else:
                 bins = mag_bin_edges
 
-            ax[i].hist(
+            ax[z, i].hist(
                 obs_colors_mag1[:, i],
                 weights=N_weights1 * (1 / lc_vol_mpc3),
                 bins=bins,
@@ -670,7 +676,7 @@ def plot_n(
                 label=label1,
             )
             if diffstarpop_params2 is not None:
-                ax[i].hist(
+                ax[z, i].hist(
                     obs_colors_mag2[:, i],
                     weights=N_weights2 * (1 / lc_vol_mpc3),
                     bins=bins,
@@ -682,10 +688,10 @@ def plot_n(
                 )
 
             # data
-            if dataset_colors_mag is not None:
-                ax[i].hist(
-                    dataset_colors_mag[:, i],
-                    weights=np.ones_like(dataset_colors_mag[:, i])
+            if dataset_colors_mag_z is not None:
+                ax[z, i].hist(
+                    dataset_colors_mag_z[:, i],
+                    weights=np.ones_like(dataset_colors_mag_z[:, i])
                     * (1 / data_vol_mpc3),
                     bins=bins,
                     color=color_data,
@@ -694,16 +700,16 @@ def plot_n(
                     label="FENIKS-UDS",
                 )
 
-            ax[i].set_yscale("log")
-            ax[i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax[i].set_ylim(1e-6, 3e-2)
-            ax[i].tick_params(axis="both", direction="in", labelsize=labelsize)
+            ax[z, i].set_yscale("log")
+            ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+            ax[z, i].set_ylim(1e-6, 3e-2)
+            ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
             if i != 0:
-                ax[i].set_yticklabels([])
+                ax[z, i].set_yticklabels([])
 
-        ax[0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
+        ax[0, 0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
         plt.rcParams["legend.fontsize"] = legend_fontsize
-        ax[-1].legend(
+        ax[z, -1].legend(
             framealpha=0.5, loc="upper left", bbox_to_anchor=(-2, 1.2), ncols=3
         )
 
