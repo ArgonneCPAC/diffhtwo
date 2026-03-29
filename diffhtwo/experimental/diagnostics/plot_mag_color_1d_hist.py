@@ -432,7 +432,8 @@ def plot_n(
     ssp_data,
     mzr_params,
     scatter_params,
-    title,
+    suptitle,
+    zbin_titles,
     saveAs,
     dataset_colors_mag=None,
     data_sky_area_degsq=None,
@@ -467,7 +468,7 @@ def plot_n(
     fig.subplots_adjust(
         left=0.05, hspace=0, top=0.8, right=0.99, bottom=0.2, wspace=0.0
     )
-    fig.suptitle(title, fontsize=18)
+    fig.suptitle(suptitle, fontsize=18)
     for z in range(0, n_zbins):
         zmin = zmins[z]
         zmax = zmaxs[z]
@@ -638,7 +639,7 @@ def plot_n(
                     color_bin_edges,
                     mag_bin_edges,
                     dimension_labels,
-                    title,
+                    zbin_titles[z],
                     saveAs,
                     obs_colors_mag2=obs_colors_mag2,
                     weights2=N_weights2,
@@ -655,7 +656,7 @@ def plot_n(
                     color_bin_edges,
                     mag_bin_edges,
                     dimension_labels,
-                    title,
+                    zbin_titles[z],
                     saveAs,
                 )
 
