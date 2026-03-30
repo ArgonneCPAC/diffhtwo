@@ -335,7 +335,9 @@ def plot_n_mag(
                 ax_offset[z, i].set_yticklabels([])
 
         ax[z, 0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
-        ax_offset[z, 0].set_ylabel("n$_{FENIKS}$/n$_{diffsky}$", fontsize=fontsize)
+        ax_offset[z, 0].set_ylabel(
+            "n$_{diffsky}$ - n$_{FENIKS}$ / n$_{FENIKS}", fontsize=fontsize
+        )
 
     ax[0, -1].legend(
         framealpha=0.5,
