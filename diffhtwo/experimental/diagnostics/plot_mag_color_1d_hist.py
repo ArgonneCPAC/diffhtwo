@@ -93,6 +93,8 @@ def plot_n_mag(
         left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig.suptitle(suptitle, fontsize=28)
+    dataset_mags_z1 = np.array(dataset_mags[0])
+
     for z in range(0, n_zbins):
         zmin = zmins[z]
         zmax = zmaxs[z]
@@ -243,7 +245,9 @@ def plot_n_mag(
 
         for i in range(0, n_bands):
             mag_bin_edges = np.arange(
-                dataset_mags_z[:, i].min() - dmag / 2, dataset_mags_z[:, i].max(), dmag
+                dataset_mags_z1[:, i].min() - dmag / 2,
+                dataset_mags_z1[:, i].max(),
+                dmag,
             )
 
             # model 1
@@ -372,6 +376,7 @@ def plot_n(
         left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig.suptitle(suptitle, fontsize=32)
+    dataset_colors_mag_z1 = np.array(dataset_colors_mag[0])
     for z in range(0, n_zbins):
         zmin = zmins[z]
         zmax = zmaxs[z]
@@ -439,14 +444,12 @@ def plot_n(
                 fb,
             )
 
-        color_bin_edges = np.arange(-0.5 - dmag / 2, 2.2, dmag)
-        mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
-
         for i in range(0, n_bands - 1 + len(mag_columns)):
-            if i < n_bands - 1:
-                bins = color_bin_edges
-            else:
-                bins = mag_bin_edges
+            bins = np.arange(
+                dataset_colors_mag_z1[:, i].min() - dmag / 2,
+                dataset_colors_mag_z1[:, i].max(),
+                dmag,
+            )
 
             ax[z, i].hist(
                 obs_colors_mag1[:, i],
