@@ -321,9 +321,9 @@ def plot_n_mag(
 
             """ax_offset"""
             mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
-            offset_dex = np.log10(data_hist[0] / lc_phot1_hist[0])
+            offset_dex = data_hist[0] / lc_phot1_hist[0]
             ax_offset[z, i].plot(mag_bin_centers, offset_dex, color=color1)
-            ax_offset[z, i].set_ylim(-1, 1)
+            ax_offset[z, i].set_ylim(0.1, 10)
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
@@ -335,9 +335,7 @@ def plot_n_mag(
                 ax_offset[z, i].set_yticklabels([])
 
         ax[z, 0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
-        ax_offset[z, 0].set_ylabel(
-            "log$_{10}$(n$_{FENIKS}$/n$_{diffsky}$)", fontsize=fontsize
-        )
+        ax_offset[z, 0].set_ylabel("n$_{FENIKS}$/n$_{diffsky}$", fontsize=fontsize)
 
     ax[0, -1].legend(
         framealpha=0.5,
