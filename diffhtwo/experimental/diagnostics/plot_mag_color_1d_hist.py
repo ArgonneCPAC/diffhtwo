@@ -114,7 +114,6 @@ def plot_n_mag(
 
         t = int(n_bands / 2)
         ax[z, t].set_title(zbin_titles[z], y=0.85, fontsize=labelsize)
-        ax_offset[z, 0].axhline(0, c="k")
 
         """mc lightcone"""
         ran_key, lc_key = jran.split(ran_key, 2)
@@ -257,6 +256,7 @@ def plot_n_mag(
             )
 
         for i in range(0, n_bands):
+            ax_offset[z, i].axhline(0, c="k")
             sigma = np.std(dataset_mags_z1[:, i])
             lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
             upper_limit = np.mean(dataset_mags_z1[:, i]) + (4 * sigma)
