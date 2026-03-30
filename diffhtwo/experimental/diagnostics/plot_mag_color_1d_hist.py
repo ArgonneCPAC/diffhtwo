@@ -114,6 +114,7 @@ def plot_n_mag(
 
         t = int(n_bands / 2)
         ax[z, t].set_title(zbin_titles[z], y=0.85, fontsize=labelsize)
+        ax_offset[z, 0].axhline(0, c="k")
 
         """mc lightcone"""
         ran_key, lc_key = jran.split(ran_key, 2)
@@ -320,16 +321,18 @@ def plot_n_mag(
 
             """ax_offset"""
             mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
-            offset_dex = np.log10(data_hist[0]) - np.log10(lc_phot1_hist[0])
-            ax_offset[z, i].plot(mag_bin_centers, offset_dex)
+            offset_dex = np.log10(data_hist[0] / lc_phot1_hist[0])
+            ax_offset[z, i].plot(mag_bin_centers, offset_dex, color=color1)
             ax_offset[z, i].set_ylim(-1, 1)
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 5e-3)
             ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
             if i != 0:
                 ax[z, i].set_yticklabels([])
+                ax_offset[z, i].set_yticklabels([])
 
         ax[z, 0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
         ax_offset[z, 0].set_ylabel(
@@ -344,7 +347,7 @@ def plot_n_mag(
         fontsize=legend_fontsize,
     )
     fig.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
-    fig_offset.savefig(savedir + "/mags_offsets" + savedir.split("/")[-1] + ".pdf")
+    fig_offset.savefig(savedir + "/mags_offsets_" + savedir.split("/")[-1] + ".pdf")
     plt.show()
 
 
