@@ -93,6 +93,18 @@ def plot_n_mag(
         left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig.suptitle(suptitle, fontsize=32)
+
+    fig_offset, ax_offset = plt.subplots(
+        n_zbins,
+        n_bands,
+        figsize=(fig_width, fig_height),
+    )
+
+    fig_offset.subplots_adjust(
+        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+    )
+    fig_offset.suptitle(suptitle, fontsize=32)
+
     dataset_mags_z1 = np.array(dataset_mags[0])
 
     for z in range(0, n_zbins):
@@ -263,7 +275,7 @@ def plot_n_mag(
                     lc_phot1.obs_mags_bursty_ms[:, i],
                 ]
             )
-            ax[z, i].hist(
+            lc_phot1_hist = ax[z, i].hist(
                 lc_phot1_obs_mags,
                 weights=N_weights1 * (1 / lc_vol_mpc3),
                 bins=mag_bin_edges,
@@ -284,7 +296,7 @@ def plot_n_mag(
                     ]
                 )
 
-                ax[z, i].hist(
+                lc_phot2_hist = ax[z, i].hist(
                     lc_phot2_obs_mags,
                     weights=N_weights2 * (1 / lc_vol_mpc3),
                     bins=mag_bin_edges,
@@ -296,7 +308,7 @@ def plot_n_mag(
                 )
 
             # data
-            ax[z, i].hist(
+            data_hist = ax[z, i].hist(
                 dataset_mags_z[:, i],
                 weights=np.ones_like(dataset_mags_z[:, i]) * (1 / data_vol_mpc3),
                 bins=mag_bin_edges,
@@ -306,6 +318,12 @@ def plot_n_mag(
                 label="FENIKS-UDS",
             )
 
+            """ax_offset"""
+            mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
+            offset_dex = np.log10(data_hist[0]) - np.log10(lc_phot1_hist[0])
+            ax_offset[z, i].plot(mag_bin_centers, offset_dex)
+            ax_offset[z, i].set_ylim(-1, 1)
+
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 5e-3)
@@ -314,6 +332,9 @@ def plot_n_mag(
                 ax[z, i].set_yticklabels([])
 
         ax[z, 0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
+        ax_offset[z, 0].set_ylabel(
+            "log$_{10}$(n$_{FENIKS}$/n$_{diffsky}$)", fontsize=fontsize
+        )
 
     ax[0, -1].legend(
         framealpha=0.5,
@@ -322,7 +343,8 @@ def plot_n_mag(
         ncols=3,
         fontsize=legend_fontsize,
     )
-    plt.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
+    fig.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
+    fig_offset.savefig(savedir + "/mags_offsets" + savedir.split("/")[-1] + ".pdf")
     plt.show()
 
 
@@ -348,7 +370,6 @@ def plot_n(
     savedir,
     dataset_colors_mag=None,
     data_sky_area_degsq=None,
-    plot_corner=True,
     diffstarpop_params2=None,
     spspop_params2=None,
     ssperrpop_params2=None,
