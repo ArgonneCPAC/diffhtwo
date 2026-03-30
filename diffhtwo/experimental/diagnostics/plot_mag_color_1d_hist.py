@@ -245,8 +245,10 @@ def plot_n_mag(
 
         for i in range(0, n_bands):
             sigma = np.std(dataset_mags_z1[:, i])
-            lower_limit = np.mean(dataset_mags_z1[:, i]) - (3 * sigma)
-            upper_limit = np.mean(dataset_mags_z1[:, i]) + (3 * sigma)
+            lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
+            upper_limit = np.mean(dataset_mags_z1[:, i]) + (4 * sigma)
+            if i == n_bands - 1:
+                upper_limit = mag_thresh
             mag_bin_edges = np.arange(
                 lower_limit,
                 upper_limit,
@@ -449,8 +451,10 @@ def plot_n(
 
         for i in range(0, n_dims):
             sigma = np.std(dataset_colors_mag_z1[:, i])
-            lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (3 * sigma)
-            upper_limit = np.mean(dataset_colors_mag_z1[:, i]) + (3 * sigma)
+            lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (4 * sigma)
+            upper_limit = np.mean(dataset_colors_mag_z1[:, i]) + (4 * sigma)
+            if i == n_dims - 1:
+                upper_limit = mag_thresh
             bins = np.arange(
                 lower_limit,
                 upper_limit,
