@@ -313,7 +313,7 @@ def plot_n_mag(
         ncols=3,
         fontsize=legend_fontsize,
     )
-    plt.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".png")
+    plt.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
     plt.show()
 
 
@@ -499,7 +499,7 @@ def plot_n(
             fontsize=legend_fontsize,
         )
 
-    plt.savefig(savedir + "/phot_fit_" + savedir.split("/")[-1] + ".png")
+    plt.savefig(savedir + "/phot_fit_" + savedir.split("/")[-1] + ".pdf")
     plt.show()
 
 
@@ -692,7 +692,7 @@ def plot_n_corner(
         + str(zmax)
         + "_corner_fit_"
         + savedir.split("/")[-1]
-        + ".png"
+        + ".pdf"
     )
     plt.show()
 
