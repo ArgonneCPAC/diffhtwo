@@ -81,8 +81,8 @@ def plot_n_mag(
     n_bands = len(tcurves)
     n_zbins = len(zmins)
 
-    fig_width = 3 * n_bands
-    fig_height = n_zbins * 3
+    fig_width = 3.0 * n_bands
+    fig_height = 3.0 * n_zbins
     fig, ax = plt.subplots(
         n_zbins,
         n_bands,
@@ -241,8 +241,11 @@ def plot_n_mag(
                 ]
             )
 
-        mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
         for i in range(0, n_bands):
+            mag_bin_edges = np.arange(
+                dataset_mags_z[:, i].min() - dmag / 2, dataset_mags_z[:, i].max(), dmag
+            )
+
             # model 1
             lc_phot1_obs_mags = np.concatenate(
                 [
@@ -357,8 +360,8 @@ def plot_n(
     n_dims = n_bands - 1 + len(mag_columns)
     n_zbins = len(zmins)
 
-    fig_width = 3 * n_dims
-    fig_height = n_zbins * 3.25
+    fig_width = 3.00 * n_dims
+    fig_height = 3.25 * n_zbins
     fig, ax = plt.subplots(
         n_zbins,
         n_dims,
