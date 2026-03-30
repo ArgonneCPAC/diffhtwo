@@ -92,7 +92,7 @@ def plot_n_mag(
     fig.subplots_adjust(
         left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
-    fig.suptitle(suptitle, fontsize=28)
+    fig.suptitle(suptitle, fontsize=32)
     dataset_mags_z1 = np.array(dataset_mags[0])
 
     for z in range(0, n_zbins):
@@ -244,9 +244,12 @@ def plot_n_mag(
             )
 
         for i in range(0, n_bands):
+            sigma = np.std(dataset_mags_z1[:, i])
+            lower_limit = np.mean(dataset_mags_z1[:, i]) - (3 * sigma)
+            upper_limit = np.mean(dataset_mags_z1[:, i]) + (3 * sigma)
             mag_bin_edges = np.arange(
-                dataset_mags_z1[:, i].min() - dmag / 2,
-                dataset_mags_z1[:, i].max(),
+                lower_limit,
+                upper_limit,
                 dmag,
             )
 
@@ -444,10 +447,13 @@ def plot_n(
                 fb,
             )
 
-        for i in range(0, n_bands - 1 + len(mag_columns)):
+        for i in range(0, n_dims):
+            sigma = np.std(dataset_colors_mag_z1[:, i])
+            lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (3 * sigma)
+            upper_limit = np.mean(dataset_colors_mag_z1[:, i]) + (3 * sigma)
             bins = np.arange(
-                dataset_colors_mag_z1[:, i].min() - dmag / 2,
-                dataset_colors_mag_z1[:, i].max(),
+                lower_limit,
+                upper_limit,
                 dmag,
             )
 
