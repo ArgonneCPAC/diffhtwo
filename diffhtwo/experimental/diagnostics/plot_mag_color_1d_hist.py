@@ -90,7 +90,7 @@ def plot_n_mag(
     )
 
     fig.subplots_adjust(
-        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+        left=0.1, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig.suptitle(suptitle, fontsize=32)
 
@@ -101,7 +101,7 @@ def plot_n_mag(
     )
 
     fig_offset.subplots_adjust(
-        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+        left=0.1, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig_offset.suptitle(suptitle, fontsize=32)
 
@@ -256,7 +256,10 @@ def plot_n_mag(
             )
 
         for i in range(0, n_bands):
+            ax_offset[z, i].axhline(+0.25, ls="--", lw=0.5, c="k")
             ax_offset[z, i].axhline(0, c="k")
+            ax_offset[z, i].axhline(-0.25, ls="--", lw=0.5, c="k")
+
             sigma = np.std(dataset_mags_z1[:, i])
             lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
             upper_limit = np.mean(dataset_mags_z1[:, i]) + (4 * sigma)
@@ -321,8 +324,8 @@ def plot_n_mag(
 
             """ax_offset"""
             mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
-            frac_offset = (lc_phot1_hist[0] - data_hist[0]) / data_hist[0]
-            ax_offset[z, i].plot(mag_bin_centers, frac_offset, color=color1)
+            offset_dex = np.log10(data_hist[0]) - np.log10(lc_phot1_hist[0])
+            ax_offset[z, i].plot(mag_bin_centers, offset_dex, color=color1)
             ax_offset[z, i].set_ylim(-1, 1)
 
             ax[z, i].set_yscale("log")
@@ -334,11 +337,6 @@ def plot_n_mag(
                 ax[z, i].set_yticklabels([])
                 ax_offset[z, i].set_yticklabels([])
 
-        ax[z, 0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
-        ax_offset[z, 0].set_ylabel(
-            "n$_{diffsky}$ - n$_{FENIKS}$ / n$_{FENIKS}", fontsize=fontsize
-        )
-
     ax[0, -1].legend(
         framealpha=0.5,
         loc="upper left",
@@ -346,6 +344,8 @@ def plot_n_mag(
         ncols=3,
         fontsize=legend_fontsize,
     )
+    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
+    fig_offset.supylabel("log$_{10}$(n$_{FENIKS}$ / n$_{diffsky}$)", fontsize=fontsize)
     fig.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
     fig_offset.savefig(savedir + "/mags_offsets_" + savedir.split("/")[-1] + ".pdf")
     plt.show()
