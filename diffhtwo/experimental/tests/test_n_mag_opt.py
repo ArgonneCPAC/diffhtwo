@@ -39,48 +39,45 @@ DATA_PATH = os.path.join(TEST_DIR, "..", "data_loaders")
 # tcurves = []
 # tcurves.append(retrieve_tcurves.HSC_I)
 
+
 # ran_key = jran.key(0)
 # dmag = 0.2
 # mag_columns = [0]
 # mag_thresh_column = 0
 # mag_thresh = 24.5
-
-zbins = np.array(
-    [
-        [0.2, 0.5],
-        [1.5, 1.75],
-        [2.75, 3.5],
-    ]
-)
-
-ran_key = jran.key(0)
-ran_key, n_key = jran.split(ran_key, 2)
-z_idx = 0
-n_z_phot_table = 15
-
-lc_z_min = zbins[z_idx][0]
-lc_z_max = zbins[z_idx][1]
-lc_vol_mpc3 = zbin_volume(0.1, zlow=lc_z_min, zhigh=lc_z_max).value
-
-
-tcurves = [
-    retrieve_tcurves.MegaCam_uS,
-    retrieve_tcurves.HSC_G,
-    retrieve_tcurves.HSC_R,
-    retrieve_tcurves.HSC_I,
-    retrieve_tcurves.HSC_Z,
-]
-
-
-mag_columns = [3]
-mag_thresh_column = 3
-mag_thresh = 24.5
-dmag = 0.2
-lg_n_thresh = -8
-frac_cat = 1.0
-
-
 def test_get_phot_loss():
+    zbins = np.array(
+        [
+            [0.2, 0.5],
+            [1.5, 1.75],
+            [2.75, 3.5],
+        ]
+    )
+
+    mag_columns = [3]
+    mag_thresh_column = 3
+    mag_thresh = 24.5
+    dmag = 0.2
+    lg_n_thresh = -8
+    frac_cat = 1.0
+
+    ran_key = jran.key(0)
+    ran_key, n_key = jran.split(ran_key, 2)
+    z_idx = 0
+    n_z_phot_table = 15
+
+    lc_z_min = zbins[z_idx][0]
+    lc_z_max = zbins[z_idx][1]
+    lc_vol_mpc3 = zbin_volume(0.1, zlow=lc_z_min, zhigh=lc_z_max).value
+
+    tcurves = [
+        retrieve_tcurves.MegaCam_uS,
+        retrieve_tcurves.HSC_G,
+        retrieve_tcurves.HSC_R,
+        retrieve_tcurves.HSC_I,
+        retrieve_tcurves.HSC_Z,
+    ]
+
     lh_centroids = jnp.asarray(
         np.load(
             os.path.join(
@@ -99,7 +96,7 @@ def test_get_phot_loss():
     lgt0 = jnp.log10(t_0)
     t_table = jnp.linspace(T_TABLE_MIN, 10**lgt0, 100)
 
-    z_phot_table = jnp.linspace(lc_z_min, lc_z_max, 15)
+    z_phot_table = jnp.linspace(lc_z_min, lc_z_max, n_z_phot_table)
     precomputed_ssp_mag_table = psspp.get_precompute_ssp_mag_redshift_table(
         tcurves, ssp_data, z_phot_table, DEFAULT_COSMOLOGY
     )
