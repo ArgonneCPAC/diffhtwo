@@ -1,3 +1,5 @@
+import warnings
+
 import corner
 import jax.numpy as jnp
 import numpy as np
@@ -90,7 +92,7 @@ def plot_n_mag(
     )
 
     fig.subplots_adjust(
-        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+        left=0.065, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig.suptitle(suptitle, fontsize=32)
 
@@ -256,9 +258,11 @@ def plot_n_mag(
             )
 
         for i in range(0, n_bands):
-            ax_offset[z, i].axhline(+0.25, ls="--", lw=0.5, c="k")
-            ax_offset[z, i].axhline(0, c="k")
-            ax_offset[z, i].axhline(-0.25, ls="--", lw=0.5, c="k")
+            ax_offset[z, i].axhline(0.2, ls="--", lw=0.5, c="k")
+            ax_offset[z, i].axhline(0.5, ls="--", lw=0.5, c="k")
+            ax_offset[z, i].axhline(1, c="k")
+            ax_offset[z, i].axhline(2, ls="--", lw=0.5, c="k")
+            ax_offset[z, i].axhline(5, ls="--", lw=0.5, c="k")
 
             sigma = np.std(dataset_mags_z1[:, i])
             lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
@@ -324,16 +328,21 @@ def plot_n_mag(
 
             """ax_offset"""
             mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
-            offset_dex = np.log10(data_hist[0]) - np.log10(lc_phot1_hist[0])
-            ax_offset[z, i].plot(mag_bin_centers, offset_dex, color=color1)
-            ax_offset[z, i].set_ylim(-1, 1)
-            ax_offset[z, i].set_yticks([-0.75, -0.25, 0, 0.25, 0.75])
+            # with warnings.catch_warnings():
+            #    warnings.simplefilter("ignore")
+            offset = data_hist[0] / lc_phot1_hist[0]
+            ax_offset[z, i].plot(mag_bin_centers, offset, color=color1)
+            ax_offset[z, i].set_ylim(0.09, 10.1)
+            ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 5e-3)
             ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+            ax_offset[z, i].tick_params(
+                axis="both", direction="in", labelsize=labelsize
+            )
             if i != 0:
                 ax[z, i].set_yticklabels([])
                 ax_offset[z, i].set_yticklabels([])
