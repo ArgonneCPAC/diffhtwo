@@ -27,6 +27,7 @@ from ..data_loaders import retrieve_fake_fsps_halpha
 from ..utils import zbin_volume
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
+ssp_halpha_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
 
@@ -131,6 +132,82 @@ def test_get_phot_loss():
 
     phot_loss = n_mag_opt.get_phot_loss(*phot_loss_args)
     assert np.isfinite(phot_loss)
+
+    halpha_wave_aa = 6565.0
+    halpha_lc_z_min = 0.39
+    halpha_lc_z_max = 0.41
+    halpha_lc_vol_mpc3 = zbin_volume(
+        0.1, zlow=halpha_lc_z_min, zhigh=halpha_lc_z_max
+    ).value
+    lg_halpha_LF_data = np.array(
+        [
+            [
+                -1.70275854,
+                -1.74275854,
+                -1.85275854,
+                -1.97275854,
+                -2.00275854,
+                -2.07275854,
+                -2.16275854,
+                -2.31275854,
+                -2.33275854,
+                -2.46275854,
+                -2.50275854,
+                -2.61275854,
+                -2.73275854,
+                -2.77275854,
+                -2.92275854,
+                -3.07275854,
+                -3.60275854,
+                -3.75275854,
+            ],
+            [
+                0.04,
+                0.04,
+                0.04,
+                0.05,
+                0.07,
+                0.07,
+                0.09,
+                0.08,
+                0.09,
+                0.1,
+                0.11,
+                0.13,
+                0.19,
+                0.17,
+                0.2,
+                0.35,
+                0.51,
+                0.71,
+            ],
+        ]
+    )
+
+    lg_halpha_Lbin_edges_data = np.arange(40, 42.5, 0.1)
+
+    emline_loss_args = (
+        ran_key,
+        halpha_wave_aa,
+        lg_halpha_LF_data,
+        lg_halpha_Lbin_edges_data,
+        lg_n_thresh,
+        halpha_lc_z_min,
+        halpha_lc_z_max,
+        halpha_lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        ssp_halpha_luminosity,
+        DEFAULT_DIFFSTARPOP_PARAMS,
+        DEFAULT_SPSPOP_PARAMS,
+        DEFAULT_MZR_PARAMS,
+        DEFAULT_SCATTER_PARAMS,
+        DEFAULT_COSMOLOGY,
+        FB,
+    )
+    emline_loss = n_mag_opt.get_emline_loss(*emline_loss_args)
+
+    assert np.isfinite(emline_loss)
 
 
 # """Halo lightcone"""
