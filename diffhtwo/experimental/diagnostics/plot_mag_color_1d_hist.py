@@ -90,7 +90,7 @@ def plot_n_mag(
     )
 
     fig.subplots_adjust(
-        left=0.1, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig.suptitle(suptitle, fontsize=32)
 
@@ -101,7 +101,7 @@ def plot_n_mag(
     )
 
     fig_offset.subplots_adjust(
-        left=0.1, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig_offset.suptitle(suptitle, fontsize=32)
 
@@ -327,6 +327,7 @@ def plot_n_mag(
             offset_dex = np.log10(data_hist[0]) - np.log10(lc_phot1_hist[0])
             ax_offset[z, i].plot(mag_bin_centers, offset_dex, color=color1)
             ax_offset[z, i].set_ylim(-1, 1)
+            ax_offset.set_yticks([-0.75, -0.25, 0, 0.25, 0.75])
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
@@ -336,6 +337,9 @@ def plot_n_mag(
             if i != 0:
                 ax[z, i].set_yticklabels([])
                 ax_offset[z, i].set_yticklabels([])
+            if z != n_zbins - 1:
+                ax[z, i].set_xticklabels([])
+                ax_offset[z, i].set_xticklabels([])
 
     ax[0, -1].legend(
         framealpha=0.5,
