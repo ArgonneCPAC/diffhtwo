@@ -304,13 +304,16 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
     lg_halpha_Lbin_edges_data_multi_z = jnp.stack(
         [lg_halpha_Lbin_edges_data, lg_halpha_Lbin_edges_data], axis=0
     )
-    print(lg_halpha_Lbin_edges_data_multi_z.shape)
     halpha_lc_z_min_multi_z = jnp.array([0.39, 0.83])
     halpha_lc_z_max_multi_z = jnp.array([0.41, 0.85])
     halpha_lc_vol_mpc3_multi_z = jnp.array(
         [
-            zbin_volume(0.1, zlow=halpha_lc_z_min[0], zhigh=halpha_lc_z_max[0]).value,
-            zbin_volume(0.1, zlow=halpha_lc_z_min[1], zhigh=halpha_lc_z_max[1]).value,
+            zbin_volume(
+                0.1, zlow=halpha_lc_z_min_multi_z[0], zhigh=halpha_lc_z_max_multi_z[0]
+            ).value,
+            zbin_volume(
+                0.1, zlow=halpha_lc_z_min_multi_z[1], zhigh=halpha_lc_z_max_multi_z[1]
+            ).value,
         ]
     )
 
