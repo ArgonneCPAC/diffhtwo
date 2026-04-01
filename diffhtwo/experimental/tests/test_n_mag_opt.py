@@ -242,7 +242,6 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
     )
 
     lg_halpha_Lbin_edges_data = jnp.linspace(40, 42.5, lg_halpha_LF_data.shape[1] + 1)
-    print(lg_halpha_Lbin_edges_data.shape)
     emline_loss_args = (
         ran_key,
         halpha_wave_aa,
@@ -305,6 +304,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
     lg_halpha_Lbin_edges_data_multi_z = jnp.stack(
         [lg_halpha_Lbin_edges_data, lg_halpha_Lbin_edges_data], axis=0
     )
+    print(lg_halpha_Lbin_edges_data_multi_z.shape)
     halpha_lc_z_min_multi_z = jnp.array([0.39, 0.83])
     halpha_lc_z_max_multi_z = jnp.array([0.41, 0.85])
     halpha_lc_vol_mpc3_multi_z = jnp.array(
