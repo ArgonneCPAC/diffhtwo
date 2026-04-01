@@ -2,14 +2,21 @@ import os
 
 import jax.numpy as jnp
 import numpy as np
+import pytest
 from diffsky.experimental import lc_phot_kern
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental import precompute_ssp_phot as psspp
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
-from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
-from diffsky.ssp_err_model.ssp_err_model import ZERO_SSPERR_PARAMS
+from diffsky.param_utils.spspop_param_utils import (
+    DEFAULT_SPSPOP_PARAMS,
+    DEFAULT_SPSPOP_U_PARAMS,
+)
+from diffsky.ssp_err_model.ssp_err_model import ZERO_SSPERR_PARAMS, ZERO_SSPERR_U_PARAMS
 from diffstar.defaults import FB, T_TABLE_MIN
-from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+from diffstar.diffstarpop.defaults import (
+    DEFAULT_DIFFSTARPOP_PARAMS,
+    DEFAULT_DIFFSTARPOP_U_PARAMS,
+)
 from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
     DiffstarPop_Params_Diffstarpopfits_mgash,
 )
@@ -26,9 +33,6 @@ from diffhtwo.experimental.data_loaders import retrieve_tcurves
 from ..data_loaders import retrieve_fake_fsps_halpha
 from ..utils import zbin_volume
 
-ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
-ssp_halpha_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
-
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
@@ -37,16 +41,18 @@ u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
 TEST_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_PATH = os.path.join(TEST_DIR, "..", "data_loaders")
 
-# tcurves = []
-# tcurves.append(retrieve_tcurves.HSC_I)
+
+@pytest.fixture(scope="module")
+def ssp_data():
+    return retrieve_fake_fsps_data.load_fake_ssp_data()
 
 
-# ran_key = jran.key(0)
-# dmag = 0.2
-# mag_columns = [0]
-# mag_thresh_column = 0
-# mag_thresh = 24.5
-def test_get_phot_loss():
+@pytest.fixture(scope="module")
+def ssp_halpha_luminosity():
+    return retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
+
+
+def test_loss(ssp_data, ssp_halpha_luminosity):
     zbins = np.array(
         [
             [0.2, 0.5],
@@ -88,8 +94,10 @@ def test_get_phot_loss():
         )
     )
     dmag_centroids = jnp.ones((lh_centroids.shape[0], 1)) * dmag
-    lg_n_data = np.random.uniform(-17, -4, lh_centroids.shape[0])
-    lg_n_err = np.random.uniform(0.2, 12, lh_centroids.shape[0])
+
+    rng = np.random.default_rng(0)
+    lg_n_data = rng.uniform(-17, -4, lh_centroids.shape[0])
+    lg_n_err = rng.uniform(0.2, 12, lh_centroids.shape[0])
     lg_n_data_err_lh = np.vstack((lg_n_data, lg_n_err))
 
     # t_table
@@ -103,6 +111,7 @@ def test_get_phot_loss():
     )
     wave_eff_table = lc_phot_kern.get_wave_eff_table(z_phot_table, tcurves)
 
+    # test phot loss functions
     phot_loss_args = (
         DEFAULT_DIFFSTARPOP_PARAMS,
         DEFAULT_SPSPOP_PARAMS,
@@ -133,6 +142,51 @@ def test_get_phot_loss():
     phot_loss = n_mag_opt.get_phot_loss(*phot_loss_args)
     assert np.isfinite(phot_loss)
 
+    u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
+        DEFAULT_DIFFSTARPOP_U_PARAMS
+    )
+    u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
+
+    u_zero_ssperrpop_theta, u_zero_ssperrpop_unravel = ravel_pytree(
+        ZERO_SSPERR_U_PARAMS
+    )
+
+    u_theta_default = (
+        u_diffstarpop_theta_default,
+        u_spspop_theta_default,
+        u_zero_ssperrpop_theta,
+    )
+    loss_args = (
+        u_theta_default,
+        lg_n_data_err_lh,
+        lg_n_thresh,
+        ran_key,
+        DEFAULT_MZR_PARAMS,
+        DEFAULT_SCATTER_PARAMS,
+        lh_centroids,
+        dmag_centroids,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        lc_z_min,
+        lc_z_max,
+        lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table,
+        z_phot_table,
+        wave_eff_table,
+        DEFAULT_COSMOLOGY,
+        FB,
+        frac_cat,
+    )
+
+    phot_loss_kern = n_mag_opt._loss_phot_kern(
+        *loss_args,
+    )
+    assert np.isfinite(phot_loss_kern)
+
+    # test emline loss functions
     halpha_wave_aa = 6565.0
     halpha_lc_z_min = 0.39
     halpha_lc_z_max = 0.41
@@ -208,6 +262,107 @@ def test_get_phot_loss():
     emline_loss = n_mag_opt.get_emline_loss(*emline_loss_args)
 
     assert np.isfinite(emline_loss)
+
+    emline_loss_kern = n_mag_opt._loss_emline_kern(
+        u_theta_default,
+        ran_key,
+        halpha_wave_aa,
+        lg_halpha_LF_data[z_idx],
+        lg_halpha_Lbin_edges_data[z_idx],
+        lg_n_thresh,
+        halpha_lc_z_min,
+        halpha_lc_z_max,
+        halpha_lc_vol_mpc3,
+        t_table,
+        ssp_data,
+        ssp_halpha_luminosity,
+        DEFAULT_MZR_PARAMS,
+        DEFAULT_SCATTER_PARAMS,
+        DEFAULT_COSMOLOGY,
+        FB,
+    )
+    assert np.isfinite(emline_loss_kern)
+
+    # test multi-z loss
+    ran_key, n_key = jran.split(ran_key, 2)
+    lg_n_data_err_lh_multi_z = jnp.stack([lg_n_data_err_lh, lg_n_data_err_lh], axis=0)
+    lh_centroids_multi_z = jnp.stack([lh_centroids, lh_centroids], axis=0)
+    dmag_centroids_multi_z = jnp.stack([dmag_centroids, dmag_centroids], axis=0)
+    lc_z_min_multi_z = jnp.array([lc_z_min, lc_z_min])
+    lc_z_max_multi_z = jnp.array([lc_z_max, lc_z_max])
+    lc_vol_mpc3_multi_z = jnp.array([lc_vol_mpc3, lc_vol_mpc3])
+    precomputed_ssp_mag_table_multi_z = jnp.stack(
+        [precomputed_ssp_mag_table, precomputed_ssp_mag_table], axis=0
+    )
+    z_phot_table_multi_z = jnp.stack([z_phot_table, z_phot_table], axis=0)
+    wave_eff_table_multi_z = jnp.stack([wave_eff_table, wave_eff_table], axis=0)
+    lg_halpha_LF_data_multi_z = jnp.stack(
+        [lg_halpha_LF_data, lg_halpha_LF_data], axis=0
+    )
+    lg_halpha_Lbin_edges_data_multi_z = jnp.stack(
+        [lg_halpha_Lbin_edges_data, lg_halpha_Lbin_edges_data], axis=0
+    )
+    halpha_lc_z_min_multi_z = jnp.array([0.39, 0.83])
+    halpha_lc_z_max_multi_z = jnp.array([0.41, 0.85])
+    halpha_lc_vol_mpc3_multi_z = jnp.array(
+        [
+            zbin_volume(0.1, zlow=halpha_lc_z_min[0], zhigh=halpha_lc_z_max[0]).value,
+            zbin_volume(0.1, zlow=halpha_lc_z_min[1], zhigh=halpha_lc_z_max[1]).value,
+        ]
+    )
+
+    args = (
+        lg_n_data_err_lh_multi_z,
+        lg_n_thresh,
+        n_key,
+        DEFAULT_MZR_PARAMS,
+        DEFAULT_SCATTER_PARAMS,
+        lh_centroids_multi_z,
+        dmag_centroids_multi_z,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        lc_z_min_multi_z,
+        lc_z_max_multi_z,
+        lc_vol_mpc3_multi_z,
+        t_table,
+        ssp_data,
+        precomputed_ssp_mag_table_multi_z,
+        z_phot_table_multi_z,
+        wave_eff_table_multi_z,
+        DEFAULT_COSMOLOGY,
+        FB,
+        frac_cat,
+        halpha_wave_aa,
+        lg_halpha_LF_data_multi_z,
+        lg_halpha_Lbin_edges_data_multi_z,
+        halpha_lc_z_min_multi_z,
+        halpha_lc_z_max_multi_z,
+        halpha_lc_vol_mpc3_multi_z,
+        ssp_halpha_luminosity,
+    )
+
+    loss_phot_and_emline_multi_z = n_mag_opt._loss_phot_and_emline_multi_z(
+        u_theta_default, *args
+    )
+    assert np.isfinite(loss_phot_and_emline_multi_z)
+
+    trainable = (
+        jnp.ones_like(u_theta_default[0], dtype=bool),  # diffstarpop params
+        jnp.ones_like(u_theta_default[1], dtype=bool),  # spspop params
+        jnp.ones_like(u_theta_default[2], dtype=bool),  # ssperrpop params
+    )
+
+    loss_hist, u_theta_fit = n_mag_opt.fit_phot_and_emline_multi_z(
+        u_theta_default,
+        trainable,
+        *args,
+        n_steps=2,
+        step_size=1e-2,
+    )
+    assert np.all(np.isfinite(loss_hist))
+    for i in range(0, len(u_theta_fit)):
+        assert np.all(np.isfinite(u_theta_fit[i]))
 
 
 # """Halo lightcone"""
