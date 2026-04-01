@@ -241,7 +241,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         ]
     )
 
-    lg_halpha_Lbin_edges_data = jnp.arange(40, 42.5, 0.1)
+    lg_halpha_Lbin_edges_data = jnp.linspace(40, 42.5, lg_halpha_LF_data.shape[1] + 1)
 
     emline_loss_args = (
         ran_key,
