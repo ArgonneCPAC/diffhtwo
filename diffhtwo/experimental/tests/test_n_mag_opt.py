@@ -196,7 +196,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
     halpha_lc_vol_mpc3 = zbin_volume(
         0.1, zlow=halpha_lc_z_min, zhigh=halpha_lc_z_max
     ).value
-    lg_halpha_LF_data = np.array(
+    lg_halpha_LF_data = jnp.array(
         [
             [
                 -1.70275854,
@@ -241,7 +241,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         ]
     )
 
-    lg_halpha_Lbin_edges_data = np.arange(40, 42.5, 0.1)
+    lg_halpha_Lbin_edges_data = jnp.arange(40, 42.5, 0.1)
 
     emline_loss_args = (
         ran_key,
