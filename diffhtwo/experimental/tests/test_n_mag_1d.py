@@ -50,7 +50,7 @@ def test_n_mag_1d():
     for zbin in range(0, len(zbins)):
         ran_key, lc_key = jran.split(ran_key, 2)
         lgmp_min = 10.0
-        sky_area_degsq = 10.0
+        sky_area_degsq = 0.1
         lc_vol = zbin_volume(
             sky_area_degsq, zlow=zbins[zbin][0], zhigh=zbins[zbin][1]
         ).value
