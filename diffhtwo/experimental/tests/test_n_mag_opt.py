@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
@@ -40,8 +41,8 @@ DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_PARAMS
 )
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(TEST_DIR, "..", "data_loaders")
+BASE_PATH = Path(__file__).resolve().parent.parent
+LH_CENTROIDS_PATH = BASE_PATH / "experimental/data_loaders/data"
 
 
 @pytest.fixture(scope="module")
@@ -90,7 +91,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
     lh_centroids = jnp.asarray(
         np.load(
             os.path.join(
-                DATA_PATH,
+                LH_CENTROIDS_PATH,
                 "lh_centroids_z_" + str(lc_z_min) + "-" + str(lc_z_max) + "_test.npy",
             )
         )
