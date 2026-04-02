@@ -62,4 +62,3 @@ def test_bimodal_sfh_opt():
         step_size=1e-8,
     )
     assert np.float64(losses[-1]) < np.float64(losses[0])
-    # assert np.allclose(theta_true, theta_fit, atol=1e-1)

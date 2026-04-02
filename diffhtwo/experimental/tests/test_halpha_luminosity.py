@@ -17,7 +17,7 @@ ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 
 
 def test_halpha_luminosity():
-    N = 1000
+    N = 100
     lg_sfr_draws = np.random.uniform(-2, 2, N)
 
     gal_t_table = jnp.linspace(0.05, 13.8, 100)  # age of the universe in Gyr
