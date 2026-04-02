@@ -42,7 +42,7 @@ u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_PARAMS
 )
 BASE_PATH = Path(__file__).resolve().parent.parent
-LH_CENTROIDS_PATH = BASE_PATH / "experimental/data_loaders/data"
+LH_CENTROIDS_PATH = BASE_PATH / "data_loaders/data"
 
 
 @pytest.fixture(scope="module")
