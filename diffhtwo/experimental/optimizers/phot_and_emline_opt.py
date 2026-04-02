@@ -34,9 +34,9 @@ from jax.flatten_util import ravel_pytree
 
 from diffhtwo.experimental.utils import safe_log10
 
-from . import diffstarpop_halpha as dpop_halpha
-from . import emline_luminosity
-from .n_mag import N_0, N_FLOOR, n_mag_kern, n_mag_kern_1d, n_mag_kern_nocolor
+from .. import diffstarpop_halpha as dpop_halpha
+from .. import emline_luminosity
+from ..n_mag import N_0, N_FLOOR, n_mag_kern, n_mag_kern_1d, n_mag_kern_nocolor
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
