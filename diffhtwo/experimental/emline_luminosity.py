@@ -42,12 +42,15 @@ def compute_emline_luminosity(
     t_table,
     ssp_data,
     emline_wave_aa,
-    ssp_emline_luminosity,
     cosmo_params,
     fb,
     lgmet_scatter=LGMET_SCATTER,
     n_t_table=mcdw.N_T_TABLE,
 ):
+    ssp_emline_wave = jnp.array(ssp_data.ssp_emline_wave)
+    idx = jnp.argmin(jnp.abs(ssp_emline_wave - emline_wave_aa))
+    ssp_emline_luminosity = ssp_data.ssp_emline_luminosity[:, :, idx]
+
     phot_randoms, sfh_params = mcpk.get_mc_phot_randoms(
         ran_key, diffstarpop_params, mah_params, cosmo_params
     )

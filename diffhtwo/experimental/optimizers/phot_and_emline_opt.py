@@ -550,7 +550,6 @@ def get_emline_loss(
     lc_vol_mpc3,
     t_table,
     ssp_data,
-    ssp_emline_luminosity,
     diffstarpop_params,
     spspop_params,
     mzr_params,
@@ -577,7 +576,6 @@ def get_emline_loss(
         t_table,
         ssp_data,
         emline_wave_aa,
-        ssp_emline_luminosity,
         cosmo_params,
         fb,
     )
@@ -624,13 +622,6 @@ def _loss_phot_kern(
     cosmo_params,
     fb,
     frac_cat,
-    # ssp_emline_luminosity=None,
-    # emline_wave_aa=None,
-    # lg_emline_LF_target=None,
-    # lg_emline_Lbin_edges=None,
-    # emline_lc_z_min=None,
-    # emline_lc_z_max=None,
-    # emline_lc_vol_mpc3=None,
 ):
     # get bounded params
     u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
@@ -719,7 +710,6 @@ def _loss_emline_kern(
     emline_lc_vol_mpc3,
     t_table,
     ssp_data,
-    ssp_emline_luminosity,
     mzr_params,
     scatter_params,
     cosmo_params,
@@ -748,7 +738,6 @@ def _loss_emline_kern(
         emline_lc_vol_mpc3,
         t_table,
         ssp_data,
-        ssp_emline_luminosity,
         diffstarpop_params,
         spspop_params,
         mzr_params,
@@ -790,7 +779,6 @@ def _loss_phot_and_emline_multi_z(
     emline_lc_z_min,
     emline_lc_z_max,
     emline_lc_vol_mpc3,
-    ssp_emline_luminosity,
 ):
     phot_multi_z_loss_args = (
         u_theta,
@@ -832,7 +820,6 @@ def _loss_phot_and_emline_multi_z(
             emline_lc_vol_mpc3[z],
             t_table,
             ssp_data,
-            ssp_emline_luminosity,
             mzr_params,
             scatter_params,
             cosmo_params,
@@ -880,7 +867,6 @@ def fit_phot_and_emline_multi_z(
     emline_lc_z_min,
     emline_lc_z_max,
     emline_lc_vol_mpc3,
-    ssp_emline_luminosity,
     n_steps=2,
     step_size=0.1,
 ):
@@ -915,7 +901,6 @@ def fit_phot_and_emline_multi_z(
         emline_lc_z_min,
         emline_lc_z_max,
         emline_lc_vol_mpc3,
-        ssp_emline_luminosity,
     )
 
     def _opt_update(opt_state, i):
