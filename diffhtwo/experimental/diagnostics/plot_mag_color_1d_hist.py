@@ -1,5 +1,3 @@
-import warnings
-
 import corner
 import jax.numpy as jnp
 import numpy as np
@@ -304,7 +302,7 @@ def plot_n_mag(
                     ]
                 )
 
-                lc_phot2_hist = ax[z, i].hist(
+                ax[z, i].hist(
                     lc_phot2_obs_mags,
                     weights=N_weights2 * (1 / lc_vol_mpc3),
                     bins=mag_bin_edges,

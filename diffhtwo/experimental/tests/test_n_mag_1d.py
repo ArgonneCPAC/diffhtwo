@@ -85,7 +85,6 @@ def test_n_mag_1d():
     mag_thresh = 24.5
     dmag = 0.5
     frac_cat = 1.0
-    fit_columns = jnp.arange(0, len(tcurves), 1)
 
     n_z_phot_table = 15
 
