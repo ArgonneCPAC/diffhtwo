@@ -30,8 +30,8 @@ from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from diffhtwo.experimental import n_mag_opt
 from diffhtwo.experimental.data_loaders import retrieve_tcurves
+from diffhtwo.experimental.optimizers import phot_and_emline_opt
 
 from ..data_loaders import retrieve_fake_fsps_halpha
 from ..utils import zbin_volume
@@ -142,7 +142,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         frac_cat,
     )
 
-    phot_loss = n_mag_opt.get_phot_loss(*phot_loss_args)
+    phot_loss = phot_and_emline_opt.get_phot_loss(*phot_loss_args)
     assert np.isfinite(phot_loss)
 
     u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
@@ -184,7 +184,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         frac_cat,
     )
 
-    phot_loss_kern = n_mag_opt._loss_phot_kern(
+    phot_loss_kern = phot_and_emline_opt._loss_phot_kern(
         *loss_args,
     )
     assert np.isfinite(phot_loss_kern)
@@ -261,11 +261,11 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         DEFAULT_COSMOLOGY,
         FB,
     )
-    emline_loss = n_mag_opt.get_emline_loss(*emline_loss_args)
+    emline_loss = phot_and_emline_opt.get_emline_loss(*emline_loss_args)
 
     assert np.isfinite(emline_loss)
 
-    emline_loss_kern = n_mag_opt._loss_emline_kern(
+    emline_loss_kern = phot_and_emline_opt._loss_emline_kern(
         u_theta_default,
         ran_key,
         halpha_wave_aa,
@@ -348,7 +348,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         ssp_halpha_luminosity,
     )
 
-    loss_phot_and_emline_multi_z = n_mag_opt._loss_phot_and_emline_multi_z(
+    loss_phot_and_emline_multi_z = phot_and_emline_opt._loss_phot_and_emline_multi_z(
         u_theta_default, *args
     )
     assert np.isfinite(loss_phot_and_emline_multi_z)
@@ -359,7 +359,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         jnp.ones_like(u_theta_default[2], dtype=bool),  # ssperrpop params
     )
 
-    loss_hist, u_theta_fit = n_mag_opt.fit_phot_and_emline_multi_z(
+    loss_hist, u_theta_fit = phot_and_emline_opt.fit_phot_and_emline_multi_z(
         u_theta_default,
         trainable,
         *args,
