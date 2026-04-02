@@ -40,7 +40,7 @@ def test_diffstarpop_halpha_opt():
     ran_key, lc_key = jran.split(ran_key, 2)
     lgmp_min = 12.0
     z_min, z_max = 0.1, 0.5
-    sky_area_degsq = 1.0
+    sky_area_degsq = 0.1
 
     args = (lc_key, lgmp_min, z_min, z_max, sky_area_degsq)
 
@@ -126,11 +126,3 @@ def test_diffstarpop_halpha_opt():
     loss_hist, u_theta_fit_sub = fit_diffstarpop(*fit_args, n_steps=2, step_size=0.02)
 
     assert loss_hist[-1] < loss_hist[0]
-
-    # u_theta_fit_full = u_theta_default.at[IDX].set(u_theta_fit_sub)
-    # u_diffstarpop_params_fit = u_unravel_fn(u_theta_fit_full)
-    # diffstarpop_params_best = get_bounded_diffstarpop_params(u_diffstarpop_params_fit)
-    # theta_fit, _ = ravel_pytree(diffstarpop_params_best)
-
-    # # compare true and fitted in bounded space
-    # assert np.allclose(theta_default, theta_fit, atol=1)
