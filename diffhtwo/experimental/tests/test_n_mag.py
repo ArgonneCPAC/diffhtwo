@@ -215,7 +215,7 @@ def test_n_mag():
         lh_centroids = jnp.asarray(
             np.load(
                 os.path.join(
-                    DATA_PATH,
+                    LH_CENTROIDS_PATH,
                     "lh_centroids_z_"
                     + str(zbins[zbin][0])
                     + "-"
