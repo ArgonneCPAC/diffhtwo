@@ -33,7 +33,6 @@ from jax.flatten_util import ravel_pytree
 from diffhtwo.experimental.data_loaders import retrieve_tcurves
 from diffhtwo.experimental.optimizers import phot_and_emline_opt
 
-from ..data_loaders import retrieve_fake_fsps_halpha
 from ..utils import zbin_volume
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
@@ -50,12 +49,7 @@ def ssp_data():
     return retrieve_fake_fsps_data.load_fake_ssp_data()
 
 
-@pytest.fixture(scope="module")
-def ssp_halpha_luminosity():
-    return retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
-
-
-def test_loss(ssp_data, ssp_halpha_luminosity):
+def test_phot_and_emline_opt(ssp_data):
     zbins = np.array(
         [
             [0.2, 0.5],
@@ -190,7 +184,7 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
     assert np.isfinite(phot_loss_kern)
 
     # test emline loss functions
-    halpha_wave_aa = 6565.0
+    halpha_wave_aa = 6564.723
     halpha_lc_z_min = 0.39
     halpha_lc_z_max = 0.41
     halpha_lc_vol_mpc3 = zbin_volume(
@@ -253,7 +247,6 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         halpha_lc_vol_mpc3,
         t_table,
         ssp_data,
-        ssp_halpha_luminosity,
         DEFAULT_DIFFSTARPOP_PARAMS,
         DEFAULT_SPSPOP_PARAMS,
         DEFAULT_MZR_PARAMS,
@@ -277,7 +270,6 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         halpha_lc_vol_mpc3,
         t_table,
         ssp_data,
-        ssp_halpha_luminosity,
         DEFAULT_MZR_PARAMS,
         DEFAULT_SCATTER_PARAMS,
         DEFAULT_COSMOLOGY,
@@ -345,7 +337,6 @@ def test_loss(ssp_data, ssp_halpha_luminosity):
         halpha_lc_z_min_multi_z,
         halpha_lc_z_max_multi_z,
         halpha_lc_vol_mpc3_multi_z,
-        ssp_halpha_luminosity,
     )
 
     loss_phot_and_emline_multi_z = phot_and_emline_opt._loss_phot_and_emline_multi_z(
