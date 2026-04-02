@@ -184,13 +184,13 @@ def test_phot_and_emline_opt(ssp_data):
     assert np.isfinite(phot_loss_kern)
 
     # test emline loss functions
-    halpha_wave_aa = 6564.723
-    halpha_lc_z_min = 0.39
-    halpha_lc_z_max = 0.41
-    halpha_lc_vol_mpc3 = zbin_volume(
-        0.1, zlow=halpha_lc_z_min, zhigh=halpha_lc_z_max
+    emline_wave_aa = 6564.723
+    emline_lc_z_min = 0.39
+    emline_lc_z_max = 0.41
+    emline_lc_vol_mpc3 = zbin_volume(
+        0.1, zlow=emline_lc_z_min, zhigh=emline_lc_z_max
     ).value
-    lg_halpha_LF_data = jnp.array(
+    lg_emline_LF_data = jnp.array(
         [
             [
                 -1.70275854,
@@ -235,16 +235,16 @@ def test_phot_and_emline_opt(ssp_data):
         ]
     )
 
-    lg_halpha_Lbin_edges_data = jnp.linspace(40, 42.5, lg_halpha_LF_data.shape[1] + 1)
+    lg_emline_Lbin_edges_data = jnp.linspace(40, 42.5, lg_emline_LF_data.shape[1] + 1)
     emline_loss_args = (
         ran_key,
-        halpha_wave_aa,
-        lg_halpha_LF_data,
-        lg_halpha_Lbin_edges_data,
+        emline_wave_aa,
+        lg_emline_LF_data,
+        lg_emline_Lbin_edges_data,
         lg_n_thresh,
-        halpha_lc_z_min,
-        halpha_lc_z_max,
-        halpha_lc_vol_mpc3,
+        emline_lc_z_min,
+        emline_lc_z_max,
+        emline_lc_vol_mpc3,
         t_table,
         ssp_data,
         DEFAULT_DIFFSTARPOP_PARAMS,
@@ -261,13 +261,13 @@ def test_phot_and_emline_opt(ssp_data):
     emline_loss_kern = phot_and_emline_opt._loss_emline_kern(
         u_theta_default,
         ran_key,
-        halpha_wave_aa,
-        lg_halpha_LF_data,
-        lg_halpha_Lbin_edges_data,
+        emline_wave_aa,
+        lg_emline_LF_data,
+        lg_emline_Lbin_edges_data,
         lg_n_thresh,
-        halpha_lc_z_min,
-        halpha_lc_z_max,
-        halpha_lc_vol_mpc3,
+        emline_lc_z_min,
+        emline_lc_z_max,
+        emline_lc_vol_mpc3,
         t_table,
         ssp_data,
         DEFAULT_MZR_PARAMS,
@@ -290,21 +290,21 @@ def test_phot_and_emline_opt(ssp_data):
     )
     z_phot_table_multi_z = jnp.stack([z_phot_table, z_phot_table], axis=0)
     wave_eff_table_multi_z = jnp.stack([wave_eff_table, wave_eff_table], axis=0)
-    lg_halpha_LF_data_multi_z = jnp.stack(
-        [lg_halpha_LF_data, lg_halpha_LF_data], axis=0
+    lg_emline_LF_data_multi_z = jnp.stack(
+        [lg_emline_LF_data, lg_emline_LF_data], axis=0
     )
-    lg_halpha_Lbin_edges_data_multi_z = jnp.stack(
-        [lg_halpha_Lbin_edges_data, lg_halpha_Lbin_edges_data], axis=0
+    lg_emline_Lbin_edges_data_multi_z = jnp.stack(
+        [lg_emline_Lbin_edges_data, lg_emline_Lbin_edges_data], axis=0
     )
-    halpha_lc_z_min_multi_z = jnp.array([0.39, 0.83])
-    halpha_lc_z_max_multi_z = jnp.array([0.41, 0.85])
-    halpha_lc_vol_mpc3_multi_z = jnp.array(
+    emline_lc_z_min_multi_z = jnp.array([0.39, 0.83])
+    emline_lc_z_max_multi_z = jnp.array([0.41, 0.85])
+    emline_lc_vol_mpc3_multi_z = jnp.array(
         [
             zbin_volume(
-                0.1, zlow=halpha_lc_z_min_multi_z[0], zhigh=halpha_lc_z_max_multi_z[0]
+                0.1, zlow=emline_lc_z_min_multi_z[0], zhigh=emline_lc_z_max_multi_z[0]
             ).value,
             zbin_volume(
-                0.1, zlow=halpha_lc_z_min_multi_z[1], zhigh=halpha_lc_z_max_multi_z[1]
+                0.1, zlow=emline_lc_z_min_multi_z[1], zhigh=emline_lc_z_max_multi_z[1]
             ).value,
         ]
     )
@@ -331,12 +331,12 @@ def test_phot_and_emline_opt(ssp_data):
         DEFAULT_COSMOLOGY,
         FB,
         frac_cat,
-        halpha_wave_aa,
-        lg_halpha_LF_data_multi_z,
-        lg_halpha_Lbin_edges_data_multi_z,
-        halpha_lc_z_min_multi_z,
-        halpha_lc_z_max_multi_z,
-        halpha_lc_vol_mpc3_multi_z,
+        emline_wave_aa,
+        lg_emline_LF_data_multi_z,
+        lg_emline_Lbin_edges_data_multi_z,
+        emline_lc_z_min_multi_z,
+        emline_lc_z_max_multi_z,
+        emline_lc_vol_mpc3_multi_z,
     )
 
     loss_phot_and_emline_multi_z = phot_and_emline_opt._loss_phot_and_emline_multi_z(
