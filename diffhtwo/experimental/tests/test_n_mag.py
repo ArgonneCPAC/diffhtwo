@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
@@ -28,9 +29,8 @@ from diffhtwo.experimental import n_mag
 from diffhtwo.experimental.data_loaders import retrieve_tcurves
 from diffhtwo.experimental.utils import zbin_volume
 
-TEST_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_PATH = os.path.join(TEST_DIR, "..", "data_loaders")
-
+BASE_PATH = Path(__file__).resolve().parent.parent
+LH_CENTROIDS_PATH = BASE_PATH / "experimental/data_loaders/data"
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
@@ -129,7 +129,7 @@ def test_n_mag():
         lh_centroids = jnp.asarray(
             np.load(
                 os.path.join(
-                    DATA_PATH,
+                    LH_CENTROIDS_PATH,
                     "lh_centroids_z_"
                     + str(zbins[zbin][0])
                     + "-"
@@ -195,6 +195,8 @@ def test_n_mag():
     lg_n_multi_z, lg_n_avg_err_multi_z = n_mag.n_mag_kern_multi_z(
         DIFFSTARPOP_UM_plus_exsitu, *n_args_multi_z
     )
+    assert np.isfinite(lg_n_multi_z).all()
+    assert np.isfinite(lg_n_avg_err_multi_z).all()
 
     for zbin in range(0, len(zbins)):
         zmin = zbins[zbin][0]
@@ -251,4 +253,7 @@ def test_n_mag():
             FB,
         )
         lg_n_single_z, lg_n_avg_err_single_z = n_mag.n_mag_kern(*n_args_single_z)
+
+        assert np.isfinite(lg_n_single_z).all()
+        assert np.isfinite(lg_n_avg_err_single_z).all()
         assert np.allclose(lg_n_multi_z[zbin], lg_n_single_z)
