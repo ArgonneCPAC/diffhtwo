@@ -101,7 +101,7 @@ def plot_n_mag(
     )
 
     fig_offset.subplots_adjust(
-        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+        left=0.065, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig_offset.suptitle(suptitle, fontsize=32)
 
@@ -331,15 +331,16 @@ def plot_n_mag(
             ax_offset[z, i].set_ylim(0.09, 10.1)
             ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
             ax_offset[z, i].set_yscale("log")
-
-            ax[z, i].set_yscale("log")
-            ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax[z, i].set_ylim(1e-6, 5e-3)
-            ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
             ax_offset[z, i].tick_params(
                 axis="both", direction="in", labelsize=labelsize
             )
+
+            ax[z, i].set_yscale("log")
+            ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+            ax[z, i].set_ylim(1e-6, 5e-3)
+            ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+
             if i != 0:
                 ax[z, i].set_yticklabels([])
                 ax_offset[z, i].set_yticklabels([])
@@ -357,7 +358,7 @@ def plot_n_mag(
     fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
     fig.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
 
-    fig_offset.supylabel("log$_{10}$(n$_{FENIKS}$ / n$_{diffsky}$)", fontsize=fontsize)
+    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize)
     fig_offset.savefig(savedir + "/mags_offsets_" + savedir.split("/")[-1] + ".pdf")
 
     plt.show()
@@ -414,7 +415,7 @@ def plot_n(
     )
 
     fig.subplots_adjust(
-        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+        left=0.065, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig.suptitle(suptitle, fontsize=32)
 
@@ -425,7 +426,7 @@ def plot_n(
     )
 
     fig_offset.subplots_adjust(
-        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+        left=0.065, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig_offset.suptitle(suptitle, fontsize=32)
 
@@ -556,6 +557,10 @@ def plot_n(
             ax_offset[z, i].set_ylim(0.09, 10.1)
             ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
             ax_offset[z, i].set_yscale("log")
+            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+            ax_offset[z, i].tick_params(
+                axis="both", direction="in", labelsize=labelsize
+            )
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
@@ -580,7 +585,7 @@ def plot_n(
     fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
     fig.savefig(savedir + "/phot_fit_" + savedir.split("/")[-1] + ".pdf")
 
-    fig_offset.supylabel("log$_{10}$(n$_{FENIKS}$ / n$_{diffsky}$)", fontsize=fontsize)
+    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize)
     fig_offset.savefig(savedir + "/phot_offsets_" + savedir.split("/")[-1] + ".pdf")
 
     plt.show()
