@@ -10,16 +10,12 @@ from dsps.data_loaders import retrieve_fake_fsps_data
 from dsps.metallicity import umzr
 from jax import random as jran
 
-from .. import diffstarpop_halpha
-from ..data_loaders import retrieve_fake_fsps_halpha
-
-# from diffsky.ssp_err_model import ssp_err_model
+from ..emline_luminosity_pop import emline_luminosity_pop
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
-ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 
 
-def test_diffstarpop_halpha_kern():
+def test_emline_luminosity_pop():
     ran_key = jran.key(0)
     lgmp_min = 12.0
     z_min, z_max = 0.1, 0.5
@@ -46,7 +42,8 @@ def test_diffstarpop_halpha_kern():
 
     spspop_params = spspu.DEFAULT_SPSPOP_PARAMS
     scatter_params = DEFAULT_SCATTER_PARAMS
-    # ssp_err_pop_params = ssp_err_model.DEFAULT_SSPERR_PARAMS
+
+    emline_wave_aa = 6000
 
     ran_key, diffstarpop_key = jran.split(ran_key, 2)
     args = (
@@ -58,7 +55,7 @@ def test_diffstarpop_halpha_kern():
         logmp0,
         t_table,
         ssp_data,
-        ssp_halpha_line_luminosity,
+        emline_wave_aa,
         z_phot_table,
         mzr_params,
         spspop_params,
@@ -66,7 +63,7 @@ def test_diffstarpop_halpha_kern():
         DEFAULT_COSMOLOGY,
         FB,
     )
-    halpha_L = diffstarpop_halpha.diffstarpop_halpha_kern(*args)
+    halpha_L = emline_luminosity_pop(*args)
 
     for arr in halpha_L:
         assert np.all(np.isfinite(arr))

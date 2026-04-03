@@ -184,7 +184,7 @@ def test_phot_and_emline_opt(ssp_data):
     assert np.isfinite(phot_loss_kern)
 
     # test emline loss functions
-    emline_wave_aa = 6564.723
+    emline_wave_aa = 6000
     emline_lc_z_min = 0.39
     emline_lc_z_max = 0.41
     emline_lc_vol_mpc3 = zbin_volume(

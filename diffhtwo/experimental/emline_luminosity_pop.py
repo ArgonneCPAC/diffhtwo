@@ -18,15 +18,13 @@ from jax import jit as jjit
 from jax import random as jran
 from jax import vmap
 
-from . import halpha_luminosity
+from . import emline_luminosity
+from .utils import get_ssp_emline_luminosity
 
 LGMET_SCATTER = 0.2
 
 # copied from astropy.constants.L_sun.cgs.value
 L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
-
-# halpha rest wavelength center in fsps
-HALPHA_CENTER_AA = 6564.5131
 
 
 _M = (0, None, None)
@@ -57,9 +55,9 @@ calc_dust_ftrans_vmap = jjit(
 
 
 _LCLINE_RET_KEYS = (
-    "halpha_L_cgs_q",
-    "halpha_L_cgs_smooth_ms",
-    "halpha_L_cgs_bursty_ms",
+    "emline_L_cgs_q",
+    "emline_L_cgs_smooth_ms",
+    "emline_L_cgs_bursty_ms",
     "weights_q",
     "weights_smooth_ms",
     "weights_bursty_ms",
@@ -69,7 +67,7 @@ LCLINE_EMPTY = LCLine._make([None] * len(LCLine._fields))
 
 
 @jjit
-def diffstarpop_halpha_kern(
+def emline_luminosity_pop(
     diffstarpop_params,
     ran_key,
     z_obs,
@@ -78,7 +76,7 @@ def diffstarpop_halpha_kern(
     logmp0,
     t_table,
     ssp_data,
-    ssp_halpha_luminosity,
+    emline_wave_aa,
     z_phot_table,
     mzr_params,
     spspop_params,
@@ -86,7 +84,8 @@ def diffstarpop_halpha_kern(
     cosmo_params,
     fb,
 ):
-    n_met, n_age = ssp_halpha_luminosity.shape
+    ssp_emline_luminosity = get_ssp_emline_luminosity(emline_wave_aa, ssp_data)
+    n_met, n_age = ssp_emline_luminosity.shape
     n_gals = logmp0.size
 
     ran_key, sfh_key = jran.split(ran_key, 2)
@@ -159,7 +158,7 @@ def diffstarpop_halpha_kern(
 
     ftrans_args_q = (
         spspop_params.dustpop_params,
-        HALPHA_CENTER_AA,
+        emline_wave_aa,
         diffstar_galpop.logsm_obs_q,
         diffstar_galpop.logssfr_obs_q,
         z_obs,
@@ -174,7 +173,7 @@ def diffstarpop_halpha_kern(
 
     ftrans_args_ms = (
         spspop_params.dustpop_params,
-        HALPHA_CENTER_AA,
+        emline_wave_aa,
         diffstar_galpop.logsm_obs_ms,
         diffstar_galpop.logssfr_obs_ms,
         z_obs,
@@ -193,16 +192,16 @@ def diffstarpop_halpha_kern(
     _mstar_q = 10**diffstar_galpop.logsm_obs_q
     _mstar_ms = 10**diffstar_galpop.logsm_obs_ms
 
-    integrand_q = ssp_halpha_luminosity * ssp_weights_q * _ftrans_q
-    halpha_L_cgs_q = jnp.sum(integrand_q, axis=(1, 2)) * (L_SUN_CGS * _mstar_q)
+    integrand_q = ssp_emline_luminosity * ssp_weights_q * _ftrans_q
+    emline_L_cgs_q = jnp.sum(integrand_q, axis=(1, 2)) * (L_SUN_CGS * _mstar_q)
 
-    integrand_smooth_ms = ssp_halpha_luminosity * ssp_weights_smooth_ms * _ftrans_ms
-    halpha_L_cgs_smooth_ms = jnp.sum(integrand_smooth_ms, axis=(1, 2)) * (
+    integrand_smooth_ms = ssp_emline_luminosity * ssp_weights_smooth_ms * _ftrans_ms
+    emline_L_cgs_smooth_ms = jnp.sum(integrand_smooth_ms, axis=(1, 2)) * (
         L_SUN_CGS * _mstar_ms
     )
 
-    integrand_bursty_ms = ssp_halpha_luminosity * ssp_weights_bursty_ms * _ftrans_ms
-    halpha_L_cgs_bursty_ms = jnp.sum(integrand_bursty_ms, axis=(1, 2)) * (
+    integrand_bursty_ms = ssp_emline_luminosity * ssp_weights_bursty_ms * _ftrans_ms
+    emline_L_cgs_bursty_ms = jnp.sum(integrand_bursty_ms, axis=(1, 2)) * (
         L_SUN_CGS * _mstar_ms
     )
 
@@ -210,67 +209,39 @@ def diffstarpop_halpha_kern(
     weights_smooth_ms = (1 - diffstar_galpop.frac_q) * (1 - p_burst_ms)
     weights_bursty_ms = (1 - diffstar_galpop.frac_q) * p_burst_ms
 
-    halpha_L = LCLINE_EMPTY._replace(
-        halpha_L_cgs_q=halpha_L_cgs_q,
-        halpha_L_cgs_smooth_ms=halpha_L_cgs_smooth_ms,
-        halpha_L_cgs_bursty_ms=halpha_L_cgs_bursty_ms,
+    emline_L = LCLINE_EMPTY._replace(
+        emline_L_cgs_q=emline_L_cgs_q,
+        emline_L_cgs_smooth_ms=emline_L_cgs_smooth_ms,
+        emline_L_cgs_bursty_ms=emline_L_cgs_bursty_ms,
         weights_q=weights_q,
         weights_smooth_ms=weights_smooth_ms,
         weights_bursty_ms=weights_bursty_ms,
     )
 
-    return halpha_L
+    return emline_L
 
 
 @jjit
-def diffstarpop_halpha_lf_weighted(halpha_L_tuple, sig=None, lgL_bin_edges=None):
-    # get q halpha L_cgs histogram
-    halpha_L_cgs_q = halpha_L_tuple.halpha_L_cgs_q
-    w_q = halpha_L_tuple.weights_q
-    lgL_bin_edges, tw_hist_q = halpha_luminosity.get_halpha_luminosity_func(
-        halpha_L_cgs_q, w_q, sig=sig, lgL_bin_edges=lgL_bin_edges
+def emline_luminosity_func_pop(emline_L_tuple, nhalos, sig=None, lgL_bin_edges=None):
+    # get q emline L_cgs histogram
+    emline_L_cgs_q = emline_L_tuple.emline_L_cgs_q
+    w_q = emline_L_tuple.weights_q * nhalos
+    lgL_bin_edges, tw_hist_q = emline_luminosity.get_emline_luminosity_func(
+        emline_L_cgs_q, w_q, sig=sig, lgL_bin_edges=lgL_bin_edges
     )
 
-    # get smooth_ms halpha L_cgs histogram
-    halpha_L_cgs_smooth_ms = halpha_L_tuple.halpha_L_cgs_smooth_ms
-    w_smooth_ms = halpha_L_tuple.weights_smooth_ms
-    _, tw_hist_smooth_ms = halpha_luminosity.get_halpha_luminosity_func(
-        halpha_L_cgs_smooth_ms, w_smooth_ms, sig=sig, lgL_bin_edges=lgL_bin_edges
+    # get smooth_ms emline L_cgs histogram
+    emline_L_cgs_smooth_ms = emline_L_tuple.emline_L_cgs_smooth_ms
+    w_smooth_ms = emline_L_tuple.weights_smooth_ms * nhalos
+    _, tw_hist_smooth_ms = emline_luminosity.get_emline_luminosity_func(
+        emline_L_cgs_smooth_ms, w_smooth_ms, sig=sig, lgL_bin_edges=lgL_bin_edges
     )
 
-    # get bursty_ms halpha L_cgs histogram
-    halpha_L_cgs_bursty_ms = halpha_L_tuple.halpha_L_cgs_bursty_ms
-    w_bursty_ms = halpha_L_tuple.weights_bursty_ms
-    _, tw_hist_bursty_ms = halpha_luminosity.get_halpha_luminosity_func(
-        halpha_L_cgs_bursty_ms, w_bursty_ms, sig=sig, lgL_bin_edges=lgL_bin_edges
-    )
-
-    return lgL_bin_edges, tw_hist_q, tw_hist_smooth_ms, tw_hist_bursty_ms
-
-
-@jjit
-def diffstarpop_halpha_lf_weighted_lc_weighted(
-    halpha_L_tuple, nhalos, sig=None, lgL_bin_edges=None
-):
-    # get q halpha L_cgs histogram
-    halpha_L_cgs_q = halpha_L_tuple.halpha_L_cgs_q
-    w_q = halpha_L_tuple.weights_q * nhalos
-    lgL_bin_edges, tw_hist_q = halpha_luminosity.get_halpha_luminosity_func(
-        halpha_L_cgs_q, w_q, sig=sig, lgL_bin_edges=lgL_bin_edges
-    )
-
-    # get smooth_ms halpha L_cgs histogram
-    halpha_L_cgs_smooth_ms = halpha_L_tuple.halpha_L_cgs_smooth_ms
-    w_smooth_ms = halpha_L_tuple.weights_smooth_ms * nhalos
-    _, tw_hist_smooth_ms = halpha_luminosity.get_halpha_luminosity_func(
-        halpha_L_cgs_smooth_ms, w_smooth_ms, sig=sig, lgL_bin_edges=lgL_bin_edges
-    )
-
-    # get bursty_ms halpha L_cgs histogram
-    halpha_L_cgs_bursty_ms = halpha_L_tuple.halpha_L_cgs_bursty_ms
-    w_bursty_ms = halpha_L_tuple.weights_bursty_ms * nhalos
-    _, tw_hist_bursty_ms = halpha_luminosity.get_halpha_luminosity_func(
-        halpha_L_cgs_bursty_ms, w_bursty_ms, sig=sig, lgL_bin_edges=lgL_bin_edges
+    # get bursty_ms emline L_cgs histogram
+    emline_L_cgs_bursty_ms = emline_L_tuple.emline_L_cgs_bursty_ms
+    w_bursty_ms = emline_L_tuple.weights_bursty_ms * nhalos
+    _, tw_hist_bursty_ms = emline_luminosity.get_emline_luminosity_func(
+        emline_L_cgs_bursty_ms, w_bursty_ms, sig=sig, lgL_bin_edges=lgL_bin_edges
     )
 
     return lgL_bin_edges, tw_hist_q, tw_hist_smooth_ms, tw_hist_bursty_ms
