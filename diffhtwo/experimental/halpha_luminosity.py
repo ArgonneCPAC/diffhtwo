@@ -1,5 +1,4 @@
 import jax.numpy as jnp
-from diffsky import diffndhist
 from dsps import calc_ssp_weights_sfh_table_lognormal_mdf
 from dsps.utils import cumulative_mstar_formed
 from jax import jit as jjit
