@@ -6,6 +6,7 @@ from jax import jit as jjit
 from jax import random
 
 from . import halpha_luminosity as halphaL
+from .emline_luminosity import get_emline_luminosity_func
 
 
 @partial(jjit, static_argnames=["N"])
@@ -72,13 +73,11 @@ def pop_bimodal(
         t_obs,
     )
 
-    lgL_bin_edges, tw_hist_weighted_SF = halphaL.get_halpha_luminosity_func(
+    lgL_bin_edges, tw_hist_weighted_SF = get_emline_luminosity_func(
         L_halpha_cgs_SF, SF_weights
     )
 
-    _, tw_hist_weighted_Q = halphaL.get_halpha_luminosity_func(
-        L_halpha_cgs_Q, 1 - SF_weights
-    )
+    _, tw_hist_weighted_Q = get_emline_luminosity_func(L_halpha_cgs_Q, 1 - SF_weights)
 
     return (
         lgL_bin_edges,

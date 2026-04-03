@@ -30,9 +30,8 @@ from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from diffhtwo.experimental.data_loaders import retrieve_tcurves
-from diffhtwo.experimental.optimizers import phot_and_emline_opt
-
+from ..data_loaders import retrieve_tcurves
+from ..optimizers import phot_and_emline_opt
 from ..utils import zbin_volume
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
