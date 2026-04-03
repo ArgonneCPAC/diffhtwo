@@ -274,6 +274,8 @@ def plot_n_mag(
                 upper_limit,
                 dmag,
             )
+            ax[z, i].set_xlim(lower_limit, upper_limit)
+            ax_offset[z, i].set_xlim(lower_limit, upper_limit)
 
             # model 1
             lc_phot1_obs_mags = np.concatenate(
@@ -519,6 +521,8 @@ def plot_n(
                 upper_limit,
                 dmag,
             )
+            ax[z, i].set_xlim(lower_limit, upper_limit)
+            ax_offset[z, i].set_xlim(lower_limit, upper_limit)
 
             obs_colors_mag1_hist = ax[z, i].hist(
                 obs_colors_mag1[:, i],
