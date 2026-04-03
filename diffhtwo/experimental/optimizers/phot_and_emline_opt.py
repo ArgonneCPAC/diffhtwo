@@ -807,8 +807,11 @@ def _loss_phot_and_emline_multi_z(
     phot_loss_multi_z = _loss_phot_kern_multi_z(*phot_multi_z_loss_args)
 
     emline_loss_multi_z = 0.0
-    for line in range(0, len(emline_wave_aa)):
-        for z in range(0, len(lg_emline_LF_target[line])):
+
+    n_line = len(emline_wave_aa)
+    for line in range(0, n_line):
+        n_z = len(lg_emline_LF_target[line])
+        for z in range(0, n_z):
             emline_loss_args_z = (
                 u_theta,
                 ran_key,
