@@ -30,9 +30,8 @@ from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from diffhtwo.experimental.data_loaders import retrieve_tcurves
-from diffhtwo.experimental.optimizers import phot_and_emline_opt
-
+from ..data_loaders import retrieve_tcurves
+from ..optimizers import phot_and_emline_opt
 from ..utils import zbin_volume
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
@@ -184,7 +183,7 @@ def test_phot_and_emline_opt(ssp_data):
     assert np.isfinite(phot_loss_kern)
 
     # test emline loss functions
-    emline_wave_aa = 6564.723
+    emline_wave_aa = 6000
     emline_lc_z_min = 0.39
     emline_lc_z_max = 0.41
     emline_lc_vol_mpc3 = zbin_volume(

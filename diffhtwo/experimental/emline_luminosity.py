@@ -14,6 +14,7 @@ from jax import jit as jjit
 from jax import vmap
 
 from . import diffndhist as diffndhist2
+from .utils import get_ssp_emline_luminosity
 
 LGMET_SCATTER = 0.2
 
@@ -47,9 +48,7 @@ def compute_emline_luminosity(
     lgmet_scatter=LGMET_SCATTER,
     n_t_table=mcdw.N_T_TABLE,
 ):
-    ssp_emline_wave = jnp.array(ssp_data.ssp_emline_wave)
-    idx = jnp.argmin(jnp.abs(ssp_emline_wave - emline_wave_aa))
-    ssp_emline_luminosity = ssp_data.ssp_emline_luminosity[:, :, idx]
+    ssp_emline_luminosity = get_ssp_emline_luminosity(emline_wave_aa, ssp_data)
 
     phot_randoms, sfh_params = mcpk.get_mc_phot_randoms(
         ran_key, diffstarpop_params, mah_params, cosmo_params
