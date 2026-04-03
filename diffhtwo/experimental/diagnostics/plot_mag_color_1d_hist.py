@@ -256,11 +256,13 @@ def plot_n_mag(
             )
 
         for i in range(0, n_bands):
-            ax_offset[z, i].axhline(0.2, ls="--", lw=1, c="r")
-            ax_offset[z, i].axhline(0.5, ls="--", lw=1, c="orange")
-            ax_offset[z, i].axhline(1, c="green")
-            ax_offset[z, i].axhline(2, ls="--", lw=1, c="orange")
-            ax_offset[z, i].axhline(5, ls="--", lw=1, c="r")
+            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
+            ax_offset[z, i].set_yticks(ax_offset_yticks)
+            ax_offset[z, i].axhline(ax_offset_yticks[0], ls="--", lw=1, c="r")
+            ax_offset[z, i].axhline(ax_offset_yticks[1], ls="--", lw=1, c="orange")
+            ax_offset[z, i].axhline(ax_offset_yticks[2], c="green")
+            ax_offset[z, i].axhline(ax_offset_yticks[3], ls="--", lw=1, c="orange")
+            ax_offset[z, i].axhline(ax_offset_yticks[4], ls="--", lw=1, c="r")
 
             sigma = np.std(dataset_mags_z1[:, i])
             lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
@@ -499,11 +501,13 @@ def plot_n(
             )
 
         for i in range(0, n_dims):
-            ax_offset[z, i].axhline(0.2, ls="--", lw=1, c="r")
-            ax_offset[z, i].axhline(0.5, ls="--", lw=1, c="orange")
-            ax_offset[z, i].axhline(1, c="green")
-            ax_offset[z, i].axhline(2, ls="--", lw=1, c="orange")
-            ax_offset[z, i].axhline(5, ls="--", lw=1, c="r")
+            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
+            ax_offset[z, i].set_yticks(ax_offset_yticks)
+            ax_offset[z, i].axhline(ax_offset_yticks[0], ls="--", lw=1, c="r")
+            ax_offset[z, i].axhline(ax_offset_yticks[1], ls="--", lw=1, c="orange")
+            ax_offset[z, i].axhline(ax_offset_yticks[2], c="green")
+            ax_offset[z, i].axhline(ax_offset_yticks[3], ls="--", lw=1, c="orange")
+            ax_offset[z, i].axhline(ax_offset_yticks[4], ls="--", lw=1, c="r")
 
             sigma = np.std(dataset_colors_mag_z1[:, i])
             lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (4 * sigma)
