@@ -16,18 +16,15 @@ from jax import lax, value_and_grad
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
-from .diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha
-from .diffstarpop_halpha import (
-    diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,
-)
+from ..emline_luminosity_pop import emline_luminosity_func_pop, emline_luminosity_pop
 
 u_theta_default, u_unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
 IDX = jnp.arange(16, 22, 1)
 
 
 @jjit
-def _mse(halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_pred):
-    diff = halpha_lf_weighted_composite_true - halpha_lf_weighted_composite_pred
+def _mse(emline_lf_weighted_composite_true, emline_lf_weighted_composite_pred):
+    diff = emline_lf_weighted_composite_true - emline_lf_weighted_composite_pred
     return jnp.mean(jnp.square(diff))
 
 
@@ -46,7 +43,7 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
     @jjit
     def _loss_kern_subspace(
         u_theta_sub,  # only the selected subset: shape (len(IDX),)
-        halpha_lf_weighted_composite_true,
+        emline_lf_weighted_composite_true,
         ran_key,
         z_obs,
         t_obs,
@@ -54,7 +51,7 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
         logmp0,
         t_table,
         ssp_data,
-        ssp_halpha_luminosity,
+        emline_wave_aa,
         z_phot_table,
         mzr_params,
         spspop_params,
@@ -71,7 +68,7 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
         # convert to bounded params
         diffstarpop_params = get_bounded_diffstarpop_params(u_diffstarpop_params)
 
-        halpha_lf_pred = dpop_halpha(
+        emline_lf_pred = emline_luminosity_pop(
             diffstarpop_params,
             ran_key,
             z_obs,
@@ -80,7 +77,7 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
             logmp0,
             t_table,
             ssp_data,
-            ssp_halpha_luminosity,
+            emline_wave_aa,
             z_phot_table,
             mzr_params,
             spspop_params,
@@ -89,21 +86,22 @@ def make_subspace_loss(u_unravel_fn, u_theta_default, IDX):
             fb,
         )
 
+        nhalos = jnp.ones_like(emline_lf_pred.emline_L_cgs_q)
         (
             lgL_bin_edges,
-            halpha_lf_weighted_q_pred,
-            halpha_lf_weighted_smooth_ms_pred,
-            halpha_lf_weighted_bursty_ms_pred,
-        ) = dpop_halpha_lf_weighted(halpha_lf_pred)
+            emline_lf_weighted_q_pred,
+            emline_lf_weighted_smooth_ms_pred,
+            emline_lf_weighted_bursty_ms_pred,
+        ) = emline_luminosity_func_pop(emline_lf_pred, nhalos)
 
-        halpha_lf_weighted_composite_pred = (
-            halpha_lf_weighted_q_pred
-            + halpha_lf_weighted_smooth_ms_pred
-            + halpha_lf_weighted_bursty_ms_pred
+        emline_lf_weighted_composite_pred = (
+            emline_lf_weighted_q_pred
+            + emline_lf_weighted_smooth_ms_pred
+            + emline_lf_weighted_bursty_ms_pred
         )
 
         return _mse(
-            halpha_lf_weighted_composite_true, halpha_lf_weighted_composite_pred
+            emline_lf_weighted_composite_true, emline_lf_weighted_composite_pred
         )
 
     return _loss_kern_subspace
@@ -114,9 +112,9 @@ loss_and_grad_fn = jjit(value_and_grad(loss_kern))
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
-def fit_diffstarpop(
+def fit_emline_luminosity(
     u_theta_init_sub,  # only the selected subset: shape (len(IDX),)
-    halpha_lf_weighted_composite_true,
+    emline_lf_weighted_composite_true,
     ran_key,
     z_obs,
     t_obs,
@@ -124,7 +122,7 @@ def fit_diffstarpop(
     logmp0,
     t_table,
     ssp_data,
-    ssp_halpha_luminosity,
+    emline_wave_aa,
     z_phot_table,
     mzr_params,
     spspop_params,
@@ -138,7 +136,7 @@ def fit_diffstarpop(
     opt_state = opt_init(u_theta_init_sub)
 
     other = (
-        halpha_lf_weighted_composite_true,
+        emline_lf_weighted_composite_true,
         ran_key,
         z_obs,
         t_obs,
@@ -146,7 +144,7 @@ def fit_diffstarpop(
         logmp0,
         t_table,
         ssp_data,
-        ssp_halpha_luminosity,
+        emline_wave_aa,
         z_phot_table,
         mzr_params,
         spspop_params,

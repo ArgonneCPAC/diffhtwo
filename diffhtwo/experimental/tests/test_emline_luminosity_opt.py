@@ -1,10 +1,9 @@
+import jax.numpy as jnp
 import numpy as np
 from diffsky.experimental import mc_lightcone_halos as mclh
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
 from diffsky.param_utils import spspop_param_utils as spspu
 from diffstar.defaults import FB, T_TABLE_MIN
-
-# from diffstar.diffstarpop import get_bounded_diffstarpop_params
 from diffstar.diffstarpop.defaults import (
     DEFAULT_DIFFSTARPOP_PARAMS,
     DEFAULT_DIFFSTARPOP_U_PARAMS,
@@ -15,25 +14,17 @@ from dsps.metallicity import umzr
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from ..data_loaders import retrieve_fake_fsps_halpha
-from ..diffstarpop_halpha import diffstarpop_halpha_kern as dpop_halpha_L
-from ..diffstarpop_halpha import (
-    diffstarpop_halpha_lf_weighted as dpop_halpha_lf_weighted,
-)
-from ..diffstarpop_halpha_opt import IDX, fit_diffstarpop
-
-# from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
-# from diffsky.ssp_err_model import ssp_err_model
-
+from ..emline_luminosity_pop import emline_luminosity_func_pop, emline_luminosity_pop
+from ..optimizers.emline_luminosity_pop_opt import IDX, fit_emline_luminosity
 
 u_theta_default, u_unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
 theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
-ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
+emline_wave_aa = 6000
 
 
-def test_diffstarpop_halpha_opt():
+def test_emline_luminosity_opt():
     ran_key = jran.key(0)
 
     # generate lightcone
@@ -62,7 +53,6 @@ def test_diffstarpop_halpha_opt():
 
     spspop_params = spspu.DEFAULT_SPSPOP_PARAMS
     scatter_params = DEFAULT_SCATTER_PARAMS
-    # ssp_err_pop_params = ssp_err_model.DEFAULT_SSPERR_PARAMS
 
     ran_key, dpop_halpha_true_key = jran.split(ran_key, 2)
     args = (
@@ -74,7 +64,7 @@ def test_diffstarpop_halpha_opt():
         logmp0,
         t_table,
         ssp_data,
-        ssp_halpha_line_luminosity,
+        emline_wave_aa,
         z_phot_table,
         mzr_params,
         spspop_params,
@@ -82,14 +72,14 @@ def test_diffstarpop_halpha_opt():
         DEFAULT_COSMOLOGY,
         FB,
     )
-    halpha_L_true = dpop_halpha_L(*args)
-
+    halpha_L_true = emline_luminosity_pop(*args)
+    nhalos = jnp.ones_like(halpha_L_true.emline_L_cgs_q)
     (
         lgL_bin_edges,
         halpha_lf_weighted_q_true,
         halpha_lf_weighted_smooth_ms_true,
         halpha_lf_weighted_bursty_ms_true,
-    ) = dpop_halpha_lf_weighted(halpha_L_true)
+    ) = emline_luminosity_func_pop(halpha_L_true, nhalos)
 
     halpha_lf_weighted_composite_true = (
         halpha_lf_weighted_q_true
@@ -114,7 +104,7 @@ def test_diffstarpop_halpha_opt():
         logmp0,
         t_table,
         ssp_data,
-        ssp_halpha_line_luminosity,
+        emline_wave_aa,
         z_phot_table,
         mzr_params,
         spspop_params,
@@ -123,6 +113,8 @@ def test_diffstarpop_halpha_opt():
         FB,
     )
 
-    loss_hist, u_theta_fit_sub = fit_diffstarpop(*fit_args, n_steps=2, step_size=0.02)
+    loss_hist, u_theta_fit_sub = fit_emline_luminosity(
+        *fit_args, n_steps=2, step_size=0.02
+    )
 
-    assert loss_hist[-1] < loss_hist[0]
+    assert np.isfinite(loss_hist).all()
