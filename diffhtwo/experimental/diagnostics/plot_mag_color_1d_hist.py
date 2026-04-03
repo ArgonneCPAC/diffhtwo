@@ -256,11 +256,11 @@ def plot_n_mag(
             )
 
         for i in range(0, n_bands):
-            ax_offset[z, i].axhline(0.2, ls="--", lw=0.5, c="k")
-            ax_offset[z, i].axhline(0.5, ls="--", lw=0.5, c="k")
-            ax_offset[z, i].axhline(1, c="k")
-            ax_offset[z, i].axhline(2, ls="--", lw=0.5, c="k")
-            ax_offset[z, i].axhline(5, ls="--", lw=0.5, c="k")
+            ax_offset[z, i].axhline(0.2, ls="--", lw=0.5, c="r")
+            ax_offset[z, i].axhline(0.5, ls="--", lw=0.5, c="yellow")
+            ax_offset[z, i].axhline(1, c="green")
+            ax_offset[z, i].axhline(2, ls="--", lw=0.5, c="yellow")
+            ax_offset[z, i].axhline(5, ls="--", lw=0.5, c="r")
 
             sigma = np.std(dataset_mags_z1[:, i])
             lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
@@ -499,11 +499,11 @@ def plot_n(
             )
 
         for i in range(0, n_dims):
-            ax_offset[z, i].axhline(0.2, ls="--", lw=0.5, c="k")
-            ax_offset[z, i].axhline(0.5, ls="--", lw=0.5, c="k")
-            ax_offset[z, i].axhline(1, c="k")
-            ax_offset[z, i].axhline(2, ls="--", lw=0.5, c="k")
-            ax_offset[z, i].axhline(5, ls="--", lw=0.5, c="k")
+            ax_offset[z, i].axhline(0.2, ls="--", lw=0.5, c="r")
+            ax_offset[z, i].axhline(0.5, ls="--", lw=0.5, c="yellow")
+            ax_offset[z, i].axhline(1, c="green")
+            ax_offset[z, i].axhline(2, ls="--", lw=0.5, c="yellow")
+            ax_offset[z, i].axhline(5, ls="--", lw=0.5, c="r")
 
             sigma = np.std(dataset_colors_mag_z1[:, i])
             lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (4 * sigma)
