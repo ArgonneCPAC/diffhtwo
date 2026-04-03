@@ -326,8 +326,6 @@ def plot_n_mag(
 
             """ax_offset"""
             mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
-            # with warnings.catch_warnings():
-            #    warnings.simplefilter("ignore")
             offset = data_hist[0] / lc_phot1_hist[0]
             ax_offset[z, i].plot(mag_bin_centers, offset, color=color1)
             ax_offset[z, i].set_ylim(0.09, 10.1)
@@ -356,9 +354,11 @@ def plot_n_mag(
         fontsize=legend_fontsize,
     )
     fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
-    fig_offset.supylabel("log$_{10}$(n$_{FENIKS}$ / n$_{diffsky}$)", fontsize=fontsize)
     fig.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
+
+    fig_offset.supylabel("log$_{10}$(n$_{FENIKS}$ / n$_{diffsky}$)", fontsize=fontsize)
     fig_offset.savefig(savedir + "/mags_offsets_" + savedir.split("/")[-1] + ".pdf")
+
     plt.show()
 
 
@@ -416,6 +416,18 @@ def plot_n(
         left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
     )
     fig.suptitle(suptitle, fontsize=32)
+
+    fig_offset, ax_offset = plt.subplots(
+        n_zbins,
+        n_dims,
+        figsize=(fig_width, fig_height),
+    )
+
+    fig_offset.subplots_adjust(
+        left=0.05, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
+    )
+    fig_offset.suptitle(suptitle, fontsize=32)
+
     dataset_colors_mag_z1 = np.array(dataset_colors_mag[0])
     for z in range(0, n_zbins):
         zmin = zmins[z]
@@ -485,6 +497,12 @@ def plot_n(
             )
 
         for i in range(0, n_dims):
+            ax_offset[z, i].axhline(0.2, ls="--", lw=0.5, c="k")
+            ax_offset[z, i].axhline(0.5, ls="--", lw=0.5, c="k")
+            ax_offset[z, i].axhline(1, c="k")
+            ax_offset[z, i].axhline(2, ls="--", lw=0.5, c="k")
+            ax_offset[z, i].axhline(5, ls="--", lw=0.5, c="k")
+
             sigma = np.std(dataset_colors_mag_z1[:, i])
             lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (4 * sigma)
             upper_limit = np.mean(dataset_colors_mag_z1[:, i]) + (4 * sigma)
@@ -496,7 +514,7 @@ def plot_n(
                 dmag,
             )
 
-            ax[z, i].hist(
+            obs_colors_mag1_hist = ax[z, i].hist(
                 obs_colors_mag1[:, i],
                 weights=N_weights1 * (1 / lc_vol_mpc3),
                 bins=bins,
@@ -520,7 +538,7 @@ def plot_n(
 
             # data
             if dataset_colors_mag_z is not None:
-                ax[z, i].hist(
+                dataset_colors_mag_hist = ax[z, i].hist(
                     dataset_colors_mag_z[:, i],
                     weights=np.ones_like(dataset_colors_mag_z[:, i])
                     * (1 / data_vol_mpc3),
@@ -530,15 +548,25 @@ def plot_n(
                     lw=lw,
                     label="FENIKS-UDS",
                 )
+            """ax_offset"""
+            bin_centers = (bins[1:] + bins[:-1]) / 2
+            offset = dataset_colors_mag_hist[0] / obs_colors_mag1_hist[0]
+            ax_offset[z, i].plot(bin_centers, offset, color=color1)
+            ax_offset[z, i].set_ylim(0.09, 10.1)
+            ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 3e-2)
             ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+
             if i != 0:
                 ax[z, i].set_yticklabels([])
+                ax_offset[z, i].set_yticklabels([])
+            if z != n_zbins - 1:
+                ax[z, i].set_xticklabels([])
+                ax_offset[z, i].set_xticklabels([])
 
-        ax[z, 0].set_ylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
         ax[0, -1].legend(
             framealpha=0.5,
             loc="upper left",
@@ -547,7 +575,12 @@ def plot_n(
             fontsize=legend_fontsize,
         )
 
-    plt.savefig(savedir + "/phot_fit_" + savedir.split("/")[-1] + ".pdf")
+    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
+    fig.savefig(savedir + "/phot_fit_" + savedir.split("/")[-1] + ".pdf")
+
+    fig_offset.supylabel("log$_{10}$(n$_{FENIKS}$ / n$_{diffsky}$)", fontsize=fontsize)
+    fig_offset.savefig(savedir + "/phot_offsets_" + savedir.split("/")[-1] + ".pdf")
+
     plt.show()
 
 
