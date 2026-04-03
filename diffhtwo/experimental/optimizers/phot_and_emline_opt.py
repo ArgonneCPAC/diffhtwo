@@ -812,7 +812,7 @@ def _loss_phot_and_emline_multi_z(
             emline_loss_args_z = (
                 u_theta,
                 ran_key,
-                emline_wave_aa,
+                emline_wave_aa[line][z],
                 lg_emline_LF_target[line][z],
                 lg_emline_Lbin_edges[line][z],
                 lg_n_thresh,
