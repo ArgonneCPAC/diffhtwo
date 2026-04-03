@@ -256,11 +256,11 @@ def plot_n_mag(
             )
 
         for i in range(0, n_bands):
-            ax_offset[z, i].axhline(0.2, ls="--", lw=0.5, c="r")
-            ax_offset[z, i].axhline(0.5, ls="--", lw=0.5, c="yellow")
+            ax_offset[z, i].axhline(0.2, ls="--", lw=1, c="r")
+            ax_offset[z, i].axhline(0.5, ls="--", lw=1, c="orange")
             ax_offset[z, i].axhline(1, c="green")
-            ax_offset[z, i].axhline(2, ls="--", lw=0.5, c="yellow")
-            ax_offset[z, i].axhline(5, ls="--", lw=0.5, c="r")
+            ax_offset[z, i].axhline(2, ls="--", lw=1, c="orange")
+            ax_offset[z, i].axhline(5, ls="--", lw=1, c="r")
 
             sigma = np.std(dataset_mags_z1[:, i])
             lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
@@ -327,7 +327,7 @@ def plot_n_mag(
             """ax_offset"""
             mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
             offset = data_hist[0] / lc_phot1_hist[0]
-            ax_offset[z, i].plot(mag_bin_centers, offset, color=color1)
+            ax_offset[z, i].plot(mag_bin_centers, offset, lw=2, color="k")
             ax_offset[z, i].set_ylim(0.09, 10.1)
             ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
             ax_offset[z, i].set_yscale("log")
@@ -499,11 +499,11 @@ def plot_n(
             )
 
         for i in range(0, n_dims):
-            ax_offset[z, i].axhline(0.2, ls="--", lw=0.5, c="r")
-            ax_offset[z, i].axhline(0.5, ls="--", lw=0.5, c="yellow")
+            ax_offset[z, i].axhline(0.2, ls="--", lw=1, c="r")
+            ax_offset[z, i].axhline(0.5, ls="--", lw=1, c="orange")
             ax_offset[z, i].axhline(1, c="green")
-            ax_offset[z, i].axhline(2, ls="--", lw=0.5, c="yellow")
-            ax_offset[z, i].axhline(5, ls="--", lw=0.5, c="r")
+            ax_offset[z, i].axhline(2, ls="--", lw=1, c="orange")
+            ax_offset[z, i].axhline(5, ls="--", lw=1, c="r")
 
             sigma = np.std(dataset_colors_mag_z1[:, i])
             lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (4 * sigma)
@@ -553,7 +553,7 @@ def plot_n(
             """ax_offset"""
             bin_centers = (bins[1:] + bins[:-1]) / 2
             offset = dataset_colors_mag_hist[0] / obs_colors_mag1_hist[0]
-            ax_offset[z, i].plot(bin_centers, offset, color=color1)
+            ax_offset[z, i].plot(bin_centers, offset, lw=2, color="k")
             ax_offset[z, i].set_ylim(0.09, 10.1)
             ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
             ax_offset[z, i].set_yscale("log")
