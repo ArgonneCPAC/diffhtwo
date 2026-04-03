@@ -330,6 +330,7 @@ def plot_n_mag(
             ax_offset[z, i].plot(mag_bin_centers, offset, color=color1)
             ax_offset[z, i].set_ylim(0.09, 10.1)
             ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
+            ax_offset[z, i].set_yscale("log")
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
@@ -554,6 +555,7 @@ def plot_n(
             ax_offset[z, i].plot(bin_centers, offset, color=color1)
             ax_offset[z, i].set_ylim(0.09, 10.1)
             ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
+            ax_offset[z, i].set_yscale("log")
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
