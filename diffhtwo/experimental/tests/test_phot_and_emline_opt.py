@@ -71,7 +71,8 @@ def test_phot_and_emline_opt(ssp_data):
 
     lc_z_min = zbins[z_idx][0]
     lc_z_max = zbins[z_idx][1]
-    lc_vol_mpc3 = zbin_volume(0.1, zlow=lc_z_min, zhigh=lc_z_max).value
+    lc_sky_area_degsq = 0.1
+    lc_vol_mpc3 = zbin_volume(lc_sky_area_degsq, zlow=lc_z_min, zhigh=lc_z_max).value
 
     tcurves = [
         retrieve_tcurves.MegaCam_uS,
@@ -124,6 +125,7 @@ def test_phot_and_emline_opt(ssp_data):
         mag_thresh,
         lc_z_min,
         lc_z_max,
+        lc_sky_area_degsq,
         lc_vol_mpc3,
         t_table,
         ssp_data,
@@ -166,6 +168,7 @@ def test_phot_and_emline_opt(ssp_data):
         mag_thresh,
         lc_z_min,
         lc_z_max,
+        lc_sky_area_degsq,
         lc_vol_mpc3,
         t_table,
         ssp_data,
@@ -186,8 +189,9 @@ def test_phot_and_emline_opt(ssp_data):
     emline_wave_aa = 6000
     emline_lc_z_min = 0.39
     emline_lc_z_max = 0.41
+    emline_lc_sky_area_degsq = 0.1
     emline_lc_vol_mpc3 = zbin_volume(
-        0.1, zlow=emline_lc_z_min, zhigh=emline_lc_z_max
+        emline_lc_sky_area_degsq, zlow=emline_lc_z_min, zhigh=emline_lc_z_max
     ).value
     lg_emline_LF_data = jnp.array(
         [
@@ -243,6 +247,7 @@ def test_phot_and_emline_opt(ssp_data):
         lg_n_thresh,
         emline_lc_z_min,
         emline_lc_z_max,
+        emline_lc_sky_area_degsq,
         emline_lc_vol_mpc3,
         t_table,
         ssp_data,
@@ -266,6 +271,7 @@ def test_phot_and_emline_opt(ssp_data):
         lg_n_thresh,
         emline_lc_z_min,
         emline_lc_z_max,
+        emline_lc_sky_area_degsq,
         emline_lc_vol_mpc3,
         t_table,
         ssp_data,
@@ -278,35 +284,50 @@ def test_phot_and_emline_opt(ssp_data):
 
     # test multi-z loss
     ran_key, n_key = jran.split(ran_key, 2)
+
+    # phot args
     lg_n_data_err_lh_multi_z = jnp.stack([lg_n_data_err_lh, lg_n_data_err_lh], axis=0)
     lh_centroids_multi_z = jnp.stack([lh_centroids, lh_centroids], axis=0)
     dmag_centroids_multi_z = jnp.stack([dmag_centroids, dmag_centroids], axis=0)
     lc_z_min_multi_z = jnp.array([lc_z_min, lc_z_min])
     lc_z_max_multi_z = jnp.array([lc_z_max, lc_z_max])
+    lc_sky_area_degsq_multi_z = jnp.array([lc_sky_area_degsq, lc_sky_area_degsq])
     lc_vol_mpc3_multi_z = jnp.array([lc_vol_mpc3, lc_vol_mpc3])
     precomputed_ssp_mag_table_multi_z = jnp.stack(
         [precomputed_ssp_mag_table, precomputed_ssp_mag_table], axis=0
     )
     z_phot_table_multi_z = jnp.stack([z_phot_table, z_phot_table], axis=0)
     wave_eff_table_multi_z = jnp.stack([wave_eff_table, wave_eff_table], axis=0)
-    lg_emline_LF_data_multi_z = jnp.stack(
-        [lg_emline_LF_data, lg_emline_LF_data], axis=0
-    )
-    lg_emline_Lbin_edges_data_multi_z = jnp.stack(
-        [lg_emline_Lbin_edges_data, lg_emline_Lbin_edges_data], axis=0
-    )
-    emline_lc_z_min_multi_z = jnp.array([0.39, 0.83])
-    emline_lc_z_max_multi_z = jnp.array([0.41, 0.85])
-    emline_lc_vol_mpc3_multi_z = jnp.array(
-        [
-            zbin_volume(
-                0.1, zlow=emline_lc_z_min_multi_z[0], zhigh=emline_lc_z_max_multi_z[0]
-            ).value,
-            zbin_volume(
-                0.1, zlow=emline_lc_z_min_multi_z[1], zhigh=emline_lc_z_max_multi_z[1]
-            ).value,
-        ]
-    )
+
+    # emline args
+    emline_wave_aa = [emline_wave_aa]
+    lg_emline_LF_data_multi_z = [
+        jnp.stack([lg_emline_LF_data, lg_emline_LF_data], axis=0)
+    ]
+    lg_emline_Lbin_edges_data_multi_z = [
+        jnp.stack([lg_emline_Lbin_edges_data, lg_emline_Lbin_edges_data], axis=0)
+    ]
+    emline_lc_z_min_multi_z = [jnp.array([0.39, 0.83])]
+    emline_lc_z_max_multi_z = [jnp.array([0.41, 0.85])]
+    emline_lc_sky_area_degsq_multi_z = [
+        jnp.array([emline_lc_sky_area_degsq, emline_lc_sky_area_degsq])
+    ]
+    emline_lc_vol_mpc3_multi_z = [
+        jnp.array(
+            [
+                zbin_volume(
+                    emline_lc_sky_area_degsq,
+                    zlow=emline_lc_z_min_multi_z[0],
+                    zhigh=emline_lc_z_max_multi_z[0],
+                ).value,
+                zbin_volume(
+                    emline_lc_sky_area_degsq,
+                    zlow=emline_lc_z_min_multi_z[1],
+                    zhigh=emline_lc_z_max_multi_z[1],
+                ).value,
+            ]
+        )
+    ]
 
     args = (
         lg_n_data_err_lh_multi_z,
@@ -321,6 +342,7 @@ def test_phot_and_emline_opt(ssp_data):
         mag_thresh,
         lc_z_min_multi_z,
         lc_z_max_multi_z,
+        lc_sky_area_degsq_multi_z,
         lc_vol_mpc3_multi_z,
         t_table,
         ssp_data,
@@ -335,6 +357,7 @@ def test_phot_and_emline_opt(ssp_data):
         lg_emline_Lbin_edges_data_multi_z,
         emline_lc_z_min_multi_z,
         emline_lc_z_max_multi_z,
+        emline_lc_sky_area_degsq_multi_z,
         emline_lc_vol_mpc3_multi_z,
     )
 

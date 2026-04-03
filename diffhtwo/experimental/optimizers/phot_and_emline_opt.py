@@ -85,6 +85,7 @@ def get_phot_loss(
     mag_thresh,
     lc_z_min,
     lc_z_max,
+    lc_sky_area_degsq,
     lc_vol_mpc3,
     t_table,
     ssp_data,
@@ -97,11 +98,10 @@ def get_phot_loss(
     num_halos=1000,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
-    sky_area_degsq=0.1,
 ):
     # generate lightcone and photometry data
     lc_halopop = weighted_lc_halos(
-        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, sky_area_degsq
+        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, lc_sky_area_degsq
     )
 
     lg_n_model, _ = n_mag_kern(
@@ -145,6 +145,7 @@ def get_emline_loss(
     lg_n_thresh,
     lc_z_min,
     lc_z_max,
+    lc_sky_area_degsq,
     lc_vol_mpc3,
     t_table,
     ssp_data,
@@ -157,10 +158,9 @@ def get_emline_loss(
     num_halos=1000,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
-    sky_area_degsq=0.1,
 ):
     lc_halopop = weighted_lc_halos(
-        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, sky_area_degsq
+        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, lc_sky_area_degsq
     )
     L_emline_cgs, _ = emline_luminosity.compute_emline_luminosity(
         ran_key,
@@ -211,6 +211,7 @@ def _loss_phot_kern(
     mag_thresh,
     lc_z_min,
     lc_z_max,
+    lc_sky_area_degsq,
     lc_vol_mpc3,
     t_table,
     ssp_data,
@@ -249,6 +250,7 @@ def _loss_phot_kern(
         mag_thresh,
         lc_z_min,
         lc_z_max,
+        lc_sky_area_degsq,
         lc_vol_mpc3,
         t_table,
         ssp_data,
@@ -279,6 +281,7 @@ _L_pk = (
     0,
     0,
     0,
+    0,
     None,
     None,
     0,
@@ -303,9 +306,10 @@ def _loss_emline_kern(
     lg_emline_LF_target,
     lg_emline_Lbin_edges,
     lg_n_thresh,
-    emline_lc_z_min,
-    emline_lc_z_max,
-    emline_lc_vol_mpc3,
+    lc_z_min,
+    lc_z_max,
+    lc_sky_area_degsq,
+    lc_vol_mpc3,
     t_table,
     ssp_data,
     mzr_params,
@@ -331,9 +335,10 @@ def _loss_emline_kern(
         lg_emline_LF_target,
         lg_emline_Lbin_edges,
         lg_n_thresh,
-        emline_lc_z_min,
-        emline_lc_z_max,
-        emline_lc_vol_mpc3,
+        lc_z_min,
+        lc_z_max,
+        lc_sky_area_degsq,
+        lc_vol_mpc3,
         t_table,
         ssp_data,
         diffstarpop_params,
@@ -362,6 +367,7 @@ def _loss_phot_and_emline_multi_z(
     mag_thresh,
     lc_z_min,
     lc_z_max,
+    lc_sky_area_degsq,
     lc_vol_mpc3,
     t_table,
     ssp_data,
@@ -376,6 +382,7 @@ def _loss_phot_and_emline_multi_z(
     lg_emline_Lbin_edges,
     emline_lc_z_min,
     emline_lc_z_max,
+    emline_lc_sky_area_degsq,
     emline_lc_vol_mpc3,
 ):
     phot_multi_z_loss_args = (
@@ -392,6 +399,7 @@ def _loss_phot_and_emline_multi_z(
         mag_thresh,
         lc_z_min,
         lc_z_max,
+        lc_sky_area_degsq,
         lc_vol_mpc3,
         t_table,
         ssp_data,
@@ -419,6 +427,7 @@ def _loss_phot_and_emline_multi_z(
                 lg_n_thresh,
                 emline_lc_z_min[line][z],
                 emline_lc_z_max[line][z],
+                emline_lc_sky_area_degsq[line][z],
                 emline_lc_vol_mpc3[line][z],
                 t_table,
                 ssp_data,
@@ -454,6 +463,7 @@ def fit_phot_and_emline_multi_z(
     mag_thresh,
     lc_z_min,
     lc_z_max,
+    lc_sky_area_degsq,
     lc_vol_mpc3,
     t_table,
     ssp_data,
@@ -468,6 +478,7 @@ def fit_phot_and_emline_multi_z(
     lg_emline_Lbin_edges,
     emline_lc_z_min,
     emline_lc_z_max,
+    emline_lc_sky_area_degsq,
     emline_lc_vol_mpc3,
     n_steps=2,
     step_size=0.1,
@@ -488,6 +499,7 @@ def fit_phot_and_emline_multi_z(
         mag_thresh,
         lc_z_min,
         lc_z_max,
+        lc_sky_area_degsq,
         lc_vol_mpc3,
         t_table,
         ssp_data,
@@ -502,6 +514,7 @@ def fit_phot_and_emline_multi_z(
         lg_emline_Lbin_edges,
         emline_lc_z_min,
         emline_lc_z_max,
+        emline_lc_sky_area_degsq,
         emline_lc_vol_mpc3,
     )
 
