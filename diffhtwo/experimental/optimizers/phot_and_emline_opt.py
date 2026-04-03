@@ -807,27 +807,29 @@ def _loss_phot_and_emline_multi_z(
     phot_loss_multi_z = _loss_phot_kern_multi_z(*phot_multi_z_loss_args)
 
     emline_loss_multi_z = 0.0
-    for z in range(0, len(lg_emline_LF_target)):
-        emline_loss_args_z = (
-            u_theta,
-            ran_key,
-            emline_wave_aa,
-            lg_emline_LF_target[z],
-            lg_emline_Lbin_edges[z],
-            lg_n_thresh,
-            emline_lc_z_min[z],
-            emline_lc_z_max[z],
-            emline_lc_vol_mpc3[z],
-            t_table,
-            ssp_data,
-            mzr_params,
-            scatter_params,
-            cosmo_params,
-            fb,
-        )
-        emline_loss_multi_z += _loss_emline_kern(*emline_loss_args_z)
+    for line in range(0, len(emline_wave_aa)):
+        for z in range(0, len(lg_emline_LF_target)):
+            emline_loss_args_z = (
+                u_theta,
+                ran_key,
+                emline_wave_aa[line],
+                lg_emline_LF_target[line][z],
+                lg_emline_Lbin_edges[line][z],
+                lg_n_thresh,
+                emline_lc_z_min[line][z],
+                emline_lc_z_max[line][z],
+                emline_lc_vol_mpc3[line][z],
+                t_table,
+                ssp_data,
+                mzr_params,
+                scatter_params,
+                cosmo_params,
+                fb,
+            )
+            emline_loss_multi_z += _loss_emline_kern(*emline_loss_args_z)
 
     phot_and_emline_loss_multi_z = jnp.sum(phot_loss_multi_z) + emline_loss_multi_z
+
     return phot_and_emline_loss_multi_z
 
 
