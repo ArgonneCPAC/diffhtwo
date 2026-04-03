@@ -14,15 +14,11 @@ from dsps.metallicity import umzr
 from jax import random as jran
 
 from .. import line_phot_kern
-from ..data_loaders import retrieve_fake_fsps_halpha, retrieve_tcurves
+from ..data_loaders import retrieve_tcurves
 from ..defaults import C_ANGSTROMS, HALPHA_CENTER_AA
-from ..diffstarpop_halpha import (
-    diffstarpop_halpha_kern,
-    diffstarpop_halpha_lf_weighted_lc_weighted,
-)
+from ..emline_luminosity_pop import emline_luminosity_func_pop, emline_luminosity_pop
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
-ssp_halpha_line_luminosity = retrieve_fake_fsps_halpha.load_fake_ssp_halpha()
 
 HALPHA_LUMINOSITY_CGS = 1e42
 
@@ -167,7 +163,7 @@ def test_line_mag_vmap():
         logmp0,
         t_table,
         ssp_data,
-        ssp_halpha_line_luminosity,
+        HALPHA_CENTER_AA,
         z_phot_table,
         mzr_params,
         spspop_params,
@@ -175,14 +171,14 @@ def test_line_mag_vmap():
         DEFAULT_COSMOLOGY,
         FB,
     )
-    halpha_L_true = diffstarpop_halpha_kern(*args)
+    halpha_L_true = emline_luminosity_pop(*args)
 
     (
         lgL_bin_edges,
         halpha_lf_weighted_q_true,
         halpha_lf_weighted_smooth_ms_true,
         halpha_lf_weighted_bursty_ms_true,
-    ) = diffstarpop_halpha_lf_weighted_lc_weighted(halpha_L_true, nhalos)
+    ) = emline_luminosity_func_pop(halpha_L_true, nhalos)
 
     halpha_obs_aa = HALPHA_CENTER_AA * (1 + z_obs)
     d_L_Mpc = COSMO.luminosity_distance(z_obs)
