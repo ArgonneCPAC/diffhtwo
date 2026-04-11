@@ -362,6 +362,8 @@ def plot_n_mag(
             if z != n_zbins - 1:
                 ax[z, i].set_xticklabels([])
                 ax_offset[z, i].set_xticklabels([])
+            if i == 0:
+                ax_offset[z, i].set_yticklabels(["5x", "2x", "1x", "2x", "5x"])
 
     ax[0, -1].legend(
         framealpha=0.5,
@@ -516,7 +518,6 @@ def plot_n(
         for i in range(0, n_dims):
             ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
             ax_offset[z, i].set_yticks(ax_offset_yticks)
-            ax_offset[z, i].set_yticklabels(["5x", "2x", "1x", "2x", "5x"])
             ax_offset[z, i].axhspan(
                 ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
             )
@@ -599,6 +600,8 @@ def plot_n(
             if z != n_zbins - 1:
                 ax[z, i].set_xticklabels([])
                 ax_offset[z, i].set_xticklabels([])
+            if i == 0:
+                ax_offset[z, i].set_yticklabels(["5x", "2x", "1x", "2x", "5x"])
 
         ax[0, -1].legend(
             framealpha=0.5,
