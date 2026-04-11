@@ -317,13 +317,13 @@ def test_phot_and_emline_opt(ssp_data):
             [
                 zbin_volume(
                     emline_lc_sky_area_degsq,
-                    zlow=emline_lc_z_min_multi_z[0],
-                    zhigh=emline_lc_z_max_multi_z[0],
+                    zlow=emline_lc_z_min_multi_z[0][0],
+                    zhigh=emline_lc_z_max_multi_z[0][0],
                 ).value,
                 zbin_volume(
                     emline_lc_sky_area_degsq,
-                    zlow=emline_lc_z_min_multi_z[1],
-                    zhigh=emline_lc_z_max_multi_z[1],
+                    zlow=emline_lc_z_min_multi_z[0][1],
+                    zhigh=emline_lc_z_max_multi_z[0][1],
                 ).value,
             ]
         )
