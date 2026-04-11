@@ -36,12 +36,16 @@ legend_fontsize = 30
 
 
 try:
+    import matplotlib as mpl
     from matplotlib import pyplot as plt
     from matplotlib.lines import Line2D
 
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
+
+
+mpl.rcParams["axes.linewidth"] = 2
 
 
 def plot_n_mag(
