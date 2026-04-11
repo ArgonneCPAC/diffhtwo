@@ -260,21 +260,6 @@ def plot_n_mag(
             )
 
         for i in range(0, n_bands):
-            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
-            ax_offset[z, i].set_yticks(ax_offset_yticks)
-            ax_offset[z, i].set_yticklabels(["5x", "2x", "1x", "2x", "5x"])
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
-            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
-
             sigma = np.std(dataset_mags_z1[:, i])
             lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
             upper_limit = np.mean(dataset_mags_z1[:, i]) + (4 * sigma)
@@ -355,6 +340,20 @@ def plot_n_mag(
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 5e-3)
             ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+
+            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
+            ax_offset[z, i].set_yticks(ax_offset_yticks)
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
@@ -516,20 +515,6 @@ def plot_n(
             )
 
         for i in range(0, n_dims):
-            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
-            ax_offset[z, i].set_yticks(ax_offset_yticks)
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
-            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
-
             sigma = np.std(dataset_colors_mag_z1[:, i])
             lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (4 * sigma)
             upper_limit = np.mean(dataset_colors_mag_z1[:, i]) + (4 * sigma)
@@ -593,6 +578,20 @@ def plot_n(
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 3e-2)
             ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+
+            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
+            ax_offset[z, i].set_yticks(ax_offset_yticks)
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
