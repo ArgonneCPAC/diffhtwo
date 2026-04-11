@@ -265,8 +265,14 @@ def plot_n_mag(
             ax_offset[z, i].axhspan(
                 ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
             )
-            ax_offset[z, i].axhspan(0, ax_offset_yticks[1], color="r", alpha=0.5)
-            ax_offset[z, i].axhspan(ax_offset_yticks[3], 10, color="r", alpha=0.5)
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
 
             sigma = np.std(dataset_mags_z1[:, i])
             lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
@@ -512,8 +518,14 @@ def plot_n(
             ax_offset[z, i].axhspan(
                 ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
             )
-            ax_offset[z, i].axhspan(0, ax_offset_yticks[1], color="r", alpha=0.5)
-            ax_offset[z, i].axhspan(ax_offset_yticks[3], 10, color="r", alpha=0.5)
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(
+                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
+            )
+            ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
 
             sigma = np.std(dataset_colors_mag_z1[:, i])
             lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (4 * sigma)
