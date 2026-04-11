@@ -95,12 +95,12 @@ def get_band_mag_ab_from_luminosity(
 ):
     ngals = obs_aa.size
     band_mag_ab_q = line_mag_vmap(
-        obs_aa, L_tuple.halpha_L_cgs_q, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
+        obs_aa, L_tuple.emline_L_cgs_q, z_obs, d_L_cm, tcurve_wave_aa, tcurve_trans
     )
 
     band_mag_ab_smooth_ms = line_mag_vmap(
         obs_aa,
-        L_tuple.halpha_L_cgs_smooth_ms,
+        L_tuple.emline_L_cgs_smooth_ms,
         z_obs,
         d_L_cm,
         tcurve_wave_aa,
@@ -109,7 +109,7 @@ def get_band_mag_ab_from_luminosity(
 
     band_mag_ab_bursty_ms = line_mag_vmap(
         obs_aa,
-        L_tuple.halpha_L_cgs_bursty_ms,
+        L_tuple.emline_L_cgs_bursty_ms,
         z_obs,
         d_L_cm,
         tcurve_wave_aa,
