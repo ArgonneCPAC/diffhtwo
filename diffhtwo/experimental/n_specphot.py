@@ -1,5 +1,3 @@
-from collections import namedtuple
-
 import jax.numpy as jnp
 from diffsky.experimental.kernels import mc_phot_kernels as mcpk
 from diffsky.merging import merging_model
@@ -10,7 +8,6 @@ from jax import jit as jjit
 from . import diffndhist as diffndhist2
 from . import emline_luminosity
 from .n_mag import N_0, N_FLOOR, get_n_data_err
-from .utils import zbin_vol
 
 
 @jjit
