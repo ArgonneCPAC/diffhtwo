@@ -3,7 +3,9 @@ from difflib import get_close_matches
 import jax.numpy as jnp
 import numpy as np
 from astropy import units as u
+from dsps.cosmology.flat_wcdm import differential_comoving_volume_at_z
 from jax import jit as jjit
+from jax import vmap
 from jax.tree_util import tree_flatten_with_path
 
 from .defaults import COSMO
@@ -42,6 +44,31 @@ def lupton_log10(t, log10_clip, t0=0.0, M0=0.0, alpha=1 / jnp.log(10.0)):
 @jjit
 def safe_log10(x, EPS=1e-12):
     return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
+
+
+dV_dz = jjit(
+    vmap(
+        differential_comoving_volume_at_z,
+        in_axes=(0, None, None, None, None),
+    )
+)
+
+
+@jjit
+def zbin_vol(sky_area_degsq, zlow, zhigh, cosmo_params, n_slice=1000):
+    z = jnp.linspace(zlow, zhigh, n_slice)
+    A_sr = sky_area_degsq * (jnp.pi / 180.0) ** 2
+
+    dV_dz_arr = dV_dz(
+        z,
+        cosmo_params.Om0,
+        cosmo_params.w0,
+        cosmo_params.wa,
+        cosmo_params.h,
+    )
+    vol_mpc3 = jnp.trapezoid(dV_dz_arr, z) * A_sr
+
+    return vol_mpc3
 
 
 def zbin_volume(sky_area_degsq, zlow=0.2, zhigh=0.5, slices=1000):
