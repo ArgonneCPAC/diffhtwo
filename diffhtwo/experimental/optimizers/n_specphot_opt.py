@@ -62,7 +62,7 @@ def get_phot_loss(
     dmag_centroids,
     frac_cat,
 ):
-    line_wave_table = jnp.array(line_wave_aa)
+    line_wave_table = jnp.array([line_wave_aa])
     lg_n_model, _ = n_phot(
         ran_key,
         param_collection,
@@ -90,7 +90,7 @@ def get_emline_loss(
     lc_data,
     line_wave_aa,
 ):
-    line_wave_table = jnp.array(line_wave_aa)
+    line_wave_table = jnp.array([line_wave_aa])
     lg_emline_LF_model = n_spec(
         ran_key,
         param_collection,
