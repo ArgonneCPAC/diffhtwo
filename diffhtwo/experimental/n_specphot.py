@@ -1,6 +1,5 @@
 import jax.numpy as jnp
 from diffsky.experimental.kernels import mc_phot_kernels as mcpk
-from diffsky.merging import merging_model
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
@@ -8,6 +7,47 @@ from jax import jit as jjit
 from . import diffndhist as diffndhist2
 from . import emline_luminosity
 from .n_mag import N_0, N_FLOOR, get_n_data_err
+
+
+@jjit
+def n_phot_lh(
+    ran_key,
+    param_collection,
+    lc_data,
+    line_wave_table,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    lh_centroids,
+    dmag_centroids,
+    frac_cat,
+):
+    obs_color_mag, weights_threshd = n_phot(
+        ran_key,
+        param_collection,
+        lc_data,
+        line_wave_table,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        frac_cat,
+    )
+
+    # calculate number density in LH bins
+    sig = jnp.zeros(lh_centroids.shape) + (dmag_centroids / 2)
+    lh_centroids_lo = lh_centroids - (dmag_centroids / 2)
+    lh_centroids_hi = lh_centroids + (dmag_centroids / 2)
+
+    N = diffndhist2.tw_ndhist_weighted(
+        obs_color_mag,
+        sig,
+        weights_threshd,
+        lh_centroids_lo,
+        lh_centroids_hi,
+    )
+    lg_n, lg_n_avg_err = get_n_data_err(N, lc_data.lc_vol_mpc3)
+
+    return lg_n, lg_n_avg_err
 
 
 @jjit
@@ -19,8 +59,6 @@ def n_phot(
     mag_columns,
     mag_thresh_column,
     mag_thresh,
-    lh_centroids,
-    dmag_centroids,
     frac_cat,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
@@ -42,7 +80,6 @@ def n_phot(
         lc_data.wave_eff_table,
         line_wave_table,
         *param_collection,
-        merging_model.DEFAULT_MERGE_PARAMS,
         cosmo_params,
         fb,
         lc_data.logmp_infall,
@@ -73,7 +110,7 @@ def n_phot(
         mag = mags_in_plus_ex_situ[:, mag_column][:, None]
         obs_color_mag = jnp.hstack((obs_color_mag, mag))
 
-    # get weights
+    # get weights incorporating frac_cat
     weights = lc_data.nhalos * frac_cat
 
     # apply mag thresh cut
@@ -82,21 +119,7 @@ def n_phot(
         obs_mag_thresh_band < mag_thresh, weights, jnp.zeros_like(weights)
     )
 
-    # calculate number density in LH bins
-    sig = jnp.zeros(lh_centroids.shape) + (dmag_centroids / 2)
-    lh_centroids_lo = lh_centroids - (dmag_centroids / 2)
-    lh_centroids_hi = lh_centroids + (dmag_centroids / 2)
-    frac_cat = jnp.ones(n_gals)
-    N = diffndhist2.tw_ndhist_weighted(
-        obs_color_mag,
-        sig,
-        weights_threshd,
-        lh_centroids_lo,
-        lh_centroids_hi,
-    )
-    lg_n, lg_n_avg_err = get_n_data_err(N, lc_data.lc_vol_mpc3)
-
-    return lg_n, lg_n_avg_err
+    return obs_color_mag, weights_threshd
 
 
 @jjit
@@ -126,7 +149,6 @@ def n_spec(
         lc_data.wave_eff_table,
         line_wave_table,
         *param_collection,
-        merging_model.DEFAULT_MERGE_PARAMS,
         cosmo_params,
         fb,
         lc_data.logmp_infall,

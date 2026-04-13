@@ -26,7 +26,7 @@ from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
-from ..n_specphot import n_phot, n_spec
+from ..n_specphot import n_phot_lh, n_spec
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
@@ -63,7 +63,7 @@ def get_phot_loss(
     frac_cat,
 ):
     line_wave_table = jnp.array([line_wave_aa])
-    lg_n_model, _ = n_phot(
+    lg_n_model, _ = n_phot_lh(
         ran_key,
         param_collection,
         lc_data,
