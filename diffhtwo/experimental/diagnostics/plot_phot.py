@@ -53,7 +53,7 @@ def plot_n(
     mag_thresh_column,
     mag_thresh,
     frac_cat,
-    line_wave_table,
+    line_wave_aa,
     dimension_labels,
     ran_key,
     zmins,
@@ -135,6 +135,7 @@ def plot_n(
                 tcurves,
                 z_phot_table,
             )
+            line_wave_table = jnp.array([line_wave_aa])
             obs_color_mag1, weights_threshd1 = n_specphot.n_phot(
                 ran_key,
                 param_collection1,
