@@ -6,18 +6,21 @@ from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from jax.flatten_util import ravel_pytree
 
 
-def get_u_theta(fit_type="all"):
-    u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
-        DEFAULT_DIFFSTARPOP_U_PARAMS
-    )
-    u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
-    u_ssperrpop_theta_zero, u_ssperrpop_unravel = ravel_pytree(ZERO_SSPERR_U_PARAMS)
-    u_merging_theta, u_merging_unravel = ravel_pytree(DEFAULT_MERGE_U_PARAMS)
+def get_u_theta_from_u_params(
+    u_diffstarpop_params=DEFAULT_DIFFSTARPOP_U_PARAMS,
+    u_spspop_params=DEFAULT_SPSPOP_U_PARAMS,
+    u_ssperrpop_params=ZERO_SSPERR_U_PARAMS,
+    u_merging_params=DEFAULT_MERGE_U_PARAMS,
+):
+    u_diffstarpop_theta, u_diffstarpop_unravel = ravel_pytree(u_diffstarpop_params)
+    u_spspop_theta, u_spspop_unravel = ravel_pytree(u_spspop_params)
+    u_ssperrpop_theta, u_ssperrpop_unravel = ravel_pytree(u_ssperrpop_params)
+    u_merging_theta, u_merging_unravel = ravel_pytree(u_merging_params)
 
-    u_theta_default = (
-        u_diffstarpop_theta_default,
-        u_spspop_theta_default,
-        u_ssperrpop_theta_zero,
+    u_theta = (
+        u_diffstarpop_theta,
+        u_spspop_theta,
+        u_ssperrpop_theta,
         u_merging_theta,
     )
 
@@ -26,6 +29,17 @@ def get_u_theta(fit_type="all"):
         u_spspop_unravel,
         u_ssperrpop_unravel,
         u_merging_unravel,
+    )
+
+    return u_theta, u_unravel
+
+
+def get_trainable_params(fit_type="all"):
+    u_theta_default, u_unravel = get_u_theta_from_u_params(
+        u_diffstarpop_params=DEFAULT_DIFFSTARPOP_U_PARAMS,
+        u_spspop_params=DEFAULT_SPSPOP_U_PARAMS,
+        u_ssperrpop_params=ZERO_SSPERR_U_PARAMS,
+        u_merging_params=DEFAULT_MERGE_U_PARAMS,
     )
 
     zero_trainable = (
