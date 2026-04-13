@@ -70,7 +70,7 @@ def plot_n(
     dmag=0.1,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
-    num_halos=200,
+    num_halos=1000,
     sky_area_degsq=1.0,
     n_z_phot_table=15,
     cosmo_params=DEFAULT_COSMOLOGY,
