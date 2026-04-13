@@ -195,12 +195,3 @@ def get_trainable_params(fit_type="all"):
             zero_trainable[3],  # merging params
         )
         return trainable_params
-
-    elif fit_type == "spspop+diffstarpop+merging":
-        trainable_params = (
-            jnp.ones_like(u_theta_default[0], dtype=bool),  # diffstarpop params
-            jnp.ones_like(u_theta_default[1], dtype=bool),  # spspop params
-            zero_trainable[2],  # ssperrpop params
-            jnp.ones_like(u_theta_default[3], dtype=bool),  # merging params
-        )
-        return trainable_params
