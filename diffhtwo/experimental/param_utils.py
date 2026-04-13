@@ -1,9 +1,30 @@
 import jax.numpy as jnp
 from diffsky.merging.merging_model import DEFAULT_MERGE_U_PARAMS
+from diffsky.param_utils import diffsky_param_wrapper_merging as dpwm
 from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_U_PARAMS
 from diffsky.ssp_err_model.defaults import ZERO_SSPERR_U_PARAMS
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from jax.flatten_util import ravel_pytree
+
+
+def get_u_theta_from_param_collection(param_collection):
+    u_param_collection = dpwm.get_u_param_collection_from_param_collection(
+        param_collection.diffstarpop_params,
+        param_collection.mzr_params,
+        param_collection.spspop_params,
+        param_collection.scatter_params,
+        param_collection.ssperr_params,
+        param_collection.merging_params,
+    )
+
+    u_theta, u_unravel = get_u_theta_from_u_params(
+        u_diffstarpop_params=u_param_collection.diffstarpop_u_params,
+        u_spspop_params=u_param_collection.spspop_u_params,
+        u_ssperrpop_params=u_param_collection.ssperr_u_params,
+        u_merging_params=u_param_collection.merging_u_params,
+    )
+
+    return u_theta, u_unravel
 
 
 def get_u_theta_from_u_params(
