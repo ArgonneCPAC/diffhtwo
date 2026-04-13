@@ -9,6 +9,26 @@ from dsps.metallicity.umzr import DEFAULT_MZR_U_PARAMS
 from jax.flatten_util import ravel_pytree
 
 
+def get_u_unravel_fn(
+    u_diffstarpop_params=DEFAULT_DIFFSTARPOP_U_PARAMS,
+    u_spspop_params=DEFAULT_SPSPOP_U_PARAMS,
+    u_ssperrpop_params=ZERO_SSPERR_U_PARAMS,
+    u_merging_params=DEFAULT_MERGE_U_PARAMS,
+):
+    _, u_diffstarpop_unravel = ravel_pytree(u_diffstarpop_params)
+    _, u_spspop_unravel = ravel_pytree(u_spspop_params)
+    _, u_ssperrpop_unravel = ravel_pytree(u_ssperrpop_params)
+    _, u_merging_unravel = ravel_pytree(u_merging_params)
+
+    u_unravel_fn = (
+        u_diffstarpop_unravel,
+        u_spspop_unravel,
+        u_ssperrpop_unravel,
+        u_merging_unravel,
+    )
+    return u_unravel_fn
+
+
 def get_param_collection_from_u_theta(
     u_theta,
     u_mzr_params=DEFAULT_MZR_U_PARAMS,
@@ -33,56 +53,16 @@ def get_param_collection_from_u_theta(
     return param_collection
 
 
-def get_u_theta_from_param_collection(param_collection):
-    u_param_collection = dpwm.get_u_param_collection_from_param_collection(
-        param_collection.diffstarpop_params,
-        param_collection.mzr_params,
-        param_collection.spspop_params,
-        param_collection.scatter_params,
-        param_collection.ssperr_params,
-        param_collection.merging_params,
-    )
-
-    u_theta, u_unravel = get_u_theta_from_u_params(
-        u_diffstarpop_params=u_param_collection.diffstarpop_u_params,
-        u_spspop_params=u_param_collection.spspop_u_params,
-        u_ssperrpop_params=u_param_collection.ssperr_u_params,
-        u_merging_params=u_param_collection.merging_u_params,
-    )
-
-    return u_theta, u_unravel
-
-
-def get_u_unravel_fn(
-    u_diffstarpop_params=DEFAULT_DIFFSTARPOP_U_PARAMS,
-    u_spspop_params=DEFAULT_SPSPOP_U_PARAMS,
-    u_ssperrpop_params=ZERO_SSPERR_U_PARAMS,
-    u_merging_params=DEFAULT_MERGE_U_PARAMS,
-):
-    _, u_diffstarpop_unravel = ravel_pytree(u_diffstarpop_params)
-    _, u_spspop_unravel = ravel_pytree(u_spspop_params)
-    _, u_ssperrpop_unravel = ravel_pytree(u_ssperrpop_params)
-    _, u_merging_unravel = ravel_pytree(u_merging_params)
-
-    u_unravel_fn = (
-        u_diffstarpop_unravel,
-        u_spspop_unravel,
-        u_ssperrpop_unravel,
-        u_merging_unravel,
-    )
-    return u_unravel_fn
-
-
 def get_u_theta_from_u_params(
     u_diffstarpop_params=DEFAULT_DIFFSTARPOP_U_PARAMS,
     u_spspop_params=DEFAULT_SPSPOP_U_PARAMS,
     u_ssperrpop_params=ZERO_SSPERR_U_PARAMS,
     u_merging_params=DEFAULT_MERGE_U_PARAMS,
 ):
-    u_diffstarpop_theta, u_diffstarpop_unravel = ravel_pytree(u_diffstarpop_params)
-    u_spspop_theta, u_spspop_unravel = ravel_pytree(u_spspop_params)
-    u_ssperrpop_theta, u_ssperrpop_unravel = ravel_pytree(u_ssperrpop_params)
-    u_merging_theta, u_merging_unravel = ravel_pytree(u_merging_params)
+    u_diffstarpop_theta, _ = ravel_pytree(u_diffstarpop_params)
+    u_spspop_theta, _ = ravel_pytree(u_spspop_params)
+    u_ssperrpop_theta, _ = ravel_pytree(u_ssperrpop_params)
+    u_merging_theta, _ = ravel_pytree(u_merging_params)
 
     u_theta = (
         u_diffstarpop_theta,
@@ -94,13 +74,28 @@ def get_u_theta_from_u_params(
     return u_theta
 
 
-def get_trainable_params(fit_type="all"):
-    u_theta_default, u_unravel = get_u_theta_from_u_params(
-        u_diffstarpop_params=DEFAULT_DIFFSTARPOP_U_PARAMS,
-        u_spspop_params=DEFAULT_SPSPOP_U_PARAMS,
-        u_ssperrpop_params=ZERO_SSPERR_U_PARAMS,
-        u_merging_params=DEFAULT_MERGE_U_PARAMS,
+def get_u_theta_from_param_collection(param_collection):
+    u_param_collection = dpwm.get_u_param_collection_from_param_collection(
+        param_collection.diffstarpop_params,
+        param_collection.mzr_params,
+        param_collection.spspop_params,
+        param_collection.scatter_params,
+        param_collection.ssperr_params,
+        param_collection.merging_params,
     )
+
+    u_theta = get_u_theta_from_u_params(
+        u_diffstarpop_params=u_param_collection.diffstarpop_u_params,
+        u_spspop_params=u_param_collection.spspop_u_params,
+        u_ssperrpop_params=u_param_collection.ssperr_u_params,
+        u_merging_params=u_param_collection.merging_u_params,
+    )
+
+    return u_theta
+
+
+def get_trainable_params(fit_type="all"):
+    u_theta_default = get_u_theta_from_u_params()
 
     zero_trainable = (
         jnp.zeros_like(u_theta_default[0], dtype=bool),  # diffstarpop params
