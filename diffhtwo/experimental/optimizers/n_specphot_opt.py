@@ -54,7 +54,7 @@ def get_phot_loss(
     lg_n_thresh,
     param_collection,
     lc_data,
-    line_wave_table,
+    line_wave_aa,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -62,6 +62,7 @@ def get_phot_loss(
     dmag_centroids,
     frac_cat,
 ):
+    line_wave_table = jnp.array(line_wave_aa)
     lg_n_model, _ = n_phot(
         ran_key,
         param_collection,
@@ -87,8 +88,9 @@ def get_emline_loss(
     lg_n_thresh,
     param_collection,
     lc_data,
-    line_wave_table,
+    line_wave_aa,
 ):
+    line_wave_table = jnp.array(line_wave_aa)
     lg_emline_LF_model = n_spec(
         ran_key,
         param_collection,
@@ -114,7 +116,7 @@ def _loss_phot_kern(
     lg_n_target,
     lg_n_thresh,
     lc_data,
-    line_wave_table,
+    line_wave_aa,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -150,7 +152,7 @@ def _loss_phot_kern(
         lg_n_thresh,
         param_collection,
         lc_data,
-        line_wave_table,
+        line_wave_aa,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -192,7 +194,7 @@ def _loss_emline_kern(
     lg_emline_Lbin_edges,
     lg_n_thresh,
     lc_data,
-    line_wave_table,
+    line_wave_aa,
     mzr_params=DEFAULT_MZR_PARAMS,
     scatter_params=DEFAULT_SCATTER_PARAMS,
 ):
@@ -223,7 +225,7 @@ def _loss_emline_kern(
         lg_n_thresh,
         param_collection,
         lc_data,
-        line_wave_table,
+        line_wave_aa,
     )
     emline_loss = get_emline_loss(*emline_loss_args)
     return emline_loss
@@ -247,13 +249,14 @@ def _loss_phot_and_emline_multi_z(
     emline_lc_data,
     emline_wave_table,
 ):
+    emline_wave_aa = emline_wave_table[0]
     phot_multi_z_loss_args = (
         u_theta,
         ran_key,
         lg_n_target,
         lg_n_thresh,
         lc_data,
-        emline_wave_table,
+        emline_wave_aa,  # dummy arg
         mag_columns,
         mag_thresh_column,
         mag_thresh,

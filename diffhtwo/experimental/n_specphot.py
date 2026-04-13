@@ -30,8 +30,6 @@ def n_phot(
         ran_key, param_collection[0], lc_data.mah_params, cosmo_params
     )
 
-    print("lc_data.nhalos.shape:{}", lc_data.nhalos.shape)
-    print("lc_data.halo_indx.shape:{}", lc_data.halo_indx.shape)
     _res = mcpk._mc_specphot_kern_merging(
         ran_key,
         phot_randoms,
