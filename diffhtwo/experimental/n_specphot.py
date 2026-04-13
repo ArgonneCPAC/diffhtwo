@@ -187,7 +187,6 @@ def n_spec(
     return lg_emline_LF_model
 
 
-@jjit
 def n_spec_q_ms_burst(
     ran_key,
     param_collection,
