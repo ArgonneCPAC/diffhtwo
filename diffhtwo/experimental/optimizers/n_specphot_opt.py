@@ -8,6 +8,8 @@ jax.config.update("jax_debug_infs", True)
 from functools import partial
 
 import jax.numpy as jnp
+from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
+from diffsky.param_utils.diffsky_param_wrapper import ParamCollection
 from diffsky.param_utils.spspop_param_utils import (
     DEFAULT_SPSPOP_U_PARAMS,
     get_bounded_spspop_params_tw_dust,
@@ -18,6 +20,7 @@ from diffsky.ssp_err_model.defaults import (
 )
 from diffstar.diffstarpop import get_bounded_diffstarpop_params
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
+from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import jit as jjit
 from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
@@ -118,6 +121,8 @@ def _loss_phot_kern(
     lh_centroids,
     dmag_centroids,
     frac_cat,
+    mzr_params=DEFAULT_MZR_PARAMS,
+    scatter_params=DEFAULT_SCATTER_PARAMS,
 ):
     # get bounded params
     u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
@@ -131,7 +136,13 @@ def _loss_phot_kern(
     u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
     ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
 
-    param_collection = diffstarpop_params, spspop_params, ssperrpop_params
+    param_collection = ParamCollection(
+        diffstarpop_params,
+        mzr_params,
+        spspop_params,
+        scatter_params,
+        ssperrpop_params,
+    )
 
     phot_loss_args = (
         ran_key,
@@ -182,6 +193,8 @@ def _loss_emline_kern(
     lg_n_thresh,
     lc_data,
     line_wave_table,
+    mzr_params=DEFAULT_MZR_PARAMS,
+    scatter_params=DEFAULT_SCATTER_PARAMS,
 ):
     # get bounded params
     u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
@@ -195,7 +208,13 @@ def _loss_emline_kern(
     u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
     ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
 
-    param_collection = diffstarpop_params, spspop_params, ssperrpop_params
+    param_collection = ParamCollection(
+        diffstarpop_params,
+        mzr_params,
+        spspop_params,
+        scatter_params,
+        ssperrpop_params,
+    )
 
     emline_loss_args = (
         ran_key,
