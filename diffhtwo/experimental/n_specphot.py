@@ -4,6 +4,7 @@ from diffsky.merging import merging_model
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
+from jax.debug import print
 
 from . import diffndhist as diffndhist2
 from . import emline_luminosity
@@ -29,6 +30,8 @@ def n_phot(
         ran_key, param_collection[0], lc_data.mah_params, cosmo_params
     )
 
+    print("lc_data.nhalos.shape:{}", lc_data.nhalos.shape)
+    print("lc_data.halo_indx.shape:{}", lc_data.halo_indx.shape)
     _res = mcpk._mc_specphot_kern_merging(
         ran_key,
         phot_randoms,
