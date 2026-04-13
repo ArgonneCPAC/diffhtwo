@@ -9,7 +9,8 @@ from functools import partial
 
 import jax.numpy as jnp
 from diffsky.experimental.scatter import DEFAULT_SCATTER_PARAMS
-from diffsky.param_utils.diffsky_param_wrapper import ParamCollection
+from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
+from diffsky.param_utils.diffsky_param_wrapper_merging import ParamCollection
 from diffsky.param_utils.spspop_param_utils import (
     DEFAULT_SPSPOP_U_PARAMS,
     get_bounded_spspop_params_tw_dust,
@@ -125,6 +126,7 @@ def _loss_phot_kern(
     frac_cat,
     mzr_params=DEFAULT_MZR_PARAMS,
     scatter_params=DEFAULT_SCATTER_PARAMS,
+    merging_params=DEFAULT_MERGE_PARAMS,
 ):
     # get bounded params
     u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
@@ -144,6 +146,7 @@ def _loss_phot_kern(
         spspop_params,
         scatter_params,
         ssperrpop_params,
+        merging_params,
     )
 
     phot_loss_args = (
@@ -197,6 +200,7 @@ def _loss_emline_kern(
     line_wave_aa,
     mzr_params=DEFAULT_MZR_PARAMS,
     scatter_params=DEFAULT_SCATTER_PARAMS,
+    merging_params=DEFAULT_MERGE_PARAMS,
 ):
     # get bounded params
     u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta = u_theta
@@ -216,6 +220,7 @@ def _loss_emline_kern(
         spspop_params,
         scatter_params,
         ssperrpop_params,
+        merging_params,
     )
 
     emline_loss_args = (
