@@ -27,6 +27,7 @@ from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
 from ..n_specphot import n_phot_lh, n_spec
+from ..param_utils import get_param_collection_from_u_theta
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
@@ -112,7 +113,6 @@ def get_emline_loss(
 @jjit
 def _loss_phot_kern(
     u_theta,
-    u_unravel,
     ran_key,
     lg_n_target,
     lg_n_thresh,
@@ -128,20 +128,7 @@ def _loss_phot_kern(
     u_scatter_params=DEFAULT_SCATTER_U_PARAMS,
 ):
     # get bounded param collection
-    u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta, u_merging_theta = u_theta
-    u_diffstarpop_params = u_unravel[0](u_diffstarpop_theta)
-    u_spspop_params = u_unravel[1](u_spspop_theta)
-    u_ssperrpop_params = u_unravel[2](u_ssperrpop_theta)
-    u_merging_params = u_unravel[3](u_merging_theta)
-
-    param_collection = dpwm.get_param_collection_from_u_param_collection(
-        u_diffstarpop_params,
-        u_mzr_params,
-        u_spspop_params,
-        u_scatter_params,
-        u_ssperrpop_params,
-        u_merging_params,
-    )
+    param_collection = get_param_collection_from_u_theta(u_theta)
 
     phot_loss_args = (
         ran_key,
@@ -186,7 +173,6 @@ _loss_phot_kern_multi_z = jjit(
 
 def _loss_emline_kern(
     u_theta,
-    u_unravel,
     ran_key,
     lg_emline_LF_target,
     lg_emline_Lbin_edges,
@@ -196,22 +182,7 @@ def _loss_emline_kern(
     u_mzr_params=DEFAULT_MZR_U_PARAMS,
     u_scatter_params=DEFAULT_SCATTER_U_PARAMS,
 ):
-    # get bounded param collection
-    u_diffstarpop_theta, u_spspop_theta, u_ssperrpop_theta, u_merging_theta = u_theta
-    u_diffstarpop_params = u_unravel[0](u_diffstarpop_theta)
-    u_spspop_params = u_unravel[1](u_spspop_theta)
-    u_ssperrpop_params = u_unravel[2](u_ssperrpop_theta)
-    u_merging_params = u_unravel[3](u_merging_theta)
-
-    param_collection = dpwm.get_param_collection_from_u_param_collection(
-        u_diffstarpop_params,
-        u_mzr_params,
-        u_spspop_params,
-        u_scatter_params,
-        u_ssperrpop_params,
-        u_merging_params,
-    )
-
+    param_collection = get_param_collection_from_u_theta(u_theta)
     emline_loss_args = (
         ran_key,
         lg_emline_LF_target,
