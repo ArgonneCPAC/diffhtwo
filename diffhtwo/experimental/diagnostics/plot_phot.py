@@ -42,7 +42,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-mpl.rcParams["axes.linewidth"] = 2
+mpl.rcParams["axes.linewidth"] = 2.5
 
 
 def plot_n_mag(
@@ -80,7 +80,7 @@ def plot_n_mag(
     n_bands = len(tcurves)
     n_zbins = len(zmins)
 
-    fig_width = 3.0 * n_bands
+    fig_width = 3.025 * n_bands
     fig_height = 3.0 * n_zbins
     fig, ax = plt.subplots(
         n_zbins,
@@ -208,36 +208,36 @@ def plot_n_mag(
                 label="FENIKS-UDS",
             )
 
-            """ax_offset"""
-            mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
-            offset = data_hist[0] / lc_phot1_hist[0]
-            ax_offset[z, i].plot(mag_bin_centers, offset, lw=2, color="k")
-            ax_offset[z, i].set_ylim(0.09, 10.1)
-            ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
-            ax_offset[z, i].set_yscale("log")
-            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax_offset[z, i].tick_params(
-                axis="both", direction="in", labelsize=labelsize
-            )
-
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 5e-3)
             ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
 
-            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
+            """ax_offset"""
+            mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
+            offset = data_hist[0] / lc_phot1_hist[0]
+            ax_offset[z, i].plot(mag_bin_centers, offset, lw=2, color="k")
+            ax_offset[z, i].set_yscale("log")
+            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+            ax_offset[z, i].tick_params(
+                axis="both", direction="in", labelsize=labelsize
+            )
+            ax_offset[z, i].set_ylim(0.09, 10.1)
+            ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
             ax_offset[z, i].set_yticks(ax_offset_yticks)
+            ax_offset[z, i].set_yticklabels(["", "0.2x", "0.5x", "1x", "2x", "5x", ""])
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
+                ax_offset_yticks[2], ax_offset_yticks[4], color="orange", alpha=0.5
             )
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
+                ax_offset_yticks[1], ax_offset_yticks[2], color="r", alpha=0.5
             )
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
+                ax_offset_yticks[4], ax_offset_yticks[5], color="r", alpha=0.5
             )
-            ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
-            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(0, ax_offset_yticks[1], color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(ax_offset_yticks[5], 10, color="r", alpha=0.8)
+            ax_offset[z, i].axhline(1, color="green", alpha=0.5, lw=5)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
@@ -245,8 +245,6 @@ def plot_n_mag(
             if z != n_zbins - 1:
                 ax[z, i].set_xticklabels([])
                 ax_offset[z, i].set_xticklabels([])
-            if i == 0:
-                ax_offset[z, i].set_yticklabels(["5x", "2x", "1x", "2x", "5x"])
 
     ax[0, -1].legend(
         framealpha=0.5,
@@ -255,10 +253,10 @@ def plot_n_mag(
         ncols=3,
         fontsize=legend_fontsize,
     )
-    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
+    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize + 4)
     fig.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
 
-    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize)
+    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize + 4)
     fig_offset.savefig(savedir + "/mags_offsets_" + savedir.split("/")[-1] + ".pdf")
 
     plt.show()
@@ -426,36 +424,37 @@ def plot_n(
                     lw=lw,
                     label="FENIKS-UDS",
                 )
-            """ax_offset"""
-            bin_centers = (bins[1:] + bins[:-1]) / 2
-            offset = dataset_colors_mag_hist[0] / obs_colors_mag1_hist[0]
-            ax_offset[z, i].plot(bin_centers, offset, lw=2, color="k")
-            ax_offset[z, i].set_ylim(0.09, 10.1)
-            ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
-            ax_offset[z, i].set_yscale("log")
-            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax_offset[z, i].tick_params(
-                axis="both", direction="in", labelsize=labelsize
-            )
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 3e-2)
             ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
 
-            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
+            """ax_offset"""
+            bin_centers = (bins[1:] + bins[:-1]) / 2
+            offset = dataset_colors_mag_hist[0] / obs_colors_mag1_hist[0]
+            ax_offset[z, i].plot(bin_centers, offset, lw=2, color="k")
+            ax_offset[z, i].set_ylim(0.09, 10.1)
+            ax_offset[z, i].set_yscale("log")
+            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+            ax_offset[z, i].tick_params(
+                axis="both", direction="in", labelsize=labelsize
+            )
+            ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
             ax_offset[z, i].set_yticks(ax_offset_yticks)
+            ax_offset[z, i].set_yticklabels(["", "0.2x", "0.5x", "1x", "2x", "5x", ""])
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
+                ax_offset_yticks[2], ax_offset_yticks[4], color="orange", alpha=0.5
             )
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
+                ax_offset_yticks[1], ax_offset_yticks[2], color="r", alpha=0.5
             )
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
+                ax_offset_yticks[4], ax_offset_yticks[5], color="r", alpha=0.5
             )
-            ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
-            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(0, ax_offset_yticks[1], color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(ax_offset_yticks[5], 10, color="r", alpha=0.8)
+            ax_offset[z, i].axhline(1, color="green", alpha=0.5, lw=5)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
@@ -463,8 +462,6 @@ def plot_n(
             if z != n_zbins - 1:
                 ax[z, i].set_xticklabels([])
                 ax_offset[z, i].set_xticklabels([])
-            if i == 0:
-                ax_offset[z, i].set_yticklabels(["5x", "2x", "1x", "2x", "5x"])
 
     ax[0, -1].legend(
         framealpha=0.5,
@@ -474,10 +471,10 @@ def plot_n(
         fontsize=legend_fontsize,
     )
 
-    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
+    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize + 4)
     fig.savefig(savedir + "/phot_fit_" + savedir.split("/")[-1] + ".pdf")
 
-    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize)
+    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize + 4)
     fig_offset.savefig(savedir + "/phot_offsets_" + savedir.split("/")[-1] + ".pdf")
 
     plt.show()
