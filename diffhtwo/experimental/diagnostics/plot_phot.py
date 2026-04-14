@@ -80,7 +80,7 @@ def plot_n_mag(
     n_bands = len(tcurves)
     n_zbins = len(zmins)
 
-    fig_width = 3.1 * n_bands
+    fig_width = 3.025 * n_bands
     fig_height = 3.0 * n_zbins
     fig, ax = plt.subplots(
         n_zbins,
