@@ -41,7 +41,8 @@ def fake_subset_ssp_data():
     return ssp_data, emline_wave_aa
 
 
-def test_n_specphot(ssp_data, emline_wave_aa):
+def test_n_specphot(fake_subset_ssp_data):
+    ssp_data, emline_wave_aa = fake_subset_ssp_data
     zbins = np.array(
         [
             [0.2, 0.5],
