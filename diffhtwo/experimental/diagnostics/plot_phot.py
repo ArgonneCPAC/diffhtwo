@@ -208,24 +208,24 @@ def plot_n_mag(
                 label="FENIKS-UDS",
             )
 
-            """ax_offset"""
-            mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
-            offset = data_hist[0] / lc_phot1_hist[0]
-            ax_offset[z, i].plot(mag_bin_centers, offset, lw=2, color="k")
-            ax_offset[z, i].set_ylim(0.09, 10.1)
-            ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
-            ax_offset[z, i].set_yscale("log")
-            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax_offset[z, i].tick_params(
-                axis="both", direction="in", labelsize=labelsize
-            )
-
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 5e-3)
             ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
 
-            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
+            """ax_offset"""
+            mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
+            offset = data_hist[0] / lc_phot1_hist[0]
+            ax_offset[z, i].plot(mag_bin_centers, offset, lw=2, color="k")
+            ax_offset[z, i].set_yscale("log")
+            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+            ax_offset[z, i].tick_params(
+                axis="both", direction="in", labelsize=labelsize
+            )
+            ax_offset[z, i].set_ylim(0.09, 10.1)
+            ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
+            ax_offset[z, i].set_yticks(ax_offset_yticks)
+            ax_offset[z, i].set_yticklabels(["", "0.2x", "0.5x", "1x", "2x", "5x", ""])
             ax_offset[z, i].set_yticks(ax_offset_yticks)
             ax_offset[z, i].axhspan(
                 ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
@@ -238,6 +238,7 @@ def plot_n_mag(
             )
             ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
             ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
+            ax_offset[z, i].axhline(1, color="green", alpha=0.8)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
@@ -245,8 +246,6 @@ def plot_n_mag(
             if z != n_zbins - 1:
                 ax[z, i].set_xticklabels([])
                 ax_offset[z, i].set_xticklabels([])
-            if i == 0:
-                ax_offset[z, i].set_yticklabels(["5x", "2x", "1x", "2x", "5x"])
 
     ax[0, -1].legend(
         framealpha=0.5,
@@ -426,25 +425,25 @@ def plot_n(
                     lw=lw,
                     label="FENIKS-UDS",
                 )
-            """ax_offset"""
-            bin_centers = (bins[1:] + bins[:-1]) / 2
-            offset = dataset_colors_mag_hist[0] / obs_colors_mag1_hist[0]
-            ax_offset[z, i].plot(bin_centers, offset, lw=2, color="k")
-            ax_offset[z, i].set_ylim(0.09, 10.1)
-            ax_offset[z, i].set_yticks([0.1, 0.2, 0.5, 1, 2, 5, 10])
-            ax_offset[z, i].set_yscale("log")
-            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax_offset[z, i].tick_params(
-                axis="both", direction="in", labelsize=labelsize
-            )
 
             ax[z, i].set_yscale("log")
             ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
             ax[z, i].set_ylim(1e-6, 3e-2)
             ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
 
-            ax_offset_yticks = np.array([0.2, 0.5, 1, 2, 5])
+            """ax_offset"""
+            bin_centers = (bins[1:] + bins[:-1]) / 2
+            offset = dataset_colors_mag_hist[0] / obs_colors_mag1_hist[0]
+            ax_offset[z, i].plot(bin_centers, offset, lw=2, color="k")
+            ax_offset[z, i].set_ylim(0.09, 10.1)
+            ax_offset[z, i].set_yscale("log")
+            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+            ax_offset[z, i].tick_params(
+                axis="both", direction="in", labelsize=labelsize
+            )
+            ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
             ax_offset[z, i].set_yticks(ax_offset_yticks)
+            ax_offset[z, i].set_yticklabels(["", "0.2x", "0.5x", "1x", "2x", "5x", ""])
             ax_offset[z, i].axhspan(
                 ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
             )
@@ -456,6 +455,7 @@ def plot_n(
             )
             ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
             ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
+            ax_offset[z, i].axhline(1, color="green", alpha=0.8)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
@@ -463,8 +463,6 @@ def plot_n(
             if z != n_zbins - 1:
                 ax[z, i].set_xticklabels([])
                 ax_offset[z, i].set_xticklabels([])
-            if i == 0:
-                ax_offset[z, i].set_yticklabels(["5x", "2x", "1x", "2x", "5x"])
 
     ax[0, -1].legend(
         framealpha=0.5,
