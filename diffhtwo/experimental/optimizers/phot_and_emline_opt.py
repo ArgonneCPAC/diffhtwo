@@ -9,33 +9,24 @@ from functools import partial
 
 import jax.numpy as jnp
 from diffhalos.lightcone_generators.mc_lightcone_halos import weighted_lc_halos
-from diffmah.defaults import DiffmahParams
-from diffsky.experimental import mc_lightcone_halos as mclh
-from diffsky.experimental.lightcone_generators import weighted_lc_halos_photdata
 from diffsky.mass_functions import mc_hosts
 from diffsky.param_utils.spspop_param_utils import (
-    DEFAULT_SPSPOP_PARAMS,
     DEFAULT_SPSPOP_U_PARAMS,
     get_bounded_spspop_params_tw_dust,
 )
 from diffsky.ssp_err_model.defaults import (
-    ZERO_SSPERR_PARAMS,
     ZERO_SSPERR_U_PARAMS,
     get_bounded_ssperr_params,
 )
 from diffstar.diffstarpop import get_bounded_diffstarpop_params
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from jax import jit as jjit
-from jax import lax
-from jax import random as jran
-from jax import value_and_grad, vmap
+from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
-from diffhtwo.experimental.utils import safe_log10
-
 from .. import emline_luminosity
-from ..n_mag import N_0, N_FLOOR, n_mag_kern, n_mag_kern_1d, n_mag_kern_nocolor
+from ..n_mag import N_0, N_FLOOR, n_mag_kern
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_U_PARAMS
@@ -95,7 +86,7 @@ def get_phot_loss(
     cosmo_params,
     fb,
     frac_cat,
-    num_halos=1000,
+    num_halos=100,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
 ):
@@ -155,7 +146,7 @@ def get_emline_loss(
     scatter_params,
     cosmo_params,
     fb,
-    num_halos=1000,
+    num_halos=100,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
 ):
