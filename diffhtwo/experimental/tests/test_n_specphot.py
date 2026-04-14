@@ -19,6 +19,7 @@ from jax.flatten_util import ravel_pytree
 
 from diffhtwo.experimental.optimizers import n_specphot_opt
 
+from .. import param_utils as pu
 from ..data_loaders import retrieve_tcurves
 from ..utils import zbin_vol
 
@@ -130,3 +131,48 @@ def test_n_specphot(ssp_data, emline_wave_aa):
 
     assert np.isfinite(phot_loss)
     assert phot_loss >= 0
+
+    u_theta_default = pu.get_u_theta_from_param_collection(
+        dpwm.DEFAULT_PARAM_COLLECTION
+    )
+
+    loss_phot_kern = n_specphot_opt._loss_phot_kern(
+        u_theta_default,
+        ran_key,
+        lg_n_data_err_lh,
+        lg_n_thresh,
+        lc_data,
+        emline_wave_aa,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        lh_centroids,
+        dmag_centroids,
+        frac_cat,
+    )
+    assert np.isfinite(loss_phot_kern)
+    assert loss_phot_kern >= 0
+
+
+	lg_n_data_err_lh_multi_z = jnp.array([lg_n_data_err_lh, lg_n_data_err_lh])
+
+	lc_data_multi_z = [lc_data, lc_data]
+	lc_data_multi_z = stack_lc_data(lc_data_multi_z)
+
+	lh_centroids_multi_z = jnp.array([lh_centroids, lh_centroids])
+	dmag_centroids_multi_z = jnp.array([dmag_centroids, dmag_centroids])
+
+	n_specphot_opt._loss_phot_kern_multi_z(
+	    u_theta_fit,
+	    ran_key,
+	    lg_n_data_err_lh_multi_z,
+	    lg_n_thresh,
+	    lc_data_multi_z,
+	    emline_wave_aa,
+	    mag_columns,
+	    mag_thresh_column,
+	    mag_thresh,
+	    lh_centroids_multi_z,
+	    dmag_centroids_multi_z,
+	    frac_cat,
+	)

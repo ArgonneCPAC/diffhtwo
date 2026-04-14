@@ -6,6 +6,7 @@ from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_U_PARAMS
 from diffsky.ssp_err_model.defaults import ZERO_SSPERR_U_PARAMS
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from dsps.metallicity.umzr import DEFAULT_MZR_U_PARAMS
+from jax import tree_util
 from jax.flatten_util import ravel_pytree
 
 
@@ -195,3 +196,12 @@ def get_trainable_params(fit_type="all"):
             zero_trainable[3],  # merging params
         )
         return trainable_params
+
+
+def stack_lc_data(lc_data_list):
+    treedef = tree_util.tree_structure(lc_data_list[0])
+    leaves_list = [tree_util.tree_leaves(lc) for lc in lc_data_list]
+    stacked_leaves = [
+        jnp.stack([l[i] for l in leaves_list]) for i in range(len(leaves_list[0]))
+    ]
+    return tree_util.tree_unflatten(treedef, stacked_leaves)
