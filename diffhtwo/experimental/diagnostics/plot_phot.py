@@ -136,7 +136,7 @@ def plot_n(
                 z_phot_table,
             )
             line_wave_table = jnp.array([line_wave_aa])
-            obs_color_mag1, weights_threshd1 = n_specphot.n_phot(
+            obs_color_mag1, weights_threshd1 = n_specphot.n_phot_kern(
                 ran_key,
                 param_collection1,
                 lc_data,
@@ -148,7 +148,7 @@ def plot_n(
             )
 
             if param_collection2 is not None:
-                obs_color_mag2, weights_threshd2 = n_specphot.n_phot(
+                obs_color_mag2, weights_threshd2 = n_specphot.n_phot_kern(
                     ran_key,
                     param_collection2,
                     lc_data,
