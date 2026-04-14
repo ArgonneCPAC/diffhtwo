@@ -253,10 +253,10 @@ def plot_n_mag(
         ncols=3,
         fontsize=legend_fontsize,
     )
-    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
+    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize + 4)
     fig.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
 
-    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize)
+    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize + 4)
     fig_offset.savefig(savedir + "/mags_offsets_" + savedir.split("/")[-1] + ".pdf")
 
     plt.show()
@@ -471,10 +471,10 @@ def plot_n(
         fontsize=legend_fontsize,
     )
 
-    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize)
+    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize + 4)
     fig.savefig(savedir + "/phot_fit_" + savedir.split("/")[-1] + ".pdf")
 
-    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize)
+    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize + 4)
     fig_offset.savefig(savedir + "/phot_offsets_" + savedir.split("/")[-1] + ".pdf")
 
     plt.show()
