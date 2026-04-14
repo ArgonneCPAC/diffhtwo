@@ -17,10 +17,9 @@ from dsps.data_loaders import retrieve_fake_fsps_data
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from diffhtwo.experimental.optimizers import n_specphot_opt
-
 from .. import param_utils as pu
 from ..data_loaders import retrieve_tcurves
+from ..optimizers import n_specphot_opt
 from ..utils import zbin_vol
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
@@ -41,7 +40,7 @@ def fake_subset_ssp_data():
     return ssp_data, emline_wave_aa
 
 
-def test_n_specphot(fake_subset_ssp_data):
+def test_n_specphot_opt(fake_subset_ssp_data):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
     zbins = np.array(
         [

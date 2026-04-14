@@ -24,7 +24,7 @@ def n_colors_mags_lh(
     dmag_centroids,
     frac_cat,
 ):
-    obs_color_mag, weights = n_colors_mags(
+    obs_color_mag, weights = get_colors_mags(
         ran_key,
         param_collection,
         lc_data,
@@ -53,7 +53,7 @@ def n_colors_mags_lh(
 
 
 @jjit
-def n_colors_mags(
+def get_colors_mags(
     ran_key,
     param_collection,
     lc_data,
@@ -63,7 +63,7 @@ def n_colors_mags(
     mag_thresh,
     frac_cat,
 ):
-    mags, weights = n_phot_kern(
+    mags, weights = phot_kern(
         ran_key,
         param_collection,
         lc_data,
@@ -84,7 +84,7 @@ def n_colors_mags(
 
 
 @jjit
-def n_phot_kern(
+def phot_kern(
     ran_key,
     param_collection,
     lc_data,

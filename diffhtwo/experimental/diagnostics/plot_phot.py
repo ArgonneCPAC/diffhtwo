@@ -7,7 +7,7 @@ from diffsky.mass_functions import mc_hosts
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
-from .. import n_specphot
+from ..n_specphot import get_colors_mags, phot_kern
 from ..utils import generate_lc_data, zbin_volume
 
 blue = "#1E90FF"  # DodgerBlue
@@ -136,7 +136,7 @@ def plot_n_mag(
             z_phot_table,
         )
         line_wave_table = jnp.array([line_wave_aa])
-        obs_mag1, weights1 = n_specphot.n_phot_kern(
+        obs_mag1, weights1 = phot_kern(
             ran_key,
             param_collection1,
             lc_data,
@@ -148,7 +148,7 @@ def plot_n_mag(
         )
 
         if param_collection2 is not None:
-            obs_mag2, weights2 = n_specphot.n_phot_kern(
+            obs_mag2, weights2 = phot_kern(
                 ran_key,
                 param_collection2,
                 lc_data,
@@ -355,7 +355,7 @@ def plot_n(
                 z_phot_table,
             )
             line_wave_table = jnp.array([line_wave_aa])
-            obs_color_mag1, weights1 = n_specphot.n_colors_mags(
+            obs_color_mag1, weights1 = get_colors_mags(
                 ran_key,
                 param_collection1,
                 lc_data,
@@ -369,7 +369,7 @@ def plot_n(
             weights1 = np.array(weights1)
 
             if param_collection2 is not None:
-                obs_color_mag2, weights2 = n_specphot.n_colors_mags(
+                obs_color_mag2, weights2 = get_colors_mags(
                     ran_key,
                     param_collection2,
                     lc_data,
@@ -530,18 +530,20 @@ def plot_n_corner(
         z_phot_table,
     )
     line_wave_table = jnp.array([line_wave_aa])
+
+    obs_color_mag1, weights1 = get_colors_mags(
+        ran_key,
+        param_collection1,
+        lc_data,
+        line_wave_table,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        frac_cat,
+    )
+
     if param_collection2 is not None:
-        obs_color_mag1, weights1 = n_specphot.n_colors_mags(
-            ran_key,
-            param_collection1,
-            lc_data,
-            line_wave_table,
-            mag_columns,
-            mag_thresh_column,
-            mag_thresh,
-            frac_cat,
-        )
-        obs_color_mag2, weights2 = n_specphot.n_colors_mags(
+        obs_color_mag2, weights2 = get_colors_mags(
             ran_key,
             param_collection2,
             lc_data,
@@ -552,17 +554,6 @@ def plot_n_corner(
             frac_cat,
         )
 
-    else:
-        obs_color_mag1, weights1 = n_specphot.n_colors_mags(
-            ran_key,
-            param_collection1,
-            lc_data,
-            line_wave_table,
-            mag_columns,
-            mag_thresh_column,
-            mag_thresh,
-            frac_cat,
-        )
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.2, dmag)
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
     ranges = [(color_bin_edges[0], color_bin_edges[-1])] * (
