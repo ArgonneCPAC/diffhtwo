@@ -153,26 +153,154 @@ def test_n_specphot(ssp_data, emline_wave_aa):
     assert np.isfinite(loss_phot_kern)
     assert loss_phot_kern >= 0
 
+    lg_n_data_err_lh_multi_z = jnp.array([lg_n_data_err_lh, lg_n_data_err_lh])
+    lc_data_multi_z = [lc_data, lc_data]
+    lc_data_multi_z = pu.stack_lc_data(lc_data_multi_z)
+    lh_centroids_multi_z = jnp.array([lh_centroids, lh_centroids])
+    dmag_centroids_multi_z = jnp.array([dmag_centroids, dmag_centroids])
 
-	lg_n_data_err_lh_multi_z = jnp.array([lg_n_data_err_lh, lg_n_data_err_lh])
+    loss_phot_multi_z = n_specphot_opt._loss_phot_kern_multi_z(
+        u_theta_default,
+        ran_key,
+        lg_n_data_err_lh_multi_z,
+        lg_n_thresh,
+        lc_data_multi_z,
+        emline_wave_aa,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        lh_centroids_multi_z,
+        dmag_centroids_multi_z,
+        frac_cat,
+    )
 
-	lc_data_multi_z = [lc_data, lc_data]
-	lc_data_multi_z = stack_lc_data(lc_data_multi_z)
+    assert np.isfinite(loss_phot_multi_z).all()
+    assert (loss_phot_multi_z >= 0).all()
 
-	lh_centroids_multi_z = jnp.array([lh_centroids, lh_centroids])
-	dmag_centroids_multi_z = jnp.array([dmag_centroids, dmag_centroids])
+    # test emline loss functions
+    emline_lc_z_min = 0.39
+    emline_lc_z_max = 0.41
+    emline_lc_sky_area_degsq = 0.1
+    emline_z_phot_table = 10 ** np.linspace(
+        np.log10(emline_lc_z_min), np.log10(emline_lc_z_max), n_z_phot_table
+    )
 
-	n_specphot_opt._loss_phot_kern_multi_z(
-	    u_theta_fit,
-	    ran_key,
-	    lg_n_data_err_lh_multi_z,
-	    lg_n_thresh,
-	    lc_data_multi_z,
-	    emline_wave_aa,
-	    mag_columns,
-	    mag_thresh_column,
-	    mag_thresh,
-	    lh_centroids_multi_z,
-	    dmag_centroids_multi_z,
-	    frac_cat,
-	)
+    emline_lc_args = (
+        ran_key,
+        num_halos,
+        emline_lc_z_min,
+        emline_lc_z_max,
+        lgmp_min,
+        lgmp_max,
+        emline_lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        emline_z_phot_table,
+    )
+    emline_lc_data = lcg.weighted_lc_photdata(
+        *emline_lc_args, cosmo_params=DEFAULT_COSMOLOGY
+    )
+
+    fields = (*emline_lc_data._fields, "lc_vol_mpc3")
+    emline_lc_vol_mpc3 = zbin_vol(
+        emline_lc_sky_area_degsq, emline_lc_z_min, emline_lc_z_max, DEFAULT_COSMOLOGY
+    )
+    values = (*emline_lc_data, emline_lc_vol_mpc3)
+    emline_lc_data = namedtuple(emline_lc_data.__class__.__name__, fields)(*values)
+
+    lg_emline_LF_data = jnp.array(
+        [
+            [
+                -1.70275854,
+                -1.74275854,
+                -1.85275854,
+                -1.97275854,
+                -2.00275854,
+                -2.07275854,
+                -2.16275854,
+                -2.31275854,
+                -2.33275854,
+                -2.46275854,
+                -2.50275854,
+                -2.61275854,
+                -2.73275854,
+                -2.77275854,
+                -2.92275854,
+                -3.07275854,
+                -3.60275854,
+                -3.75275854,
+            ],
+            [
+                0.04,
+                0.04,
+                0.04,
+                0.05,
+                0.07,
+                0.07,
+                0.09,
+                0.08,
+                0.09,
+                0.1,
+                0.11,
+                0.13,
+                0.19,
+                0.17,
+                0.2,
+                0.35,
+                0.51,
+                0.71,
+            ],
+        ]
+    )
+    lg_emline_Lbin_edges_data = jnp.linspace(40, 42.5, lg_emline_LF_data.shape[1] + 1)
+
+    emline_loss = n_specphot_opt.get_emline_loss(
+        ran_key,
+        lg_emline_LF_data,
+        lg_emline_Lbin_edges_data,
+        lg_n_thresh,
+        dpwm.DEFAULT_PARAM_COLLECTION,
+        emline_lc_data,
+        emline_wave_aa,
+    )
+
+    assert np.isfinite(emline_loss)
+    assert emline_loss >= 0
+
+    loss_emline_kern = n_specphot_opt._loss_emline_kern(
+        u_theta_default,
+        ran_key,
+        lg_emline_LF_data,
+        lg_emline_Lbin_edges_data,
+        lg_n_thresh,
+        emline_lc_data,
+        emline_wave_aa,
+    )
+
+    assert np.isfinite(loss_emline_kern)
+    assert loss_emline_kern >= 0
+
+    # single line, two redshifts
+    emline_lc_data_multi = [[emline_lc_data, emline_lc_data]]
+    emline_wave_table = jnp.array([emline_wave_aa])
+
+    loss_phot_and_emline_multi_z = n_specphot_opt._loss_phot_and_emline_multi_z(
+        u_theta_default,
+        ran_key,
+        lg_n_data_err_lh_multi_z,
+        lg_n_thresh,
+        lc_data_multi_z,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        lh_centroids_multi_z,
+        dmag_centroids_multi_z,
+        frac_cat,
+        lg_emline_LF_data,
+        lg_emline_Lbin_edges_data,
+        emline_lc_data_multi,
+        emline_wave_table,
+    )
+
+    assert np.isfinite(loss_phot_and_emline_multi_z)
+    assert loss_phot_and_emline_multi_z >= 0
