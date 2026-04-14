@@ -42,7 +42,7 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
-mpl.rcParams["axes.linewidth"] = 2
+mpl.rcParams["axes.linewidth"] = 2.5
 
 
 def plot_n_mag(
@@ -238,7 +238,7 @@ def plot_n_mag(
             )
             ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
             ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
-            ax_offset[z, i].axhline(1, color="green", alpha=0.8)
+            ax_offset[z, i].axhline(1, color="green", alpha=0.8, lw=2)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
@@ -455,7 +455,7 @@ def plot_n(
             )
             ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
             ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
-            ax_offset[z, i].axhline(1, color="green", alpha=0.8)
+            ax_offset[z, i].axhline(1, color="green", alpha=0.8, lw=2)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
