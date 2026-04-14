@@ -114,7 +114,8 @@ def test_n_specphot(ssp_data, emline_wave_aa):
     values = (*lc_data, lc_vol_mpc3)
     lc_data = namedtuple(lc_data.__class__.__name__, fields)(*values)
 
-    phot_loss = n_specphot_opt.get_phot_loss(
+    # test phot loss functions
+    phot_loss_args = (
         ran_key,
         lg_n_data_err_lh,
         lg_n_thresh,
@@ -128,6 +129,7 @@ def test_n_specphot(ssp_data, emline_wave_aa):
         dmag_centroids,
         frac_cat,
     )
+    phot_loss = n_specphot_opt.get_phot_loss(*phot_loss_args)
 
     assert np.isfinite(phot_loss)
     assert phot_loss >= 0
@@ -136,7 +138,7 @@ def test_n_specphot(ssp_data, emline_wave_aa):
         dpwm.DEFAULT_PARAM_COLLECTION
     )
 
-    loss_phot_kern = n_specphot_opt._loss_phot_kern(
+    loss_phot_kern_args = (
         u_theta_default,
         ran_key,
         lg_n_data_err_lh,
@@ -150,6 +152,8 @@ def test_n_specphot(ssp_data, emline_wave_aa):
         dmag_centroids,
         frac_cat,
     )
+    loss_phot_kern = n_specphot_opt._loss_phot_kern(*loss_phot_kern_args)
+
     assert np.isfinite(loss_phot_kern)
     assert loss_phot_kern >= 0
 
@@ -159,7 +163,7 @@ def test_n_specphot(ssp_data, emline_wave_aa):
     lh_centroids_multi_z = jnp.array([lh_centroids, lh_centroids])
     dmag_centroids_multi_z = jnp.array([dmag_centroids, dmag_centroids])
 
-    loss_phot_multi_z = n_specphot_opt._loss_phot_kern_multi_z(
+    loss_phot_kern_multi_z_args = (
         u_theta_default,
         ran_key,
         lg_n_data_err_lh_multi_z,
@@ -172,6 +176,10 @@ def test_n_specphot(ssp_data, emline_wave_aa):
         lh_centroids_multi_z,
         dmag_centroids_multi_z,
         frac_cat,
+    )
+
+    loss_phot_multi_z = n_specphot_opt._loss_phot_kern_multi_z(
+        *loss_phot_kern_multi_z_args
     )
 
     assert np.isfinite(loss_phot_multi_z).all()
@@ -254,7 +262,7 @@ def test_n_specphot(ssp_data, emline_wave_aa):
     )
     lg_emline_Lbin_edges_data = jnp.linspace(40, 42.5, lg_emline_LF_data.shape[1] + 1)
 
-    emline_loss = n_specphot_opt.get_emline_loss(
+    emline_loss_args = (
         ran_key,
         lg_emline_LF_data,
         lg_emline_Lbin_edges_data,
@@ -263,11 +271,12 @@ def test_n_specphot(ssp_data, emline_wave_aa):
         emline_lc_data,
         emline_wave_aa,
     )
+    emline_loss = n_specphot_opt.get_emline_loss(*emline_loss_args)
 
     assert np.isfinite(emline_loss)
     assert emline_loss >= 0
 
-    loss_emline_kern = n_specphot_opt._loss_emline_kern(
+    loss_emline_kern_args = (
         u_theta_default,
         ran_key,
         lg_emline_LF_data,
@@ -277,6 +286,8 @@ def test_n_specphot(ssp_data, emline_wave_aa):
         emline_wave_aa,
     )
 
+    loss_emline_kern = n_specphot_opt._loss_emline_kern(*loss_emline_kern_args)
+
     assert np.isfinite(loss_emline_kern)
     assert loss_emline_kern >= 0
 
@@ -284,7 +295,7 @@ def test_n_specphot(ssp_data, emline_wave_aa):
     emline_lc_data_multi = [[emline_lc_data, emline_lc_data]]
     emline_wave_table = jnp.array([emline_wave_aa])
 
-    loss_phot_and_emline_multi_z = n_specphot_opt._loss_phot_and_emline_multi_z(
+    loss_phot_and_emline_multi_z_args = (
         u_theta_default,
         ran_key,
         lg_n_data_err_lh_multi_z,
@@ -302,5 +313,36 @@ def test_n_specphot(ssp_data, emline_wave_aa):
         emline_wave_table,
     )
 
+    loss_phot_and_emline_multi_z = n_specphot_opt._loss_phot_and_emline_multi_z(
+        *loss_phot_and_emline_multi_z_args
+    )
+
     assert np.isfinite(loss_phot_and_emline_multi_z)
     assert loss_phot_and_emline_multi_z >= 0
+
+    trainable_params = pu.get_trainable_params()
+    fit_phot_and_emline_multi_z_args = (
+        u_theta_default,
+        trainable_params,
+        ran_key,
+        lg_n_data_err_lh_multi_z,
+        lg_n_thresh,
+        lc_data_multi_z,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        lh_centroids_multi_z,
+        dmag_centroids_multi_z,
+        frac_cat,
+        lg_emline_LF_data,
+        lg_emline_Lbin_edges_data,
+        emline_lc_data_multi,
+        emline_wave_table,
+    )
+    loss_hist, u_theta_fit = n_specphot_opt.fit_phot_and_emline_multi_z(
+        *fit_phot_and_emline_multi_z_args
+    )
+
+    assert np.isfinite(loss_hist).all()
+    for i in range(0, len(u_theta_fit)):
+        assert np.isfinite(u_theta_fit[i]).all()

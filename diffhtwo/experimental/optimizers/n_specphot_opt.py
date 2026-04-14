@@ -268,7 +268,7 @@ def fit_phot_and_emline_multi_z(
     emline_lc_data,
     emline_wave_table,
     n_steps=2,
-    step_size=0.1,
+    step_size=1e-2,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
