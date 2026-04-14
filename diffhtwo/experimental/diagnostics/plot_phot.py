@@ -365,8 +365,6 @@ def plot_n(
                 mag_thresh,
                 frac_cat,
             )
-            obs_color_mag1 = np.array(obs_color_mag1)
-            weights1 = np.array(weights1)
 
             if param_collection2 is not None:
                 obs_color_mag2, weights2 = get_colors_mags(
@@ -379,8 +377,6 @@ def plot_n(
                     mag_thresh,
                     frac_cat,
                 )
-            obs_color_mag2 = np.array(obs_color_mag2)
-            weights2 = np.array(weights2)
 
         for i in range(0, n_dims):
             sigma = np.std(dataset_colors_mag_z1[:, i])
@@ -541,6 +537,8 @@ def plot_n_corner(
         mag_thresh,
         frac_cat,
     )
+    obs_color_mag1 = np.array(obs_color_mag1)
+    weights1 = np.array(weights1)
 
     if param_collection2 is not None:
         obs_color_mag2, weights2 = get_colors_mags(
@@ -553,6 +551,8 @@ def plot_n_corner(
             mag_thresh,
             frac_cat,
         )
+        obs_color_mag2 = np.array(obs_color_mag2)
+        weights2 = np.array(weights2)
 
     color_bin_edges = np.arange(-0.5 - dmag / 2, 2.2, dmag)
     mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
