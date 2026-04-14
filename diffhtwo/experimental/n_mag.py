@@ -12,7 +12,6 @@ from diffsky import diffndhist
 from diffsky.experimental import lc_phot_kern
 from jax import jit as jjit
 from jax import vmap
-from jax.debug import print
 
 from . import diffndhist as diffndhist2
 
