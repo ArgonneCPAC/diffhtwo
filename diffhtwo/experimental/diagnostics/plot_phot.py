@@ -479,3 +479,188 @@ def plot_n(
     fig_offset.savefig(savedir + "/phot_offsets_" + savedir.split("/")[-1] + ".pdf")
 
     plt.show()
+
+
+def plot_n_corner(
+    param_collection1,
+    label1,
+    tcurves,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    frac_cat,
+    line_wave_aa,
+    dimension_labels,
+    ran_key,
+    z_min,
+    z_max,
+    ssp_data,
+    title,
+    savedir,
+    dataset_colors_mag,
+    param_collection2=None,
+    label2=None,
+    lg_n_thresh=None,
+    dmag=0.1,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    num_halos=1000,
+    sky_area_degsq=1.0,
+    n_z_phot_table=15,
+    cosmo_params=DEFAULT_COSMOLOGY,
+    fb=FB,
+):
+    z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
+    lc_data = generate_lc_data(
+        ran_key,
+        num_halos,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
+    line_wave_table = jnp.array([line_wave_aa])
+    if param_collection2 is not None:
+        obs_color_mag1, weights1 = n_specphot.n_colors_mags(
+            ran_key,
+            param_collection1,
+            lc_data,
+            line_wave_table,
+            mag_columns,
+            mag_thresh_column,
+            mag_thresh,
+            frac_cat,
+        )
+        obs_color_mag2, weights2 = n_specphot.n_colors_mags(
+            ran_key,
+            param_collection2,
+            lc_data,
+            line_wave_table,
+            mag_columns,
+            mag_thresh_column,
+            mag_thresh,
+            frac_cat,
+        )
+
+    else:
+        obs_color_mag1, weights1 = n_specphot.n_colors_mags(
+            ran_key,
+            param_collection1,
+            lc_data,
+            line_wave_table,
+            mag_columns,
+            mag_thresh_column,
+            mag_thresh,
+            frac_cat,
+        )
+    color_bin_edges = np.arange(-0.5 - dmag / 2, 2.2, dmag)
+    mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
+    ranges = [(color_bin_edges[0], color_bin_edges[-1])] * (
+        len(dimension_labels) - len(mag_columns)
+    )
+    for m in range(0, len(mag_columns)):
+        ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
+
+    # data
+    fig_corner = corner.corner(
+        dataset_colors_mag,
+        color=color_data,
+        labels=dimension_labels,
+        label_kwargs={"fontsize": 20},
+        plot_datapoints=False,
+        smooth=1.0,
+        levels=[0.68, 0.95],
+        hist_kwargs={
+            "histtype": "stepfilled",
+            "alpha": 0.5,
+            "lw": lw,
+            "density": True,
+        },
+        fill_contours=False,
+        plot_density=False,
+        contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
+        range=ranges,
+    )
+
+    fig_corner.suptitle(title, fontsize=fontsize + 4)
+
+    # model 1
+    corner.corner(
+        obs_color_mag1,
+        weights=weights1,
+        fig=fig_corner,
+        color=color1,
+        smooth=1.0,
+        plot_datapoints=False,
+        levels=[0.68, 0.95],
+        hist_kwargs={
+            "histtype": "step",
+            "alpha": 0.5,
+            "lw": lw + 2,
+            "density": True,
+        },
+        fill_contours=False,
+        plot_density=False,
+        contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
+        range=ranges,
+    )
+
+    # model 2
+    if param_collection2 is not None:
+        corner.corner(
+            obs_color_mag2,
+            weights=weights2,
+            fig=fig_corner,
+            color=color2,
+            smooth=1.0,
+            plot_datapoints=False,
+            levels=[0.68, 0.95],
+            hist_kwargs={
+                "histtype": "step",
+                "alpha": 0.5,
+                "lw": lw + 2,
+                "density": True,
+            },
+            plot_density=False,
+            fill_contours=False,
+            contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
+            range=ranges,
+        )
+
+    if label2 is not None:
+        handles = [
+            Line2D([], [], color=color1, lw=lw + 1, label=label1),
+            Line2D([], [], color=color2, lw=lw + 1, label=label2),
+            Line2D([], [], color=color_data, lw=lw, label="FENIKS-UDS"),
+        ]
+    else:
+        handles = [
+            Line2D([], [], color=color1, lw=lw + 1, label=label1),
+            Line2D([], [], color=color_data, lw=lw, label="FENIKS-UDS"),
+        ]
+
+    fig_corner.axes[0].legend(
+        handles=handles,
+        loc="center left",
+        bbox_to_anchor=(1.0, 0.5),
+        frameon=False,
+        fontsize=fontsize,
+    )
+
+    for ax in fig_corner.get_axes():
+        ax.tick_params(axis="both", direction="in", labelsize=labelsize / 2)
+    fig_corner.savefig(
+        savedir
+        + "/z"
+        + str(z_min)
+        + "-"
+        + str(z_max)
+        + "_corner_fit_"
+        + savedir.split("/")[-1]
+        + ".pdf"
+    )
+    plt.show()
