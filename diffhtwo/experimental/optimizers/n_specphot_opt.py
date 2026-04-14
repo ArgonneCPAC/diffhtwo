@@ -9,16 +9,8 @@ from functools import partial
 
 import jax.numpy as jnp
 from diffsky.experimental.scatter import DEFAULT_SCATTER_U_PARAMS
-from diffsky.param_utils import diffsky_param_wrapper_merging as dpwm
-from diffsky.param_utils.spspop_param_utils import (
-    DEFAULT_SPSPOP_U_PARAMS,
-    get_bounded_spspop_params_tw_dust,
-)
-from diffsky.ssp_err_model.defaults import (
-    ZERO_SSPERR_U_PARAMS,
-    get_bounded_ssperr_params,
-)
-from diffstar.diffstarpop import get_bounded_diffstarpop_params
+from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_U_PARAMS
+from diffsky.ssp_err_model.defaults import ZERO_SSPERR_U_PARAMS
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from dsps.metallicity.umzr import DEFAULT_MZR_U_PARAMS
 from jax import jit as jjit
@@ -26,7 +18,7 @@ from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
-from ..n_specphot import n_phot_lh, n_spec
+from ..n_specphot import n_phot_lh, n_spec_kern
 from ..param_utils import get_param_collection_from_u_theta
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
@@ -92,7 +84,7 @@ def get_emline_loss(
     line_wave_aa,
 ):
     line_wave_table = jnp.array([line_wave_aa])
-    lg_emline_LF_model = n_spec(
+    lg_emline_LF_model = n_spec_kern(
         ran_key,
         param_collection,
         lc_data,

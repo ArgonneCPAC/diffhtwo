@@ -24,7 +24,7 @@ def n_phot_lh(
     dmag_centroids,
     frac_cat,
 ):
-    obs_color_mag, weights_threshd = n_phot(
+    obs_color_mag, weights_threshd = n_phot_kern(
         ran_key,
         param_collection,
         lc_data,
@@ -53,7 +53,7 @@ def n_phot_lh(
 
 
 @jjit
-def n_phot(
+def n_phot_kern(
     ran_key,
     param_collection,
     lc_data,
@@ -125,7 +125,7 @@ def n_phot(
 
 
 @jjit
-def n_spec(
+def n_spec_kern(
     ran_key,
     param_collection,
     lc_data,
