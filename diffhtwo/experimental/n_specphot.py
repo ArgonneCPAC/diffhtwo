@@ -12,7 +12,7 @@ from .n_mag import N_0, N_FLOOR, get_n_data_err
 
 
 @jjit
-def n_phot_lh(
+def n_colors_mags_lh(
     ran_key,
     param_collection,
     lc_data,
@@ -24,7 +24,7 @@ def n_phot_lh(
     dmag_centroids,
     frac_cat,
 ):
-    obs_color_mag, weights_threshd = n_phot_kern(
+    obs_color_mag, weights = n_colors_mags(
         ran_key,
         param_collection,
         lc_data,
@@ -43,13 +43,44 @@ def n_phot_lh(
     N = diffndhist2.tw_ndhist_weighted(
         obs_color_mag,
         sig,
-        weights_threshd,
+        weights,
         lh_centroids_lo,
         lh_centroids_hi,
     )
     lg_n, lg_n_avg_err = get_n_data_err(N, lc_data.lc_vol_mpc3)
 
     return lg_n, lg_n_avg_err
+
+
+@jjit
+def n_colors_mags(
+    ran_key,
+    param_collection,
+    lc_data,
+    line_wave_table,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    frac_cat,
+):
+    mags, weights = n_phot_kern(
+        ran_key,
+        param_collection,
+        lc_data,
+        line_wave_table,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        frac_cat,
+    )
+    # collect colors and mags
+    n_gals, n_bands = mags.shape
+    obs_color_mag = mags[:, 0 : n_bands - 1] - mags[:, 1:n_bands]
+    for mag_column in mag_columns:
+        mag = mags[:, mag_column][:, None]
+        obs_color_mag = jnp.hstack((obs_color_mag, mag))
+
+    return obs_color_mag, weights
 
 
 @jjit
@@ -103,25 +134,16 @@ def n_phot_kern(
     ) = _res
     mags_in_plus_ex_situ = -2.5 * jnp.log10(flux_in_plus_ex_situ)
 
-    # collect colors and mags
-    n_gals, n_bands = mags_in_plus_ex_situ.shape
-    obs_color_mag = (
-        mags_in_plus_ex_situ[:, 0 : n_bands - 1] - mags_in_plus_ex_situ[:, 1:n_bands]
-    )
-    for mag_column in mag_columns:
-        mag = mags_in_plus_ex_situ[:, mag_column][:, None]
-        obs_color_mag = jnp.hstack((obs_color_mag, mag))
-
     # get weights incorporating frac_cat
     weights = lc_data.nhalos * frac_cat
 
     # apply mag thresh cut
     obs_mag_thresh_band = mags_in_plus_ex_situ[:, mag_thresh_column]
-    weights_threshd = jnp.where(
+    weights = jnp.where(
         obs_mag_thresh_band < mag_thresh, weights, jnp.zeros_like(weights)
     )
 
-    return obs_color_mag, weights_threshd
+    return mags_in_plus_ex_situ, weights
 
 
 @jjit
