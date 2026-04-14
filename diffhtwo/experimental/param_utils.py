@@ -202,6 +202,7 @@ def stack_lc_data(lc_data_list):
     treedef = tree_util.tree_structure(lc_data_list[0])
     leaves_list = [tree_util.tree_leaves(lc) for lc in lc_data_list]
     stacked_leaves = [
-        jnp.stack([l[i] for l in leaves_list]) for i in range(len(leaves_list[0]))
+        jnp.stack([l[i] for l in leaves_list])  # noqa: E741
+        for i in range(len(leaves_list[0]))
     ]
     return tree_util.tree_unflatten(treedef, stacked_leaves)
