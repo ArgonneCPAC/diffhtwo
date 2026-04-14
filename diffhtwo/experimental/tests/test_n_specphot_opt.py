@@ -294,6 +294,10 @@ def test_n_specphot_opt(fake_subset_ssp_data):
     # single line, two redshifts
     emline_lc_data_multi = [[emline_lc_data, emline_lc_data]]
     emline_wave_table = jnp.array([emline_wave_aa])
+    lg_emline_LF_data_multi_z = [[lg_emline_LF_data, lg_emline_LF_data]]
+    lg_emline_Lbin_edges_data_multi_z = [
+        [lg_emline_Lbin_edges_data, lg_emline_Lbin_edges_data]
+    ]
 
     loss_phot_and_emline_multi_z_args = (
         u_theta_default,
@@ -307,8 +311,8 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         lh_centroids_multi_z,
         dmag_centroids_multi_z,
         frac_cat,
-        lg_emline_LF_data,
-        lg_emline_Lbin_edges_data,
+        lg_emline_LF_data_multi_z,
+        lg_emline_Lbin_edges_data_multi_z,
         emline_lc_data_multi,
         emline_wave_table,
     )
@@ -334,8 +338,8 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         lh_centroids_multi_z,
         dmag_centroids_multi_z,
         frac_cat,
-        lg_emline_LF_data,
-        lg_emline_Lbin_edges_data,
+        lg_emline_LF_data_multi_z,
+        lg_emline_Lbin_edges_data_multi_z,
         emline_lc_data_multi,
         emline_wave_table,
     )
