@@ -226,18 +226,17 @@ def plot_n_mag(
             ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
             ax_offset[z, i].set_yticks(ax_offset_yticks)
             ax_offset[z, i].set_yticklabels(["", "0.2x", "0.5x", "1x", "2x", "5x", ""])
-            ax_offset[z, i].set_yticks(ax_offset_yticks)
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
+                ax_offset_yticks[2], ax_offset_yticks[4], color="orange", alpha=0.5
             )
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
+                ax_offset_yticks[1], ax_offset_yticks[2], color="r", alpha=0.5
             )
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
+                ax_offset_yticks[4], ax_offset_yticks[5], color="r", alpha=0.5
             )
             ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
-            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(ax_offset_yticks[5], 10, color="r", alpha=0.8)
             ax_offset[z, i].axhline(1, color="green", alpha=0.8, lw=2)
 
             if i != 0:
@@ -445,16 +444,16 @@ def plot_n(
             ax_offset[z, i].set_yticks(ax_offset_yticks)
             ax_offset[z, i].set_yticklabels(["", "0.2x", "0.5x", "1x", "2x", "5x", ""])
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[1], ax_offset_yticks[3], color="orange", alpha=0.5
+                ax_offset_yticks[2], ax_offset_yticks[4], color="orange", alpha=0.5
             )
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[0], ax_offset_yticks[1], color="r", alpha=0.5
+                ax_offset_yticks[1], ax_offset_yticks[2], color="r", alpha=0.5
             )
             ax_offset[z, i].axhspan(
-                ax_offset_yticks[3], ax_offset_yticks[4], color="r", alpha=0.5
+                ax_offset_yticks[4], ax_offset_yticks[5], color="r", alpha=0.5
             )
             ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
-            ax_offset[z, i].axhspan(ax_offset_yticks[4], 10, color="r", alpha=0.8)
+            ax_offset[z, i].axhspan(ax_offset_yticks[5], 10, color="r", alpha=0.8)
             ax_offset[z, i].axhline(1, color="green", alpha=0.8, lw=2)
 
             if i != 0:
