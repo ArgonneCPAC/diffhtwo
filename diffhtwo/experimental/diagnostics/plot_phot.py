@@ -237,7 +237,7 @@ def plot_n_mag(
             )
             ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
             ax_offset[z, i].axhspan(ax_offset_yticks[5], 10, color="r", alpha=0.8)
-            ax_offset[z, i].axhline(1, color="green", alpha=0.8, lw=2)
+            ax_offset[z, i].axhline(1, color="green", alpha=0.5, lw=5)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
@@ -454,7 +454,7 @@ def plot_n(
             )
             ax_offset[z, i].axhspan(0, ax_offset_yticks[0], color="r", alpha=0.8)
             ax_offset[z, i].axhspan(ax_offset_yticks[5], 10, color="r", alpha=0.8)
-            ax_offset[z, i].axhline(1, color="green", alpha=0.8, lw=2)
+            ax_offset[z, i].axhline(1, color="green", alpha=0.5, lw=5)
 
             if i != 0:
                 ax[z, i].set_yticklabels([])
