@@ -46,6 +46,8 @@ mpl.rcParams["axes.linewidth"] = 2
 
 
 def plot_n_mag(
+    dataset_mags,
+    data_sky_area_degsq,
     param_collection1,
     label1,
     tcurves,
@@ -62,8 +64,6 @@ def plot_n_mag(
     suptitle,
     zbin_titles,
     savedir,
-    dataset_mags=None,
-    data_sky_area_degsq=None,
     param_collection2=None,
     label2=None,
     lg_n_thresh=None,
@@ -265,6 +265,8 @@ def plot_n_mag(
 
 
 def plot_n(
+    dataset_colors_mag,
+    data_sky_area_degsq,
     param_collection1,
     label1,
     tcurves,
@@ -281,8 +283,6 @@ def plot_n(
     suptitle,
     zbin_titles,
     savedir,
-    dataset_colors_mag=None,
-    data_sky_area_degsq=None,
     param_collection2=None,
     label2=None,
     lg_n_thresh=None,
@@ -484,6 +484,7 @@ def plot_n(
 
 
 def plot_n_corner(
+    dataset_colors_mag,
     param_collection1,
     label1,
     tcurves,
@@ -499,7 +500,6 @@ def plot_n_corner(
     ssp_data,
     title,
     savedir,
-    dataset_colors_mag,
     param_collection2=None,
     label2=None,
     lg_n_thresh=None,
