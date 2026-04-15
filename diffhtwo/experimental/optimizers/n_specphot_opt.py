@@ -144,7 +144,7 @@ def _loss_phot_kern(
     return phot_loss
 
 
-_L_pk = (None, None, 0, None, 0, None, None, None, None, 0, 0, None, None)
+_L_pk = (None, None, 0, None, 0, None, None, None, None, 0, 0, None)
 _loss_phot_kern_multi_z = jjit(
     vmap(
         _loss_phot_kern,
@@ -240,9 +240,7 @@ def _loss_sdss_feniks_hizels(
         feniks_d_centroids,
         feniks_frac_cat,
     )
-    feniks_phot_loss_multi_z = _loss_phot_kern_multi_z(
-        *feniks_phot_multi_z_loss_args, redshift_as_last_dimension_in_lh=False
-    )
+    feniks_phot_loss_multi_z = _loss_phot_kern_multi_z(*feniks_phot_multi_z_loss_args)
 
     # hizels
     hizels_emline_multi_line_multi_z_loss_args = (
