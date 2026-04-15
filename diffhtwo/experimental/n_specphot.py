@@ -36,19 +36,15 @@ def n_colors_mags_lh(
         mag_thresh,
         frac_cat,
     )
-    print("obs_color_mag.shape (before):{}", obs_color_mag.shape)
-    print("lc_data.z_obs.shape:{}", lc_data.z_obs.shape)
 
     if redshift_as_last_dimension_in_lh is True:
-        obs_color_mag = jnp.hstack((obs_color_mag, lc_data.z_obs))
+        z_obs = lc_data.z_obs.reshape(lc_data.z_obs.size, 1)
+        obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
 
     # calculate number density in LH bins
     sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
     lh_centroids_hi = lh_centroids + (d_centroids / 2)
-
-    print("obs_color_mag.shape (after):{}", obs_color_mag.shape)
-    print("weights.shape:{}", weights.shape)
 
     N = diffndhist2.tw_ndhist_weighted(
         obs_color_mag,
