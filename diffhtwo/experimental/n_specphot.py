@@ -5,6 +5,7 @@ from diffsky.experimental.kernels import mc_phot_kernels as mcpk
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
+from jax.debug import print
 
 from . import diffndhist as diffndhist2
 from . import emline_luminosity
@@ -35,6 +36,8 @@ def n_colors_mags_lh(
         mag_thresh,
         frac_cat,
     )
+    print("obs_color_mag.shape (before):{}", obs_color_mag.shape)
+    print("lc_data.z_obs.shape:{}", lc_data.z_obs.shape)
 
     if redshift_as_last_dimension_in_lh is True:
         obs_color_mag = jnp.hstack((obs_color_mag, lc_data.z_obs))
@@ -43,6 +46,9 @@ def n_colors_mags_lh(
     sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
     lh_centroids_hi = lh_centroids + (d_centroids / 2)
+
+    print("obs_color_mag.shape (after):{}", obs_color_mag.shape)
+    print("weights.shape:{}", weights.shape)
 
     N = diffndhist2.tw_ndhist_weighted(
         obs_color_mag,
