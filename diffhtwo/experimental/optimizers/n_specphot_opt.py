@@ -40,7 +40,7 @@ def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err, lg_n_thresh):
     return jnp.sum(chi2) / nbins
 
 
-@jjit
+@partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
 def get_phot_loss(
     ran_key,
     lg_n_target,
@@ -105,7 +105,7 @@ def get_emline_loss(
     return emline_loss
 
 
-@jjit
+@partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
 def _loss_phot_kern(
     u_theta,
     ran_key,

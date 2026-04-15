@@ -1,3 +1,5 @@
+from functools import partial
+
 import jax.numpy as jnp
 from diffsky.burstpop import freqburst_mono
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
@@ -5,14 +7,13 @@ from diffsky.experimental.kernels import mc_phot_kernels as mcpk
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
-from jax.debug import print
 
 from . import diffndhist as diffndhist2
 from . import emline_luminosity
 from .n_mag import N_0, N_FLOOR, get_n_data_err
 
 
-@jjit
+@partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
 def n_colors_mags_lh(
     ran_key,
     param_collection,
@@ -40,7 +41,7 @@ def n_colors_mags_lh(
     if redshift_as_last_dimension_in_lh is True:
         z_obs = lc_data.z_obs.reshape(lc_data.z_obs.size, 1)
         obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
-    print("obs_color_mag.shape:{}", obs_color_mag.shape)
+        print("obs_color_mag.shape:{}", obs_color_mag.shape)
 
     # calculate number density in LH bins
     sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
