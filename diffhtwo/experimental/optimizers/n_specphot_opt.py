@@ -57,7 +57,7 @@ def get_phot_loss(
     redshift_as_last_dimension_in_lh=False,
 ):
     line_wave_table = jnp.array([line_wave_aa])
-    lg_n_model, _ = n_colors_mags_lh(
+    n_colors_mags_lh_args = (
         ran_key,
         param_collection,
         lc_data,
@@ -68,7 +68,10 @@ def get_phot_loss(
         lh_centroids,
         d_centroids,
         frac_cat,
-        redshift_as_last_dimension_in_lh,
+    )
+    lg_n_model, _ = n_colors_mags_lh(
+        *n_colors_mags_lh_args,
+        redshift_as_last_dimension_in_lh=redshift_as_last_dimension_in_lh,
     )
     phot_loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
@@ -136,9 +139,11 @@ def _loss_phot_kern(
         lh_centroids,
         d_centroids,
         frac_cat,
-        redshift_as_last_dimension_in_lh,
     )
-    phot_loss = get_phot_loss(*phot_loss_args)
+    phot_loss = get_phot_loss(
+        *phot_loss_args,
+        redshift_as_last_dimension_in_lh=redshift_as_last_dimension_in_lh,
+    )
 
     return phot_loss
 
