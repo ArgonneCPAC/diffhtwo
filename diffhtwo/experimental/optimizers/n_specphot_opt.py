@@ -52,7 +52,7 @@ def get_phot_loss(
     mag_thresh_column,
     mag_thresh,
     lh_centroids,
-    dmag_centroids,
+    d_centroids,
     frac_cat,
 ):
     line_wave_table = jnp.array([line_wave_aa])
@@ -65,7 +65,7 @@ def get_phot_loss(
         mag_thresh_column,
         mag_thresh,
         lh_centroids,
-        dmag_centroids,
+        d_centroids,
         frac_cat,
     )
     phot_loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
@@ -114,7 +114,7 @@ def _loss_phot_kern(
     mag_thresh_column,
     mag_thresh,
     lh_centroids,
-    dmag_centroids,
+    d_centroids,
     frac_cat,
     u_mzr_params=DEFAULT_MZR_U_PARAMS,
     u_scatter_params=DEFAULT_SCATTER_U_PARAMS,
@@ -133,7 +133,7 @@ def _loss_phot_kern(
         mag_thresh_column,
         mag_thresh,
         lh_centroids,
-        dmag_centroids,
+        d_centroids,
         frac_cat,
     )
     phot_loss = get_phot_loss(*phot_loss_args)
@@ -199,7 +199,7 @@ def _loss_phot_and_emline_multi_z(
     mag_thresh_column,
     mag_thresh,
     lh_centroids,
-    dmag_centroids,
+    d_centroids,
     frac_cat,
     lg_emline_LF_target,
     lg_emline_Lbin_edges,
@@ -218,7 +218,7 @@ def _loss_phot_and_emline_multi_z(
         mag_thresh_column,
         mag_thresh,
         lh_centroids,
-        dmag_centroids,
+        d_centroids,
         frac_cat,
     )
     phot_loss_multi_z = _loss_phot_kern_multi_z(*phot_multi_z_loss_args)
@@ -261,7 +261,7 @@ def fit_phot_and_emline_multi_z(
     mag_thresh_column,
     mag_thresh,
     lh_centroids,
-    dmag_centroids,
+    d_centroids,
     frac_cat,
     lg_emline_LF_target,
     lg_emline_Lbin_edges,
@@ -282,7 +282,7 @@ def fit_phot_and_emline_multi_z(
         mag_thresh_column,
         mag_thresh,
         lh_centroids,
-        dmag_centroids,
+        d_centroids,
         frac_cat,
         lg_emline_LF_target,
         lg_emline_Lbin_edges,

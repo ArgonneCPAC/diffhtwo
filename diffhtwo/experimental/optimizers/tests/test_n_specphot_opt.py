@@ -70,7 +70,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
             )
         )
     )
-    dmag_centroids = jnp.ones((lh_centroids.shape[0], 1)) * dmag
+    d_centroids = jnp.ones((lh_centroids.shape[0], 1)) * dmag
 
     rng = np.random.default_rng(0)
     lg_n_data = rng.uniform(-17, -4, lh_centroids.shape[0])
@@ -126,7 +126,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         mag_thresh_column,
         mag_thresh,
         lh_centroids,
-        dmag_centroids,
+        d_centroids,
         frac_cat,
     )
     phot_loss = n_specphot_opt.get_phot_loss(*phot_loss_args)
@@ -149,7 +149,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         mag_thresh_column,
         mag_thresh,
         lh_centroids,
-        dmag_centroids,
+        d_centroids,
         frac_cat,
     )
     loss_phot_kern = n_specphot_opt._loss_phot_kern(*loss_phot_kern_args)
@@ -161,7 +161,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
     lc_data_multi_z = [lc_data, lc_data]
     lc_data_multi_z = pu.stack_lc_data(lc_data_multi_z)
     lh_centroids_multi_z = jnp.array([lh_centroids, lh_centroids])
-    dmag_centroids_multi_z = jnp.array([dmag_centroids, dmag_centroids])
+    d_centroids_multi_z = jnp.array([d_centroids, d_centroids])
 
     loss_phot_kern_multi_z_args = (
         u_theta_default,
@@ -174,7 +174,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         mag_thresh_column,
         mag_thresh,
         lh_centroids_multi_z,
-        dmag_centroids_multi_z,
+        d_centroids_multi_z,
         frac_cat,
     )
 
@@ -309,7 +309,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         mag_thresh_column,
         mag_thresh,
         lh_centroids_multi_z,
-        dmag_centroids_multi_z,
+        d_centroids_multi_z,
         frac_cat,
         lg_emline_LF_data_multi_z,
         lg_emline_Lbin_edges_data_multi_z,
@@ -336,7 +336,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         mag_thresh_column,
         mag_thresh,
         lh_centroids_multi_z,
-        dmag_centroids_multi_z,
+        d_centroids_multi_z,
         frac_cat,
         lg_emline_LF_data_multi_z,
         lg_emline_Lbin_edges_data_multi_z,
