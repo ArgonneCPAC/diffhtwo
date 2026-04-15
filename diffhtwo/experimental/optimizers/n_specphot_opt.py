@@ -200,13 +200,13 @@ def _loss_sdss_feniks_hizels(
     feniks_lh_centroids,
     feniks_d_centroids,
     feniks_frac_cat,
-    hizels_lg_emline_LF_target,
-    hizels_lg_emline_Lbin_edges,
-    hizels_emline_lc_data,
-    hizels_emline_wave_table,
+    hizels_lg_LF_target,
+    hizels_lg_Lbin_edges,
+    hizels_lc_data,
+    hizels_wave_table,
     redshift_as_last_dimension_in_lh=False,
 ):
-    emline_wave_aa = hizels_emline_wave_table[0]
+    emline_wave_aa = hizels_wave_table[0]
 
     # sdss
     sdss_phot_loss_args = (
@@ -250,10 +250,10 @@ def _loss_sdss_feniks_hizels(
         u_theta,
         ran_key,
         lg_n_thresh,
-        hizels_lg_emline_LF_target,
-        hizels_lg_emline_Lbin_edges,
-        hizels_emline_lc_data,
-        hizels_emline_wave_table,
+        hizels_lg_LF_target,
+        hizels_lg_Lbin_edges,
+        hizels_lc_data,
+        hizels_wave_table,
     )
     hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
         *hizels_emline_multi_line_multi_z_loss_args
