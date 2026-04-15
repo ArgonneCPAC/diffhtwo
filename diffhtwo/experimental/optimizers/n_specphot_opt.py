@@ -68,11 +68,9 @@ def get_phot_loss(
         lh_centroids,
         d_centroids,
         frac_cat,
+        redshift_as_last_dimension_in_lh,
     )
-    lg_n_model, _ = n_colors_mags_lh(
-        *n_colors_mags_lh_args,
-        redshift_as_last_dimension_in_lh=redshift_as_last_dimension_in_lh,
-    )
+    lg_n_model, _ = n_colors_mags_lh(*n_colors_mags_lh_args)
     phot_loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     return phot_loss
@@ -139,11 +137,9 @@ def _loss_phot_kern(
         lh_centroids,
         d_centroids,
         frac_cat,
+        redshift_as_last_dimension_in_lh,
     )
-    phot_loss = get_phot_loss(
-        *phot_loss_args,
-        redshift_as_last_dimension_in_lh=redshift_as_last_dimension_in_lh,
-    )
+    phot_loss = get_phot_loss(*phot_loss_args)
 
     return phot_loss
 
@@ -207,7 +203,6 @@ def _loss_sdss_feniks_hizels(
     hizels_lg_Lbin_edges,
     hizels_lc_data,
     hizels_wave_table,
-    redshift_as_last_dimension_in_lh=False,
 ):
     emline_wave_aa = hizels_wave_table[0]
 
@@ -244,9 +239,10 @@ def _loss_sdss_feniks_hizels(
         feniks_lh_centroids,
         feniks_d_centroids,
         feniks_frac_cat,
-        redshift_as_last_dimension_in_lh,
     )
-    feniks_phot_loss_multi_z = _loss_phot_kern_multi_z(*feniks_phot_multi_z_loss_args)
+    feniks_phot_loss_multi_z = _loss_phot_kern_multi_z(
+        *feniks_phot_multi_z_loss_args, redshift_as_last_dimension_in_lh=False
+    )
 
     # hizels
     hizels_emline_multi_line_multi_z_loss_args = (
