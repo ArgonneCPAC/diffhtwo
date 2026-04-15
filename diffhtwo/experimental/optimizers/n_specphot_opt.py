@@ -118,8 +118,6 @@ def _loss_phot_kern(
     lh_centroids,
     d_centroids,
     frac_cat,
-    u_mzr_params=DEFAULT_MZR_U_PARAMS,
-    u_scatter_params=DEFAULT_SCATTER_U_PARAMS,
     redshift_as_last_dimension_in_lh=False,
 ):
     # get bounded param collection
