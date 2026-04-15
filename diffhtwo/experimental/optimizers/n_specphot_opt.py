@@ -143,7 +143,7 @@ def _loss_phot_kern(
     return phot_loss
 
 
-_L_pk = (None, None, 0, None, 0, None, None, None, None, 0, 0, None, None)
+_L_pk = (None, None, 0, None, 0, None, None, None, None, 0, 0, None)
 _loss_phot_kern_multi_z = jjit(
     vmap(
         _loss_phot_kern,
