@@ -17,10 +17,10 @@ from dsps.data_loaders import retrieve_fake_fsps_data
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from .. import param_utils as pu
-from ..data_loaders import retrieve_tcurves
-from ..optimizers import n_specphot_opt
-from ..utils import zbin_vol
+from ... import param_utils as pu
+from ...data_loaders import retrieve_tcurves
+from ...utils import zbin_vol
+from .. import n_specphot_opt
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
 
