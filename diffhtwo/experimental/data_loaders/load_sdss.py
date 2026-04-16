@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 import jax.numpy as jnp
 import numpy as np
 from DisCoWebS.data_loader import sdss_loader as sdl
@@ -12,6 +14,10 @@ D_MAG = 0.1
 D_Z = 0.05
 N_CENTROIDS = 2500
 SIG = 2.5
+
+SDSS = namedtuple(
+    "SDSS", ["dataset", "lh_centroids", "d_centroids", "lg_n_data_err_lh"]
+)
 
 
 def get_sdss_data(drn):
@@ -68,4 +74,4 @@ def get_sdss_data(drn):
     lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
     lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
 
-    return dataset, lh_centroids, d_centroids, lg_n_data_err_lh
+    return SDSS(dataset, lh_centroids, d_centroids, lg_n_data_err_lh)
