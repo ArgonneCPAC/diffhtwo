@@ -390,7 +390,6 @@ def test_n_specphot_opt(fake_subset_ssp_data):
     ]
 
     loss_phot_and_emline_multi_z_args = (
-        u_theta_default,
         ran_key,
         lg_n_data_err_lh_multi_z,
         lg_n_thresh,
@@ -408,19 +407,33 @@ def test_n_specphot_opt(fake_subset_ssp_data):
     )
 
     loss_phot_and_emline_multi_z = n_specphot_opt._loss_phot_and_emline_multi_z(
-        *loss_phot_and_emline_multi_z_args
+        u_theta_default, *loss_phot_and_emline_multi_z_args
     )
 
     assert np.isfinite(loss_phot_and_emline_multi_z)
     assert loss_phot_and_emline_multi_z >= 0
 
     trainable_params = pu.get_trainable_params()
-    fit_phot_and_emline_multi_z_args = (
-        u_theta_default,
-        trainable_params,
+    loss_hist, u_theta_fit = n_specphot_opt.fit_phot_and_emline_multi_z(
+        u_theta_default, trainable_params, *loss_phot_and_emline_multi_z_args
+    )
+
+    assert np.isfinite(loss_hist).all()
+    for i in range(0, len(u_theta_fit)):
+        assert np.isfinite(u_theta_fit[i]).all()
+
+    loss_sdss_feniks_hizels_args = (
         ran_key,
-        lg_n_data_err_lh_multi_z,
         lg_n_thresh,
+        sdss_lg_n_data_err_lh,
+        sdss_lc_data,
+        sdss_mag_columns,
+        sdss_mag_thresh_column,
+        sdss_mag_thresh,
+        sdss_lh_centroids,
+        sdss_d_centroids,
+        sdss_frac_cat,
+        lg_n_data_err_lh_multi_z,
         lc_data_multi_z,
         mag_columns,
         mag_thresh_column,
@@ -433,10 +446,18 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         emline_lc_data_multi,
         emline_wave_table,
     )
-    loss_hist, u_theta_fit = n_specphot_opt.fit_phot_and_emline_multi_z(
-        *fit_phot_and_emline_multi_z_args
-    )
 
+    loss_sdss_feniks_hizels = n_specphot_opt._loss_sdss_feniks_hizels(
+        u_theta_default, *loss_sdss_feniks_hizels_args
+    )
+    assert np.isfinite(loss_sdss_feniks_hizels)
+    assert loss_sdss_feniks_hizels >= 0
+
+    loss_hist, u_theta_fit = n_specphot_opt.fit_sdss_feniks_hizels(
+        u_theta_default,
+        trainable_params,
+        *loss_sdss_feniks_hizels_args,
+    )
     assert np.isfinite(loss_hist).all()
     for i in range(0, len(u_theta_fit)):
         assert np.isfinite(u_theta_fit[i]).all()
