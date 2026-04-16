@@ -19,7 +19,7 @@ from jax.flatten_util import ravel_pytree
 
 from ... import param_utils as pu
 from ...data_loaders import retrieve_tcurves
-from ...defaults import SDSS_AREA_DEG2, SDSS_MAGR_THRESH, SDSS_Z_MAX, SDSS_Z_MIN
+from ...defaults import SDSS_MAGR_THRESH, SDSS_Z_MAX, SDSS_Z_MIN
 from ...utils import zbin_vol
 from .. import n_specphot_opt
 
