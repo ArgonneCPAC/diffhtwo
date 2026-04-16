@@ -41,6 +41,37 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
     uds_Ktot = get_mag_ab(phot, "ftot_Kuds")
 
+    nan_mask = (
+        (megacam_uS != -99.0)
+        | (hsc_g != -99.0)
+        | (hsc_r != -99.0)
+        | (hsc_i != -99.0)
+        | (nb816 != -99)
+        | (hsc_z != -99.0)
+        | (nb921 != -99)
+        | (video_Y != -99)
+        | (uds_J != -99.0)
+        | (uds_H != -99.0)
+        | (uds_K != -99.0)
+        | (uds_Ktot != -99.0)
+    )
+    print(nan_mask.sum() / nan_mask.size)
+
+    megacam_uS = megacam_uS[nan_mask]
+    hsc_g = hsc_g[nan_mask]
+    hsc_r = hsc_r[nan_mask]
+    hsc_i = hsc_i[nan_mask]
+    nb816 = nb816[nan_mask]
+    hsc_z = hsc_z[nan_mask]
+    nb921 = nb921[nan_mask]
+    video_Y = video_Y[nan_mask]
+    uds_J = uds_J[nan_mask]
+    uds_H = uds_H[nan_mask]
+    uds_K = uds_K[nan_mask]
+    uds_Ktot = uds_Ktot[nan_mask]
+
+    zout = zout[nan_mask]
+
     # derive colors from mags
     megacam_hsc_uSg = megacam_uS - hsc_g
     hsc_gr = hsc_g - hsc_r
@@ -70,11 +101,6 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
             zout["z_phot"],
         )
     ).T
-
-    # nan_mask selection goes into FENIKS_FRAC_CAT in defaults.py along with the initial !=-99 in all bands selection
-    nan_mask = ~(dataset == -99).any(axis=1)
-    dataset = dataset[nan_mask]
-    zout = zout[nan_mask]
 
     z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
     dataset = dataset[z_mask]
