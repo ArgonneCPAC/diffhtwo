@@ -71,7 +71,7 @@ def plot_n_mag(
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
     num_halos=1000,
-    sky_area_degsq=1.0,
+    sky_area_degsq=100,
     n_z_phot_table=15,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
@@ -114,10 +114,7 @@ def plot_n_mag(
         t = int(n_bands / 2)
         ax[z, t].set_title(zbin_titles[z], y=0.85, fontsize=labelsize)
 
-        if data_sky_area_degsq is not None:
-            data_vol_mpc3 = zbin_volume(
-                data_sky_area_degsq, zlow=z_min, zhigh=z_max
-            ).value
+        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
 
         z_phot_table = 10 ** jnp.linspace(
             np.log10(z_min), np.log10(z_max), n_z_phot_table
@@ -288,7 +285,7 @@ def plot_n(
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
     num_halos=1000,
-    sky_area_degsq=1.0,
+    sky_area_degsq=100,
     n_z_phot_table=15,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
@@ -331,31 +328,40 @@ def plot_n(
         t = int(n_dims / 2)
         ax[z, t].set_title(zbin_titles[z], y=0.85, fontsize=labelsize)
 
-        if data_sky_area_degsq is not None:
-            data_vol_mpc3 = zbin_volume(
-                data_sky_area_degsq, zlow=z_min, zhigh=z_max
-            ).value
+        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
 
-            z_phot_table = 10 ** jnp.linspace(
-                np.log10(z_min), np.log10(z_max), n_z_phot_table
-            )
+        z_phot_table = 10 ** jnp.linspace(
+            np.log10(z_min), np.log10(z_max), n_z_phot_table
+        )
 
-            lc_data = generate_lc_data(
+        lc_data = generate_lc_data(
+            ran_key,
+            num_halos,
+            z_min,
+            z_max,
+            lgmp_min,
+            lgmp_max,
+            sky_area_degsq,
+            ssp_data,
+            tcurves,
+            z_phot_table,
+        )
+        line_wave_table = jnp.array([line_wave_aa])
+        obs_color_mag1, weights1 = get_colors_mags(
+            ran_key,
+            param_collection1,
+            lc_data,
+            line_wave_table,
+            mag_columns,
+            mag_thresh_column,
+            mag_thresh,
+            frac_cat,
+        )
+
+        if param_collection2 is not None:
+            obs_color_mag2, weights2 = get_colors_mags(
                 ran_key,
-                num_halos,
-                z_min,
-                z_max,
-                lgmp_min,
-                lgmp_max,
-                sky_area_degsq,
-                ssp_data,
-                tcurves,
-                z_phot_table,
-            )
-            line_wave_table = jnp.array([line_wave_aa])
-            obs_color_mag1, weights1 = get_colors_mags(
-                ran_key,
-                param_collection1,
+                param_collection2,
                 lc_data,
                 line_wave_table,
                 mag_columns,
@@ -363,18 +369,6 @@ def plot_n(
                 mag_thresh,
                 frac_cat,
             )
-
-            if param_collection2 is not None:
-                obs_color_mag2, weights2 = get_colors_mags(
-                    ran_key,
-                    param_collection2,
-                    lc_data,
-                    line_wave_table,
-                    mag_columns,
-                    mag_thresh_column,
-                    mag_thresh,
-                    frac_cat,
-                )
 
         for i in range(0, n_dims):
             sigma = np.std(dataset_colors_mag_z1[:, i])
