@@ -30,7 +30,7 @@ from diffhtwo.experimental.data_loaders import retrieve_tcurves
 from diffhtwo.experimental.utils import zbin_volume
 
 BASE_PATH = Path(__file__).resolve().parent.parent
-LH_CENTROIDS_PATH = BASE_PATH / "data_loaders/data"
+LH_CENTROIDS_PATH = BASE_PATH / "data"
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
@@ -130,7 +130,7 @@ def test_n_mag():
             np.load(
                 os.path.join(
                     LH_CENTROIDS_PATH,
-                    "lh_centroids_z_"
+                    "feniks_lh_centroids_z_"
                     + str(zbins[zbin][0])
                     + "-"
                     + str(zbins[zbin][1])
@@ -216,7 +216,7 @@ def test_n_mag():
             np.load(
                 os.path.join(
                     LH_CENTROIDS_PATH,
-                    "lh_centroids_z_"
+                    "feniks_lh_centroids_z_"
                     + str(zbins[zbin][0])
                     + "-"
                     + str(zbins[zbin][1])
