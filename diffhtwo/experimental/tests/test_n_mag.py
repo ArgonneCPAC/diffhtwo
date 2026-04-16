@@ -30,7 +30,7 @@ from diffhtwo.experimental.data_loaders import retrieve_tcurves
 from diffhtwo.experimental.utils import zbin_volume
 
 BASE_PATH = Path(__file__).resolve().parent.parent
-LH_CENTROIDS_PATH = BASE_PATH / "data"
+LH_CENTROIDS_PATH = BASE_PATH / "data/lh_centroids"
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
