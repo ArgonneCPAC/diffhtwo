@@ -41,36 +41,36 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
     uds_Ktot = get_mag_ab(phot, "ftot_Kuds")
 
-    nan_mask = (
-        (megacam_uS != -99.0)
-        | (hsc_g != -99.0)
-        | (hsc_r != -99.0)
-        | (hsc_i != -99.0)
-        | (nb816 != -99)
-        | (hsc_z != -99.0)
-        | (nb921 != -99)
-        | (video_Y != -99)
-        | (uds_J != -99.0)
-        | (uds_H != -99.0)
-        | (uds_K != -99.0)
-        | (uds_Ktot != -99.0)
+    nans = (
+        (megacam_uS == -99.0)
+        | (hsc_g == -99.0)
+        | (hsc_r == -99.0)
+        | (hsc_i == -99.0)
+        | (nb816 == -99)
+        | (hsc_z == -99.0)
+        | (nb921 == -99)
+        | (video_Y == -99)
+        | (uds_J == -99.0)
+        | (uds_H == -99.0)
+        | (uds_K == -99.0)
+        | (uds_Ktot == -99.0)
     )
     # print(nan_mask.sum() / nan_mask.size)
 
-    megacam_uS = megacam_uS[nan_mask]
-    hsc_g = hsc_g[nan_mask]
-    hsc_r = hsc_r[nan_mask]
-    hsc_i = hsc_i[nan_mask]
-    nb816 = nb816[nan_mask]
-    hsc_z = hsc_z[nan_mask]
-    nb921 = nb921[nan_mask]
-    video_Y = video_Y[nan_mask]
-    uds_J = uds_J[nan_mask]
-    uds_H = uds_H[nan_mask]
-    uds_K = uds_K[nan_mask]
-    uds_Ktot = uds_Ktot[nan_mask]
+    megacam_uS = megacam_uS[~nans]
+    hsc_g = hsc_g[~nans]
+    hsc_r = hsc_r[~nans]
+    hsc_i = hsc_i[~nans]
+    nb816 = nb816[~nans]
+    hsc_z = hsc_z[~nans]
+    nb921 = nb921[~nans]
+    video_Y = video_Y[~nans]
+    uds_J = uds_J[~nans]
+    uds_H = uds_H[~nans]
+    uds_K = uds_K[~nans]
+    uds_Ktot = uds_Ktot[~nans]
 
-    zout = zout[nan_mask]
+    zout = zout[~nans]
 
     # derive colors from mags
     megacam_hsc_uSg = megacam_uS - hsc_g
@@ -122,4 +122,4 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
         "redshift",
     ]
 
-    return FENIKS(dataset, dim_labels, nan_mask)
+    return FENIKS(dataset, dim_labels, nans)
