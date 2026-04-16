@@ -225,7 +225,6 @@ def _loss_phot_and_emline_multi_z(
     lg_emline_Lbin_edges,
     emline_lc_data,
     emline_wave_table,
-    redshift_as_last_dimension_in_lh=False,
 ):
     emline_wave_aa = emline_wave_table[0]
     phot_multi_z_loss_args = (
@@ -241,7 +240,6 @@ def _loss_phot_and_emline_multi_z(
         lh_centroids,
         d_centroids,
         frac_cat,
-        redshift_as_last_dimension_in_lh,
     )
     phot_loss_multi_z = _loss_phot_kern_multi_z(*phot_multi_z_loss_args)
 

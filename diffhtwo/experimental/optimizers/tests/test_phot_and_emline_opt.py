@@ -40,7 +40,7 @@ u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_PARAMS
 )
 BASE_PATH = Path(__file__).resolve().parent.parent.parent
-LH_CENTROIDS_PATH = BASE_PATH / "data_loaders/data"
+LH_CENTROIDS_PATH = BASE_PATH / "data/lh_centroids"
 
 
 @pytest.fixture(scope="module")
@@ -86,7 +86,11 @@ def test_phot_and_emline_opt(ssp_data):
         np.load(
             os.path.join(
                 LH_CENTROIDS_PATH,
-                "lh_centroids_z_" + str(lc_z_min) + "-" + str(lc_z_max) + "_test.npy",
+                "feniks_lh_centroids_z_"
+                + str(lc_z_min)
+                + "-"
+                + str(lc_z_max)
+                + "_test.npy",
             )
         )
     )

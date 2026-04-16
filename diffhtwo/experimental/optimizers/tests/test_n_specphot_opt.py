@@ -57,7 +57,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
     mag_columns = [3]
     mag_thresh_column = 3
     mag_thresh = 24.5
-    d_centroids = 0.2
+    d_cen = 0.2
     lg_n_thresh = -8
     frac_cat = 1.0
 
@@ -79,7 +79,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
             )
         )
     )
-    d_centroids = jnp.ones((lh_centroids.shape[0], 1)) * d_centroids
+    d_centroids = jnp.ones((lh_centroids.shape[0], 1)) * d_cen
 
     rng = np.random.default_rng(0)
     lg_n_data = rng.uniform(-17, -4, lh_centroids.shape[0])
@@ -248,7 +248,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
             )
         )
     )
-    sdss_d_centroids = jnp.ones((sdss_lh_centroids.shape[0], 1)) * d_centroids
+    sdss_d_centroids = jnp.ones((sdss_lh_centroids.shape[0], 1)) * d_cen
 
     sdss_rng = np.random.default_rng(1)
     sdss_lg_n_data = sdss_rng.uniform(-17, -4, sdss_lh_centroids.shape[0])
