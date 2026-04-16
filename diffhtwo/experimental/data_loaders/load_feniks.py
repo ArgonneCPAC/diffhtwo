@@ -27,6 +27,7 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
     phot = ascii.read(drn + "/" + phot)
     zout = ascii.read(drn + "/" + zout)
 
+    # get mags
     megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
     hsc_g = get_mag_ab(phot, "fcol_HSC_G")
     hsc_r = get_mag_ab(phot, "fcol_HSC_R")
@@ -40,6 +41,7 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
     uds_Ktot = get_mag_ab(phot, "ftot_Kuds")
 
+    # derive colors from mags
     megacam_hsc_uSg = megacam_uS - hsc_g
     hsc_gr = hsc_g - hsc_r
     hsc_ri = hsc_r - hsc_i
@@ -51,23 +53,23 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
     uds_JH = uds_J - uds_H
     uds_HK = uds_H - uds_K
 
-    z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
+    # z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
 
     dataset = np.vstack(
         (
-            megacam_hsc_uSg[z_mask],
-            hsc_gr[z_mask],
-            hsc_ri[z_mask],
-            hsc_i816[z_mask],
-            hsc_816z[z_mask],
-            hsc_z921[z_mask],
-            hsc_video_921Y[z_mask],
-            video_uds_YJ[z_mask],
-            uds_JH[z_mask],
-            uds_HK[z_mask],
-            megacam_uS[z_mask],
-            uds_Ktot[z_mask],
-            zout["z_phot"][z_mask],
+            megacam_hsc_uSg,
+            hsc_gr,
+            hsc_ri,
+            hsc_i816,
+            hsc_816z,
+            hsc_z921,
+            hsc_video_921Y,
+            video_uds_YJ,
+            uds_JH,
+            uds_HK,
+            megacam_uS,
+            uds_Ktot,
+            zout["z_phot"],
         )
     ).T
     dim_labels = [
