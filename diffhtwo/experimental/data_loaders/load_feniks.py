@@ -12,7 +12,7 @@ FENIKS_PHOT_BASENAME = "feniks_selected.cat"
 FENIKS_Z_BASENAME = "feniks_z_selected.ecsv"
 
 FENIKS = namedtuple(
-    "FENIKS", ["dataset", "dim_labels"]
+    "FENIKS", ["dataset", "dim_labels", "nan_mask"]
 )  # , "lh_centroids", "d_centroids", "lg_n_data_err_lh"],
 
 
@@ -55,7 +55,7 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
         | (uds_K != -99.0)
         | (uds_Ktot != -99.0)
     )
-    print(nan_mask.sum() / nan_mask.size)
+    # print(nan_mask.sum() / nan_mask.size)
 
     megacam_uS = megacam_uS[nan_mask]
     hsc_g = hsc_g[nan_mask]
@@ -122,7 +122,4 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
         "redshift",
     ]
 
-    return FENIKS(
-        dataset,
-        dim_labels,
-    )
+    return FENIKS(dataset, dim_labels, nan_mask)
