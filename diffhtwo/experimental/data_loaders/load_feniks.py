@@ -53,8 +53,6 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
     uds_JH = uds_J - uds_H
     uds_HK = uds_H - uds_K
 
-    # z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
-
     dataset = np.vstack(
         (
             megacam_hsc_uSg,
@@ -72,6 +70,16 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
             zout["z_phot"],
         )
     ).T
+
+    # nan_mask selection goes into FENIKS_FRAC_CAT in defaults.py along with the initial !=-99 in all bands selection
+    nan_mask = ~(dataset == -99).any(axis=1)
+    dataset = dataset[nan_mask]
+    zout = zout[nan_mask]
+
+    z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
+    dataset = dataset[z_mask]
+    zout = zout[z_mask]
+
     dim_labels = [
         "u - g",
         "g - r",
