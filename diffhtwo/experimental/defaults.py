@@ -15,15 +15,15 @@ COSMO = FlatLambdaCDM(
     Ob0=FB * DEFAULT_COSMOLOGY.Om0,
 )
 
-UDS_AREA_DEG2 = 2828.247933129912 / 3600
-
 # FENIKS_FRAC_CAT is the fraction of galaxies remaining after the initial
 # !=-99 cut in all used bands, and further removal of objects that had NaNs
 # after taking log10 of flux for mag calculation
-FENIKS_FRAC_CAT = 0.6432507366822479
+FENIKS_FRAC_CAT = 0.6379076134281674
 
+FENIKS_AREA_DEG2 = 2828.247933129912 / 3600
 FENIKS_Z_MIN = 0.2
 FENIKS_Z_MAX = 4.0
+FENIKS_MAGK_THRESH = 24.3
 
 SDSS_AREA_DEG2 = 8000
 SDSS_Z_MIN = 0.02
