@@ -30,17 +30,17 @@ from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from ..data_loaders import retrieve_tcurves
-from ..optimizers import phot_and_emline_opt
-from ..utils import zbin_volume
+from ...data_loaders import retrieve_tcurves
+from ...utils import zbin_volume
+from .. import phot_and_emline_opt
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DEFAULT_DIFFSTARPOP_PARAMS
 )
-BASE_PATH = Path(__file__).resolve().parent.parent
-LH_CENTROIDS_PATH = BASE_PATH / "data_loaders/data"
+BASE_PATH = Path(__file__).resolve().parent.parent.parent
+LH_CENTROIDS_PATH = BASE_PATH / "data/lh_centroids"
 
 
 @pytest.fixture(scope="module")
@@ -86,7 +86,11 @@ def test_phot_and_emline_opt(ssp_data):
         np.load(
             os.path.join(
                 LH_CENTROIDS_PATH,
-                "lh_centroids_z_" + str(lc_z_min) + "-" + str(lc_z_max) + "_test.npy",
+                "feniks_lh_centroids_z_"
+                + str(lc_z_min)
+                + "-"
+                + str(lc_z_max)
+                + "_test.npy",
             )
         )
     )

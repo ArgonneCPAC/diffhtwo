@@ -14,8 +14,8 @@ from dsps.metallicity import umzr
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from ..emline_luminosity_pop import emline_luminosity_func_pop, emline_luminosity_pop
-from ..optimizers.emline_luminosity_opt import IDX, fit_emline_luminosity
+from ...emline_luminosity_pop import emline_luminosity_func_pop, emline_luminosity_pop
+from ..emline_luminosity_opt import IDX, fit_emline_luminosity
 
 u_theta_default, u_unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_U_PARAMS)
 theta_default, unravel_fn = ravel_pytree(DEFAULT_DIFFSTARPOP_PARAMS)

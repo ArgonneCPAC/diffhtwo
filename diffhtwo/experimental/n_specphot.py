@@ -1,3 +1,5 @@
+from functools import partial
+
 import jax.numpy as jnp
 from diffsky.burstpop import freqburst_mono
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
@@ -11,7 +13,7 @@ from . import emline_luminosity
 from .n_mag import N_0, N_FLOOR, get_n_data_err
 
 
-@jjit
+@partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
 def n_colors_mags_lh(
     ran_key,
     param_collection,
@@ -21,8 +23,9 @@ def n_colors_mags_lh(
     mag_thresh_column,
     mag_thresh,
     lh_centroids,
-    dmag_centroids,
+    d_centroids,
     frac_cat,
+    redshift_as_last_dimension_in_lh=False,
 ):
     obs_color_mag, weights = get_colors_mags(
         ran_key,
@@ -35,10 +38,14 @@ def n_colors_mags_lh(
         frac_cat,
     )
 
+    if redshift_as_last_dimension_in_lh is True:
+        z_obs = lc_data.z_obs.reshape(lc_data.z_obs.size, 1)
+        obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
+
     # calculate number density in LH bins
-    sig = jnp.zeros(lh_centroids.shape) + (dmag_centroids / 2)
-    lh_centroids_lo = lh_centroids - (dmag_centroids / 2)
-    lh_centroids_hi = lh_centroids + (dmag_centroids / 2)
+    sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
+    lh_centroids_lo = lh_centroids - (d_centroids / 2)
+    lh_centroids_hi = lh_centroids + (d_centroids / 2)
 
     N = diffndhist2.tw_ndhist_weighted(
         obs_color_mag,

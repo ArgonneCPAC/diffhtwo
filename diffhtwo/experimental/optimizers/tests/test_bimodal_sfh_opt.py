@@ -5,9 +5,9 @@ from dsps.cosmology import DEFAULT_COSMOLOGY, age_at_z
 from dsps.data_loaders import retrieve_fake_fsps_data
 from jax import random
 
+from ... import pop_sfh
+from ...data_loaders import retrieve_fake_fsps_halpha
 from .. import bimodal_sfh_opt as bsfh_opt
-from .. import pop_sfh
-from ..data_loaders import retrieve_fake_fsps_halpha
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 ssp_lgmet = ssp_data.ssp_lgmet

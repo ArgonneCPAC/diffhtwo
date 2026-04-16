@@ -11,7 +11,7 @@ import jax.numpy as jnp
 from jax import grad
 from jax import jit as jjit
 
-from . import pop_sfh
+from .. import pop_sfh
 
 
 @jjit
