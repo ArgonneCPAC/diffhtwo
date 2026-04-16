@@ -16,7 +16,7 @@ N_CENTROIDS = 2500
 SIG = 2.5
 
 SDSS = namedtuple(
-    "SDSS", ["dataset", "lh_centroids", "d_centroids", "lg_n_data_err_lh"]
+    "SDSS", ["dataset", "dim_labels", "lh_centroids", "d_centroids", "lg_n_data_err_lh"]
 )
 
 
@@ -24,7 +24,6 @@ def get_sdss_data(drn):
     sdss = sdl.load_sdss_wrapper(drn=drn)
 
     sdss_filters_to_use = ["sdss_u", "sdss_g", "sdss_r", "sdss_i", "sdss_z"]
-
     tcurves = []
     for bn_pat in sdss_filters_to_use:
         tcurve = load_transmission_curve(bn_pat=bn_pat + "*", drn=drn + "/filters")
@@ -43,6 +42,7 @@ def get_sdss_data(drn):
     sdss_iz = sdss_i - sdss_z
 
     dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
+    dim_labels = ["u - g", "g - r", "r - i", "i - z", "r", "redshift"]
 
     mu = np.mean(dataset, axis=0)
     mu[4] = mu[4] - 0.4
@@ -74,4 +74,4 @@ def get_sdss_data(drn):
     lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
     lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
 
-    return SDSS(dataset, lh_centroids, d_centroids, lg_n_data_err_lh)
+    return SDSS(dataset, dim_labels, lh_centroids, d_centroids, lg_n_data_err_lh)
