@@ -28,7 +28,7 @@ DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
     DIFFSTARPOP_UM_plus_exsitu
 )
-BASE_PATH = Path(__file__).resolve().parent.parent
+BASE_PATH = Path(__file__).resolve().parent.parent.parent
 
 LH_CENTROIDS_PATH = BASE_PATH / "data/lh_centroids"
 SDSS_FILTERS_PATH = BASE_PATH / "data/filters"
