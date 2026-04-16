@@ -498,7 +498,7 @@ def plot_n_corner(
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
     num_halos=1000,
-    sky_area_degsq=1.0,
+    sky_area_degsq=100,
     n_z_phot_table=15,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
