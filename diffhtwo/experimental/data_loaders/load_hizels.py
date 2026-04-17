@@ -78,7 +78,7 @@ def lg_phi_h0p7_to_hdefault(lg_phi_h0p7):
 
 
 def get_hizels_halpha(drn):
-    HiZELS_halpha_z0p4 = ascii.read(drn + "/+halpha_LF_z0p4.dat")
+    HiZELS_halpha_z0p4 = ascii.read(drn + "/halpha_LF_z0p4.dat")
 
     lg_halpha_Lbin_edges_z0p4 = get_lgL_bin_edges(
         HiZELS_halpha_z0p4, "logLHa", "logLHa_binw_full"
