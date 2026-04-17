@@ -2,7 +2,6 @@ from collections import namedtuple
 
 import jax.numpy as jnp
 import numpy as np
-from diffsky.experimental import lightcone_generators as lcg
 from diffsky.mass_functions import mc_hosts
 from DisCoWebS.data_loader import sdss_loader as sdl
 from dsps.data_loaders import load_transmission_curve
@@ -22,6 +21,10 @@ SDSS = namedtuple(
     [
         "dataset",
         "dim_labels",
+        "mag_columns",
+        "mag_thresh_column",
+        "mag_thresh",
+        "frac_cat",
         "lh_centroids",
         "d_centroids",
         "lg_n_data_err_lh",
@@ -68,6 +71,11 @@ def get_sdss_data(
 
     dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
     dim_labels = ["u - g", "g - r", "r - i", "i - z", "r", "redshift"]
+
+    mag_columns = [2]
+    mag_thresh_column = 2
+    mag_thresh = magr_thresh
+    frac_cat = 0.8
 
     mu = np.mean(dataset, axis=0)
     mu[4] = mu[4] - 0.4
@@ -116,5 +124,14 @@ def get_sdss_data(
     lc_data = generate_lc_data(*lc_args)
 
     return SDSS(
-        dataset, dim_labels, lh_centroids, d_centroids, lg_n_data_err_lh, lc_data
+        dataset,
+        dim_labels,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        frac_cat,
+        lh_centroids,
+        d_centroids,
+        lg_n_data_err_lh,
+        lc_data,
     )
