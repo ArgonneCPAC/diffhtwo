@@ -44,7 +44,7 @@ def get_hizels_data(
         line_lc_data = []
         for z_idx in range(0, len(line_z)):
             z_min = line_z[z_idx] - (line_dz[z_idx] / 2)
-            z_max = line_z[z_idx] - (line_dz[z_idx] / 2)
+            z_max = line_z[z_idx] + (line_dz[z_idx] / 2)
 
             z_phot_table = 10 ** jnp.linspace(
                 np.log10(z_min), np.log10(z_max), n_z_phot_table
