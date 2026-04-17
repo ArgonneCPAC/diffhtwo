@@ -134,6 +134,10 @@ def get_feniks_data(
     mag_columns = [0, 10]
     mag_thresh_column = 10
 
+    translate = ascii.read(drn + "/" + translate, header_start=None)
+    filter_info = drn + "/" + filter_info
+    tcurves_file = drn + "/" + tcurves_file
+
     for feniks_filter in feniks_filters:
         feniks_filter_number = get_feniks_filter_number_from_translate_file(
             translate, feniks_filter
