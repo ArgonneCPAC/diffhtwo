@@ -13,8 +13,9 @@ from jax import jit as jjit
 from jax import vmap
 from jax.tree_util import tree_flatten_with_path
 
+from diffhtwo.experimental.n_specphot import n_spec_q_ms_burst
+
 from .defaults import COSMO
-from .n_specphot import n_spec_q_ms_burst
 
 
 @jjit
