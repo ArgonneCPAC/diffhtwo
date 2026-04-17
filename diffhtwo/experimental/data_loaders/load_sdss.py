@@ -7,30 +7,16 @@ from DisCoWebS.data_loader import sdss_loader as sdl
 from dsps.data_loaders import load_transmission_curve
 
 from .. import diffndhist, n_mag
-from ..defaults import SDSS_AREA_DEG2, SDSS_MAGR_THRESH, SDSS_Z_MAX, SDSS_Z_MIN
+from ..defaults import DATASET, SDSS_AREA_DEG2, SDSS_MAGR_THRESH, SDSS_Z_MAX, SDSS_Z_MIN
 from ..latin_hypercube import latin_hypercube as lh
 from ..utils import generate_lc_data, zbin_volume
+
+SDSS = namedtuple("SDSS", DATASET._fields)
 
 D_MAG = 0.1
 D_Z = 0.05
 LH_N_CENTROIDS = 2500
 LH_SIG = 2.5
-
-SDSS = namedtuple(
-    "SDSS",
-    [
-        "dataset",
-        "dim_labels",
-        "mag_columns",
-        "mag_thresh_column",
-        "mag_thresh",
-        "frac_cat",
-        "lh_centroids",
-        "d_centroids",
-        "lg_n_data_err_lh",
-        "lc_data",
-    ],
-)
 
 
 def get_sdss_data(
@@ -41,7 +27,7 @@ def get_sdss_data(
     lh_n_centroids=LH_N_CENTROIDS,
     z_min=SDSS_Z_MIN,
     z_max=SDSS_Z_MAX,
-    magr_thresh=SDSS_MAGR_THRESH,
+    mag_thresh=SDSS_MAGR_THRESH,
     sdss_sky_area_degsq=SDSS_AREA_DEG2,
     num_halos=100,
     lgmp_min=10.0,
@@ -51,11 +37,14 @@ def get_sdss_data(
 ):
     sdss = sdl.load_sdss_wrapper(drn=drn)
 
-    sdss_filters_to_use = ["sdss_u", "sdss_g", "sdss_r", "sdss_i", "sdss_z"]
+    sdss_filters = ["sdss_u", "sdss_g", "sdss_r", "sdss_i", "sdss_z"]
     tcurves = []
-    for bn_pat in sdss_filters_to_use:
+    for bn_pat in sdss_filters:
         tcurve = load_transmission_curve(bn_pat=bn_pat + "*", drn=drn + "/filters")
         tcurves.append(tcurve)
+    mag_columns = [2]
+    mag_thresh_column = 2
+    frac_cat = 0.8
 
     sdss_u = sdss["modelMag_u"].data
     sdss_g = sdss["modelMag_g"].data
@@ -72,11 +61,6 @@ def get_sdss_data(
     dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
     dim_labels = ["u - g", "g - r", "r - i", "i - z", "r", "redshift"]
 
-    mag_columns = [2]
-    mag_thresh_column = 2
-    mag_thresh = magr_thresh
-    frac_cat = 0.8
-
     mu = np.mean(dataset, axis=0)
     mu[4] = mu[4] - 0.4
     mu[5] = mu[5] - 0.01
@@ -87,7 +71,7 @@ def get_sdss_data(
     )
 
     redshift_mask = (lh_centroids[:, 5] > z_min) & (lh_centroids[:, 5] < z_max)
-    r_mask = lh_centroids[:, 4] < magr_thresh
+    r_mask = lh_centroids[:, 4] < mag_thresh
     lh_centroids = lh_centroids[redshift_mask & r_mask]
 
     d_centroids = jnp.ones_like(lh_centroids) * D_MAG
