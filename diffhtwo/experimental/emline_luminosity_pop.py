@@ -6,7 +6,6 @@ config.update("jax_enable_x64", True)
 
 from collections import namedtuple
 
-import jax
 import jax.numpy as jnp
 from diffsky.burstpop import diffqburstpop_mono, freqburst_mono
 from diffsky.dustpop import tw_dustpop_mono_noise
@@ -19,7 +18,7 @@ from jax import random as jran
 from jax import vmap
 
 from . import emline_luminosity
-from .utils import get_ssp_emline_luminosity
+from .emline_utils import get_ssp_emline_luminosity
 
 LGMET_SCATTER = 0.2
 

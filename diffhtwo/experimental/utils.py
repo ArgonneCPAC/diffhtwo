@@ -19,14 +19,6 @@ from .defaults import COSMO
 
 
 @jjit
-def get_ssp_emline_luminosity(emline_wave_aa, ssp_data):
-    ssp_emline_wave = jnp.array(ssp_data.ssp_emline_wave)
-    idx = jnp.argmin(jnp.abs(ssp_emline_wave - emline_wave_aa))
-    ssp_emline_luminosity = ssp_data.ssp_emline_luminosity[:, :, idx]
-    return ssp_emline_luminosity
-
-
-@jjit
 def lupton_log10(t, log10_clip, t0=0.0, M0=0.0, alpha=1 / jnp.log(10.0)):
     """Clipped base-10 log function taken from
     https://github.com/ArgonneCPAC/shamnet/blob/d47c842bfc5ad751ad63d0b21100db709de52e58/shamnet/utils.py#L217C5-L217C17
