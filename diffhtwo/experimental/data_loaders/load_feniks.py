@@ -26,7 +26,7 @@ FENIKS = namedtuple(
 
 SIG = 2.5
 N_CENTROIDS = 3000
-D_MAG = 0.5
+D_MAG = 0.65
 D_Z = 0.5
 
 
@@ -211,6 +211,7 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
         lh_centroids + (d_centroids / 2),
     )
     Nmax = N_data_lh_old.max()
+    print("Nmax: " + str(Nmax))
     vol_mpc3 = zbin_volume(
         FENIKS_AREA_DEG2, zlow=FENIKS_Z_MIN, zhigh=FENIKS_Z_MAX
     ).value
