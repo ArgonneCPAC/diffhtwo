@@ -5,13 +5,15 @@ import jax.numpy as jnp
 import numpy as np
 from astropy import units as u
 from diffsky.experimental import lightcone_generators as lcg
+from diffsky.mass_functions import mc_hosts
+from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.cosmology.flat_wcdm import differential_comoving_volume_at_z
 from jax import jit as jjit
-from jax import random as jran
 from jax import vmap
 from jax.tree_util import tree_flatten_with_path
 
+from . import n_specphot
 from .defaults import COSMO
 
 
@@ -58,6 +60,68 @@ def get_subset_lh(lh_centroids, d_centroids, lg_n_data_err_lh, n_centroids):
     lg_n_data_err_lh_subset = lg_n_data_err_lh[:, lh_idx]
 
     return lh_centroids_subset, d_centroids_subset, lg_n_data_err_lh_subset
+
+
+def get_halpha_LF_q_ms_burst(
+    ran_key,
+    param_collection,
+    lgL_bin_edges,
+    halpha_LF_z,
+    halpha_LF_delta_z,
+    ssp_data,
+    tcurves,
+    halpha_wave_aa,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    num_halos=1000,
+    sky_area_degsq=100.0,
+    n_z_phot_table=15,
+    cosmo_params=DEFAULT_COSMOLOGY,
+    fb=FB,
+):
+    halpha_lc_z_min = halpha_LF_z - (halpha_LF_delta_z / 2)
+    halpha_lc_z_max = halpha_LF_z + (halpha_LF_delta_z / 2)
+    z_phot_table = 10 ** np.linspace(
+        np.log10(halpha_lc_z_min), np.log10(halpha_lc_z_max), n_z_phot_table
+    )
+
+    lc_args = (
+        ran_key,
+        num_halos,
+        halpha_lc_z_min,
+        halpha_lc_z_max,
+        lgmp_min,
+        lgmp_max,
+        sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
+    lc_data = generate_lc_data(*lc_args)
+
+    line_wave_table = jnp.array([halpha_wave_aa])
+    (
+        lg_halpha_LF,
+        lg_halpha_LF_q,
+        lg_halpha_LF_ms,
+        lg_halpha_LF_burst,
+    ) = n_specphot.n_spec_q_ms_burst(
+        ran_key,
+        param_collection,
+        lc_data,
+        line_wave_table,
+        lgL_bin_edges,
+    )
+
+    lgL_bin_centers = 0.5 * (lgL_bin_edges[1:] + lgL_bin_edges[:-1])
+
+    return (
+        lgL_bin_centers,
+        lg_halpha_LF,
+        lg_halpha_LF_q,
+        lg_halpha_LF_ms,
+        lg_halpha_LF_burst,
+    )
 
 
 def generate_lc_data(
