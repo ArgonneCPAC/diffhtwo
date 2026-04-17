@@ -13,8 +13,8 @@ from jax import jit as jjit
 from jax import vmap
 from jax.tree_util import tree_flatten_with_path
 
-from . import n_specphot
 from .defaults import COSMO
+from .n_specphot import n_spec_q_ms_burst
 
 
 @jjit
@@ -105,7 +105,7 @@ def get_halpha_LF_q_ms_burst(
         lg_halpha_LF_q,
         lg_halpha_LF_ms,
         lg_halpha_LF_burst,
-    ) = n_specphot.n_spec_q_ms_burst(
+    ) = n_spec_q_ms_burst(
         ran_key,
         param_collection,
         lc_data,
