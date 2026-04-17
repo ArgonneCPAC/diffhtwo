@@ -12,6 +12,7 @@ HiZELS = namedtuple(
     "HiZELS",
     ["lg_Lbin_edges", "lg_LF", "z", "dz", "lc_data"],
 )
+DELTA_L_HALPHA = -0.4  # uncorrect HiZELS h-alpha L for dust (A_halpha = 1 mag)
 
 
 def get_hizels_data(
@@ -69,7 +70,9 @@ def get_hizels_data(
     return HiZELS(lg_Lbin_edges, lg_LF, z, dz, lc_data)
 
 
-def get_lgL_bin_edges(table, L_colname, bin_width_full_colname, delta_L_halpha=-0.4):
+def get_lgL_bin_edges(
+    table, L_colname, bin_width_full_colname, delta_L_halpha=DELTA_L_HALPHA
+):
     edges = []
     for i in range(0, len(table)):
         edge = np.round(table[L_colname][i] - table[bin_width_full_colname][i] / 2, 2)
