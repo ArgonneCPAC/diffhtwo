@@ -12,8 +12,6 @@ HiZELS = namedtuple(
         "lg_LF",
         "z",
         "dz",
-        "lg_n_data_err_lh",
-        "lg_n_data_err_lh_old",
     ],
 )
 
