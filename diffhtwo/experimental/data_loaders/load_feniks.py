@@ -3,29 +3,37 @@ from collections import namedtuple
 import jax.numpy as jnp
 import numpy as np
 from astropy.io import ascii
+from diffsky.mass_functions import mc_hosts
+from dsps.data_loaders.defaults import TransmissionCurve
 
 from .. import diffndhist, n_mag
-from ..defaults import FENIKS_AREA_DEG2, FENIKS_MAGK_THRESH, FENIKS_Z_MAX, FENIKS_Z_MIN
+from ..defaults import (
+    DATASET,
+    FENIKS_AREA_DEG2,
+    FENIKS_FRAC_CAT,
+    FENIKS_MAGK_THRESH,
+    FENIKS_Z_MAX,
+    FENIKS_Z_MIN,
+)
 from ..latin_hypercube import latin_hypercube as lh
-from ..utils import zbin_volume
-
-FENIKS_PHOT_BASENAME = "feniks_selected.cat"
-FENIKS_Z_BASENAME = "feniks_z_selected.ecsv"
-
-FENIKS = namedtuple(
-    "FENIKS",
-    [
-        "dataset",
-        "dim_labels",
-        "lh_centroids",
-        "d_centroids",
-        "lg_n_data_err_lh",
-        "lg_n_data_err_lh_old",
-    ],
+from ..utils import (
+    generate_lc_data,
+    get_feniks_filter_number_from_translate_file,
+    get_tcurve,
+    zbin_volume,
 )
 
-SIG = 2.5
-N_CENTROIDS = 3000
+FENIKS = namedtuple("FENIKS", DATASET._fields)
+
+PHOT = "feniks_selected.cat"
+ZOUT = "feniks_z_selected.ecsv"
+TRANSLATE = "filters_w_FENIKS.translate"
+FILTER_INFO = "kz_FILTER.RES.latest.info"
+TCURVES_FILE = "kz_FILTER.RES.latest"
+
+
+LH_SIG = 2.5
+LH_N_CENTROIDS = 3000
 D_MAG = 0.65
 D_Z = 0.5
 
@@ -85,7 +93,60 @@ def enlarge_lh_bins(dataset, lh_centroids, Nmax, dmag=D_MAG, dz=D_Z):
     return N_data_lh, d_centroids
 
 
-def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
+def get_feniks_data(
+    drn,
+    ran_key,
+    ssp_data,
+    lh_sig=LH_SIG,
+    lh_n_centroids=LH_N_CENTROIDS,
+    z_min=FENIKS_Z_MIN,
+    z_max=FENIKS_Z_MAX,
+    mag_thresh=FENIKS_MAGK_THRESH,
+    frac_cat=FENIKS_FRAC_CAT,
+    sdss_sky_area_degsq=FENIKS_AREA_DEG2,
+    num_halos=100,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    lc_sky_area_degsq=100,
+    n_z_phot_table=15,
+    phot=PHOT,
+    zout=ZOUT,
+    translate=TRANSLATE,
+    filter_info=FILTER_INFO,
+    tcurves_file=TCURVES_FILE,
+):
+    # Transmission curves
+    tcurves = []
+
+    feniks_filters = [
+        "MegaCam_uS",  # mag_column
+        "HSC_G",
+        "HSC_R",
+        "HSC_I",
+        "NB0816",
+        "HSC_Z",
+        "NB0921",
+        "VIDEO_Y",
+        "UDS_J",
+        "UDS_H",
+        "UDS_K",  # mag_column, mag_thresh_column
+    ]
+    mag_columns = [0, 10]
+    mag_thresh_column = 10
+
+    translate = ascii.read(drn + "/" + translate, header_start=None)
+    filter_info = drn + "/" + filter_info
+    tcurves_file = drn + "/" + tcurves_file
+
+    for feniks_filter in feniks_filters:
+        feniks_filter_number = get_feniks_filter_number_from_translate_file(
+            translate, feniks_filter
+        )
+        feniks_filter_wave_aa, feniks_filter_trans = get_tcurve(
+            feniks_filter_number, filter_info, tcurves_file
+        )
+        tcurves.append(TransmissionCurve(feniks_filter_wave_aa, feniks_filter_trans))
+
     phot = ascii.read(drn + "/" + phot)
     zout = ascii.read(drn + "/" + zout)
 
@@ -192,7 +253,9 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
     mu[-2] = mu[-2]
     cov = np.cov(dataset.T)
 
-    lh_centroids = lh.latin_hypercube_from_cov(mu, cov, SIG, N_CENTROIDS, seed=None)
+    lh_centroids = lh.latin_hypercube_from_cov(
+        mu, cov, lh_sig, lh_n_centroids, seed=None
+    )
 
     redshift_mask = (lh_centroids[:, -1] > FENIKS_Z_MIN) & (
         lh_centroids[:, -1] < FENIKS_Z_MAX
@@ -216,8 +279,8 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
         FENIKS_AREA_DEG2, zlow=FENIKS_Z_MIN, zhigh=FENIKS_Z_MAX
     ).value
 
-    lg_n_old, lg_n_avg_err_old = n_mag.get_n_data_err(N_data_lh_old, vol_mpc3)
-    lg_n_data_err_lh_old = jnp.vstack((lg_n_old, lg_n_avg_err_old))
+    # lg_n_old, lg_n_avg_err_old = n_mag.get_n_data_err(N_data_lh_old, vol_mpc3)
+    # lg_n_data_err_lh_old = jnp.vstack((lg_n_old, lg_n_avg_err_old))
 
     # run final diffndhist
     N_data_lh, d_centroids = enlarge_lh_bins(dataset, lh_centroids, Nmax)
@@ -225,11 +288,31 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
     lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
     lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
 
+    z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
+    lc_args = (
+        ran_key,
+        num_halos,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
+
+    lc_data = generate_lc_data(*lc_args)
+
     return FENIKS(
         dataset,
         dim_labels,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        frac_cat,
         lh_centroids,
         d_centroids,
         lg_n_data_err_lh,
-        lg_n_data_err_lh_old,
+        lc_data,
     )

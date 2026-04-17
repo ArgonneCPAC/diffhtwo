@@ -1,3 +1,5 @@
+from collections import namedtuple
+
 from astropy.cosmology import FlatLambdaCDM
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
@@ -29,3 +31,20 @@ SDSS_AREA_DEG2 = 8000
 SDSS_Z_MIN = 0.02
 SDSS_Z_MAX = 0.2
 SDSS_MAGR_THRESH = 17.7
+
+
+DATASET = namedtuple(
+    "DATASET",
+    [
+        "dataset",
+        "dim_labels",
+        "mag_columns",
+        "mag_thresh_column",
+        "mag_thresh",
+        "frac_cat",
+        "lh_centroids",
+        "d_centroids",
+        "lg_n_data_err_lh",
+        "lc_data",
+    ],
+)
