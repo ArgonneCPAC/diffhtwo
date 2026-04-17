@@ -50,19 +50,14 @@ def safe_log10(x, EPS=1e-12):
     return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
 
 
-@jjit
-def get_subset_lh(ran_key, lh_centroids, d_centroids, lg_n_data_err_lh, n_centroids):
-    indices = jnp.indices((lh_centroids.shape[0],))
-    indices = indices.reshape(
-        indices.size,
-    )
-    lh_idx = jran.choice(ran_key, indices, shape=(n_centroids,), replace=False)
+def get_subset_lh(lh_centroids, d_centroids, lg_n_data_err_lh, n_centroids):
+    lh_idx = np.random.choice(lh_centroids.shape[0], size=n_centroids, replace=False)
 
-    lh_centroid_subset = lh_centroids[lh_idx]
+    lh_centroids_subset = lh_centroids[lh_idx]
     d_centroids_subset = d_centroids[lh_idx]
     lg_n_data_err_lh_subset = lg_n_data_err_lh[:, lh_idx]
 
-    return lh_centroid_subset, d_centroids_subset, lg_n_data_err_lh_subset
+    return lh_centroids_subset, d_centroids_subset, lg_n_data_err_lh_subset
 
 
 def generate_lc_data(
