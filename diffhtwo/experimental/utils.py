@@ -8,6 +8,7 @@ from diffsky.experimental import lightcone_generators as lcg
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.cosmology.flat_wcdm import differential_comoving_volume_at_z
 from jax import jit as jjit
+from jax import random as jran
 from jax import vmap
 from jax.tree_util import tree_flatten_with_path
 
@@ -47,6 +48,21 @@ def lupton_log10(t, log10_clip, t0=0.0, M0=0.0, alpha=1 / jnp.log(10.0)):
 @jjit
 def safe_log10(x, EPS=1e-12):
     return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
+
+
+@jjit
+def get_subset_lh(ran_key, lh_centroids, d_centroids, lg_n_data_err_lh, n_centroids):
+    indices = jnp.indices((lh_centroids.shape[0],))
+    indices = indices.reshape(
+        indices.size,
+    )
+    lh_idx = jran.choice(ran_key, indices, shape=(n_centroids,), replace=False)
+
+    lh_centroid_subset = lh_centroids[lh_idx]
+    d_centroids_subset = d_centroids[lh_idx]
+    lg_n_data_err_lh_subset = lg_n_data_err_lh[:, lh_idx]
+
+    return lh_centroid_subset, d_centroids_subset, lg_n_data_err_lh_subset
 
 
 def generate_lc_data(
