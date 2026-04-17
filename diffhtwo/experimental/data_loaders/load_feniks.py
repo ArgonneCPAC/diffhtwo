@@ -114,6 +114,7 @@ def get_feniks_data(
     translate=TRANSLATE,
     filter_info=FILTER_INFO,
     tcurves_file=TCURVES_FILE,
+    enlarge_dmag=True,
 ):
     # Transmission curves
     tcurves = []
@@ -247,31 +248,7 @@ def get_feniks_data(
     k_mask = lh_centroids[:, -2] < FENIKS_MAGK_THRESH
     lh_centroids = lh_centroids[redshift_mask & k_mask]
 
-    # run initial diffndhist
-    d_centroids = jnp.ones_like(lh_centroids) * D_MAG
-    d_centroids = d_centroids.at[:, -1].set(D_Z)
-    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
-    N_data_lh_old = diffndhist.tw_ndhist(
-        dataset,
-        dataset_sig,
-        lh_centroids - (d_centroids / 2),
-        lh_centroids + (d_centroids / 2),
-    )
-    Nmax = N_data_lh_old.max()
-    print("Nmax: " + str(Nmax))
-    vol_mpc3 = zbin_volume(
-        FENIKS_AREA_DEG2, zlow=FENIKS_Z_MIN, zhigh=FENIKS_Z_MAX
-    ).value
-
-    # lg_n_old, lg_n_avg_err_old = n_mag.get_n_data_err(N_data_lh_old, vol_mpc3)
-    # lg_n_data_err_lh_old = jnp.vstack((lg_n_old, lg_n_avg_err_old))
-
-    # run final diffndhist
-    N_data_lh, d_centroids = enlarge_lh_bins(dataset, lh_centroids, Nmax)
-
-    lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
-    lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
-
+    # generate lc
     z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
     lc_args = (
         ran_key,
@@ -288,15 +265,56 @@ def get_feniks_data(
 
     lc_data = generate_lc_data(*lc_args)
 
-    return FENIKS(
+    # run initial diffndhist with fixed dmag
+    d_centroids = jnp.ones_like(lh_centroids) * D_MAG
+    d_centroids = d_centroids.at[:, -1].set(D_Z)
+    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
+    N_data_lh = diffndhist.tw_ndhist(
         dataset,
-        tcurves,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
-        frac_cat,
-        lh_centroids,
-        d_centroids,
-        lg_n_data_err_lh,
-        lc_data,
+        dataset_sig,
+        lh_centroids - (d_centroids / 2),
+        lh_centroids + (d_centroids / 2),
     )
+    vol_mpc3 = zbin_volume(
+        FENIKS_AREA_DEG2, zlow=FENIKS_Z_MIN, zhigh=FENIKS_Z_MAX
+    ).value
+
+    if enlarge_dmag is False:
+        lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
+        lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
+
+        return FENIKS(
+            dataset,
+            tcurves,
+            mag_columns,
+            mag_thresh_column,
+            mag_thresh,
+            frac_cat,
+            lh_centroids,
+            d_centroids,
+            lg_n_data_err_lh,
+            lc_data,
+        )
+    else:
+        # enlarge dmag
+        Nmax = N_data_lh.max()
+        print("Nmax: " + str(Nmax))
+
+        # run diffndhist with enlarged dmag
+        N_data_lh, d_centroids = enlarge_lh_bins(dataset, lh_centroids, Nmax)
+
+        lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
+        lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
+
+        return FENIKS(
+            dataset,
+            tcurves,
+            mag_columns,
+            mag_thresh_column,
+            mag_thresh,
+            frac_cat,
+            lh_centroids,
+            d_centroids,
+            lg_n_data_err_lh,
+            lc_data,
+        )
