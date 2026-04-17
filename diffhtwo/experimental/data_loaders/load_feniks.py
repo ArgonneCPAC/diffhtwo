@@ -75,7 +75,7 @@ def enlarge_lh_bins(dataset, lh_centroids, Nmax, dmag=D_MAG, dz=D_Z):
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
 
     N_data_lh = diffndhist.tw_ndhist(
-        FENIKS.dataset,
+        dataset,
         dataset_sig,
         lh_centroids - (d_centroids / 2),
         lh_centroids + (d_centroids / 2),
@@ -204,7 +204,7 @@ def get_feniks_data(drn, phot=FENIKS_PHOT_BASENAME, zout=FENIKS_Z_BASENAME):
     d_centroids = d_centroids.at[:, -1].set(D_Z)
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     N_data_lh_old = diffndhist.tw_ndhist(
-        FENIKS.dataset,
+        dataset,
         dataset_sig,
         lh_centroids - (d_centroids / 2),
         lh_centroids + (d_centroids / 2),
