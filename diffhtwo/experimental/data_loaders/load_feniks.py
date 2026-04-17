@@ -26,7 +26,7 @@ FENIKS = namedtuple(
 
 SIG = 2.5
 N_CENTROIDS = 3000
-D_MAG = 1
+D_MAG = 0.5
 D_Z = 0.5
 
 
@@ -37,10 +37,10 @@ def get_mag_ab(phot_table, col_name, ZP=25):
     return mag_ab.data
 
 
-def modulate_dmag(dataset, lh_centroid, Nmax, dmag, DMAG_MAX=2.35):
+def modulate_dmag(dataset, lh_centroid, Nmax, dmag, D_MAG_MAX=2.5):
     lh_centroid = lh_centroid.reshape(1, lh_centroid.size)
 
-    while dmag < DMAG_MAX:
+    while dmag < D_MAG_MAX:
         sig = jnp.zeros(lh_centroid.shape) + (dmag / 2)
         Nbin = diffndhist.tw_ndhist(
             dataset,
@@ -70,6 +70,7 @@ def enlarge_lh_bins(dataset, lh_centroids, Nmax, dmag=D_MAG, dz=D_Z):
     dmag_centroids = jnp.array(dmag_centroids)
     dmag_centroids = jnp.broadcast_to(dmag_centroids, lh_centroids.shape)
 
+    # set width in redshift dimension to default D_Z
     d_centroids = dmag_centroids.at[:, -1].set(dz)
 
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
