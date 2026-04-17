@@ -279,8 +279,8 @@ def get_feniks_data(
         FENIKS_AREA_DEG2, zlow=FENIKS_Z_MIN, zhigh=FENIKS_Z_MAX
     ).value
 
-    lg_n_old, lg_n_avg_err_old = n_mag.get_n_data_err(N_data_lh_old, vol_mpc3)
-    lg_n_data_err_lh_old = jnp.vstack((lg_n_old, lg_n_avg_err_old))
+    # lg_n_old, lg_n_avg_err_old = n_mag.get_n_data_err(N_data_lh_old, vol_mpc3)
+    # lg_n_data_err_lh_old = jnp.vstack((lg_n_old, lg_n_avg_err_old))
 
     # run final diffndhist
     N_data_lh, d_centroids = enlarge_lh_bins(dataset, lh_centroids, Nmax)
