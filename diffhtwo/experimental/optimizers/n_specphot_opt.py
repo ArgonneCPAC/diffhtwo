@@ -541,8 +541,8 @@ def _loss_sdss_feniks_hizels(
         u_theta,
         ran_key,
         lg_n_thresh,
-        hizels.lg_Lbin_edges,
         hizels.lg_LF,
+        hizels.lg_Lbin_edges,
         hizels.lc_data,
         line_wave_table,
     )
