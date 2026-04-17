@@ -231,22 +231,6 @@ def get_feniks_data(
     dataset = dataset[z_mask]
     zout = zout[z_mask]
 
-    dim_labels = [
-        "u - g",
-        "g - r",
-        "r - i",
-        "i - nb816",
-        "nb816 - z",
-        "z - nb921",
-        "nb921 - Y",
-        "Y - J",
-        "J - H",
-        "H - K",
-        "u",
-        "K",
-        "redshift",
-    ]
-
     # get number densities in latin hypercube bins
     mu = np.mean(dataset, axis=0)
     mu[-1] = mu[-1] + 0.2
@@ -307,7 +291,6 @@ def get_feniks_data(
     return FENIKS(
         dataset,
         tcurves,
-        dim_labels,
         mag_columns,
         mag_thresh_column,
         mag_thresh,

@@ -59,7 +59,6 @@ def get_sdss_data(
     sdss_iz = sdss_i - sdss_z
 
     dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
-    dim_labels = ["u - g", "g - r", "r - i", "i - z", "r", "redshift"]
 
     mu = np.mean(dataset, axis=0)
     mu[4] = mu[4] - 0.4
@@ -110,7 +109,6 @@ def get_sdss_data(
     return SDSS(
         dataset,
         tcurves,
-        dim_labels,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
