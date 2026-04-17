@@ -306,6 +306,7 @@ def get_feniks_data(
 
     return FENIKS(
         dataset,
+        tcurves,
         dim_labels,
         mag_columns,
         mag_thresh_column,

@@ -325,7 +325,7 @@ def fit_phot_and_emline_multi_z(
 
 
 @jjit
-def _loss_sdss_feniks_hizels(
+def _loss_sdss_feniks_multi_z_hizels(
     u_theta,
     ran_key,
     lg_n_thresh,
@@ -408,11 +408,13 @@ def _loss_sdss_feniks_hizels(
     return sdss_feniks_hizels_loss
 
 
-loss_and_grad_sdss_feniks_hizels = jjit(value_and_grad(_loss_sdss_feniks_hizels))
+loss_and_grad_sdss_feniks_multi_z_hizels = jjit(
+    value_and_grad(_loss_sdss_feniks_multi_z_hizels)
+)
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
-def fit_sdss_feniks_hizels(
+def fit_sdss_feniks_multi_z_hizels(
     u_theta_init,
     trainable,
     ran_key,
@@ -466,6 +468,118 @@ def fit_sdss_feniks_hizels(
         hizels_lg_Lbin_edges,
         hizels_lc_data,
         hizels_wave_table,
+    )
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss, grads = loss_and_grad_sdss_feniks_multi_z_hizels(u_theta, *other)
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, loss
+
+    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+    u_theta_fit = get_params(opt_state)
+
+    return loss_hist, u_theta_fit
+
+
+@jjit
+def _loss_sdss_feniks_hizels(
+    u_theta,
+    ran_key,
+    lg_n_thresh,
+    sdss,
+    feniks,
+    hizels,
+    line_wave_table,
+):
+    emline_wave_aa = line_wave_table[0]
+
+    # sdss
+    sdss_phot_loss_args = (
+        u_theta,
+        ran_key,
+        sdss.lg_n_data_err_lh,
+        lg_n_thresh,
+        sdss.lc_data,
+        emline_wave_aa,  # dummy arg
+        sdss.mag_columns,
+        sdss.mag_thresh_column,
+        sdss.mag_thresh,
+        sdss.lh_centroids,
+        sdss.d_centroids,
+        sdss.frac_cat,
+    )
+    sdss_phot_loss = _loss_phot_kern(
+        *sdss_phot_loss_args, redshift_as_last_dimension_in_lh=True
+    )
+
+    # feniks
+    feniks_phot_loss_args = (
+        u_theta,
+        ran_key,
+        feniks.lg_n_data_err_lh,
+        lg_n_thresh,
+        feniks.lc_data,
+        emline_wave_aa,  # dummy arg
+        feniks.mag_columns,
+        feniks.mag_thresh_column,
+        feniks.mag_thresh,
+        feniks.lh_centroids,
+        feniks.d_centroids,
+        feniks.frac_cat,
+    )
+    feniks_phot_loss = _loss_phot_kern(
+        *feniks_phot_loss_args, redshift_as_last_dimension_in_lh=True
+    )
+
+    # hizels
+    hizels_emline_multi_line_multi_z_loss_args = (
+        u_theta,
+        ran_key,
+        lg_n_thresh,
+        hizels.lg_Lbin_edges,
+        hizels.lg_LF,
+        hizels.lc_data,
+        line_wave_table,
+    )
+    hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
+        *hizels_emline_multi_line_multi_z_loss_args
+    )
+
+    sdss_feniks_hizels_loss = sdss_phot_loss + feniks_phot_loss + hizels_emline_loss
+    return sdss_feniks_hizels_loss
+
+
+loss_and_grad_sdss_feniks_hizels = jjit(value_and_grad(_loss_sdss_feniks_hizels))
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_sdss_feniks_hizels(
+    u_theta_init,
+    trainable,
+    ran_key,
+    lg_n_thresh,
+    sdss,
+    feniks,
+    hizels,
+    line_wave_table,
+    n_steps=2,
+    step_size=1e-2,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    other = (
+        ran_key,
+        lg_n_thresh,
+        sdss,
+        feniks,
+        hizels,
+        line_wave_table,
     )
 
     def _opt_update(opt_state, i):

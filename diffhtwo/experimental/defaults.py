@@ -37,6 +37,7 @@ DATASET = namedtuple(
     "DATASET",
     [
         "dataset",
+        "tcurves",
         "dim_labels",
         "mag_columns",
         "mag_thresh_column",
