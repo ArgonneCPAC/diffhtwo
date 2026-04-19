@@ -26,6 +26,26 @@ LH_N_CENTROIDS = 2500
 LH_SIG = 2.5
 
 
+def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
+    return sdss[
+        (sdss["ra"] > ra_min)
+        & (sdss["ra"] < ra_max)
+        & (sdss["dec"] > dec_min)
+        & (sdss["dec"] < dec_max)
+    ]
+
+
+def load_sdss_cuts_applied(drn):
+    sdss = sdl.load_sdss_cat(drn)
+
+    sdss = apply_ra_dec_cut(sdss)
+
+    msk_is_not_outlier = sdl.get_color_outlier_mask(sdss, sdl.SDSS_MAG_NAMES)
+    sdss = sdss[msk_is_not_outlier]
+
+    return sdss
+
+
 def get_sdss_data(
     drn,
     ran_key,
@@ -43,7 +63,7 @@ def get_sdss_data(
     lc_sky_area_degsq=100,
     n_z_phot_table=15,
 ):
-    sdss = sdl.load_sdss_wrapper(drn=drn)
+    sdss = load_sdss_cuts_applied(drn)
 
     sdss_filters = ["sdss_u", "sdss_g", "sdss_r", "sdss_i", "sdss_z"]
     tcurves = []
