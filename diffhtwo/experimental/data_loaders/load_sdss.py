@@ -46,12 +46,37 @@ def load_sdss_cuts_applied(drn):
     return sdss
 
 
+def get_lh_centroids(
+    dataset,
+    z_min,
+    z_max,
+    mag_thresh,
+    lh_n_centroids=LH_N_CENTROIDS,
+    lh_sig=LH_SIG,
+):
+    mu = np.mean(dataset, axis=0)
+    mu[4] = mu[4] - 0.4
+    mu[5] = mu[5] - 0.01
+    cov = np.cov(dataset.T)
+
+    lh_centroids = lh.latin_hypercube_from_cov(
+        mu, cov, lh_sig, lh_n_centroids, seed=None
+    )
+
+    redshift_mask = (lh_centroids[:, 5] > z_min) & (lh_centroids[:, 5] < z_max)
+    r_mask = lh_centroids[:, 4] < mag_thresh
+    lh_centroids = lh_centroids[redshift_mask & r_mask]
+
+    d_centroids = jnp.ones_like(lh_centroids) * D_MAG
+    d_centroids = d_centroids.at[:, -1].set(D_Z)
+
+    return lh_centroids, d_centroids
+
+
 def get_sdss_data(
     drn,
     ran_key,
     ssp_data,
-    lh_sig=LH_SIG,
-    lh_n_centroids=LH_N_CENTROIDS,
     z_min=SDSS_Z_MIN,
     z_max=SDSS_Z_MAX,
     mag_thresh=SDSS_MAGR_THRESH,
@@ -87,21 +112,12 @@ def get_sdss_data(
 
     dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
 
-    mu = np.mean(dataset, axis=0)
-    mu[4] = mu[4] - 0.4
-    mu[5] = mu[5] - 0.01
-    cov = np.cov(dataset.T)
-
-    lh_centroids = lh.latin_hypercube_from_cov(
-        mu, cov, lh_sig, lh_n_centroids, seed=None
+    lh_centroids, d_centroids = get_lh_centroids(
+        dataset,
+        z_min,
+        z_max,
+        mag_thresh,
     )
-
-    redshift_mask = (lh_centroids[:, 5] > z_min) & (lh_centroids[:, 5] < z_max)
-    r_mask = lh_centroids[:, 4] < mag_thresh
-    lh_centroids = lh_centroids[redshift_mask & r_mask]
-
-    d_centroids = jnp.ones_like(lh_centroids) * D_MAG
-    d_centroids = d_centroids.at[:, -1].set(D_Z)
 
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
 
