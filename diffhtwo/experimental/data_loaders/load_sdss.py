@@ -7,7 +7,14 @@ from DisCoWebS.data_loader import sdss_loader as sdl
 from dsps.data_loaders import load_transmission_curve
 
 from .. import diffndhist, n_mag
-from ..defaults import DATASET, SDSS_AREA_DEG2, SDSS_MAGR_THRESH, SDSS_Z_MAX, SDSS_Z_MIN
+from ..defaults import (
+    DATASET,
+    SDSS_AREA_DEG2,
+    SDSS_FRAC_CAT,
+    SDSS_MAGR_THRESH,
+    SDSS_Z_MAX,
+    SDSS_Z_MIN,
+)
 from ..latin_hypercube import latin_hypercube as lh
 from ..utils import generate_lc_data, zbin_volume
 
@@ -28,7 +35,8 @@ def get_sdss_data(
     z_min=SDSS_Z_MIN,
     z_max=SDSS_Z_MAX,
     mag_thresh=SDSS_MAGR_THRESH,
-    sdss_sky_area_degsq=SDSS_AREA_DEG2,
+    frac_cat=SDSS_FRAC_CAT,
+    sky_area_degsq=SDSS_AREA_DEG2,
     num_halos=100,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
@@ -44,7 +52,6 @@ def get_sdss_data(
         tcurves.append(tcurve)
     mag_columns = [2]
     mag_thresh_column = 2
-    frac_cat = 0.8
 
     sdss_u = sdss["modelMag_u"].data
     sdss_g = sdss["modelMag_g"].data
@@ -85,7 +92,7 @@ def get_sdss_data(
         lh_centroids + (d_centroids / 2),
     )
 
-    vol_mpc3 = zbin_volume(sdss_sky_area_degsq, zlow=z_min, zhigh=z_max).value
+    vol_mpc3 = zbin_volume(sky_area_degsq, zlow=z_min, zhigh=z_max).value
 
     lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
     lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))

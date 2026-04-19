@@ -103,7 +103,7 @@ def get_feniks_data(
     z_max=FENIKS_Z_MAX,
     mag_thresh=FENIKS_MAGK_THRESH,
     frac_cat=FENIKS_FRAC_CAT,
-    sdss_sky_area_degsq=FENIKS_AREA_DEG2,
+    sky_area_degsq=FENIKS_AREA_DEG2,
     num_halos=100,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
@@ -275,9 +275,7 @@ def get_feniks_data(
         lh_centroids - (d_centroids / 2),
         lh_centroids + (d_centroids / 2),
     )
-    vol_mpc3 = zbin_volume(
-        FENIKS_AREA_DEG2, zlow=FENIKS_Z_MIN, zhigh=FENIKS_Z_MAX
-    ).value
+    vol_mpc3 = zbin_volume(sky_area_degsq, zlow=z_min, zhigh=z_max).value
 
     if enlarge_dmag is False:
         lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
