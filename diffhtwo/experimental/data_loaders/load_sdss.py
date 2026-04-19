@@ -53,10 +53,13 @@ def get_lh_centroids(
     mag_thresh,
     lh_n_centroids=LH_N_CENTROIDS,
     lh_sig=LH_SIG,
+    d_mag=D_MAG,
+    d_z=D_Z,
 ):
     mu = np.mean(dataset, axis=0)
-    mu[4] = mu[4] - 0.4
-    mu[5] = mu[5] - 0.01
+    mu[1] = mu[1] - 0.1
+    mu[4] = mu[4] - 0.2
+    mu[5] = mu[5] - 0.02
     cov = np.cov(dataset.T)
 
     lh_centroids = lh.latin_hypercube_from_cov(
@@ -67,8 +70,8 @@ def get_lh_centroids(
     r_mask = lh_centroids[:, 4] < mag_thresh
     lh_centroids = lh_centroids[redshift_mask & r_mask]
 
-    d_centroids = jnp.ones_like(lh_centroids) * D_MAG
-    d_centroids = d_centroids.at[:, -1].set(D_Z)
+    d_centroids = jnp.ones_like(lh_centroids) * d_mag
+    d_centroids = d_centroids.at[:, -1].set(d_z)
 
     return lh_centroids, d_centroids
 
