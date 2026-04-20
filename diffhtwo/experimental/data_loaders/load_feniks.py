@@ -37,6 +37,8 @@ LH_N_CENTROIDS = 3000
 D_MAG = 0.8
 D_Z = 0.5
 
+FENIKS_N_FLOOR = 0.1
+
 
 def get_mag_ab(phot_table, col_name, ZP=25):
     mag_ab = -2.5 * np.log10(phot_table[col_name]) + ZP
@@ -115,6 +117,7 @@ def get_feniks_data(
     filter_info=FILTER_INFO,
     tcurves_file=TCURVES_FILE,
     enlarge_dmag=True,
+    N_floor=FENIKS_N_FLOOR,
 ):
     # Transmission curves
     tcurves = []
@@ -278,7 +281,7 @@ def get_feniks_data(
     vol_mpc3 = zbin_volume(sky_area_degsq, zlow=z_min, zhigh=z_max).value
 
     if enlarge_dmag is False:
-        lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
+        lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3, N_floor=N_floor)
         lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
 
         return FENIKS(

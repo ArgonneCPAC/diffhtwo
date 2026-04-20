@@ -24,6 +24,7 @@ D_MAG = 0.3
 D_Z = 0.05
 LH_N_CENTROIDS = 2500
 LH_SIG = 2.5
+SDSS_N_FLOOR = 0.5
 
 
 def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
@@ -90,6 +91,7 @@ def get_sdss_data(
     lgmp_max=mc_hosts.LGMH_MAX,
     lc_sky_area_degsq=100,
     n_z_phot_table=15,
+    N_floor=SDSS_N_FLOOR,
 ):
     sdss = load_sdss_cuts_applied(drn)
 
@@ -133,7 +135,7 @@ def get_sdss_data(
 
     vol_mpc3 = zbin_volume(sky_area_degsq, zlow=z_min, zhigh=z_max).value
 
-    lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
+    lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3, N_floor=N_floor)
     lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
 
     z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
