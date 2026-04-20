@@ -15,7 +15,7 @@ from jax import vmap
 
 from . import diffndhist as diffndhist2
 
-N_FLOOR = 0.1
+N_FLOOR = 0.2
 N_0 = 1e-12
 
 
