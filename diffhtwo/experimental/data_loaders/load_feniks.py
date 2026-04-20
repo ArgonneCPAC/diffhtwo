@@ -34,7 +34,7 @@ TCURVES_FILE = "kz_FILTER.RES.latest"
 
 LH_SIG = 2.5
 LH_N_CENTROIDS = 3000
-D_MAG = 0.7
+D_MAG = 0.8
 D_Z = 0.5
 
 
