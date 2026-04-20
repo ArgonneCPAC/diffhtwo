@@ -20,7 +20,7 @@ from ..utils import generate_lc_data, zbin_volume
 
 SDSS = namedtuple("SDSS", DATASET._fields)
 
-D_MAG = 0.3
+D_MAG = 0.5
 D_Z = 0.05
 LH_N_CENTROIDS = 2500
 LH_SIG = 2.5
