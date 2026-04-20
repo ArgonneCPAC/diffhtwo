@@ -596,3 +596,75 @@ def fit_sdss_feniks_hizels(
     u_theta_fit = get_params(opt_state)
 
     return loss_hist, u_theta_fit
+
+
+@jjit
+def _loss_sdss_or_feniks(
+    u_theta,
+    ran_key,
+    lg_n_thresh,
+    dataset,
+    line_wave_table,
+):
+    emline_wave_aa = line_wave_table[0]
+
+    # dataset
+    loss_phot_kern_args = (
+        u_theta,
+        ran_key,
+        dataset.lg_n_data_err_lh,
+        lg_n_thresh,
+        dataset.lc_data,
+        emline_wave_aa,  # dummy arg
+        dataset.mag_columns,
+        dataset.mag_thresh_column,
+        dataset.mag_thresh,
+        dataset.lh_centroids,
+        dataset.d_centroids,
+        dataset.frac_cat,
+    )
+    phot_loss = _loss_phot_kern(
+        *loss_phot_kern_args, redshift_as_last_dimension_in_lh=True
+    )
+
+    return phot_loss
+
+
+loss_and_grad_sdss_or_feniks = jjit(value_and_grad(_loss_sdss_or_feniks))
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_sdss_or_feniks(
+    u_theta_init,
+    trainable,
+    ran_key,
+    lg_n_thresh,
+    dataset,
+    line_wave_table,
+    n_steps=2,
+    step_size=1e-2,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    other = (
+        ran_key,
+        lg_n_thresh,
+        dataset,
+        line_wave_table,
+    )
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss, grads = loss_and_grad_sdss_or_feniks(u_theta, *other)
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, loss
+
+    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+    u_theta_fit = get_params(opt_state)
+
+    return loss_hist, u_theta_fit
