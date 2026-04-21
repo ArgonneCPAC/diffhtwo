@@ -3,6 +3,7 @@ from functools import partial
 import jax.numpy as jnp
 from diffsky.burstpop import freqburst_mono
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
+from diffsky.experimental.kernels import mc_randoms
 from diffsky.experimental.kernels import phot_kernels_merging as pkm
 from diffsky.experimental.kernels import specphot_kernels_merging as spkm
 from diffstar.defaults import FB
@@ -100,7 +101,7 @@ def phot_kern(
     fb=FB,
     mc_merge=0,
 ):
-    _res = pkm._mc_phot_kern_merging(
+    phot_kern_results, phot_randoms = pkm._mc_phot_kern_merging(
         ran_key,
         lc_data.z_obs,
         lc_data.t_obs,
@@ -120,26 +121,18 @@ def phot_kern(
         lc_data.halo_indx,
         mc_merge,
     )
-
-    (
-        phot_kern_results,
-        phot_randoms,
-        flux_obs,
-        merge_prob,
-        mstar_obs,
-    ) = _res
-    mag_obs = -2.5 * jnp.log10(flux_obs)
+    obs_mags = phot_kern_results.obs_mags
 
     # get weights incorporating frac_cat
     weights = lc_data.nhalos * frac_cat
 
     # apply mag thresh cut
-    obs_mag_thresh_band = mag_obs[:, mag_thresh_column]
+    obs_mag_thresh_band = obs_mags[:, mag_thresh_column]
     weights = jnp.where(
         obs_mag_thresh_band < mag_thresh, weights, jnp.zeros_like(weights)
     )
 
-    return mag_obs, weights
+    return obs_mags, weights
 
 
 @jjit
@@ -175,20 +168,13 @@ def n_spec_kern(
         mc_merge,
     )
 
-    (
-        phot_kern_results,
-        linelums_in_situ,
-        phot_randoms,
-        flux_in_plus_ex_situ,
-        merge_prob,
-        mstar_obs,
-        linelums_in_plus_ex_situ,
-    ) = _res
+    (phot_kern_results, phot_randoms, spec_kern_results) = _res
+    linelum_gal = spec_kern_results.linelum_gal
 
     sig = jnp.diff(lg_emline_Lbin_edges) / 2
     sig = sig.reshape(sig.size, 1)
     _, emline_N = emline_luminosity.get_emline_luminosity_func(
-        linelums_in_plus_ex_situ,
+        linelum_gal,
         lc_data.nhalos,
         sig=sig,
         lgL_bin_edges=lg_emline_Lbin_edges,
@@ -210,9 +196,10 @@ def n_spec_q_ms_burst(
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
     n_t_table=100,
+    mc_merge=0,
 ):
-    # get phot randoms
-    phot_randoms, sfh_params = mcpk.get_mc_phot_randoms(
+    # get randoms
+    phot_randoms, sfh_params, merging_randoms = mc_randoms.get_mc_phot_merge_randoms(
         ran_key, param_collection.diffstarpop_params, lc_data.mah_params, cosmo_params
     )
 
@@ -236,10 +223,8 @@ def n_spec_q_ms_burst(
     mc_is_burst = (mc_is_ms) & (mc_is_burst)
     mc_is_ms = (mc_is_ms) & (~mc_is_burst)
 
-    _res = mcpk._mc_specphot_kern_merging(
+    _res = spkm._mc_specphot_kern_merging(
         ran_key,
-        phot_randoms,
-        sfh_params,
         lc_data.z_obs,
         lc_data.t_obs,
         lc_data.mah_params,
@@ -257,24 +242,18 @@ def n_spec_q_ms_burst(
         lc_data.is_central,
         lc_data.nhalos,
         lc_data.halo_indx,
+        mc_merge,
     )
 
-    (
-        phot_kern_results,
-        linelums_in_situ,
-        phot_randoms,
-        flux_in_plus_ex_situ,
-        merge_prob,
-        mstar_obs,
-        linelums_in_plus_ex_situ,
-    ) = _res
+    (phot_kern_results, _, spec_kern_results) = _res
+    linelum_gal = spec_kern_results.linelum_gal
 
     sig = jnp.diff(lg_emline_Lbin_edges) / 2
     sig = sig.reshape(sig.size, 1)
 
     # composite
     _, emline_N = emline_luminosity.get_emline_luminosity_func(
-        linelums_in_plus_ex_situ,
+        linelum_gal,
         lc_data.nhalos,
         sig=sig,
         lgL_bin_edges=lg_emline_Lbin_edges,
@@ -285,7 +264,7 @@ def n_spec_q_ms_burst(
     lg_emline_LF = jnp.log10(emline_N / lc_data.lc_vol_mpc3)
 
     # q
-    linelums_q = linelums_in_plus_ex_situ[mc_is_q]
+    linelums_q = linelum_gal[mc_is_q]
     _, emline_N_q = emline_luminosity.get_emline_luminosity_func(
         linelums_q,
         lc_data.nhalos[mc_is_q],
@@ -296,7 +275,7 @@ def n_spec_q_ms_burst(
     lg_emline_LF_q = jnp.log10(emline_N_q / lc_data.lc_vol_mpc3)
 
     # ms
-    linelums_ms = linelums_in_plus_ex_situ[mc_is_ms]
+    linelums_ms = linelum_gal[mc_is_ms]
     _, emline_N_ms = emline_luminosity.get_emline_luminosity_func(
         linelums_ms,
         lc_data.nhalos[mc_is_ms],
@@ -307,7 +286,7 @@ def n_spec_q_ms_burst(
     lg_emline_LF_ms = jnp.log10(emline_N_ms / lc_data.lc_vol_mpc3)
 
     # burst
-    linelums_burst = linelums_in_plus_ex_situ[mc_is_burst]
+    linelums_burst = linelum_gal[mc_is_burst]
     _, emline_N_burst = emline_luminosity.get_emline_luminosity_func(
         linelums_burst,
         lc_data.nhalos[mc_is_burst],
