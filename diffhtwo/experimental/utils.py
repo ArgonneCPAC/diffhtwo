@@ -1,10 +1,8 @@
-from collections import namedtuple
 from difflib import get_close_matches
 
 import jax.numpy as jnp
 import numpy as np
 from astropy import units as u
-from diffsky.experimental import lightcone_generators as lcg
 from diffsky.mass_functions import mc_hosts
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
@@ -114,41 +112,6 @@ def get_halpha_LF_q_ms_burst(
         lg_halpha_LF_ms,
         lg_halpha_LF_burst,
     )
-
-
-def generate_lc_data(
-    ran_key,
-    num_halos,
-    z_min,
-    z_max,
-    lgmp_min,
-    lgmp_max,
-    sky_area_degsq,
-    ssp_data,
-    tcurves,
-    z_phot_table,
-    cosmo_params=DEFAULT_COSMOLOGY,
-):
-    lc_args = (
-        ran_key,
-        num_halos,
-        z_min,
-        z_max,
-        lgmp_min,
-        lgmp_max,
-        sky_area_degsq,
-        ssp_data,
-        tcurves,
-        z_phot_table,
-    )
-    lc_data = lcg.weighted_lc_photdata(*lc_args, cosmo_params=cosmo_params)
-
-    fields = (*lc_data._fields, "lc_vol_mpc3")
-    lc_vol_mpc3 = zbin_vol(sky_area_degsq, z_min, z_max, cosmo_params)
-    values = (*lc_data, lc_vol_mpc3)
-    lc_data = namedtuple(lc_data.__class__.__name__, fields)(*values)
-
-    return lc_data
 
 
 dV_dz = jjit(

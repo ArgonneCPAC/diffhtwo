@@ -16,7 +16,8 @@ from ..defaults import (
     SDSS_Z_MIN,
 )
 from ..latin_hypercube import latin_hypercube as lh
-from ..utils import generate_lc_data, zbin_volume
+from ..lightcone_generators import generate_lc_data
+from ..utils import zbin_volume
 
 SDSS = namedtuple("SDSS", DATASET._fields)
 

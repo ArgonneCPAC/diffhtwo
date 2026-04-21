@@ -15,8 +15,8 @@ from ..defaults import (
     FENIKS_Z_MIN,
 )
 from ..latin_hypercube import latin_hypercube as lh
+from ..lightcone_generators import generate_lc_data
 from ..utils import (
-    generate_lc_data,
     get_feniks_filter_number_from_translate_file,
     get_tcurve,
     zbin_volume,
