@@ -3,7 +3,8 @@ from functools import partial
 import jax.numpy as jnp
 from diffsky.burstpop import freqburst_mono
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
-from diffsky.experimental.kernels import mc_phot_kernels as mcpk
+from diffsky.experimental.kernels import phot_kernels_merging as pkm
+from diffsky.experimental.kernels import specphot_kernels_merging as spkm
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
@@ -18,7 +19,6 @@ def n_colors_mags_lh(
     ran_key,
     param_collection,
     lc_data,
-    line_wave_table,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -31,7 +31,6 @@ def n_colors_mags_lh(
         ran_key,
         param_collection,
         lc_data,
-        line_wave_table,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -64,7 +63,6 @@ def get_colors_mags(
     ran_key,
     param_collection,
     lc_data,
-    line_wave_table,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -74,7 +72,6 @@ def get_colors_mags(
         ran_key,
         param_collection,
         lc_data,
-        line_wave_table,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -95,22 +92,16 @@ def phot_kern(
     ran_key,
     param_collection,
     lc_data,
-    line_wave_table,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
     frac_cat,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
+    mc_merge=0,
 ):
-    phot_randoms, sfh_params = mcpk.get_mc_phot_randoms(
-        ran_key, param_collection.diffstarpop_params, lc_data.mah_params, cosmo_params
-    )
-
-    _res = mcpk._mc_specphot_kern_merging(
+    _res = pkm._mc_phot_kern_merging(
         ran_key,
-        phot_randoms,
-        sfh_params,
         lc_data.z_obs,
         lc_data.t_obs,
         lc_data.mah_params,
@@ -118,7 +109,6 @@ def phot_kern(
         lc_data.precomputed_ssp_mag_table,
         lc_data.z_phot_table,
         lc_data.wave_eff_table,
-        line_wave_table,
         *param_collection,
         cosmo_params,
         fb,
@@ -128,29 +118,28 @@ def phot_kern(
         lc_data.is_central,
         lc_data.nhalos,
         lc_data.halo_indx,
+        mc_merge,
     )
 
     (
         phot_kern_results,
-        linelums_in_situ,
         phot_randoms,
-        flux_in_plus_ex_situ,
+        flux_obs,
         merge_prob,
         mstar_obs,
-        linelums_in_plus_ex_situ,
     ) = _res
-    mags_in_plus_ex_situ = -2.5 * jnp.log10(flux_in_plus_ex_situ)
+    mag_obs = -2.5 * jnp.log10(flux_obs)
 
     # get weights incorporating frac_cat
     weights = lc_data.nhalos * frac_cat
 
     # apply mag thresh cut
-    obs_mag_thresh_band = mags_in_plus_ex_situ[:, mag_thresh_column]
+    obs_mag_thresh_band = mag_obs[:, mag_thresh_column]
     weights = jnp.where(
         obs_mag_thresh_band < mag_thresh, weights, jnp.zeros_like(weights)
     )
 
-    return mags_in_plus_ex_situ, weights
+    return mag_obs, weights
 
 
 @jjit

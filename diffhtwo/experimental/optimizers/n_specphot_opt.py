@@ -47,7 +47,6 @@ def get_phot_loss(
     lg_n_thresh,
     param_collection,
     lc_data,
-    line_wave_aa,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -56,12 +55,10 @@ def get_phot_loss(
     frac_cat,
     redshift_as_last_dimension_in_lh=False,
 ):
-    line_wave_table = jnp.array([line_wave_aa])
     n_colors_mags_lh_args = (
         ran_key,
         param_collection,
         lc_data,
-        line_wave_table,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -112,7 +109,6 @@ def _loss_phot_kern(
     lg_n_target,
     lg_n_thresh,
     lc_data,
-    line_wave_aa,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -130,7 +126,6 @@ def _loss_phot_kern(
         lg_n_thresh,
         param_collection,
         lc_data,
-        line_wave_aa,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -144,7 +139,7 @@ def _loss_phot_kern(
     return phot_loss
 
 
-_L_pk = (None, None, 0, None, 0, None, None, None, None, 0, 0, None)
+_L_pk = (None, None, 0, None, 0, None, None, None, 0, 0, None)
 _loss_phot_kern_multi_z = jjit(
     vmap(
         _loss_phot_kern,
@@ -226,14 +221,12 @@ def _loss_phot_and_emline_multi_z(
     emline_lc_data,
     emline_wave_table,
 ):
-    emline_wave_aa = emline_wave_table[0]
     phot_multi_z_loss_args = (
         u_theta,
         ran_key,
         lg_n_target,
         lg_n_thresh,
         lc_data,
-        emline_wave_aa,  # dummy arg
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -350,8 +343,6 @@ def _loss_sdss_feniks_multi_z_hizels(
     hizels_lc_data,
     hizels_wave_table,
 ):
-    emline_wave_aa = hizels_wave_table[0]
-
     # sdss
     sdss_phot_loss_args = (
         u_theta,
@@ -359,7 +350,6 @@ def _loss_sdss_feniks_multi_z_hizels(
         sdss_lg_n_target,
         lg_n_thresh,
         sdss_lc_data,
-        emline_wave_aa,  # dummy arg
         sdss_mag_columns,
         sdss_mag_thresh_column,
         sdss_mag_thresh,
@@ -378,7 +368,6 @@ def _loss_sdss_feniks_multi_z_hizels(
         feniks_lg_n_target,
         lg_n_thresh,
         feniks_lc_data,
-        emline_wave_aa,  # dummy arg
         feniks_mag_columns,
         feniks_mag_thresh_column,
         feniks_mag_thresh,
@@ -496,8 +485,6 @@ def _loss_sdss_feniks_hizels(
     hizels,
     line_wave_table,
 ):
-    emline_wave_aa = line_wave_table[0]
-
     # sdss
     sdss_phot_loss_args = (
         u_theta,
@@ -505,7 +492,6 @@ def _loss_sdss_feniks_hizels(
         sdss.lg_n_data_err_lh,
         lg_n_thresh,
         sdss.lc_data,
-        emline_wave_aa,  # dummy arg
         sdss.mag_columns,
         sdss.mag_thresh_column,
         sdss.mag_thresh,
@@ -524,7 +510,6 @@ def _loss_sdss_feniks_hizels(
         feniks.lg_n_data_err_lh,
         lg_n_thresh,
         feniks.lc_data,
-        emline_wave_aa,  # dummy arg
         feniks.mag_columns,
         feniks.mag_thresh_column,
         feniks.mag_thresh,
@@ -604,10 +589,7 @@ def _loss_sdss_or_feniks(
     ran_key,
     lg_n_thresh,
     dataset,
-    line_wave_table,
 ):
-    emline_wave_aa = line_wave_table[0]
-
     # dataset
     loss_phot_kern_args = (
         u_theta,
@@ -615,7 +597,6 @@ def _loss_sdss_or_feniks(
         dataset.lg_n_data_err_lh,
         lg_n_thresh,
         dataset.lc_data,
-        emline_wave_aa,  # dummy arg
         dataset.mag_columns,
         dataset.mag_thresh_column,
         dataset.mag_thresh,
@@ -640,7 +621,6 @@ def fit_sdss_or_feniks(
     ran_key,
     lg_n_thresh,
     dataset,
-    line_wave_table,
     n_steps=2,
     step_size=1e-2,
 ):
@@ -651,7 +631,6 @@ def fit_sdss_or_feniks(
         ran_key,
         lg_n_thresh,
         dataset,
-        line_wave_table,
     )
 
     def _opt_update(opt_state, i):

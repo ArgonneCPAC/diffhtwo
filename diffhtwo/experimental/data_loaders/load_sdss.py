@@ -22,8 +22,9 @@ SDSS = namedtuple("SDSS", DATASET._fields)
 
 D_MAG = 0.5
 D_Z = 0.05
-LH_N_CENTROIDS = 2500
-LH_SIG = 2.5
+LH_N_CENTROIDS = 3500
+LH_SIG = 3
+
 SDSS_N_FLOOR = 0.5
 
 
@@ -58,17 +59,17 @@ def get_lh_centroids(
     d_z=D_Z,
 ):
     mu = np.mean(dataset, axis=0)
-    mu[1] = mu[1] - 0.1
-    mu[4] = mu[4] - 0.2
-    mu[5] = mu[5] - 0.02
+    mu[1] = mu[1] - 0.1  #
+    mu[-2] = mu[-2] - 1.2  # r
+    mu[-1] = mu[-1] - 0.02  # redshift
     cov = np.cov(dataset.T)
 
     lh_centroids = lh.latin_hypercube_from_cov(
         mu, cov, lh_sig, lh_n_centroids, seed=None
     )
 
-    redshift_mask = (lh_centroids[:, 5] > z_min) & (lh_centroids[:, 5] < z_max)
-    r_mask = lh_centroids[:, 4] < mag_thresh
+    redshift_mask = (lh_centroids[:, -1] > z_min) & (lh_centroids[:, -1] < z_max)
+    r_mask = lh_centroids[:, -2] < mag_thresh
     lh_centroids = lh_centroids[redshift_mask & r_mask]
 
     d_centroids = jnp.ones_like(lh_centroids) * d_mag
@@ -90,7 +91,7 @@ def get_sdss_data(
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
     lc_sky_area_degsq=100,
-    n_z_phot_table=15,
+    n_z_phot_table=50,
     N_floor=SDSS_N_FLOOR,
 ):
     sdss = load_sdss_cuts_applied(drn)
