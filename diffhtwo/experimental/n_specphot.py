@@ -151,15 +151,10 @@ def n_spec_kern(
     lg_emline_Lbin_edges,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
+    mc_merge=0,
 ):
-    phot_randoms, sfh_params = mcpk.get_mc_phot_randoms(
-        ran_key, param_collection.diffstarpop_params, lc_data.mah_params, cosmo_params
-    )
-
-    _res = mcpk._mc_specphot_kern_merging(
+    _res = spkm._mc_specphot_kern_merging(
         ran_key,
-        phot_randoms,
-        sfh_params,
         lc_data.z_obs,
         lc_data.t_obs,
         lc_data.mah_params,
@@ -177,6 +172,7 @@ def n_spec_kern(
         lc_data.is_central,
         lc_data.nhalos,
         lc_data.halo_indx,
+        mc_merge,
     )
 
     (
