@@ -44,7 +44,7 @@ def n_colors_mags_lh(
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
     lh_centroids_hi = lh_centroids + (d_centroids / 2)
 
-    if redshift_as_last_dimension_in_lh is True:
+    if redshift_as_last_dimension_in_lh:
         z_obs = lc_data.z_obs.reshape(lc_data.z_obs.size, 1)
         obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
 
@@ -265,7 +265,7 @@ def n_spec_kern(
     # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
     emline_N = jnp.where(emline_N > N_FLOOR, emline_N, N_0)
 
-    lg_emline_LF_model = jnp.log10(emline_N / lc_data.lc_vol_mpc3)
+    lg_emline_LF_model = jnp.log10(emline_N / lc_data.lc_tot_vol_mpc3)
 
     return lg_emline_LF_model
 
@@ -344,7 +344,7 @@ def n_spec_q_ms_burst(
     # take care of bins with low/zero number counts in a similar way
     # to n_mag.get_n_data_err(), using same N_floor and N_0:
     emline_N = jnp.where(emline_N > N_FLOOR, emline_N, N_0)
-    lg_emline_LF = jnp.log10(emline_N / lc_data.lc_vol_mpc3)
+    lg_emline_LF = jnp.log10(emline_N / lc_data.lc_tot_vol_mpc3)
 
     # q
     linelums_q = linelum_gal[mc_is_q]
@@ -355,7 +355,7 @@ def n_spec_q_ms_burst(
         lgL_bin_edges=lg_emline_Lbin_edges,
     )
     emline_N_q = jnp.where(emline_N_q > N_FLOOR, emline_N_q, N_0)
-    lg_emline_LF_q = jnp.log10(emline_N_q / lc_data.lc_vol_mpc3)
+    lg_emline_LF_q = jnp.log10(emline_N_q / lc_data.lc_tot_vol_mpc3)
 
     # ms
     linelums_ms = linelum_gal[mc_is_ms]
@@ -366,7 +366,7 @@ def n_spec_q_ms_burst(
         lgL_bin_edges=lg_emline_Lbin_edges,
     )
     emline_N_ms = jnp.where(emline_N_ms > N_FLOOR, emline_N_ms, N_0)
-    lg_emline_LF_ms = jnp.log10(emline_N_ms / lc_data.lc_vol_mpc3)
+    lg_emline_LF_ms = jnp.log10(emline_N_ms / lc_data.lc_tot_vol_mpc3)
 
     # burst
     linelums_burst = linelum_gal[mc_is_burst]
@@ -377,6 +377,6 @@ def n_spec_q_ms_burst(
         lgL_bin_edges=lg_emline_Lbin_edges,
     )
     emline_N_burst = jnp.where(emline_N_burst > N_FLOOR, emline_N_burst, N_0)
-    lg_emline_LF_burst = jnp.log10(emline_N_burst / lc_data.lc_vol_mpc3)
+    lg_emline_LF_burst = jnp.log10(emline_N_burst / lc_data.lc_tot_vol_mpc3)
 
     return lg_emline_LF, lg_emline_LF_q, lg_emline_LF_ms, lg_emline_LF_burst

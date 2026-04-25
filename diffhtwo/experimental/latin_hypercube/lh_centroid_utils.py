@@ -51,7 +51,7 @@ def get_subset_lh_z(
         lgmp_min,
         lgmp_max,
         dataset.lc_data.sky_area_degsq,
-        dataset.ssp_data,
+        dataset.lc_data.ssp_data,
         dataset.tcurves,
         z_phot_table,
     )
