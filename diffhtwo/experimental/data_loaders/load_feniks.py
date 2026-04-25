@@ -99,7 +99,7 @@ def get_feniks_data(
     mag_thresh=FENIKS_MAGK_THRESH,
     data_sky_area_degsq=FENIKS_AREA_DEG2,
     num_halos=500,
-    lc_sky_area_degsq=100,
+    lc_sky_area_degsq=FENIKS_AREA_DEG2,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
     n_z_phot_table=120,
@@ -108,7 +108,6 @@ def get_feniks_data(
     translate=TRANSLATE,
     filter_info=FILTER_INFO,
     tcurves_file=TCURVES_FILE,
-    enlarge_dmag=False,
     dmag=D_MAG,
     dz=D_Z,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -270,7 +269,6 @@ def get_feniks_data(
         lh_centroids_hi,
     )
 
-    # if enlarge_dmag is False:
     lh_vol_mpc3 = zbin_vol_vmap(
         data_sky_area_degsq,
         lh_centroids_lo[:, -1],
@@ -280,11 +278,6 @@ def get_feniks_data(
 
     lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, lh_vol_mpc3)
     lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
-
-    # sel = lg_n_data_err_lh[0] > lg_n_thresh
-    # lg_n_data_err_lh = lg_n_data_err_lh[:, sel]
-    # lh_centroids = lh_centroids[sel]
-    # d_centroids = d_centroids[sel]
 
     return FENIKS(
         dataset,
@@ -298,26 +291,3 @@ def get_feniks_data(
         lg_n_data_err_lh,
         lc_data,
     )
-    # else:
-    #     # enlarge dmag
-    #     Nmax = N_data_lh.max()
-    #     print("Nmax: " + str(Nmax))
-
-    #     # run diffndhist with enlarged dmag
-    #     N_data_lh, d_centroids = enlarge_lh_bins(dataset, lh_centroids, Nmax, dmag, dz)
-
-    #     lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
-    #     lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
-
-    #     return FENIKS(
-    #         dataset,
-    #         tcurves,
-    #         mag_columns,
-    #         mag_thresh_column,
-    #         mag_thresh,
-    #         frac_cat,
-    #         lh_centroids,
-    #         d_centroids,
-    #         lg_n_data_err_lh,
-    #         lc_data,
-    #     )

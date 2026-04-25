@@ -636,7 +636,7 @@ def fit_sdss_feniks_hizels(
 
 @jjit
 def _loss_sdss_or_feniks(
-    u_theta, ran_key, lg_n_thresh, dataset, fit_mag_thresh_band=True
+    u_theta, ran_key, lg_n_thresh, dataset, fit_mag_thresh_band=False
 ):
     # dataset
     loss_phot_kern_args = (
