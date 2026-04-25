@@ -4,6 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 from astropy.io import ascii
 from diffsky.mass_functions import mc_hosts
+from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders.defaults import TransmissionCurve
 
 from .. import diffndhist, n_mag
@@ -15,11 +16,13 @@ from ..defaults import (
     FENIKS_Z_MIN,
 )
 from ..latin_hypercube import latin_hypercube as lh
+
+# from ..latin_hypercube.lh_centroid_utils import enlarge_lh_bins
+from ..lc_utils import zbin_vol_vmap
 from ..lightcone_generators import generate_lc_data
 from ..utils import (
     get_feniks_filter_number_from_translate_file,
     get_tcurve,
-    zbin_volume,
 )
 
 FENIKS = namedtuple("FENIKS", DATASET._fields)
@@ -31,11 +34,10 @@ FILTER_INFO = "kz_FILTER.RES.latest.info"
 TCURVES_FILE = "kz_FILTER.RES.latest"
 
 LH_SIG = 3
-LH_N_CENTROIDS = 3000
-D_MAG = 0.5
-D_Z = 0.5
+LH_N_CENTROIDS = 3_000
 
-FENIKS_N_FLOOR = 0.5
+D_MAG = 0.75
+D_Z = 0.5
 
 
 def get_mag_ab(phot_table, col_name, ZP=25):
@@ -67,56 +69,23 @@ def get_lh_centroids(
         mu, cov, lh_sig, lh_n_centroids, seed=None
     )
 
-    redshift_mask = (lh_centroids[:, -1] > z_min) & (lh_centroids[:, -1] < z_max)
+    redshift_mask = (lh_centroids[:, -1] > (z_min + (d_z / 2))) & (
+        lh_centroids[:, -1] < (z_max - (d_z / 2))
+    )
     k_mask = lh_centroids[:, -2] < mag_thresh
     lh_centroids = lh_centroids[redshift_mask & k_mask]
 
+    # redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
+    # k_mins = [16, 17.8, 19, 19.7, 20.2, 20.8, 21.2, 21.8]
+    # coeffs = np.polyfit(redshift_centers, k_mins, deg=2)
+    # k_min = np.poly1d(coeffs)
+    # k_complete = lh_centroids[:, -2] > k_min(lh_centroids[:, -1])
+    # lh_centroids = lh_centroids[k_complete]
+
     d_centroids = jnp.ones_like(lh_centroids) * d_mag
-    # d_centroids = d_centroids.at[:, -1].set(d_z)
+    d_centroids = d_centroids.at[:, -1].set(d_z)
 
     return lh_centroids, d_centroids
-
-
-def modulate_dmag(dataset, lh_centroid, Nmax, dmag, D_MAG_MAX=2.5):
-    lh_centroid = lh_centroid.reshape(1, lh_centroid.size)
-
-    while dmag < D_MAG_MAX:
-        sig = jnp.zeros(lh_centroid.shape) + (dmag / 2)
-        Nbin = diffndhist.tw_ndhist(
-            dataset,
-            sig,  # (nbins, ndim)
-            lh_centroid - (dmag / 2),  # (nbins, ndim)
-            lh_centroid + (dmag / 2),
-        )
-        if np.isclose(Nmax, Nbin, atol=0.5):
-            return dmag, Nbin
-        else:
-            dmag += 0.1
-    return dmag - 0.1, Nbin
-
-
-def enlarge_lh_bins(dataset, lh_centroids, Nmax, dmag=D_MAG, dz=D_Z):
-    N_data_lh = []
-    dmag_centroids = []
-
-    for lh_centroid in lh_centroids:
-        dmag_centroid, Nbin = modulate_dmag(dataset, lh_centroid, Nmax, dmag)
-        dmag_centroids.append(dmag_centroid)
-        N_data_lh.append(Nbin)
-
-    dmag_centroids = jnp.array(dmag_centroids)
-    d_centroids = dmag_centroids.reshape(dmag_centroids.size, 1)
-
-    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
-
-    N_data_lh = diffndhist.tw_ndhist(
-        dataset,
-        dataset_sig,
-        lh_centroids - (d_centroids / 2),
-        lh_centroids + (d_centroids / 2),
-    )
-
-    return N_data_lh, d_centroids
 
 
 def get_feniks_data(
@@ -128,19 +97,21 @@ def get_feniks_data(
     z_min=FENIKS_Z_MIN,
     z_max=FENIKS_Z_MAX,
     mag_thresh=FENIKS_MAGK_THRESH,
-    sky_area_degsq=FENIKS_AREA_DEG2,
-    num_halos=100,
+    data_sky_area_degsq=FENIKS_AREA_DEG2,
+    num_halos=500,
+    lc_sky_area_degsq=100,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
-    lc_sky_area_degsq=100,
     n_z_phot_table=120,
     phot=PHOT,
     zout=ZOUT,
     translate=TRANSLATE,
     filter_info=FILTER_INFO,
     tcurves_file=TCURVES_FILE,
-    enlarge_dmag=True,
-    N_floor=FENIKS_N_FLOOR,
+    enlarge_dmag=False,
+    dmag=D_MAG,
+    dz=D_Z,
+    cosmo_params=DEFAULT_COSMOLOGY,
 ):
     # Transmission curves
     tcurves = []
@@ -284,54 +255,69 @@ def get_feniks_data(
         z_phot_table,
     )
 
-    lc_data = generate_lc_data(*lc_args)
+    lc_data = generate_lc_data(
+        *lc_args, lh_centroids=lh_centroids, d_centroids=d_centroids
+    )
 
     # run initial diffndhist with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
+    lh_centroids_lo = lh_centroids - (d_centroids / 2)
+    lh_centroids_hi = lh_centroids + (d_centroids / 2)
     N_data_lh = diffndhist.tw_ndhist(
         dataset,
         dataset_sig,
-        lh_centroids - (d_centroids / 2),
-        lh_centroids + (d_centroids / 2),
+        lh_centroids_lo,
+        lh_centroids_hi,
     )
-    vol_mpc3 = zbin_volume(sky_area_degsq, zlow=z_min, zhigh=z_max).value
 
-    if enlarge_dmag is False:
-        lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3, N_floor=N_floor)
-        lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
+    # if enlarge_dmag is False:
+    lh_vol_mpc3 = zbin_vol_vmap(
+        data_sky_area_degsq,
+        lh_centroids_lo[:, -1],
+        lh_centroids_hi[:, -1],
+        cosmo_params,
+    )
 
-        return FENIKS(
-            dataset,
-            tcurves,
-            mag_columns,
-            mag_thresh_column,
-            mag_thresh,
-            frac_cat,
-            lh_centroids,
-            d_centroids,
-            lg_n_data_err_lh,
-            lc_data,
-        )
-    else:
-        # enlarge dmag
-        Nmax = N_data_lh.max()
-        print("Nmax: " + str(Nmax))
+    lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, lh_vol_mpc3)
+    lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
 
-        # run diffndhist with enlarged dmag
-        N_data_lh, d_centroids = enlarge_lh_bins(dataset, lh_centroids, Nmax)
+    # sel = lg_n_data_err_lh[0] > lg_n_thresh
+    # lg_n_data_err_lh = lg_n_data_err_lh[:, sel]
+    # lh_centroids = lh_centroids[sel]
+    # d_centroids = d_centroids[sel]
 
-        lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
-        lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
+    return FENIKS(
+        dataset,
+        tcurves,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        frac_cat,
+        lh_centroids,
+        d_centroids,
+        lg_n_data_err_lh,
+        lc_data,
+    )
+    # else:
+    #     # enlarge dmag
+    #     Nmax = N_data_lh.max()
+    #     print("Nmax: " + str(Nmax))
 
-        return FENIKS(
-            dataset,
-            tcurves,
-            mag_columns,
-            mag_thresh_column,
-            mag_thresh,
-            frac_cat,
-            lh_centroids,
-            d_centroids,
-            lg_n_data_err_lh,
-            lc_data,
-        )
+    #     # run diffndhist with enlarged dmag
+    #     N_data_lh, d_centroids = enlarge_lh_bins(dataset, lh_centroids, Nmax, dmag, dz)
+
+    #     lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, vol_mpc3)
+    #     lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
+
+    #     return FENIKS(
+    #         dataset,
+    #         tcurves,
+    #         mag_columns,
+    #         mag_thresh_column,
+    #         mag_thresh,
+    #         frac_cat,
+    #         lh_centroids,
+    #         d_centroids,
+    #         lg_n_data_err_lh,
+    #         lc_data,
+    #     )

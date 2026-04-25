@@ -6,7 +6,7 @@ from astropy.io import ascii
 from diffsky.mass_functions import mc_hosts
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
-from ..utils import generate_lc_data
+from ..lightcone_generators import generate_lc_data
 
 HiZELS = namedtuple(
     "HiZELS",

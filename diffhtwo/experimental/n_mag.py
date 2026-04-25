@@ -16,7 +16,7 @@ from jax import vmap
 from . import diffndhist as diffndhist2
 
 N_FLOOR = 0.5
-N_0 = 1e-12
+N_0 = 0.5
 
 
 @jjit
@@ -632,6 +632,13 @@ def Gehrels_low_eq12(Ngal):
 
 @jjit
 def get_n_data_err(N, vol, N_floor=N_FLOOR, N_o=N_0):
+    """
+    When `N <~ 0.5`, Gehrels_low_eq12(N) returns -ve values.
+    `non_zero` boolean mask based on `N_floor` guards against that.
+    See line --> `N_low = jnp.where(non_zero, N_low, N_o)` below.
+    But it will fail for `N_floor` <~ 0.5.
+    Therefore, keep `N_floor` > ~ 0.5.
+    """
     non_zero = N > N_floor
 
     N = jnp.where(non_zero, N, N_o)

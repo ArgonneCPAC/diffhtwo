@@ -18,7 +18,9 @@ from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
-from ..n_specphot import n_colors_mags_lh, n_spec_kern
+from .. import diffndhist as diffndhist2
+from ..n_mag import get_n_data_err
+from ..n_specphot import n_colors_mags_lh, n_spec_kern, phot_kern
 from ..param_utils import get_param_collection_from_u_theta
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
@@ -71,6 +73,58 @@ def get_phot_loss(
     phot_loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     return phot_loss
+
+
+@jjit
+def get_mag_func_loss(
+    ran_key,
+    param_collection,
+    lc_data,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    frac_cat,
+    mag_bin_edges,
+    lg_n,
+    lg_n_avg_err,
+    lg_n_thresh,
+):
+    mags, weights = phot_kern(
+        ran_key,
+        param_collection,
+        lc_data,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        frac_cat,
+    )
+
+    mags = mags[:, -1]
+    mags = mags.reshape(mags.size, 1)
+
+    bw = jnp.diff(mag_bin_edges).mean()
+
+    mag_lo = mag_bin_edges[:-1]
+    mag_lo = mag_lo.reshape(mag_lo.size, 1)
+
+    mag_hi = mag_bin_edges[1:]
+    mag_hi = mag_lo.reshape(mag_hi.size, 1)
+
+    sig = jnp.zeros(mag_lo.shape) + (bw / 2)
+    mag_bin_edges = mag_bin_edges.reshape(mag_bin_edges.size, 1)
+
+    N = diffndhist2.tw_ndhist_weighted(
+        mags,
+        sig,
+        weights,
+        mag_lo,
+        mag_hi,
+    )
+
+    lg_n_model, _ = get_n_data_err(N, lc_data.lc_tot_vol_mpc3)
+    mag_func_loss = _mse_w(lg_n_model, lg_n, lg_n_avg_err, lg_n_thresh)
+
+    return mag_func_loss
 
 
 @jjit
@@ -484,6 +538,7 @@ def _loss_sdss_feniks_hizels(
     feniks,
     hizels,
     line_wave_table,
+    fit_hizels=False,
 ):
     # sdss
     sdss_phot_loss_args = (
@@ -522,18 +577,21 @@ def _loss_sdss_feniks_hizels(
     )
 
     # hizels
-    hizels_emline_multi_line_multi_z_loss_args = (
-        u_theta,
-        ran_key,
-        lg_n_thresh,
-        hizels.lg_LF,
-        hizels.lg_Lbin_edges,
-        hizels.lc_data,
-        line_wave_table,
-    )
-    hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
-        *hizels_emline_multi_line_multi_z_loss_args
-    )
+    if fit_hizels:
+        hizels_emline_multi_line_multi_z_loss_args = (
+            u_theta,
+            ran_key,
+            lg_n_thresh,
+            hizels.lg_LF,
+            hizels.lg_Lbin_edges,
+            hizels.lc_data,
+            line_wave_table,
+        )
+        hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
+            *hizels_emline_multi_line_multi_z_loss_args
+        )
+    else:
+        hizels_emline_loss = 0.0
 
     sdss_feniks_hizels_loss = sdss_phot_loss + feniks_phot_loss + hizels_emline_loss
     return sdss_feniks_hizels_loss
@@ -558,14 +616,7 @@ def fit_sdss_feniks_hizels(
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
 
-    other = (
-        ran_key,
-        lg_n_thresh,
-        sdss,
-        feniks,
-        hizels,
-        line_wave_table,
-    )
+    other = (ran_key, lg_n_thresh, sdss, feniks, hizels, line_wave_table)
 
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
@@ -585,10 +636,7 @@ def fit_sdss_feniks_hizels(
 
 @jjit
 def _loss_sdss_or_feniks(
-    u_theta,
-    ran_key,
-    lg_n_thresh,
-    dataset,
+    u_theta, ran_key, lg_n_thresh, dataset, fit_mag_thresh_band=True
 ):
     # dataset
     loss_phot_kern_args = (
@@ -607,8 +655,25 @@ def _loss_sdss_or_feniks(
     phot_loss = _loss_phot_kern(
         *loss_phot_kern_args, redshift_as_last_dimension_in_lh=True
     )
-
-    return phot_loss
+    if fit_mag_thresh_band:
+        param_collection = get_param_collection_from_u_theta(u_theta)
+        mag_func_loss_args = (
+            ran_key,
+            param_collection,
+            dataset.lc_data,
+            dataset.mag_columns,
+            dataset.mag_thresh_column,
+            dataset.mag_thresh,
+            dataset.frac_cat,
+            dataset.norm_band_bin_edges,
+            dataset.norm_band_lg_n,
+            dataset.norm_band_lg_n_avg_err,
+            lg_n_thresh,
+        )
+        mag_func_loss = get_mag_func_loss(*mag_func_loss_args)
+        return phot_loss + mag_func_loss
+    else:
+        return phot_loss
 
 
 loss_and_grad_sdss_or_feniks = jjit(value_and_grad(_loss_sdss_or_feniks))

@@ -7,9 +7,9 @@ from diffsky.mass_functions import mc_hosts
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
+from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
 from ..n_specphot import get_colors_mags, phot_kern
-from ..utils import zbin_volume
 
 blue = "#1E90FF"  # DodgerBlue
 orange = "#FF8C00"  # DarkOrange
