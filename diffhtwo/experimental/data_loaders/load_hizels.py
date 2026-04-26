@@ -20,7 +20,7 @@ def get_hizels_data(
     ran_key,
     ssp_data,
     tcurves,
-    num_halos=100,
+    num_halos=500,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
     lc_sky_area_degsq=100,

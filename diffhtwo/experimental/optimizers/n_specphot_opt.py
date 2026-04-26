@@ -538,7 +538,9 @@ def _loss_sdss_feniks_hizels(
     feniks,
     hizels,
     line_wave_table,
-    fit_hizels=False,
+    fit_hizels=True,
+    fit_sdss_mag_thresh_band=False,
+    fit_feniks_mag_thresh_band=False,
 ):
     # sdss
     sdss_phot_loss_args = (
@@ -557,6 +559,23 @@ def _loss_sdss_feniks_hizels(
     sdss_phot_loss = _loss_phot_kern(
         *sdss_phot_loss_args, redshift_as_last_dimension_in_lh=True
     )
+    if fit_sdss_mag_thresh_band:
+        param_collection = get_param_collection_from_u_theta(u_theta)
+        mag_func_loss_args = (
+            ran_key,
+            param_collection,
+            sdss.lc_data,
+            sdss.mag_columns,
+            sdss.mag_thresh_column,
+            sdss.mag_thresh,
+            sdss.frac_cat,
+            sdss.norm_band_bin_edges,
+            sdss.norm_band_lg_n,
+            sdss.norm_band_lg_n_avg_err,
+            lg_n_thresh,
+        )
+        sdss_mag_func_loss = get_mag_func_loss(*mag_func_loss_args)
+        sdss_phot_loss = sdss_phot_loss + sdss_mag_func_loss
 
     # feniks
     feniks_phot_loss_args = (
@@ -575,6 +594,23 @@ def _loss_sdss_feniks_hizels(
     feniks_phot_loss = _loss_phot_kern(
         *feniks_phot_loss_args, redshift_as_last_dimension_in_lh=True
     )
+    if fit_feniks_mag_thresh_band:
+        param_collection = get_param_collection_from_u_theta(u_theta)
+        mag_func_loss_args = (
+            ran_key,
+            param_collection,
+            feniks.lc_data,
+            feniks.mag_columns,
+            feniks.mag_thresh_column,
+            feniks.mag_thresh,
+            feniks.frac_cat,
+            feniks.norm_band_bin_edges,
+            feniks.norm_band_lg_n,
+            feniks.norm_band_lg_n_avg_err,
+            lg_n_thresh,
+        )
+        feniks_mag_func_loss = get_mag_func_loss(*mag_func_loss_args)
+        feniks_phot_loss = feniks_phot_loss + feniks_mag_func_loss
 
     # hizels
     if fit_hizels:

@@ -24,11 +24,10 @@ from ..lightcone_generators import generate_lc_data
 
 SDSS = namedtuple("SDSS", DATASET._fields)
 
-LG_N_THRESH = -10
-LH_N_CENTROIDS = 3_000
+LH_N_CENTROIDS = 10_000
 LH_SIG = 3
-D_MAG = 0.5
-D_Z = 0.05
+D_MAG = 0.25
+D_Z = 0.02
 
 
 def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
@@ -87,7 +86,6 @@ def get_sdss_data(
     drn,
     ran_key,
     ssp_data,
-    lg_n_thresh=LG_N_THRESH,
     z_min=SDSS_Z_MIN,
     z_max=SDSS_Z_MAX,
     mag_thresh=SDSS_MAGR_THRESH,
@@ -149,7 +147,9 @@ def get_sdss_data(
     )
 
     lc_data = generate_lc_data(
-        *lc_args, lh_centroids=lh_centroids, d_centroids=d_centroids
+        *lc_args,
+        lh_centroids=lh_centroids,
+        d_centroids=d_centroids,
     )
 
     # run initial diffndhist with fixed dmag

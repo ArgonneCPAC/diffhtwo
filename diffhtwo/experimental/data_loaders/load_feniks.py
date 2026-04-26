@@ -255,7 +255,9 @@ def get_feniks_data(
     )
 
     lc_data = generate_lc_data(
-        *lc_args, lh_centroids=lh_centroids, d_centroids=d_centroids
+        *lc_args,
+        lh_centroids=lh_centroids,
+        d_centroids=d_centroids,
     )
 
     # run initial diffndhist with fixed dmag

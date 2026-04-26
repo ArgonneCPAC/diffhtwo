@@ -38,6 +38,8 @@ def get_subset_lh_z(
         dataset.lh_centroids[:, -1] < z_max
     )
 
+    print("N_centroids: " + str(z_sel.sum()))
+
     lh_centroids_z_subset = dataset.lh_centroids[z_sel]
     d_centroids_z_subset = dataset.d_centroids[z_sel]
     lg_n_data_err_lh_z_subset = dataset.lg_n_data_err_lh[:, z_sel]

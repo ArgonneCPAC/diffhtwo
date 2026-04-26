@@ -1,3 +1,5 @@
+from functools import partial
+
 import jax.numpy as jnp
 import numpy as np
 from astropy import units as u
@@ -14,10 +16,14 @@ dV_dz = jjit(
     )
 )
 
+z_slices = 100
+z_grid = jnp.linspace(0.0, 1.0, z_slices)
+
 
 @jjit
-def zbin_vol(sky_area_degsq, zlow, zhigh, cosmo_params, n_slice=1000):
-    z = jnp.linspace(zlow, zhigh, n_slice)
+def zbin_vol(sky_area_degsq, zlow, zhigh, cosmo_params):
+    z = zlow + (zhigh - zlow) * z_grid
+
     A_sr = sky_area_degsq * (jnp.pi / 180.0) ** 2
 
     dV_dz_arr = dV_dz(
