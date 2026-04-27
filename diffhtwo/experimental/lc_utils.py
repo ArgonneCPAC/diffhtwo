@@ -1,5 +1,3 @@
-from functools import partial
-
 import jax.numpy as jnp
 import numpy as np
 from astropy import units as u
