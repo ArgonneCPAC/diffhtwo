@@ -18,7 +18,9 @@ from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
-from ..n_specphot import n_colors_mags_lh, n_spec_kern
+from .. import diffndhist as diffndhist2
+from ..n_mag import get_n_data_err
+from ..n_specphot import n_colors_mags_lh, n_spec_kern, phot_kern
 from ..param_utils import get_param_collection_from_u_theta
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
@@ -47,7 +49,6 @@ def get_phot_loss(
     lg_n_thresh,
     param_collection,
     lc_data,
-    line_wave_aa,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -56,12 +57,10 @@ def get_phot_loss(
     frac_cat,
     redshift_as_last_dimension_in_lh=False,
 ):
-    line_wave_table = jnp.array([line_wave_aa])
     n_colors_mags_lh_args = (
         ran_key,
         param_collection,
         lc_data,
-        line_wave_table,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -74,6 +73,58 @@ def get_phot_loss(
     phot_loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     return phot_loss
+
+
+@jjit
+def get_mag_func_loss(
+    ran_key,
+    param_collection,
+    lc_data,
+    mag_columns,
+    mag_thresh_column,
+    mag_thresh,
+    frac_cat,
+    mag_bin_edges,
+    lg_n,
+    lg_n_avg_err,
+    lg_n_thresh,
+):
+    mags, weights = phot_kern(
+        ran_key,
+        param_collection,
+        lc_data,
+        mag_columns,
+        mag_thresh_column,
+        mag_thresh,
+        frac_cat,
+    )
+
+    mags = mags[:, -1]
+    mags = mags.reshape(mags.size, 1)
+
+    bw = jnp.diff(mag_bin_edges).mean()
+
+    mag_lo = mag_bin_edges[:-1]
+    mag_lo = mag_lo.reshape(mag_lo.size, 1)
+
+    mag_hi = mag_bin_edges[1:]
+    mag_hi = mag_lo.reshape(mag_hi.size, 1)
+
+    sig = jnp.zeros(mag_lo.shape) + (bw / 2)
+    mag_bin_edges = mag_bin_edges.reshape(mag_bin_edges.size, 1)
+
+    N = diffndhist2.tw_ndhist_weighted(
+        mags,
+        sig,
+        weights,
+        mag_lo,
+        mag_hi,
+    )
+
+    lg_n_model, _ = get_n_data_err(N, lc_data.lc_tot_vol_mpc3)
+    mag_func_loss = _mse_w(lg_n_model, lg_n, lg_n_avg_err, lg_n_thresh)
+
+    return mag_func_loss
 
 
 @jjit
@@ -112,7 +163,6 @@ def _loss_phot_kern(
     lg_n_target,
     lg_n_thresh,
     lc_data,
-    line_wave_aa,
     mag_columns,
     mag_thresh_column,
     mag_thresh,
@@ -130,7 +180,6 @@ def _loss_phot_kern(
         lg_n_thresh,
         param_collection,
         lc_data,
-        line_wave_aa,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -144,7 +193,7 @@ def _loss_phot_kern(
     return phot_loss
 
 
-_L_pk = (None, None, 0, None, 0, None, None, None, None, 0, 0, None)
+_L_pk = (None, None, 0, None, 0, None, None, None, 0, 0, None)
 _loss_phot_kern_multi_z = jjit(
     vmap(
         _loss_phot_kern,
@@ -226,14 +275,12 @@ def _loss_phot_and_emline_multi_z(
     emline_lc_data,
     emline_wave_table,
 ):
-    emline_wave_aa = emline_wave_table[0]
     phot_multi_z_loss_args = (
         u_theta,
         ran_key,
         lg_n_target,
         lg_n_thresh,
         lc_data,
-        emline_wave_aa,  # dummy arg
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -325,7 +372,7 @@ def fit_phot_and_emline_multi_z(
 
 
 @jjit
-def _loss_sdss_feniks_hizels(
+def _loss_sdss_feniks_multi_z_hizels(
     u_theta,
     ran_key,
     lg_n_thresh,
@@ -350,8 +397,6 @@ def _loss_sdss_feniks_hizels(
     hizels_lc_data,
     hizels_wave_table,
 ):
-    emline_wave_aa = hizels_wave_table[0]
-
     # sdss
     sdss_phot_loss_args = (
         u_theta,
@@ -359,7 +404,6 @@ def _loss_sdss_feniks_hizels(
         sdss_lg_n_target,
         lg_n_thresh,
         sdss_lc_data,
-        emline_wave_aa,  # dummy arg
         sdss_mag_columns,
         sdss_mag_thresh_column,
         sdss_mag_thresh,
@@ -378,7 +422,6 @@ def _loss_sdss_feniks_hizels(
         feniks_lg_n_target,
         lg_n_thresh,
         feniks_lc_data,
-        emline_wave_aa,  # dummy arg
         feniks_mag_columns,
         feniks_mag_thresh_column,
         feniks_mag_thresh,
@@ -408,11 +451,13 @@ def _loss_sdss_feniks_hizels(
     return sdss_feniks_hizels_loss
 
 
-loss_and_grad_sdss_feniks_hizels = jjit(value_and_grad(_loss_sdss_feniks_hizels))
+loss_and_grad_sdss_feniks_multi_z_hizels = jjit(
+    value_and_grad(_loss_sdss_feniks_multi_z_hizels)
+)
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
-def fit_sdss_feniks_hizels(
+def fit_sdss_feniks_multi_z_hizels(
     u_theta_init,
     trainable,
     ran_key,
@@ -470,7 +515,228 @@ def fit_sdss_feniks_hizels(
 
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
+        loss, grads = loss_and_grad_sdss_feniks_multi_z_hizels(u_theta, *other)
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, loss
+
+    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+    u_theta_fit = get_params(opt_state)
+
+    return loss_hist, u_theta_fit
+
+
+@jjit
+def _loss_sdss_feniks_hizels(
+    u_theta,
+    ran_key,
+    lg_n_thresh,
+    sdss,
+    feniks,
+    hizels,
+    line_wave_table,
+    fit_hizels=False,
+    fit_sdss_mag_thresh_band=False,
+    fit_feniks_mag_thresh_band=False,
+):
+    # sdss
+    sdss_phot_loss_args = (
+        u_theta,
+        ran_key,
+        sdss.lg_n_data_err_lh,
+        lg_n_thresh,
+        sdss.lc_data,
+        sdss.mag_columns,
+        sdss.mag_thresh_column,
+        sdss.mag_thresh,
+        sdss.lh_centroids,
+        sdss.d_centroids,
+        sdss.frac_cat,
+    )
+    sdss_phot_loss = _loss_phot_kern(
+        *sdss_phot_loss_args, redshift_as_last_dimension_in_lh=True
+    )
+    if fit_sdss_mag_thresh_band:
+        param_collection = get_param_collection_from_u_theta(u_theta)
+        mag_func_loss_args = (
+            ran_key,
+            param_collection,
+            sdss.lc_data,
+            sdss.mag_columns,
+            sdss.mag_thresh_column,
+            sdss.mag_thresh,
+            sdss.frac_cat,
+            sdss.norm_band_bin_edges,
+            sdss.norm_band_lg_n,
+            sdss.norm_band_lg_n_avg_err,
+            lg_n_thresh,
+        )
+        sdss_mag_func_loss = get_mag_func_loss(*mag_func_loss_args)
+        sdss_phot_loss = sdss_phot_loss + sdss_mag_func_loss
+
+    # feniks
+    feniks_phot_loss_args = (
+        u_theta,
+        ran_key,
+        feniks.lg_n_data_err_lh,
+        lg_n_thresh,
+        feniks.lc_data,
+        feniks.mag_columns,
+        feniks.mag_thresh_column,
+        feniks.mag_thresh,
+        feniks.lh_centroids,
+        feniks.d_centroids,
+        feniks.frac_cat,
+    )
+    feniks_phot_loss = _loss_phot_kern(
+        *feniks_phot_loss_args, redshift_as_last_dimension_in_lh=True
+    )
+    if fit_feniks_mag_thresh_band:
+        param_collection = get_param_collection_from_u_theta(u_theta)
+        mag_func_loss_args = (
+            ran_key,
+            param_collection,
+            feniks.lc_data,
+            feniks.mag_columns,
+            feniks.mag_thresh_column,
+            feniks.mag_thresh,
+            feniks.frac_cat,
+            feniks.norm_band_bin_edges,
+            feniks.norm_band_lg_n,
+            feniks.norm_band_lg_n_avg_err,
+            lg_n_thresh,
+        )
+        feniks_mag_func_loss = get_mag_func_loss(*mag_func_loss_args)
+        feniks_phot_loss = feniks_phot_loss + feniks_mag_func_loss
+
+    # hizels
+    if fit_hizels:
+        hizels_emline_multi_line_multi_z_loss_args = (
+            u_theta,
+            ran_key,
+            lg_n_thresh,
+            hizels.lg_LF,
+            hizels.lg_Lbin_edges,
+            hizels.lc_data,
+            line_wave_table,
+        )
+        hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
+            *hizels_emline_multi_line_multi_z_loss_args
+        )
+    else:
+        hizels_emline_loss = 0.0
+
+    sdss_feniks_hizels_loss = sdss_phot_loss + feniks_phot_loss + hizels_emline_loss
+    return sdss_feniks_hizels_loss
+
+
+loss_and_grad_sdss_feniks_hizels = jjit(value_and_grad(_loss_sdss_feniks_hizels))
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_sdss_feniks_hizels(
+    u_theta_init,
+    trainable,
+    ran_key,
+    lg_n_thresh,
+    sdss,
+    feniks,
+    hizels,
+    line_wave_table,
+    n_steps=2,
+    step_size=1e-2,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    other = (ran_key, lg_n_thresh, sdss, feniks, hizels, line_wave_table)
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
         loss, grads = loss_and_grad_sdss_feniks_hizels(u_theta, *other)
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, loss
+
+    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+    u_theta_fit = get_params(opt_state)
+
+    return loss_hist, u_theta_fit
+
+
+@jjit
+def _loss_sdss_or_feniks(
+    u_theta, ran_key, lg_n_thresh, dataset, fit_mag_thresh_band=False
+):
+    # dataset
+    loss_phot_kern_args = (
+        u_theta,
+        ran_key,
+        dataset.lg_n_data_err_lh,
+        lg_n_thresh,
+        dataset.lc_data,
+        dataset.mag_columns,
+        dataset.mag_thresh_column,
+        dataset.mag_thresh,
+        dataset.lh_centroids,
+        dataset.d_centroids,
+        dataset.frac_cat,
+    )
+    phot_loss = _loss_phot_kern(
+        *loss_phot_kern_args, redshift_as_last_dimension_in_lh=True
+    )
+    if fit_mag_thresh_band:
+        param_collection = get_param_collection_from_u_theta(u_theta)
+        mag_func_loss_args = (
+            ran_key,
+            param_collection,
+            dataset.lc_data,
+            dataset.mag_columns,
+            dataset.mag_thresh_column,
+            dataset.mag_thresh,
+            dataset.frac_cat,
+            dataset.norm_band_bin_edges,
+            dataset.norm_band_lg_n,
+            dataset.norm_band_lg_n_avg_err,
+            lg_n_thresh,
+        )
+        mag_func_loss = get_mag_func_loss(*mag_func_loss_args)
+        return phot_loss + mag_func_loss
+    else:
+        return phot_loss
+
+
+loss_and_grad_sdss_or_feniks = jjit(value_and_grad(_loss_sdss_or_feniks))
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_sdss_or_feniks(
+    u_theta_init,
+    trainable,
+    ran_key,
+    lg_n_thresh,
+    dataset,
+    n_steps=2,
+    step_size=1e-2,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    other = (
+        ran_key,
+        lg_n_thresh,
+        dataset,
+    )
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss, grads = loss_and_grad_sdss_or_feniks(u_theta, *other)
         # set grads for untrainable params to 0.0
         grads = tuple(
             jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)

@@ -25,9 +25,9 @@ from dsps.metallicity.umzr import DEFAULT_MZR_PARAMS
 from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
-from diffhtwo.experimental import n_mag
-from diffhtwo.experimental.data_loaders import retrieve_tcurves
-from diffhtwo.experimental.utils import zbin_volume
+from .. import n_mag
+from ..data_loaders import retrieve_tcurves
+from ..lc_utils import zbin_volume
 
 BASE_PATH = Path(__file__).resolve().parent.parent
 LH_CENTROIDS_PATH = BASE_PATH / "data/lh_centroids"

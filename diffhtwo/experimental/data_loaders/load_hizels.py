@@ -3,20 +3,29 @@ from collections import namedtuple
 import jax.numpy as jnp
 import numpy as np
 from astropy.io import ascii
+from diffsky.mass_functions import mc_hosts
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
+
+from ..lightcone_generators import generate_lc_data
 
 HiZELS = namedtuple(
     "HiZELS",
-    [
-        "lg_Lbin_edges",
-        "lg_LF",
-        "z",
-        "dz",
-    ],
+    ["lg_Lbin_edges", "lg_LF", "z", "dz", "lc_data"],
 )
+DELTA_L_HALPHA = -0.4  # uncorrect HiZELS h-alpha L for dust (A_halpha = 1 mag)
 
 
-def get_hizels_data(drn):
+def get_hizels_data(
+    drn,
+    ran_key,
+    ssp_data,
+    tcurves,
+    num_halos=500,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    lc_sky_area_degsq=100,
+    n_z_phot_table=15,
+):
     (
         hizels_lg_halpha_Lbin_edges_data,
         hizels_lg_halpha_LF_data,
@@ -29,10 +38,41 @@ def get_hizels_data(drn):
     z = [hizels_halpha_LF_z_data]
     dz = [hizels_halpha_LF_delta_z_data]
 
-    return HiZELS(lg_Lbin_edges, lg_LF, z, dz)
+    lc_data = []
+    for line in range(0, len(z)):
+        line_z = z[line]
+        line_dz = dz[line]
+        line_lc_data = []
+        for z_idx in range(0, len(line_z)):
+            z_min = line_z[z_idx] - (line_dz[z_idx] / 2)
+            z_max = line_z[z_idx] + (line_dz[z_idx] / 2)
+
+            z_phot_table = 10 ** jnp.linspace(
+                np.log10(z_min), np.log10(z_max), n_z_phot_table
+            )
+
+            lc_args = (
+                ran_key,
+                num_halos,
+                z_min,
+                z_max,
+                lgmp_min,
+                lgmp_max,
+                lc_sky_area_degsq,
+                ssp_data,
+                tcurves,
+                z_phot_table,
+            )
+
+            line_lc_data.append(generate_lc_data(*lc_args))
+        lc_data.append(line_lc_data)
+
+    return HiZELS(lg_Lbin_edges, lg_LF, z, dz, lc_data)
 
 
-def get_lgL_bin_edges(table, L_colname, bin_width_full_colname, delta_L_halpha=-0.4):
+def get_lgL_bin_edges(
+    table, L_colname, bin_width_full_colname, delta_L_halpha=DELTA_L_HALPHA
+):
     edges = []
     for i in range(0, len(table)):
         edge = np.round(table[L_colname][i] - table[bin_width_full_colname][i] / 2, 2)

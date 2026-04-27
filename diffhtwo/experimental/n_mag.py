@@ -16,7 +16,7 @@ from jax import vmap
 from . import diffndhist as diffndhist2
 
 N_FLOOR = 0.5
-N_0 = 1e-12
+N_0 = 0.005
 
 
 @jjit
@@ -631,10 +631,17 @@ def Gehrels_low_eq12(Ngal):
 
 
 @jjit
-def get_n_data_err(N, vol):
-    non_zero = N > N_FLOOR
+def get_n_data_err(N, vol, N_floor=N_FLOOR, N_o=N_0):
+    """
+    When `N <~ 0.5`, Gehrels_low_eq12(N) returns -ve values.
+    `non_zero` boolean mask based on `N_floor` guards against that.
+    See line --> `N_low = jnp.where(non_zero, N_low, N_o)` below.
+    But it will fail for `N_floor` <~ 0.5.
+    Therefore, keep `N_floor` > ~ 0.5.
+    """
+    non_zero = N > N_floor
 
-    N = jnp.where(non_zero, N, N_0)
+    N = jnp.where(non_zero, N, N_o)
     lg_n = jnp.log10(N / vol)
 
     # upper limit approximation - Eq. 9 Gehrels (1986); 1-sigma
@@ -644,7 +651,7 @@ def get_n_data_err(N, vol):
 
     # lower limit approximation - Eq. 12 Gehrels (1986); 1-sigma
     N_low = Gehrels_low_eq12(N)
-    N_low = jnp.where(non_zero, N_low, N_0)
+    N_low = jnp.where(non_zero, N_low, N_o)
     lg_n_low = jnp.log10(N_low / vol)
 
     lg_n_low_err = lg_n - lg_n_low
@@ -652,6 +659,7 @@ def get_n_data_err(N, vol):
     lg_n_avg_err = (lg_n_low_err + lg_n_upp_err) / 2
 
     # just the upper limit for N ~ 0
-    lg_n_avg_err = jnp.where(non_zero, lg_n_avg_err, lg_n_upp_err)
+    lg_n_upp_err_zero = jnp.log10(1.84 / vol) - lg_n
+    lg_n_avg_err = jnp.where(non_zero, lg_n_avg_err, lg_n_upp_err_zero)
 
     return lg_n, lg_n_avg_err

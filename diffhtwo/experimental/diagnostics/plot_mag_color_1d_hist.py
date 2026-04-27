@@ -10,8 +10,7 @@ from diffstar.defaults import FB, T_TABLE_MIN
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from jax import random as jran
-
-from ..utils import zbin_area, zbin_volume
+from lc_utils import zbin_area, zbin_volume
 
 blue = "#1E90FF"  # DodgerBlue
 orange = "#FF8C00"  # DarkOrange

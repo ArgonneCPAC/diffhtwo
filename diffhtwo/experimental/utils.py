@@ -1,25 +1,15 @@
-from collections import namedtuple
 from difflib import get_close_matches
 
 import jax.numpy as jnp
 import numpy as np
-from astropy import units as u
-from diffsky.experimental import lightcone_generators as lcg
+from diffsky.mass_functions import mc_hosts
+from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
-from dsps.cosmology.flat_wcdm import differential_comoving_volume_at_z
 from jax import jit as jjit
-from jax import vmap
 from jax.tree_util import tree_flatten_with_path
 
-from .defaults import COSMO
-
-
-@jjit
-def get_ssp_emline_luminosity(emline_wave_aa, ssp_data):
-    ssp_emline_wave = jnp.array(ssp_data.ssp_emline_wave)
-    idx = jnp.argmin(jnp.abs(ssp_emline_wave - emline_wave_aa))
-    ssp_emline_luminosity = ssp_data.ssp_emline_luminosity[:, :, idx]
-    return ssp_emline_luminosity
+from .lightcone_generators import generate_lc_data
+from .n_specphot import n_spec_q_ms_burst
 
 
 @jjit
@@ -49,24 +39,34 @@ def safe_log10(x, EPS=1e-12):
     return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
 
 
-def generate_lc_data(
+def get_halpha_LF_q_ms_burst(
     ran_key,
-    num_halos,
-    z_min,
-    z_max,
-    lgmp_min,
-    lgmp_max,
-    sky_area_degsq,
+    param_collection,
+    lgL_bin_edges,
+    halpha_LF_z,
+    halpha_LF_delta_z,
     ssp_data,
     tcurves,
-    z_phot_table,
+    halpha_wave_aa,
+    lgmp_min=10.0,
+    lgmp_max=mc_hosts.LGMH_MAX,
+    num_halos=10000,
+    sky_area_degsq=10000,
+    n_z_phot_table=15,
     cosmo_params=DEFAULT_COSMOLOGY,
+    fb=FB,
 ):
+    halpha_lc_z_min = halpha_LF_z - (halpha_LF_delta_z / 2)
+    halpha_lc_z_max = halpha_LF_z + (halpha_LF_delta_z / 2)
+    z_phot_table = 10 ** np.linspace(
+        np.log10(halpha_lc_z_min), np.log10(halpha_lc_z_max), n_z_phot_table
+    )
+
     lc_args = (
         ran_key,
         num_halos,
-        z_min,
-        z_max,
+        halpha_lc_z_min,
+        halpha_lc_z_max,
         lgmp_min,
         lgmp_max,
         sky_area_degsq,
@@ -74,71 +74,31 @@ def generate_lc_data(
         tcurves,
         z_phot_table,
     )
-    lc_data = lcg.weighted_lc_photdata(*lc_args, cosmo_params=cosmo_params)
+    lc_data = generate_lc_data(*lc_args)
 
-    fields = (*lc_data._fields, "lc_vol_mpc3")
-    lc_vol_mpc3 = zbin_vol(sky_area_degsq, z_min, z_max, cosmo_params)
-    values = (*lc_data, lc_vol_mpc3)
-    lc_data = namedtuple(lc_data.__class__.__name__, fields)(*values)
-
-    return lc_data
-
-
-dV_dz = jjit(
-    vmap(
-        differential_comoving_volume_at_z,
-        in_axes=(0, None, None, None, None),
+    line_wave_table = jnp.array([halpha_wave_aa])
+    (
+        lg_halpha_LF,
+        lg_halpha_LF_q,
+        lg_halpha_LF_ms,
+        lg_halpha_LF_burst,
+    ) = n_spec_q_ms_burst(
+        ran_key,
+        param_collection,
+        lc_data,
+        line_wave_table,
+        lgL_bin_edges,
     )
-)
 
+    lgL_bin_centers = 0.5 * (lgL_bin_edges[1:] + lgL_bin_edges[:-1])
 
-@jjit
-def zbin_vol(sky_area_degsq, zlow, zhigh, cosmo_params, n_slice=1000):
-    z = jnp.linspace(zlow, zhigh, n_slice)
-    A_sr = sky_area_degsq * (jnp.pi / 180.0) ** 2
-
-    dV_dz_arr = dV_dz(
-        z,
-        cosmo_params.Om0,
-        cosmo_params.w0,
-        cosmo_params.wa,
-        cosmo_params.h,
+    return (
+        lgL_bin_centers,
+        lg_halpha_LF,
+        lg_halpha_LF_q,
+        lg_halpha_LF_ms,
+        lg_halpha_LF_burst,
     )
-    vol_mpc3 = jnp.trapezoid(dV_dz_arr, z) * A_sr
-
-    return vol_mpc3
-
-
-def zbin_volume(sky_area_degsq, zlow=0.2, zhigh=0.5, slices=1000):
-    """
-    Calculate Comoving Volume in Mpc3/h units for a given z-bin and area of survey.
-    zlow: lower end of redshift bin
-    zhigh: higher end of redshift bin
-    slices: number of slices used for integration of dV/dz over z
-    A: Survey area in deg2
-    """
-    z = np.linspace(zlow, zhigh, slices)
-    dV_dz = np.zeros(len(z))
-    A = sky_area_degsq * u.deg**2
-    for i in range(0, len(z)):
-        dV_dz[i] = COSMO.differential_comoving_volume(z[i]).value
-    volume = (np.trapezoid(dV_dz, z) * u.Mpc**3 / u.sr) * A.to(u.sr)
-
-    # Mpc3 units (no h dependence)
-    return volume
-
-
-def zbin_area(comoving_volume, zlow=0.2, zhigh=0.5, slices=1000):
-    z = np.linspace(zlow, zhigh, slices)
-    dV_dz = np.zeros(len(z))
-    for i in range(0, len(z)):
-        dV_dz[i] = COSMO.differential_comoving_volume(z[i]).value
-    A_sr = (comoving_volume * u.Mpc**3) / (np.trapezoid(dV_dz, z) * u.Mpc**3 / u.sr)
-
-    A_deg2 = A_sr.to(u.deg**2)
-
-    # Mpc3 units (no h dependence)
-    return A_deg2
 
 
 def get_tcurve(get_filter_number, filter_info_filename, tcurves_filename):

@@ -14,7 +14,7 @@ from jax import jit as jjit
 from jax import vmap
 
 from . import diffndhist as diffndhist2
-from .utils import get_ssp_emline_luminosity
+from .emline_utils import get_ssp_emline_luminosity
 
 LGMET_SCATTER = 0.2
 

@@ -20,7 +20,8 @@ from jax.flatten_util import ravel_pytree
 from ... import param_utils as pu
 from ...data_loaders import retrieve_tcurves
 from ...defaults import SDSS_MAGR_THRESH, SDSS_Z_MAX, SDSS_Z_MIN
-from ...utils import zbin_vol
+from ...lc_utils import zbin_vol
+from ...lightcone_generators import generate_lc_data
 from .. import n_specphot_opt
 
 DIFFSTARPOP_UM_plus_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
@@ -118,9 +119,9 @@ def test_n_specphot_opt(fake_subset_ssp_data):
     )
     lc_data = lcg.weighted_lc_photdata(*lc_args, cosmo_params=DEFAULT_COSMOLOGY)
 
-    fields = (*lc_data._fields, "lc_vol_mpc3")
-    lc_vol_mpc3 = zbin_vol(lc_sky_area_degsq, lc_z_min, lc_z_max, DEFAULT_COSMOLOGY)
-    values = (*lc_data, lc_vol_mpc3)
+    fields = (*lc_data._fields, "lc_tot_vol_mpc3")
+    lc_tot_vol_mpc3 = zbin_vol(lc_sky_area_degsq, lc_z_min, lc_z_max, DEFAULT_COSMOLOGY)
+    values = (*lc_data, lc_tot_vol_mpc3)
     lc_data = namedtuple(lc_data.__class__.__name__, fields)(*values)
 
     # test phot loss functions
@@ -130,7 +131,6 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         lg_n_thresh,
         dpwm.DEFAULT_PARAM_COLLECTION,
         lc_data,
-        emline_wave_aa,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -153,7 +153,6 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         lg_n_data_err_lh,
         lg_n_thresh,
         lc_data,
-        emline_wave_aa,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -178,7 +177,6 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         lg_n_data_err_lh_multi_z,
         lg_n_thresh,
         lc_data_multi_z,
-        emline_wave_aa,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
@@ -208,34 +206,6 @@ def test_n_specphot_opt(fake_subset_ssp_data):
     sdss_mag_thresh = SDSS_MAGR_THRESH
     sdss_frac_cat = 0.8
 
-    sdss_z_phot_table = 10 ** jnp.linspace(
-        np.log10(SDSS_Z_MIN), np.log10(SDSS_Z_MAX), n_z_phot_table
-    )
-
-    sdss_lc_args = (
-        ran_key,
-        num_halos,
-        SDSS_Z_MIN,
-        SDSS_Z_MAX,
-        lgmp_min,
-        lgmp_max,
-        lc_sky_area_degsq,
-        ssp_data,
-        sdss_tcurves,
-        sdss_z_phot_table,
-    )
-
-    sdss_lc_data = lcg.weighted_lc_photdata(
-        *sdss_lc_args, cosmo_params=DEFAULT_COSMOLOGY
-    )
-
-    fields = (*sdss_lc_data._fields, "lc_vol_mpc3")
-    sdss_lc_vol_mpc3 = zbin_vol(
-        lc_sky_area_degsq, SDSS_Z_MIN, SDSS_Z_MAX, DEFAULT_COSMOLOGY
-    )
-    values = (*sdss_lc_data, sdss_lc_vol_mpc3)
-    sdss_lc_data = namedtuple(sdss_lc_data.__class__.__name__, fields)(*values)
-
     sdss_lh_centroids = jnp.asarray(
         np.load(
             os.path.join(
@@ -250,6 +220,28 @@ def test_n_specphot_opt(fake_subset_ssp_data):
     )
     sdss_d_centroids = jnp.ones((sdss_lh_centroids.shape[0], 1)) * d_cen
 
+    n_z_phot_table = 15
+    sdss_z_phot_table = 10 ** jnp.linspace(
+        np.log10(SDSS_Z_MIN), np.log10(SDSS_Z_MAX), n_z_phot_table
+    )
+
+    sdss_lc_args = (
+        ran_key,
+        num_halos,
+        SDSS_Z_MIN,
+        SDSS_Z_MAX,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        sdss_z_phot_table,
+    )
+
+    sdss_lc_data = generate_lc_data(
+        *sdss_lc_args, lh_centroids=sdss_lh_centroids, d_centroids=sdss_d_centroids
+    )
+
     sdss_rng = np.random.default_rng(1)
     sdss_lg_n_data = sdss_rng.uniform(-17, -4, sdss_lh_centroids.shape[0])
     sdss_lg_n_err = sdss_rng.uniform(0.2, 12, sdss_lh_centroids.shape[0])
@@ -261,7 +253,6 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         sdss_lg_n_data_err_lh,
         lg_n_thresh,
         sdss_lc_data,
-        emline_wave_aa,  # dummy arg
         sdss_mag_columns,
         sdss_mag_thresh_column,
         sdss_mag_thresh,
@@ -299,11 +290,11 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         *emline_lc_args, cosmo_params=DEFAULT_COSMOLOGY
     )
 
-    fields = (*emline_lc_data._fields, "lc_vol_mpc3")
-    emline_lc_vol_mpc3 = zbin_vol(
+    fields = (*emline_lc_data._fields, "lc_tot_vol_mpc3")
+    emline_lc_tot_vol_mpc3 = zbin_vol(
         emline_lc_sky_area_degsq, emline_lc_z_min, emline_lc_z_max, DEFAULT_COSMOLOGY
     )
-    values = (*emline_lc_data, emline_lc_vol_mpc3)
+    values = (*emline_lc_data, emline_lc_tot_vol_mpc3)
     emline_lc_data = namedtuple(emline_lc_data.__class__.__name__, fields)(*values)
 
     lg_emline_LF_data = jnp.array(
@@ -422,7 +413,7 @@ def test_n_specphot_opt(fake_subset_ssp_data):
     for i in range(0, len(u_theta_fit)):
         assert np.isfinite(u_theta_fit[i]).all()
 
-    loss_sdss_feniks_hizels_args = (
+    loss_sdss_feniks_multi_z_hizels_args = (
         ran_key,
         lg_n_thresh,
         sdss_lg_n_data_err_lh,
@@ -447,16 +438,16 @@ def test_n_specphot_opt(fake_subset_ssp_data):
         emline_wave_table,
     )
 
-    loss_sdss_feniks_hizels = n_specphot_opt._loss_sdss_feniks_hizels(
-        u_theta_default, *loss_sdss_feniks_hizels_args
+    loss_sdss_feniks_hizels = n_specphot_opt._loss_sdss_feniks_multi_z_hizels(
+        u_theta_default, *loss_sdss_feniks_multi_z_hizels_args
     )
     assert np.isfinite(loss_sdss_feniks_hizels)
     assert loss_sdss_feniks_hizels >= 0
 
-    loss_hist, u_theta_fit = n_specphot_opt.fit_sdss_feniks_hizels(
+    loss_hist, u_theta_fit = n_specphot_opt.fit_sdss_feniks_multi_z_hizels(
         u_theta_default,
         trainable_params,
-        *loss_sdss_feniks_hizels_args,
+        *loss_sdss_feniks_multi_z_hizels_args,
     )
     assert np.isfinite(loss_hist).all()
     for i in range(0, len(u_theta_fit)):
