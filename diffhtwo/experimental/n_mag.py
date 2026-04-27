@@ -16,7 +16,7 @@ from jax import vmap
 from . import diffndhist as diffndhist2
 
 N_FLOOR = 0.5
-N_0 = 0.5
+N_0 = 0.005
 
 
 @jjit
@@ -659,6 +659,7 @@ def get_n_data_err(N, vol, N_floor=N_FLOOR, N_o=N_0):
     lg_n_avg_err = (lg_n_low_err + lg_n_upp_err) / 2
 
     # just the upper limit for N ~ 0
-    lg_n_avg_err = jnp.where(non_zero, lg_n_avg_err, lg_n_upp_err)
+    lg_n_upp_err_zero = jnp.log10(1.84 / vol) - lg_n
+    lg_n_avg_err = jnp.where(non_zero, lg_n_avg_err, lg_n_upp_err_zero)
 
     return lg_n, lg_n_avg_err

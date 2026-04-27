@@ -24,10 +24,10 @@ from ..lightcone_generators import generate_lc_data
 
 SDSS = namedtuple("SDSS", DATASET._fields)
 
-LH_N_CENTROIDS = 10_000
+LH_N_CENTROIDS = 3_000
 LH_SIG = 3
-D_MAG = 0.25
-D_Z = 0.02
+D_MAG = 0.1
+D_Z = 0.005
 
 
 def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
@@ -91,7 +91,7 @@ def get_sdss_data(
     mag_thresh=SDSS_MAGR_THRESH,
     frac_cat=SDSS_FRAC_CAT,
     data_sky_area_degsq=SDSS_AREA_DEG2,
-    num_halos=500,
+    num_halos=1500,
     lc_sky_area_degsq=SDSS_AREA_DEG2,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,

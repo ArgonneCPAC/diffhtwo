@@ -98,7 +98,7 @@ def get_feniks_data(
     z_max=FENIKS_Z_MAX,
     mag_thresh=FENIKS_MAGK_THRESH,
     data_sky_area_degsq=FENIKS_AREA_DEG2,
-    num_halos=500,
+    num_halos=1500,
     lc_sky_area_degsq=FENIKS_AREA_DEG2,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,

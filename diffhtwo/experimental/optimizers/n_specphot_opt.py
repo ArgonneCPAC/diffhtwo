@@ -538,7 +538,7 @@ def _loss_sdss_feniks_hizels(
     feniks,
     hizels,
     line_wave_table,
-    fit_hizels=True,
+    fit_hizels=False,
     fit_sdss_mag_thresh_band=False,
     fit_feniks_mag_thresh_band=False,
 ):
