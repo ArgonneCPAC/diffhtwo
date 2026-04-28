@@ -34,9 +34,9 @@ FILTER_INFO = "kz_FILTER.RES.latest.info"
 TCURVES_FILE = "kz_FILTER.RES.latest"
 
 LH_SIG = 3
-LH_N_CENTROIDS = 3_000
+LH_N_CENTROIDS = 30_000
 
-D_MAG = 0.75
+D_MAG = 0.7
 D_Z = 0.5
 
 
@@ -98,7 +98,7 @@ def get_feniks_data(
     z_max=FENIKS_Z_MAX,
     mag_thresh=FENIKS_MAGK_THRESH,
     data_sky_area_degsq=FENIKS_AREA_DEG2,
-    num_halos=1500,
+    num_halos=1000,
     lc_sky_area_degsq=FENIKS_AREA_DEG2,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
@@ -240,25 +240,25 @@ def get_feniks_data(
     )
 
     # generate lc
-    z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
-    lc_args = (
-        ran_key,
-        num_halos,
-        z_min,
-        z_max,
-        lgmp_min,
-        lgmp_max,
-        lc_sky_area_degsq,
-        ssp_data,
-        tcurves,
-        z_phot_table,
-    )
+    # z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
+    # lc_args = (
+    #     ran_key,
+    #     num_halos,
+    #     z_min,
+    #     z_max,
+    #     lgmp_min,
+    #     lgmp_max,
+    #     lc_sky_area_degsq,
+    #     ssp_data,
+    #     tcurves,
+    #     z_phot_table,
+    # )
 
-    lc_data = generate_lc_data(
-        *lc_args,
-        lh_centroids=lh_centroids,
-        d_centroids=d_centroids,
-    )
+    # lc_data = generate_lc_data(
+    #     *lc_args,
+    #     # lh_centroids=lh_centroids,
+    #     # d_centroids=d_centroids,
+    # )
 
     # run initial diffndhist with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
@@ -271,15 +271,15 @@ def get_feniks_data(
         lh_centroids_hi,
     )
 
-    lh_vol_mpc3 = zbin_vol_vmap(
-        data_sky_area_degsq,
-        lh_centroids_lo[:, -1],
-        lh_centroids_hi[:, -1],
-        cosmo_params,
-    )
+    # lh_vol_mpc3 = zbin_vol_vmap(
+    #     data_sky_area_degsq,
+    #     lh_centroids_lo[:, -1],
+    #     lh_centroids_hi[:, -1],
+    #     cosmo_params,
+    # )
 
-    lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, lh_vol_mpc3)
-    lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
+    # lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, lh_vol_mpc3)
+    # lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
 
     return FENIKS(
         dataset,
@@ -290,6 +290,7 @@ def get_feniks_data(
         frac_cat,
         lh_centroids,
         d_centroids,
-        lg_n_data_err_lh,
-        lc_data,
+        N_data_lh,
+        # lg_n_data_err_lh,
+        # lc_data,
     )

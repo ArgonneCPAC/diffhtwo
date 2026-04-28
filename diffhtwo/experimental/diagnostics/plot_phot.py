@@ -28,8 +28,8 @@ alpha_data = 0.5
 
 
 lw = 1.5
-fontsize = 34
-labelsize = 34
+fontsize = 40
+labelsize = 40
 legend_fontsize = 30
 
 
@@ -66,7 +66,7 @@ def plot_n_single_z(
     dmag=0.1,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
-    num_halos=1000,
+    num_halos=10000,
     lc_sky_area_degsq=10000,
     n_z_phot_table=30,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -88,7 +88,7 @@ def plot_n_single_z(
         lgmp_min,
         lgmp_max,
         lc_sky_area_degsq,
-        dataset.lc_data.ssp_data,
+        ssp_data,
         dataset.tcurves,
         z_phot_table,
     )
@@ -136,26 +136,8 @@ def plot_n_single_z(
     fig.suptitle(
         suptitle + "   |   " + str(z_min) + " < z < " + str(z_max), fontsize=24
     )
-    # n_mag_panels = len(dataset.mag_columns)
 
     for i in range(0, n_panels):
-        # if i < int(n_panels - n_mag_panels):
-        #     sigma = np.std(dataset_colors_mag_z[:, i])
-        #     lower_limit = np.mean(dataset_colors_mag_z[:, i]) - (4 * sigma)
-        #     upper_limit = np.mean(dataset_colors_mag_z[:, i]) + (4 * sigma)
-        #     bins = np.arange(
-        #         lower_limit,
-        #         upper_limit,
-        #         dmag,
-        #     )
-        # else:
-        #     lower_limit = dataset_colors_mag_z[:, i].min()
-        #     upper_limit = dataset_colors_mag_z[:, i].max()
-        #     bins = np.arange(
-        #         lower_limit,
-        #         upper_limit,
-        #         dmag * 4,
-        #     )
         if i == n_panels - 1:
             bins = np.arange(
                 dataset_colors_mag_z[:, i].min(), dataset_colors_mag_z[:, i].max(), dmag

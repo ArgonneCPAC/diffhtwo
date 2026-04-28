@@ -40,7 +40,8 @@ DATASET = namedtuple(
         "frac_cat",
         "lh_centroids",
         "d_centroids",
-        "lg_n_data_err_lh",
-        "lc_data",
+        "N_data",
+        # "lg_n_data_err_lh",
+        # "lc_data",
     ],
 )

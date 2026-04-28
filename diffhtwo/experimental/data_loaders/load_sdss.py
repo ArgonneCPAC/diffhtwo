@@ -7,7 +7,7 @@ from DisCoWebS.data_loader import sdss_loader as sdl
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders import load_transmission_curve
 
-from .. import diffndhist, n_mag
+from .. import diffndhist
 from ..defaults import (
     DATASET,
     SDSS_AREA_DEG2,
@@ -18,16 +18,12 @@ from ..defaults import (
 )
 from ..latin_hypercube import latin_hypercube as lh
 
-# from ..latin_hypercube.lh_centroid_utils import enlarge_lh_bins
-from ..lc_utils import zbin_vol_vmap
-from ..lightcone_generators import generate_lc_data
-
 SDSS = namedtuple("SDSS", DATASET._fields)
 
-LH_N_CENTROIDS = 3_000
-LH_SIG = 3
+LH_N_CENTROIDS = 30_000
+LH_SIG = 3.5
 D_MAG = 0.1
-D_Z = 0.005
+D_Z = 0.01
 
 
 def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
@@ -62,7 +58,7 @@ def get_lh_centroids(
 ):
     mu = np.mean(dataset, axis=0)
     mu[1] = mu[1] - 0.1  #
-    mu[-2] = mu[-2] - 1.2  # r
+    mu[-2] = mu[-2] - 1.8  # r
     mu[-1] = mu[-1] - 0.02  # redshift
     cov = np.cov(dataset.T)
 
@@ -91,7 +87,7 @@ def get_sdss_data(
     mag_thresh=SDSS_MAGR_THRESH,
     frac_cat=SDSS_FRAC_CAT,
     data_sky_area_degsq=SDSS_AREA_DEG2,
-    num_halos=1500,
+    num_halos=10000,
     lc_sky_area_degsq=SDSS_AREA_DEG2,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
@@ -132,25 +128,25 @@ def get_sdss_data(
     )
 
     # generate lc_data
-    z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
-    lc_args = (
-        ran_key,
-        num_halos,
-        z_min,
-        z_max,
-        lgmp_min,
-        lgmp_max,
-        lc_sky_area_degsq,
-        ssp_data,
-        tcurves,
-        z_phot_table,
-    )
+    # z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
+    # lc_args = (
+    #     ran_key,
+    #     num_halos,
+    #     z_min,
+    #     z_max,
+    #     lgmp_min,
+    #     lgmp_max,
+    #     lc_sky_area_degsq,
+    #     ssp_data,
+    #     tcurves,
+    #     z_phot_table,
+    # )
 
-    lc_data = generate_lc_data(
-        *lc_args,
-        lh_centroids=lh_centroids,
-        d_centroids=d_centroids,
-    )
+    # lc_data = generate_lc_data(
+    #     *lc_args,
+    #     # lh_centroids=lh_centroids,
+    #     # d_centroids=d_centroids,
+    # )
 
     # run initial diffndhist with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
@@ -163,14 +159,14 @@ def get_sdss_data(
         lh_centroids_hi,
     )
 
-    lh_vol_mpc3 = zbin_vol_vmap(
-        data_sky_area_degsq,
-        lh_centroids_lo[:, -1],
-        lh_centroids_hi[:, -1],
-        cosmo_params,
-    )
-    lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, lh_vol_mpc3)
-    lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
+    # lh_vol_mpc3 = zbin_vol_vmap(
+    #     data_sky_area_degsq,
+    #     lh_centroids_lo[:, -1],
+    #     lh_centroids_hi[:, -1],
+    #     cosmo_params,
+    # )
+    # lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, lh_vol_mpc3)
+    # lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
 
     return SDSS(
         dataset,
@@ -181,6 +177,7 @@ def get_sdss_data(
         frac_cat,
         lh_centroids,
         d_centroids,
-        lg_n_data_err_lh,
-        lc_data,
+        N_data_lh,
+        # lg_n_data_err_lh,
+        # lc_data,
     )
