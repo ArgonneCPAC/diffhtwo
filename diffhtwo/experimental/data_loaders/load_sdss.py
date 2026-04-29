@@ -22,7 +22,7 @@ SDSS = namedtuple("SDSS", DATASET._fields)
 
 LH_N_CENTROIDS = 30_000
 LH_SIG = 3.5
-D_MAG = 0.1
+D_MAG = 0.2
 D_Z = 0.01
 
 
@@ -72,6 +72,13 @@ def get_lh_centroids(
     r_mask = lh_centroids[:, -2] < mag_thresh
     lh_centroids = lh_centroids[redshift_mask & r_mask]
 
+    redshift = [0.02, 0.065, 0.11, 0.155, 0.2]
+    r_mins = [12, 13.5, 14.5, 15.3, 16]
+    coeffs = np.polyfit(redshift, r_mins, deg=2)
+    r_min = np.poly1d(coeffs)
+    r_complete = lh_centroids[:, -2] > r_min(lh_centroids[:, -1])
+    lh_centroids = lh_centroids[r_complete]
+
     d_centroids = jnp.ones_like(lh_centroids) * d_mag
     d_centroids = d_centroids.at[:, -1].set(d_z)
 
@@ -87,7 +94,7 @@ def get_sdss_data(
     mag_thresh=SDSS_MAGR_THRESH,
     frac_cat=SDSS_FRAC_CAT,
     data_sky_area_degsq=SDSS_AREA_DEG2,
-    num_halos=10000,
+    num_halos=1000,
     lc_sky_area_degsq=SDSS_AREA_DEG2,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,

@@ -7,7 +7,7 @@ from diffsky.mass_functions import mc_hosts
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders.defaults import TransmissionCurve
 
-from .. import diffndhist, n_mag
+from .. import diffndhist
 from ..defaults import (
     DATASET,
     FENIKS_AREA_DEG2,
@@ -16,10 +16,6 @@ from ..defaults import (
     FENIKS_Z_MIN,
 )
 from ..latin_hypercube import latin_hypercube as lh
-
-# from ..latin_hypercube.lh_centroid_utils import enlarge_lh_bins
-from ..lc_utils import zbin_vol_vmap
-from ..lightcone_generators import generate_lc_data
 from ..utils import (
     get_feniks_filter_number_from_translate_file,
     get_tcurve,
@@ -75,12 +71,12 @@ def get_lh_centroids(
     k_mask = lh_centroids[:, -2] < mag_thresh
     lh_centroids = lh_centroids[redshift_mask & k_mask]
 
-    # redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
-    # k_mins = [16, 17.8, 19, 19.7, 20.2, 20.8, 21.2, 21.8]
-    # coeffs = np.polyfit(redshift_centers, k_mins, deg=2)
-    # k_min = np.poly1d(coeffs)
-    # k_complete = lh_centroids[:, -2] > k_min(lh_centroids[:, -1])
-    # lh_centroids = lh_centroids[k_complete]
+    redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
+    k_mins = [16, 17.8, 19, 19.7, 20.2, 20.8, 21.2, 21.8]
+    coeffs = np.polyfit(redshift_centers, k_mins, deg=2)
+    k_min = np.poly1d(coeffs)
+    k_complete = lh_centroids[:, -2] > k_min(lh_centroids[:, -1])
+    lh_centroids = lh_centroids[k_complete]
 
     d_centroids = jnp.ones_like(lh_centroids) * d_mag
     d_centroids = d_centroids.at[:, -1].set(d_z)

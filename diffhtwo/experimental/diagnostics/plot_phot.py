@@ -74,7 +74,6 @@ def plot_n_single_z(
 ):
     dataset_colors_mag = dataset.dataset
     z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
-    print(z_min, z_max)
     z_mask = (dataset_colors_mag[:, -1] > z_min) & (dataset_colors_mag[:, -1] < z_max)
     dataset_colors_mag_z = dataset_colors_mag[z_mask]
     data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
