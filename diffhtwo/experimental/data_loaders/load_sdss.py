@@ -11,7 +11,6 @@ from .. import diffndhist
 from ..defaults import (
     DATASET,
     SDSS_AREA_DEG2,
-    SDSS_FRAC_CAT,
     SDSS_MAGR_THRESH,
     SDSS_Z_MAX,
     SDSS_Z_MIN,
@@ -22,7 +21,7 @@ SDSS = namedtuple("SDSS", DATASET._fields)
 
 LH_N_CENTROIDS = 30_000
 LH_SIG = 3.5
-D_MAG = 0.2
+D_MAG = 0.1
 D_Z = 0.01
 
 
@@ -40,10 +39,17 @@ def load_sdss_cuts_applied(drn):
 
     sdss = apply_ra_dec_cut(sdss)
 
+    # implement r <= 17.6
+    mag_thresh_mask = sdss["modelMag_r"] <= SDSS_MAGR_THRESH
+    sdss = sdss[mag_thresh_mask]
+    N_obj_pre_outlier_cut = len(sdss)
+
     msk_is_not_outlier = sdl.get_color_outlier_mask(sdss, sdl.SDSS_MAG_NAMES)
     sdss = sdss[msk_is_not_outlier]
 
-    return sdss
+    frac_cat = len(sdss) / N_obj_pre_outlier_cut
+
+    return sdss, frac_cat
 
 
 def get_lh_centroids(
@@ -69,7 +75,7 @@ def get_lh_centroids(
     redshift_mask = (lh_centroids[:, -1] > (z_min + (d_z / 2))) & (
         lh_centroids[:, -1] < (z_max - (d_z / 2))
     )
-    r_mask = lh_centroids[:, -2] < mag_thresh
+    r_mask = lh_centroids[:, -2] <= mag_thresh
     lh_centroids = lh_centroids[redshift_mask & r_mask]
 
     redshift = [0.02, 0.065, 0.11, 0.155, 0.2]
@@ -92,7 +98,6 @@ def get_sdss_data(
     z_min=SDSS_Z_MIN,
     z_max=SDSS_Z_MAX,
     mag_thresh=SDSS_MAGR_THRESH,
-    frac_cat=SDSS_FRAC_CAT,
     data_sky_area_degsq=SDSS_AREA_DEG2,
     num_halos=1000,
     lc_sky_area_degsq=SDSS_AREA_DEG2,
@@ -103,7 +108,7 @@ def get_sdss_data(
     dz=D_Z,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
-    sdss = load_sdss_cuts_applied(drn)
+    sdss, frac_cat = load_sdss_cuts_applied(drn)
 
     sdss_filters = ["sdss_u", "sdss_g", "sdss_r", "sdss_i", "sdss_z"]
     tcurves = []
@@ -185,6 +190,7 @@ def get_sdss_data(
         lh_centroids,
         d_centroids,
         N_data_lh,
+        data_sky_area_degsq,
         # lg_n_data_err_lh,
         # lc_data,
     )

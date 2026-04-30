@@ -62,6 +62,9 @@ def get_phot_loss(
         param_collection,
     )
     N_model = N_colors_mags_lh(*N_colors_mags_lh_args)
+    N_model = N_model * (
+        meta_data.data_sky_area_degsq / fitting_data.lc_data.sky_area_degsq
+    )
     phot_loss = poisson_loss(N_model, fitting_data.N_data)
     return phot_loss
 
@@ -275,7 +278,7 @@ def _loss_sdss_feniks_hizels(
     feniks_fitting_data,
     hizels,
     line_wave_table,
-    fit_sdss=False,
+    fit_sdss=True,
     fit_feniks=True,
     fit_hizels=False,
 ):
@@ -333,9 +336,6 @@ def fit_sdss_feniks_hizels(
     feniks_fitting_data,
     hizels,
     line_wave_table,
-    fit_sdss=False,
-    fit_feniks=True,
-    fit_hizels=False,
     n_steps=2,
     step_size=1e-2,
 ):
@@ -357,9 +357,6 @@ def fit_sdss_feniks_hizels(
         loss, grads = _loss_and_grad_sdss_feniks_hizels(
             u_theta,
             *other,
-            fit_sdss=fit_sdss,
-            fit_feniks=fit_feniks,
-            fit_hizels=fit_hizels,
         )
         # set grads for untrainable params to 0.0
         grads = tuple(

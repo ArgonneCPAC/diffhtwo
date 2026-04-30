@@ -63,11 +63,10 @@ def plot_n_single_z(
     param_collection2=None,
     label2=None,
     lg_n_thresh=None,
-    dmag=0.1,
     lgmp_min=10.0,
     lgmp_max=mc_hosts.LGMH_MAX,
     num_halos=10000,
-    lc_sky_area_degsq=10000,
+    lc_sky_area_degsq=1000,
     n_z_phot_table=30,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
@@ -107,21 +106,17 @@ def plot_n_single_z(
         fig_width = 3.0 * n_panels
         fig_height = 1.5 * n_panels
 
-        fontsize = 3 * n_panels
-        labelsize = 2.25 * n_panels
-        legend_fontsize = 2.25 * n_panels
-
-        # s = n_panels * 10
+        fontsize = 4 * n_panels
+        labelsize = 3.25 * n_panels
+        legend_fontsize = 3 * n_panels
 
     if data_label == "FENIKS":
         fig_width = 2.25 * n_panels
         fig_height = n_panels / 1.5
 
-        fontsize = 1.5 * n_panels
-        labelsize = 1.25 * n_panels
+        fontsize = 2.25 * n_panels
+        labelsize = 1.75 * n_panels
         legend_fontsize = 1.25 * n_panels
-
-        # s = n_panels * 5
 
     fig, ax = plt.subplots(
         2,
@@ -135,15 +130,23 @@ def plot_n_single_z(
     fig.suptitle(
         suptitle + "   |   " + str(z_min) + " < z < " + str(z_max), fontsize=24
     )
-
     for i in range(0, n_panels):
         if i == n_panels - 1:
-            bins = np.arange(
-                dataset_colors_mag_z[:, i].min(), dataset_colors_mag_z[:, i].max(), dmag
+            bins = np.linspace(
+                dataset_colors_mag_z[:, i].min(),
+                dataset_colors_mag_z[:, i].max(),
+                20,
             )
         else:
-            bins = np.arange(-0.75, 2.5, dmag)
+            std = np.std(dataset_colors_mag_z[:, i])
+            med = np.median(dataset_colors_mag_z[:, i])
+            bins = np.linspace(
+                med - (5 * std),
+                med + (6 * std),
+                20,
+            )
 
+        bin_centers = (bins[1:] + bins[:-1]) / 2
         ax[0, i].set_xlim(bins[0], bins[-1])
         ax[1, i].set_xlim(bins[0], bins[-1])
 
@@ -155,7 +158,6 @@ def plot_n_single_z(
             label=data_label,
             alpha=0.5,
         )
-        bin_centers = (bin_edges[1:] + bin_edges[:-1]) / 2
 
         n_diffsky, _, _ = ax[0, i].hist(
             obs_color_mag1[:, i],
@@ -167,8 +169,7 @@ def plot_n_single_z(
         )
 
         ax[0, i].set_yscale("log")
-        ax[0, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-        ax[0, i].set_ylim(1e-6, 1e-2)
+        ax[0, i].set_ylim(1e-5, 1e-2)
         ax[0, i].tick_params(axis="both", direction="in", labelsize=labelsize)
 
         offset = n_data / n_diffsky
@@ -179,7 +180,7 @@ def plot_n_single_z(
         ax[1, i].tick_params(axis="both", direction="in", labelsize=labelsize)
         ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
         ax[1, i].set_yticks(ax_offset_yticks)
-        ax[1, i].set_yticklabels(["", "0.2x", "0.5x", "1x", "2x", "5x", ""])
+        ax[1, i].set_yticklabels(["", "0.2", "0.5", "1", "2", "5", ""])
         ax[1, i].axhspan(
             ax_offset_yticks[2], ax_offset_yticks[4], color="orange", alpha=0.25
         )

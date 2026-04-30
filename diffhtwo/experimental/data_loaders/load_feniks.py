@@ -30,7 +30,7 @@ FILTER_INFO = "kz_FILTER.RES.latest.info"
 TCURVES_FILE = "kz_FILTER.RES.latest"
 
 LH_SIG = 3
-LH_N_CENTROIDS = 30_000
+LH_N_CENTROIDS = 50_000
 
 D_MAG = 0.7
 D_Z = 0.5
@@ -68,7 +68,7 @@ def get_lh_centroids(
     redshift_mask = (lh_centroids[:, -1] > (z_min + (d_z / 2))) & (
         lh_centroids[:, -1] < (z_max - (d_z / 2))
     )
-    k_mask = lh_centroids[:, -2] < mag_thresh
+    k_mask = lh_centroids[:, -2] <= mag_thresh
     lh_centroids = lh_centroids[redshift_mask & k_mask]
 
     redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
@@ -287,6 +287,7 @@ def get_feniks_data(
         lh_centroids,
         d_centroids,
         N_data_lh,
+        data_sky_area_degsq,
         # lg_n_data_err_lh,
         # lc_data,
     )

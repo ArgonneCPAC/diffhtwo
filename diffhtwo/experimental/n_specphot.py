@@ -134,14 +134,14 @@ def phot_kern(
     )
     obs_mags = phot_kern_results.obs_mags
 
-    # get weights incorporating frac_cat
-    weights = lc_data.nhalos * frac_cat
-
-    # apply mag thresh cut
-    obs_mag_thresh_band = obs_mags[:, mag_thresh_column]
     weights = jnp.where(
-        obs_mag_thresh_band < mag_thresh, weights, jnp.zeros_like(weights)
+        lc_data.is_central, lc_data.nhalos, lc_data.nhalos * lc_data.nhalos_host
     )
+
+    # apply mag thresh cut before incorporating frac_cat with nhalos_weights
+    obs_mag_thresh_band = obs_mags[:, mag_thresh_column]
+    mag_thresh_mask = obs_mag_thresh_band < mag_thresh
+    weights = weights * jnp.where(mag_thresh_mask, frac_cat, 0.0)
 
     return obs_mags, weights
 

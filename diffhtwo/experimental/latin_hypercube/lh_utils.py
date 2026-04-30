@@ -2,7 +2,6 @@ from collections import namedtuple
 
 import jax.numpy as jnp
 import numpy as np
-from diffsky.mass_functions import mc_hosts
 
 from .. import diffndhist
 from .. import param_utils as pu
@@ -29,22 +28,30 @@ def get_zbins_lh_lc(
     dataset,
     z_min,
     z_max,
-    data_sky_area_degsq,
     ssp_data,
     N_centroids=None,
-    num_halos=1000,
+    num_halos=500,
+    lc_sky_area_degsq=1000,
     lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
+    lgmp_max=15.0,
     n_z_phot_table=15,
 ):
     META_DATA = namedtuple(
-        "META_DATA", ["mag_columns", "mag_thresh_column", "mag_thresh", "frac_cat"]
+        "META_DATA",
+        [
+            "mag_columns",
+            "mag_thresh_column",
+            "mag_thresh",
+            "frac_cat",
+            "data_sky_area_degsq",
+        ],
     )
     meta_data = META_DATA(
         dataset.mag_columns,
         dataset.mag_thresh_column,
         dataset.mag_thresh,
         dataset.frac_cat,
+        dataset.data_sky_area_degsq,
     )
 
     FITTING_DATA = namedtuple(
@@ -85,7 +92,7 @@ def get_zbins_lh_lc(
             z_max[zbin],
             lgmp_min,
             lgmp_max,
-            data_sky_area_degsq,
+            lc_sky_area_degsq,
             ssp_data,
             dataset.tcurves,
             z_phot_table,
