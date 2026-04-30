@@ -197,6 +197,21 @@ def get_feniks_data(
     N_obj_post_cuts = len(zout)
     frac_cat = N_obj_post_cuts / N_obj_pre_cuts
 
+    mags = np.vstack(
+        (
+            megacam_uS,
+            hsc_g,
+            hsc_r,
+            hsc_i,
+            hsc_z,
+            video_Y,
+            uds_J,
+            uds_H,
+            uds_Ktot,
+            zout["z_phot"],
+        )
+    ).T
+
     # derive colors from mags
     megacam_hsc_uSg = megacam_uS - hsc_g
     hsc_gr = hsc_g - hsc_r
@@ -207,7 +222,7 @@ def get_feniks_data(
     uds_JH = uds_J - uds_H
     uds_HK = uds_H - uds_K
 
-    # stack dataset
+    # stack colors_mag
     dataset = np.vstack(
         (
             megacam_hsc_uSg,
@@ -226,6 +241,7 @@ def get_feniks_data(
     # mask redshift
     z_mask = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
     dataset = dataset[z_mask]
+    mags = mags[z_mask]
     zout = zout[z_mask]
 
     lh_centroids, d_centroids = get_lh_centroids(
@@ -234,27 +250,6 @@ def get_feniks_data(
         z_max,
         mag_thresh,
     )
-
-    # generate lc
-    # z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
-    # lc_args = (
-    #     ran_key,
-    #     num_halos,
-    #     z_min,
-    #     z_max,
-    #     lgmp_min,
-    #     lgmp_max,
-    #     lc_sky_area_degsq,
-    #     ssp_data,
-    #     tcurves,
-    #     z_phot_table,
-    # )
-
-    # lc_data = generate_lc_data(
-    #     *lc_args,
-    #     # lh_centroids=lh_centroids,
-    #     # d_centroids=d_centroids,
-    # )
 
     # run initial diffndhist with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
@@ -267,18 +262,9 @@ def get_feniks_data(
         lh_centroids_hi,
     )
 
-    # lh_vol_mpc3 = zbin_vol_vmap(
-    #     data_sky_area_degsq,
-    #     lh_centroids_lo[:, -1],
-    #     lh_centroids_hi[:, -1],
-    #     cosmo_params,
-    # )
-
-    # lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, lh_vol_mpc3)
-    # lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
-
     return FENIKS(
         dataset,
+        mags,
         tcurves,
         mag_columns,
         mag_thresh_column,

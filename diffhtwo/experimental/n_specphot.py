@@ -80,7 +80,7 @@ def get_colors_mags(
     mag_thresh,
     frac_cat,
 ):
-    mags, weights = phot_kern(
+    mags, weights = mag_kern(
         ran_key,
         param_collection,
         lc_data,
@@ -100,7 +100,7 @@ def get_colors_mags(
 
 
 @jjit
-def phot_kern(
+def mag_kern(
     ran_key,
     param_collection,
     lc_data,

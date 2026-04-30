@@ -125,6 +125,8 @@ def get_sdss_data(
     sdss_z = sdss["modelMag_z"].data
     sdss_redshift = sdss["z"].data
 
+    mags = np.vstack((sdss_u, sdss_g, sdss_r, sdss_i, sdss_z, sdss_redshift)).T
+
     sdss_ug = sdss_u - sdss_g
     sdss_gr = sdss_g - sdss_r
     sdss_ri = sdss_r - sdss_i
@@ -139,27 +141,6 @@ def get_sdss_data(
         mag_thresh,
     )
 
-    # generate lc_data
-    # z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
-    # lc_args = (
-    #     ran_key,
-    #     num_halos,
-    #     z_min,
-    #     z_max,
-    #     lgmp_min,
-    #     lgmp_max,
-    #     lc_sky_area_degsq,
-    #     ssp_data,
-    #     tcurves,
-    #     z_phot_table,
-    # )
-
-    # lc_data = generate_lc_data(
-    #     *lc_args,
-    #     # lh_centroids=lh_centroids,
-    #     # d_centroids=d_centroids,
-    # )
-
     # run initial diffndhist with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
@@ -171,17 +152,9 @@ def get_sdss_data(
         lh_centroids_hi,
     )
 
-    # lh_vol_mpc3 = zbin_vol_vmap(
-    #     data_sky_area_degsq,
-    #     lh_centroids_lo[:, -1],
-    #     lh_centroids_hi[:, -1],
-    #     cosmo_params,
-    # )
-    # lg_n, lg_n_avg_err = n_mag.get_n_data_err(N_data_lh, lh_vol_mpc3)
-    # lg_n_data_err_lh = jnp.vstack((lg_n, lg_n_avg_err))
-
     return SDSS(
         dataset,
+        mags,
         tcurves,
         mag_columns,
         mag_thresh_column,

@@ -1,15 +1,11 @@
-import corner
 import jax.numpy as jnp
 import numpy as np
-
-# from diffsky import diffndhist
-from diffsky.mass_functions import mc_hosts
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
 from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
-from ..n_specphot import get_colors_mags, phot_kern
+from ..n_specphot import get_colors_mags, mag_kern
 
 blue = "#1E90FF"  # DodgerBlue
 orange = "#FF8C00"  # DarkOrange
@@ -46,13 +42,11 @@ except ImportError:
 mpl.rcParams["axes.linewidth"] = 2.5
 
 
-def plot_n_single_z(
+def plot_n_colors_mag(
     dataset,
-    data_sky_area_degsq,
     data_label,
     param_collection1,
     label1,
-    line_wave_aa,
     dimension_labels,
     ran_key,
     z_min,
@@ -64,7 +58,7 @@ def plot_n_single_z(
     label2=None,
     lg_n_thresh=None,
     lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
+    lgmp_max=15.0,
     num_halos=10000,
     lc_sky_area_degsq=1000,
     n_z_phot_table=30,
@@ -72,6 +66,8 @@ def plot_n_single_z(
     fb=FB,
 ):
     dataset_colors_mag = dataset.dataset
+    data_sky_area_degsq = dataset.data_sky_area_degsq
+
     z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
     z_mask = (dataset_colors_mag[:, -1] > z_min) & (dataset_colors_mag[:, -1] < z_max)
     dataset_colors_mag_z = dataset_colors_mag[z_mask]
@@ -168,8 +164,10 @@ def plot_n_single_z(
             alpha=0.5,
         )
 
+        if i == n_panels - 1:
+            ylim_top = 2 * n_diffsky.max()
+
         ax[0, i].set_yscale("log")
-        ax[0, i].set_ylim(1e-5, 1e-2)
         ax[0, i].tick_params(axis="both", direction="in", labelsize=labelsize)
 
         offset = n_data / n_diffsky
@@ -204,6 +202,8 @@ def plot_n_single_z(
         ncols=1,
         fontsize=legend_fontsize,
     )
+    for i in range(0, n_panels):
+        ax[0, i].set_ylim(1e-6, ylim_top)
 
     ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
     ax[1, 0].set_ylabel("n$_{" + data_label + "}$ / n$_{diffsky}$", fontsize=fontsize)
@@ -221,464 +221,37 @@ def plot_n_single_z(
     plt.show()
 
 
-def plot_n_mag(
-    dataset_mags,
-    data_sky_area_degsq,
+def plot_n_mags(
+    dataset,
+    data_label,
     param_collection1,
     label1,
-    tcurves,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    frac_cat,
-    line_wave_aa,
-    dimension_labels,
-    ran_key,
-    zmins,
-    zmaxs,
-    ssp_data,
-    suptitle,
-    zbin_titles,
-    savedir,
-    param_collection2=None,
-    label2=None,
-    lg_n_thresh=None,
-    dmag=0.1,
-    lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
-    num_halos=1000,
-    sky_area_degsq=100,
-    n_z_phot_table=15,
-    cosmo_params=DEFAULT_COSMOLOGY,
-    fb=FB,
-):
-    # Plot 1D histograms
-    n_bands = len(tcurves)
-    n_zbins = len(zmins)
-
-    fig_width = 3.025 * n_bands
-    fig_height = 3.0 * n_zbins
-    fig, ax = plt.subplots(
-        n_zbins,
-        n_bands,
-        figsize=(fig_width, fig_height),
-    )
-
-    fig.subplots_adjust(
-        left=0.065, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
-    )
-    fig.suptitle(suptitle, fontsize=32)
-
-    fig_offset, ax_offset = plt.subplots(
-        n_zbins,
-        n_bands,
-        figsize=(fig_width, fig_height),
-    )
-
-    fig_offset.subplots_adjust(
-        left=0.065, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
-    )
-    fig_offset.suptitle(suptitle, fontsize=32)
-
-    dataset_mags_z1 = np.array(dataset_mags[0])
-
-    for z in range(0, n_zbins):
-        z_min = zmins[z]
-        z_max = zmaxs[z]
-        dataset_mags_z = np.array(dataset_mags[z])
-
-        t = int(n_bands / 2)
-        ax[z, t].set_title(zbin_titles[z], y=0.85, fontsize=labelsize)
-
-        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
-
-        z_phot_table = 10 ** jnp.linspace(
-            np.log10(z_min), np.log10(z_max), n_z_phot_table
-        )
-
-        lc_data = generate_lc_data(
-            ran_key,
-            num_halos,
-            z_min,
-            z_max,
-            lgmp_min,
-            lgmp_max,
-            sky_area_degsq,
-            ssp_data,
-            tcurves,
-            z_phot_table,
-        )
-        line_wave_table = jnp.array([line_wave_aa])
-        obs_mag1, weights1 = phot_kern(
-            ran_key,
-            param_collection1,
-            lc_data,
-            line_wave_table,
-            mag_columns,
-            mag_thresh_column,
-            mag_thresh,
-            frac_cat,
-        )
-
-        if param_collection2 is not None:
-            obs_mag2, weights2 = phot_kern(
-                ran_key,
-                param_collection2,
-                lc_data,
-                line_wave_table,
-                mag_columns,
-                mag_thresh_column,
-                mag_thresh,
-                frac_cat,
-            )
-
-        for i in range(0, n_bands):
-            sigma = np.std(dataset_mags_z1[:, i])
-            lower_limit = np.mean(dataset_mags_z1[:, i]) - (4 * sigma)
-            upper_limit = np.mean(dataset_mags_z1[:, i]) + (4 * sigma)
-            if i == n_bands - 1:
-                upper_limit = mag_thresh
-            mag_bin_edges = np.arange(
-                lower_limit,
-                upper_limit,
-                dmag,
-            )
-            ax[z, i].set_xlim(lower_limit, upper_limit)
-            ax_offset[z, i].set_xlim(lower_limit, upper_limit)
-
-            lc_phot1_hist = ax[z, i].hist(
-                obs_mag1[:, i],
-                weights=weights1 * (1 / lc_data.lc_vol_mpc3),
-                bins=mag_bin_edges,
-                histtype="step",
-                color=color1,
-                alpha=alpha1,
-                label=label1,
-                lw=lw + 1,
-            )
-
-            # model 2
-            if param_collection2 is not None:
-                ax[z, i].hist(
-                    obs_mag2[:, i],
-                    weights=weights2 * (1 / lc_data.lc_vol_mpc3),
-                    bins=mag_bin_edges,
-                    histtype="step",
-                    color=color2,
-                    alpha=alpha2,
-                    lw=lw,
-                    label=label2,
-                )
-
-            # data
-            data_hist = ax[z, i].hist(
-                dataset_mags_z[:, i],
-                weights=np.ones_like(dataset_mags_z[:, i]) * (1 / data_vol_mpc3),
-                bins=mag_bin_edges,
-                color=color_data,
-                lw=lw,
-                alpha=alpha_data,
-                label="FENIKS-UDS",
-            )
-
-            ax[z, i].set_yscale("log")
-            ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax[z, i].set_ylim(1e-6, 2e-3)
-            ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
-
-            """ax_offset"""
-            mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
-            offset = data_hist[0] / lc_phot1_hist[0]
-            ax_offset[z, i].plot(mag_bin_centers, offset, lw=2, color="k")
-            ax_offset[z, i].set_yscale("log")
-            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax_offset[z, i].tick_params(
-                axis="both", direction="in", labelsize=labelsize
-            )
-            ax_offset[z, i].set_ylim(0.09, 10.1)
-            ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
-            ax_offset[z, i].set_yticks(ax_offset_yticks)
-            ax_offset[z, i].set_yticklabels(["", "0.2x", "0.5x", "1x", "2x", "5x", ""])
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[2], ax_offset_yticks[4], color="orange", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[1], ax_offset_yticks[2], color="r", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[4], ax_offset_yticks[5], color="r", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(0, ax_offset_yticks[1], color="r", alpha=0.8)
-            ax_offset[z, i].axhspan(ax_offset_yticks[5], 10, color="r", alpha=0.8)
-            ax_offset[z, i].axhline(1, color="green", alpha=0.5, lw=5)
-
-            if i != 0:
-                ax[z, i].set_yticklabels([])
-                ax_offset[z, i].set_yticklabels([])
-            if z != n_zbins - 1:
-                ax[z, i].set_xticklabels([])
-                ax_offset[z, i].set_xticklabels([])
-
-    ax[0, -1].legend(
-        framealpha=0.5,
-        loc="upper left",
-        bbox_to_anchor=(-2, 1.4),
-        ncols=3,
-        fontsize=legend_fontsize,
-    )
-    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize + 4)
-    fig.savefig(savedir + "/mags_" + savedir.split("/")[-1] + ".pdf")
-
-    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize + 4)
-    fig_offset.savefig(savedir + "/mags_offsets_" + savedir.split("/")[-1] + ".pdf")
-
-    plt.show()
-
-
-def plot_n(
-    dataset_colors_mag,
-    data_sky_area_degsq,
-    param_collection1,
-    label1,
-    tcurves,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    frac_cat,
-    line_wave_aa,
-    dimension_labels,
-    ran_key,
-    zmins,
-    zmaxs,
-    ssp_data,
-    suptitle,
-    zbin_titles,
-    savedir,
-    param_collection2=None,
-    label2=None,
-    lg_n_thresh=None,
-    dmag=0.1,
-    lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
-    num_halos=1000,
-    sky_area_degsq=100,
-    n_z_phot_table=15,
-    cosmo_params=DEFAULT_COSMOLOGY,
-    fb=FB,
-):
-    # Plot 1D histograms
-    n_bands = len(tcurves)
-    n_dims = n_bands - 1 + len(mag_columns)
-    n_zbins = len(zmins)
-
-    fig_width = 3.00 * n_dims
-    fig_height = 3.25 * n_zbins
-    fig, ax = plt.subplots(
-        n_zbins,
-        n_dims,
-        figsize=(fig_width, fig_height),
-    )
-
-    fig.subplots_adjust(
-        left=0.065, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
-    )
-    fig.suptitle(suptitle, fontsize=32)
-
-    fig_offset, ax_offset = plt.subplots(
-        n_zbins,
-        n_dims,
-        figsize=(fig_width, fig_height),
-    )
-
-    fig_offset.subplots_adjust(
-        left=0.065, hspace=0, top=0.95, right=0.99, bottom=0.05, wspace=0.0
-    )
-    fig_offset.suptitle(suptitle, fontsize=32)
-
-    dataset_colors_mag_z1 = np.array(dataset_colors_mag[0])
-    for z in range(0, n_zbins):
-        z_min = zmins[z]
-        z_max = zmaxs[z]
-        dataset_colors_mag_z = np.array(dataset_colors_mag[z])
-
-        t = int(n_dims / 2)
-        ax[z, t].set_title(zbin_titles[z], y=0.85, fontsize=labelsize)
-
-        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
-
-        z_phot_table = 10 ** jnp.linspace(
-            np.log10(z_min), np.log10(z_max), n_z_phot_table
-        )
-
-        lc_data = generate_lc_data(
-            ran_key,
-            num_halos,
-            z_min,
-            z_max,
-            lgmp_min,
-            lgmp_max,
-            sky_area_degsq,
-            ssp_data,
-            tcurves,
-            z_phot_table,
-        )
-        line_wave_table = jnp.array([line_wave_aa])
-        obs_color_mag1, weights1 = get_colors_mags(
-            ran_key,
-            param_collection1,
-            lc_data,
-            line_wave_table,
-            mag_columns,
-            mag_thresh_column,
-            mag_thresh,
-            frac_cat,
-        )
-
-        if param_collection2 is not None:
-            obs_color_mag2, weights2 = get_colors_mags(
-                ran_key,
-                param_collection2,
-                lc_data,
-                line_wave_table,
-                mag_columns,
-                mag_thresh_column,
-                mag_thresh,
-                frac_cat,
-            )
-
-        for i in range(0, n_dims):
-            sigma = np.std(dataset_colors_mag_z1[:, i])
-            lower_limit = np.mean(dataset_colors_mag_z1[:, i]) - (4 * sigma)
-            upper_limit = np.mean(dataset_colors_mag_z1[:, i]) + (4 * sigma)
-            if i == n_dims - 1:
-                upper_limit = mag_thresh
-            bins = np.arange(
-                lower_limit,
-                upper_limit,
-                dmag,
-            )
-            ax[z, i].set_xlim(lower_limit, upper_limit)
-            ax_offset[z, i].set_xlim(lower_limit, upper_limit)
-
-            obs_colors_mag1_hist = ax[z, i].hist(
-                obs_color_mag1[:, i],
-                weights=weights1 * (1 / lc_data.lc_vol_mpc3),
-                bins=bins,
-                histtype="step",
-                color=color1,
-                alpha=alpha1,
-                lw=lw + 2,
-                label=label1,
-            )
-            if param_collection2 is not None:
-                ax[z, i].hist(
-                    obs_color_mag2[:, i],
-                    weights=weights2 * (1 / lc_data.lc_vol_mpc3),
-                    bins=bins,
-                    histtype="step",
-                    color=color2,
-                    alpha=alpha2,
-                    lw=lw,
-                    label=label2,
-                )
-
-            # data
-            if dataset_colors_mag_z is not None:
-                dataset_colors_mag_hist = ax[z, i].hist(
-                    dataset_colors_mag_z[:, i],
-                    weights=np.ones_like(dataset_colors_mag_z[:, i])
-                    * (1 / data_vol_mpc3),
-                    bins=bins,
-                    color=color_data,
-                    alpha=alpha_data,
-                    lw=lw,
-                    label="FENIKS-UDS",
-                )
-
-            ax[z, i].set_yscale("log")
-            ax[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax[z, i].set_ylim(1e-6, 5e-3)
-            ax[z, i].tick_params(axis="both", direction="in", labelsize=labelsize)
-
-            """ax_offset"""
-            bin_centers = (bins[1:] + bins[:-1]) / 2
-            offset = dataset_colors_mag_hist[0] / obs_colors_mag1_hist[0]
-            ax_offset[z, i].plot(bin_centers, offset, lw=2, color="k")
-            ax_offset[z, i].set_ylim(0.09, 10.1)
-            ax_offset[z, i].set_yscale("log")
-            ax_offset[z, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-            ax_offset[z, i].tick_params(
-                axis="both", direction="in", labelsize=labelsize
-            )
-            ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
-            ax_offset[z, i].set_yticks(ax_offset_yticks)
-            ax_offset[z, i].set_yticklabels(["", "0.2x", "0.5x", "1x", "2x", "5x", ""])
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[2], ax_offset_yticks[4], color="orange", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[1], ax_offset_yticks[2], color="r", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(
-                ax_offset_yticks[4], ax_offset_yticks[5], color="r", alpha=0.5
-            )
-            ax_offset[z, i].axhspan(0, ax_offset_yticks[1], color="r", alpha=0.8)
-            ax_offset[z, i].axhspan(ax_offset_yticks[5], 10, color="r", alpha=0.8)
-            ax_offset[z, i].axhline(1, color="green", alpha=0.5, lw=5)
-
-            if i != 0:
-                ax[z, i].set_yticklabels([])
-                ax_offset[z, i].set_yticklabels([])
-            if z != n_zbins - 1:
-                ax[z, i].set_xticklabels([])
-                ax_offset[z, i].set_xticklabels([])
-
-    ax[0, -1].legend(
-        framealpha=0.5,
-        loc="upper left",
-        bbox_to_anchor=(-2, 1.4),
-        ncols=3,
-        fontsize=legend_fontsize,
-    )
-
-    fig.supylabel("\u03d5 [Mpc$^{-3}$]", fontsize=fontsize + 4)
-    fig.savefig(savedir + "/phot_fit_" + savedir.split("/")[-1] + ".pdf")
-
-    fig_offset.supylabel("n$_{FENIKS}$ / n$_{diffsky}$", fontsize=fontsize + 4)
-    fig_offset.savefig(savedir + "/phot_offsets_" + savedir.split("/")[-1] + ".pdf")
-
-    plt.show()
-
-
-def plot_n_corner(
-    dataset_colors_mag,
-    param_collection1,
-    label1,
-    tcurves,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    frac_cat,
-    line_wave_aa,
     dimension_labels,
     ran_key,
     z_min,
     z_max,
     ssp_data,
-    title,
+    suptitle,
     savedir,
     param_collection2=None,
     label2=None,
     lg_n_thresh=None,
-    dmag=0.1,
     lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
-    num_halos=1000,
-    sky_area_degsq=100,
-    n_z_phot_table=15,
+    lgmp_max=15.0,
+    num_halos=10000,
+    lc_sky_area_degsq=1000,
+    n_z_phot_table=30,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
 ):
+    dataset_mags = dataset.mags
+    data_sky_area_degsq = dataset.data_sky_area_degsq
+
+    z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
+    z_mask = (dataset_mags[:, -1] > z_min) & (dataset_mags[:, -1] < z_max)
+    dataset_mags_z = dataset_mags[z_mask]
+    data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
+
     z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
     lc_data = generate_lc_data(
         ran_key,
@@ -687,144 +260,132 @@ def plot_n_corner(
         z_max,
         lgmp_min,
         lgmp_max,
-        sky_area_degsq,
+        lc_sky_area_degsq,
         ssp_data,
-        tcurves,
+        dataset.tcurves,
         z_phot_table,
     )
-    line_wave_table = jnp.array([line_wave_aa])
-
-    obs_color_mag1, weights1 = get_colors_mags(
+    obs_mags1, weights1 = mag_kern(
         ran_key,
         param_collection1,
         lc_data,
-        line_wave_table,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
-        frac_cat,
-    )
-    obs_color_mag1 = np.array(obs_color_mag1)
-    weights1 = np.array(weights1)
-
-    if param_collection2 is not None:
-        obs_color_mag2, weights2 = get_colors_mags(
-            ran_key,
-            param_collection2,
-            lc_data,
-            line_wave_table,
-            mag_columns,
-            mag_thresh_column,
-            mag_thresh,
-            frac_cat,
-        )
-        obs_color_mag2 = np.array(obs_color_mag2)
-        weights2 = np.array(weights2)
-
-    color_bin_edges = np.arange(-0.5 - dmag / 2, 2.2, dmag)
-    mag_bin_edges = np.arange(18.0 - dmag / 2, mag_thresh, dmag)
-    ranges = [(color_bin_edges[0], color_bin_edges[-1])] * (
-        len(dimension_labels) - len(mag_columns)
-    )
-    for m in range(0, len(mag_columns)):
-        ranges.append((mag_bin_edges[0], mag_bin_edges[-1]))
-
-    # data
-    fig_corner = corner.corner(
-        dataset_colors_mag,
-        color=color_data,
-        labels=dimension_labels,
-        label_kwargs={"fontsize": 20},
-        plot_datapoints=False,
-        smooth=1.0,
-        levels=[0.68, 0.95],
-        hist_kwargs={
-            "histtype": "stepfilled",
-            "alpha": 0.5,
-            "lw": lw,
-            "density": True,
-        },
-        fill_contours=False,
-        plot_density=False,
-        contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
-        range=ranges,
+        dataset.mag_columns,
+        dataset.mag_thresh_column,
+        dataset.mag_thresh,
+        dataset.frac_cat,
     )
 
-    fig_corner.suptitle(title, fontsize=fontsize + 4)
+    n_panels = obs_mags1.shape[1]
 
-    # model 1
-    corner.corner(
-        obs_color_mag1,
-        weights=weights1,
-        fig=fig_corner,
-        color=color1,
-        smooth=1.0,
-        plot_datapoints=False,
-        levels=[0.68, 0.95],
-        hist_kwargs={
-            "histtype": "step",
-            "alpha": 0.5,
-            "lw": lw + 2,
-            "density": True,
-        },
-        fill_contours=False,
-        plot_density=False,
-        contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
-        range=ranges,
+    if data_label == "SDSS":
+        fig_width = 3.0 * n_panels
+        fig_height = 1.5 * n_panels
+
+        fontsize = 4 * n_panels
+        labelsize = 3.25 * n_panels
+        legend_fontsize = 3 * n_panels
+
+    if data_label == "FENIKS":
+        fig_width = 2.25 * n_panels
+        fig_height = n_panels / 1.5
+
+        fontsize = 2.25 * n_panels
+        labelsize = 1.75 * n_panels
+        legend_fontsize = 1.25 * n_panels
+
+    fig, ax = plt.subplots(
+        2,
+        n_panels,
+        figsize=(fig_width, fig_height),
+        gridspec_kw={"height_ratios": [1, 1]},
     )
-
-    # model 2
-    if param_collection2 is not None:
-        corner.corner(
-            obs_color_mag2,
-            weights=weights2,
-            fig=fig_corner,
-            color=color2,
-            smooth=1.0,
-            plot_datapoints=False,
-            levels=[0.68, 0.95],
-            hist_kwargs={
-                "histtype": "step",
-                "alpha": 0.5,
-                "lw": lw + 2,
-                "density": True,
-            },
-            plot_density=False,
-            fill_contours=False,
-            contour_kwargs={"linewidths": 3.5, "alpha": 0.75},
-            range=ranges,
+    fig.subplots_adjust(
+        left=0.05, hspace=0, top=0.875, right=0.99, bottom=0.15, wspace=0.0
+    )
+    fig.suptitle(
+        suptitle + "   |   " + str(z_min) + " < z < " + str(z_max), fontsize=24
+    )
+    for i in range(0, n_panels):
+        bins = np.linspace(
+            dataset_mags_z[:, i].min(),
+            dataset_mags_z[:, i].max(),
+            20,
         )
 
-    if label2 is not None:
-        handles = [
-            Line2D([], [], color=color1, lw=lw + 1, label=label1),
-            Line2D([], [], color=color2, lw=lw + 1, label=label2),
-            Line2D([], [], color=color_data, lw=lw, label="FENIKS-UDS"),
-        ]
-    else:
-        handles = [
-            Line2D([], [], color=color1, lw=lw + 1, label=label1),
-            Line2D([], [], color=color_data, lw=lw, label="FENIKS-UDS"),
-        ]
+        bin_centers = (bins[1:] + bins[:-1]) / 2
+        ax[0, i].set_xlim(bins[0], bins[-1])
+        ax[1, i].set_xlim(bins[0], bins[-1])
 
-    fig_corner.axes[0].legend(
-        handles=handles,
-        loc="center left",
-        bbox_to_anchor=(1.0, 0.5),
-        frameon=False,
-        fontsize=fontsize,
+        n_data, bin_edges, _ = ax[0, i].hist(
+            dataset_mags_z[:, i],
+            weights=np.ones_like(dataset_mags_z[:, i]) * (1 / data_vol_mpc3),
+            bins=bins,
+            color="k",
+            label=data_label,
+            alpha=0.5,
+        )
+
+        n_diffsky, _, _ = ax[0, i].hist(
+            obs_mags1[:, i],
+            weights=weights1 * (1 / lc_data.lc_tot_vol_mpc3),
+            bins=bins,
+            color="deepskyblue",
+            label=label1,
+            alpha=0.5,
+        )
+
+        if i == n_panels - 1:
+            ylim_top = 2 * n_diffsky.max()
+
+        ax[0, i].set_yscale("log")
+        ax[0, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+
+        offset = n_data / n_diffsky
+        ax[1, i].plot(bin_centers, offset, lw=2.0, color="k")
+        ax[1, i].set_ylim(0.09, 10.1)
+        ax[1, i].set_yscale("log")
+        ax[1, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+        ax[1, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+        ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
+        ax[1, i].set_yticks(ax_offset_yticks)
+        ax[1, i].set_yticklabels(["", "0.2", "0.5", "1", "2", "5", ""])
+        ax[1, i].axhspan(
+            ax_offset_yticks[2], ax_offset_yticks[4], color="orange", alpha=0.25
+        )
+        ax[1, i].axhspan(
+            ax_offset_yticks[1], ax_offset_yticks[2], color="orange", alpha=0.5
+        )
+        ax[1, i].axhspan(
+            ax_offset_yticks[4], ax_offset_yticks[5], color="orange", alpha=0.5
+        )
+        ax[1, i].axhspan(0, ax_offset_yticks[1], color="orange", alpha=0.8)
+        ax[1, i].axhspan(ax_offset_yticks[5], 10, color="orange", alpha=0.8)
+        ax[1, i].axhline(1, color="green", alpha=0.5, lw=5)
+
+        if i != 0:
+            ax[0, i].set_yticklabels([])
+            ax[1, i].set_yticklabels([])
+
+    ax[0, -1].legend(
+        framealpha=0.5,
+        loc="best",
+        ncols=1,
+        fontsize=legend_fontsize,
     )
+    for i in range(0, n_panels):
+        ax[0, i].set_ylim(1e-6, ylim_top)
 
-    for ax in fig_corner.get_axes():
-        ax.tick_params(axis="both", direction="in", labelsize=labelsize / 2)
-    fig_corner.savefig(
+    ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
+    ax[1, 0].set_ylabel("n$_{" + data_label + "}$ / n$_{diffsky}$", fontsize=fontsize)
+    fig.savefig(
         savedir
-        + "/z"
+        + "_mags_z"
         + str(z_min)
         + "-"
         + str(z_max)
-        + "_corner_fit_"
-        + savedir.split("/")[-1]
+        + "_"
+        + savedir.split("/")[-2]
         + ".pdf"
     )
+
     plt.show()

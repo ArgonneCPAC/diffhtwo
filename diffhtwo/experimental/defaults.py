@@ -32,6 +32,7 @@ DATASET = namedtuple(
     "DATASET",
     [
         "dataset",
+        "mags",
         "tcurves",
         "mag_columns",
         "mag_thresh_column",
@@ -41,7 +42,5 @@ DATASET = namedtuple(
         "d_centroids",
         "N_data",
         "data_sky_area_degsq",
-        # "lg_n_data_err_lh",
-        # "lc_data",
     ],
 )

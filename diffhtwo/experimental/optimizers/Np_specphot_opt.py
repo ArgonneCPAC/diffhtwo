@@ -19,7 +19,7 @@ from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
 from .. import diffndhist as diffndhist2
-from ..n_specphot import n_spec_kern, phot_kern
+from ..n_specphot import mag_kern, n_spec_kern
 from ..Np_specphot import N_colors_mags_lh
 from ..param_utils import get_param_collection_from_u_theta
 
@@ -81,7 +81,7 @@ def get_mag_func_loss(
     mag_bin_edges,
     N_target,
 ):
-    mags, weights = phot_kern(
+    mags, weights = mag_kern(
         ran_key,
         param_collection,
         lc_data,
