@@ -1,10 +1,11 @@
 from collections import namedtuple
 
 import jax.numpy as jnp
+import matplotlib.pyplot as plt
 import numpy as np
-from diffsky.mass_functions import mc_hosts
 
 from .. import diffndhist
+from .. import param_utils as pu
 from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
 from ..n_mag import get_n_data_err
@@ -23,75 +24,212 @@ def get_data_mag_func(dataset, z_min, z_max, data_sky_area_degsq, dmag=0.2):
     return mag_bin_edges, lg_n, lg_n_avg_err
 
 
-def get_subset_lh_z(
+def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max):
+    fig, ax = plt.subplots()
+
+    bins = np.linspace(N_data_z.min(), N_data_z.max(), 20)
+    label = "N$_{bins, z}$ = " + str(len(N_data_z))
+    ax.hist(N_data_z, bins=bins, alpha=0.8, histtype="step", color="k", label=label)
+
+    label = "N$_{bins, sel}$ = " + str(len(N_data_z_subset))
+    ax.hist(N_data_z_subset, bins=bins, alpha=0.5, color="k", label=label)
+
+    ax.set_title(str(z_min) + " < z < " + str(z_max))
+    ax.set_yscale("log")
+    ax.set_ylabel("#")
+    ax.set_xlabel("counts")
+    ax.legend()
+    plt.show()
+
+
+def get_zbins_lh_lc(
     ran_key,
     dataset,
     z_min,
     z_max,
-    data_sky_area_degsq,
-    num_halos=500,
+    ssp_data,
+    N_centroids,
+    num_halos=1000,
+    lc_sky_area_degsq=1000,
     lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
+    lgmp_max=15.0,
     n_z_phot_table=15,
 ):
-    z_sel = (dataset.lh_centroids[:, -1] > z_min) & (
-        dataset.lh_centroids[:, -1] < z_max
+    META_DATA = namedtuple(
+        "META_DATA",
+        [
+            "mag_columns",
+            "mag_thresh_column",
+            "mag_thresh",
+            "frac_cat",
+            "data_sky_area_degsq",
+        ],
+    )
+    meta_data = META_DATA(
+        dataset.mag_columns,
+        dataset.mag_thresh_column,
+        dataset.mag_thresh,
+        dataset.frac_cat,
+        dataset.data_sky_area_degsq,
     )
 
-    print("N_centroids: " + str(z_sel.sum()))
-
-    lh_centroids_z_subset = dataset.lh_centroids[z_sel]
-    d_centroids_z_subset = dataset.d_centroids[z_sel]
-    lg_n_data_err_lh_z_subset = dataset.lg_n_data_err_lh[:, z_sel]
-
-    z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
-    lc_args = (
-        ran_key,
-        num_halos,
-        z_min,
-        z_max,
-        lgmp_min,
-        lgmp_max,
-        dataset.lc_data.sky_area_degsq,
-        dataset.lc_data.ssp_data,
-        dataset.tcurves,
-        z_phot_table,
+    FITTING_DATA = namedtuple(
+        "FITTING_DATA", ["N_data", "lh_centroids", "d_centroids", "lc_data"]
     )
 
-    lc_data = generate_lc_data(
-        *lc_args, lh_centroids=lh_centroids_z_subset, d_centroids=d_centroids_z_subset
-    )
+    N_data = []
+    lh_centroids = []
+    d_centroids = []
+    lc_data = []
+    for zbin in range(0, len(z_min)):
+        z_sel = (dataset.lh_centroids[:, -1] > (z_min[zbin] + (dataset.lh_dz / 2))) & (
+            dataset.lh_centroids[:, -1] < (z_max[zbin] - (dataset.lh_dz / 2))
+        )
 
-    dataset = dataset._replace(
-        lh_centroids=lh_centroids_z_subset,
-        d_centroids=d_centroids_z_subset,
-        lg_n_data_err_lh=lg_n_data_err_lh_z_subset,
-        lc_data=lc_data,
-    )
+        print(z_sel.sum())
 
-    (
-        norm_band_bin_edges,
-        norm_band_lg_n,
-        norm_band_lg_n_avg_err,
-    ) = get_data_mag_func(dataset.dataset, z_min, z_max, data_sky_area_degsq)
+        lh_centroids_z = dataset.lh_centroids[z_sel]
+        d_centroids_z = dataset.d_centroids[z_sel]
+        N_data_z = dataset.N_data[z_sel]
 
-    DATASET = namedtuple(
-        "DATASET",
-        dataset._fields
-        + (
-            "norm_band_bin_edges",
-            "norm_band_lg_n",
-            "norm_band_lg_n_avg_err",
-        ),
-    )
-    dataset = DATASET(
-        *dataset,
-        norm_band_bin_edges,
-        norm_band_lg_n,
-        norm_band_lg_n_avg_err,
-    )
+        # select first N_centroids with N_data in descending order
+        lh_idx = jnp.argsort(N_data_z)[::-1][:N_centroids]
 
-    return dataset
+        lh_centroids_z_subset = lh_centroids_z[lh_idx]
+        d_centroids_z_subset = d_centroids_z[lh_idx]
+        N_data_z_subset = N_data_z[lh_idx]
+
+        plot_N_z_subset(N_data_z_subset, N_data_z, z_min[zbin], z_max[zbin])
+
+        z_phot_table = 10 ** jnp.linspace(
+            np.log10(z_min[zbin]), np.log10(z_max[zbin]), n_z_phot_table
+        )
+        lc_args = (
+            ran_key,
+            num_halos,
+            z_min[zbin],
+            z_max[zbin],
+            lgmp_min,
+            lgmp_max,
+            lc_sky_area_degsq,
+            ssp_data,
+            dataset.tcurves,
+            z_phot_table,
+        )
+
+        lc_data_z = generate_lc_data(*lc_args)
+
+        N_data.append(N_data_z_subset)
+        lh_centroids.append(lh_centroids_z_subset)
+        d_centroids.append(d_centroids_z_subset)
+        lc_data.append(lc_data_z)
+
+    # prepare for vmapping over these fields during optimization
+    N_data = jnp.array(N_data)
+    lh_centroids = jnp.array(lh_centroids)
+    d_centroids = jnp.array(d_centroids)
+    lc_data = pu.stack_lc_data(lc_data)
+
+    fitting_data = FITTING_DATA(N_data, lh_centroids, d_centroids, lc_data)
+
+    return meta_data, fitting_data
+
+
+# def get_zbins_lh_lc(
+#     ran_key,
+#     dataset,
+#     z_min,
+#     z_max,
+#     data_sky_area_degsq,
+#     N_centroids,
+#     ssp_data,
+#     num_halos=1000,
+#     lgmp_min=10.0,
+#     lgmp_max=mc_hosts.LGMH_MAX,
+#     n_z_phot_table=15,
+# ):
+#     DATASET_ZBINS = namedtuple("DATASET_ZBINS", ["datasets"])
+#     dataset_zbins = []
+#     for zbin in range(0, len(z_min)):
+#         z_sel = (dataset.lh_centroids[:, -1] > z_min[zbin]) & (
+#             dataset.lh_centroids[:, -1] < z_max[zbin]
+#         )
+
+#         print("zbin N_centroids: " + str(z_sel.sum()))
+
+#         lh_centroids_z_subset = dataset.lh_centroids[z_sel]
+#         d_centroids_z_subset = dataset.d_centroids[z_sel]
+#         N_data_subset = dataset.N_data[z_sel]
+
+#         z_phot_table = 10 ** jnp.linspace(
+#             np.log10(z_min[zbin]), np.log10(z_max[zbin]), n_z_phot_table
+#         )
+#         lc_args = (
+#             ran_key,
+#             num_halos,
+#             z_min[zbin],
+#             z_max[zbin],
+#             lgmp_min,
+#             lgmp_max,
+#             data_sky_area_degsq,
+#             ssp_data,
+#             dataset.tcurves,
+#             z_phot_table,
+#         )
+
+#         lc_data = generate_lc_data(*lc_args)
+
+#         # remove tcurves from dataset as it is:
+#         # not needed for optimization,
+#         # and makes it tricky to vmap multiple datasets
+#         fields = [f for f in dataset._fields if f != "tcurves"]
+#         DATASET = namedtuple("DATASET", fields)
+#         dataset = DATASET(**{f: getattr(dataset, f) for f in fields})
+
+#         dataset_z = dataset._replace(
+#             lh_centroids=lh_centroids_z_subset,
+#             d_centroids=d_centroids_z_subset,
+#             N_data=N_data_subset,
+#         )
+
+#         DATASET_Z = namedtuple(
+#             "DATASET_Z",
+#             dataset_z._fields + ("lc_data",),
+#         )
+
+#         dataset_z = DATASET_Z(
+#             *dataset_z,
+#             lc_data,
+#         )
+
+#         dataset_z = get_subset_lh(dataset_z, N_centroids)
+
+#         dataset_zbins.append(dataset_z)
+#     dataset_zbins = DATASET_ZBINS(dataset_zbins)
+
+#     return dataset_zbins
+
+# (
+#     norm_band_bin_edges,
+#     norm_band_lg_n,
+#     norm_band_lg_n_avg_err,
+# ) = get_data_mag_func(dataset.dataset, z_min, z_max, data_sky_area_degsq)
+
+# DATASET = namedtuple(
+#     "DATASET",
+#     dataset._fields
+#     + (
+#         "norm_band_bin_edges",
+#         "norm_band_lg_n",
+#         "norm_band_lg_n_avg_err",
+#     ),
+# )
+# dataset = DATASET(
+#     *dataset,
+#     norm_band_bin_edges,
+#     norm_band_lg_n,
+#     norm_band_lg_n_avg_err,
+# )
 
 
 def get_subset_lh(dataset, N_centroids):
@@ -101,16 +239,18 @@ def get_subset_lh(dataset, N_centroids):
 
     lh_centroids_subset = dataset.lh_centroids[lh_idx]
     d_centroids_subset = dataset.d_centroids[lh_idx]
-    lg_n_data_err_lh_subset = dataset.lg_n_data_err_lh[:, lh_idx]
+    N_data_subset = dataset.N_data[lh_idx]
+    # lg_n_data_err_lh_subset = dataset.lg_n_data_err_lh[:, lh_idx]
 
-    lh_vol_mpc3_subset = dataset.lc_data.lh_vol_mpc3[lh_idx]
-    lc_data_subset = dataset.lc_data._replace(lh_vol_mpc3=lh_vol_mpc3_subset)
+    # lh_vol_mpc3_subset = dataset.lc_data.lh_vol_mpc3[lh_idx]
+    # lc_data_subset = dataset.lc_data._replace(lh_vol_mpc3=lh_vol_mpc3_subset)
 
     dataset = dataset._replace(
         lh_centroids=lh_centroids_subset,
         d_centroids=d_centroids_subset,
-        lg_n_data_err_lh=lg_n_data_err_lh_subset,
-        lc_data=lc_data_subset,
+        N_data=N_data_subset,
+        # lg_n_data_err_lh=lg_n_data_err_lh_subset,
+        # lc_data=lc_data_subset,
     )
 
     return dataset
