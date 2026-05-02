@@ -32,7 +32,6 @@ legend_fontsize = 30
 try:
     import matplotlib as mpl
     from matplotlib import pyplot as plt
-    from matplotlib.lines import Line2D
 
     HAS_MATPLOTLIB = True
 except ImportError:
@@ -129,7 +128,7 @@ def plot_n_colors_mag(
     for i in range(0, n_panels):
         if i == n_panels - 1:
             bins = np.linspace(
-                dataset_colors_mag_z[:, i].min(),
+                dataset_colors_mag_z[:, i].min() - 0.2,
                 dataset_colors_mag_z[:, i].max(),
                 20,
             )
@@ -137,7 +136,7 @@ def plot_n_colors_mag(
             std = np.std(dataset_colors_mag_z[:, i])
             med = np.median(dataset_colors_mag_z[:, i])
             bins = np.linspace(
-                med - (5 * std),
+                med - (6 * std),
                 med + (6 * std),
                 20,
             )
@@ -165,7 +164,7 @@ def plot_n_colors_mag(
         )
 
         if i == n_panels - 1:
-            ylim_top = 2 * n_diffsky.max()
+            ylim_top = 3 * n_diffsky.max()
 
         ax[0, i].set_yscale("log")
         ax[0, i].tick_params(axis="both", direction="in", labelsize=labelsize)
@@ -313,8 +312,8 @@ def plot_n_mags(
         )
 
         bin_centers = (bins[1:] + bins[:-1]) / 2
-        ax[0, i].set_xlim(bins[0], bins[-1])
-        ax[1, i].set_xlim(bins[0], bins[-1])
+        ax[0, i].set_xlim(bins[0], bins[-1] - 0.2)
+        ax[1, i].set_xlim(bins[0], bins[-1] + 0.2)
 
         n_data, bin_edges, _ = ax[0, i].hist(
             dataset_mags_z[:, i],

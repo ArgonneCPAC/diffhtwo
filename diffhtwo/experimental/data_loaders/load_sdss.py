@@ -2,9 +2,7 @@ from collections import namedtuple
 
 import jax.numpy as jnp
 import numpy as np
-from diffsky.mass_functions import mc_hosts
 from DisCoWebS.data_loader import sdss_loader as sdl
-from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders import load_transmission_curve
 
 from .. import diffndhist
@@ -19,10 +17,10 @@ from ..latin_hypercube import latin_hypercube as lh
 
 SDSS = namedtuple("SDSS", DATASET._fields)
 
-LH_N_CENTROIDS = 30_000
+LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
-D_MAG = 0.1
-D_Z = 0.01
+LH_D_MAG = 0.2
+LH_D_Z = 0.01
 
 
 def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
@@ -52,16 +50,28 @@ def load_sdss_cuts_applied(drn):
     return sdss, frac_cat
 
 
-def get_lh_centroids(
-    dataset,
-    z_min,
-    z_max,
-    mag_thresh,
-    lh_n_centroids=LH_N_CENTROIDS,
-    lh_sig=LH_SIG,
-    d_mag=D_MAG,
-    d_z=D_Z,
-):
+def refresh_lh_centroids(DATASET):
+    lh_centroids, d_centroids = get_lh_centroids(DATASET.dataset)
+
+    # run initial diffndhist with fixed dmag
+    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
+    lh_centroids_lo = lh_centroids - (d_centroids / 2)
+    lh_centroids_hi = lh_centroids + (d_centroids / 2)
+    N_data_lh = diffndhist.tw_ndhist(
+        DATASET.dataset,
+        dataset_sig,
+        lh_centroids_lo,
+        lh_centroids_hi,
+    )
+
+    DATASET = DATASET._replace(
+        lh_centroids=lh_centroids, d_centroids=d_centroids, N_data=N_data_lh
+    )
+
+    return DATASET
+
+
+def get_lh_centroids(dataset):
     mu = np.mean(dataset, axis=0)
     mu[1] = mu[1] - 0.1  #
     mu[-2] = mu[-2] - 1.8  # r
@@ -69,24 +79,24 @@ def get_lh_centroids(
     cov = np.cov(dataset.T)
 
     lh_centroids = lh.latin_hypercube_from_cov(
-        mu, cov, lh_sig, lh_n_centroids, seed=None
+        mu, cov, LH_SIG, LH_N_CENTROIDS, seed=None
     )
 
-    redshift_mask = (lh_centroids[:, -1] > (z_min + (d_z / 2))) & (
-        lh_centroids[:, -1] < (z_max - (d_z / 2))
+    redshift_mask = (lh_centroids[:, -1] > (SDSS_Z_MIN + (LH_D_Z / 2))) & (
+        lh_centroids[:, -1] < (SDSS_Z_MAX - (LH_D_Z / 2))
     )
-    r_mask = lh_centroids[:, -2] <= mag_thresh
+    r_mask = lh_centroids[:, -2] <= SDSS_MAGR_THRESH
     lh_centroids = lh_centroids[redshift_mask & r_mask]
 
-    redshift = [0.02, 0.065, 0.11, 0.155, 0.2]
-    r_mins = [12, 13.5, 14.5, 15.3, 16]
-    coeffs = np.polyfit(redshift, r_mins, deg=2)
-    r_min = np.poly1d(coeffs)
-    r_complete = lh_centroids[:, -2] > r_min(lh_centroids[:, -1])
-    lh_centroids = lh_centroids[r_complete]
+    # redshift = [0.02, 0.065, 0.11, 0.155, 0.2]
+    # r_mins = [12, 13.5, 14.5, 15.3, 16]
+    # coeffs = np.polyfit(redshift, r_mins, deg=2)
+    # r_min = np.poly1d(coeffs)
+    # r_complete = lh_centroids[:, -2] > r_min(lh_centroids[:, -1])
+    # lh_centroids = lh_centroids[r_complete]
 
-    d_centroids = jnp.ones_like(lh_centroids) * d_mag
-    d_centroids = d_centroids.at[:, -1].set(d_z)
+    d_centroids = jnp.ones_like(lh_centroids) * LH_D_MAG
+    d_centroids = d_centroids.at[:, -1].set(LH_D_Z)
 
     return lh_centroids, d_centroids
 
@@ -95,18 +105,6 @@ def get_sdss_data(
     drn,
     ran_key,
     ssp_data,
-    z_min=SDSS_Z_MIN,
-    z_max=SDSS_Z_MAX,
-    mag_thresh=SDSS_MAGR_THRESH,
-    data_sky_area_degsq=SDSS_AREA_DEG2,
-    num_halos=1000,
-    lc_sky_area_degsq=SDSS_AREA_DEG2,
-    lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
-    n_z_phot_table=50,
-    dmag=D_MAG,
-    dz=D_Z,
-    cosmo_params=DEFAULT_COSMOLOGY,
 ):
     sdss, frac_cat = load_sdss_cuts_applied(drn)
 
@@ -134,12 +132,7 @@ def get_sdss_data(
 
     dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
 
-    lh_centroids, d_centroids = get_lh_centroids(
-        dataset,
-        z_min,
-        z_max,
-        mag_thresh,
-    )
+    lh_centroids, d_centroids = get_lh_centroids(dataset)
 
     # run initial diffndhist with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
@@ -158,12 +151,12 @@ def get_sdss_data(
         tcurves,
         mag_columns,
         mag_thresh_column,
-        mag_thresh,
+        SDSS_MAGR_THRESH,
         frac_cat,
         lh_centroids,
         d_centroids,
         N_data_lh,
-        data_sky_area_degsq,
-        # lg_n_data_err_lh,
-        # lc_data,
+        SDSS_AREA_DEG2,
+        LH_D_MAG,
+        LH_D_Z,
     )

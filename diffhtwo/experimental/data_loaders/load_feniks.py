@@ -3,8 +3,6 @@ from collections import namedtuple
 import jax.numpy as jnp
 import numpy as np
 from astropy.io import ascii
-from diffsky.mass_functions import mc_hosts
-from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders.defaults import TransmissionCurve
 
 from .. import diffndhist
@@ -32,8 +30,8 @@ TCURVES_FILE = "kz_FILTER.RES.latest"
 LH_SIG = 3
 LH_N_CENTROIDS = 50_000
 
-D_MAG = 0.7
-D_Z = 0.5
+LH_D_MAG = 0.5  # 0.7
+LH_D_Z = 0.5
 
 
 def get_mag_ab(phot_table, col_name, ZP=25):
@@ -43,16 +41,28 @@ def get_mag_ab(phot_table, col_name, ZP=25):
     return mag_ab.data
 
 
-def get_lh_centroids(
-    dataset,
-    z_min,
-    z_max,
-    mag_thresh,
-    lh_n_centroids=LH_N_CENTROIDS,
-    lh_sig=LH_SIG,
-    d_mag=D_MAG,
-    d_z=D_Z,
-):
+def refresh_lh_centroids(DATASET):
+    lh_centroids, d_centroids = get_lh_centroids(DATASET.dataset)
+
+    # run initial diffndhist with fixed dmag
+    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
+    lh_centroids_lo = lh_centroids - (d_centroids / 2)
+    lh_centroids_hi = lh_centroids + (d_centroids / 2)
+    N_data_lh = diffndhist.tw_ndhist(
+        DATASET.dataset,
+        dataset_sig,
+        lh_centroids_lo,
+        lh_centroids_hi,
+    )
+
+    DATASET = DATASET._replace(
+        lh_centroids=lh_centroids, d_centroids=d_centroids, N_data=N_data_lh
+    )
+
+    return DATASET
+
+
+def get_lh_centroids(dataset):
     mu = np.mean(dataset, axis=0)
     mu[0] = mu[0] + 1  # u - g
     mu[1] = mu[1] + 0.5  # g - r
@@ -62,24 +72,24 @@ def get_lh_centroids(
     cov = np.cov(dataset.T)
 
     lh_centroids = lh.latin_hypercube_from_cov(
-        mu, cov, lh_sig, lh_n_centroids, seed=None
+        mu, cov, LH_SIG, LH_N_CENTROIDS, seed=None
     )
 
-    redshift_mask = (lh_centroids[:, -1] > (z_min + (d_z / 2))) & (
-        lh_centroids[:, -1] < (z_max - (d_z / 2))
+    redshift_mask = (lh_centroids[:, -1] > (FENIKS_Z_MIN + (LH_D_Z / 2))) & (
+        lh_centroids[:, -1] < (FENIKS_Z_MAX - (LH_D_Z / 2))
     )
-    k_mask = lh_centroids[:, -2] <= mag_thresh
+    k_mask = lh_centroids[:, -2] <= FENIKS_MAGK_THRESH
     lh_centroids = lh_centroids[redshift_mask & k_mask]
 
-    redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
-    k_mins = [16, 17.8, 19, 19.7, 20.2, 20.8, 21.2, 21.8]
-    coeffs = np.polyfit(redshift_centers, k_mins, deg=2)
-    k_min = np.poly1d(coeffs)
-    k_complete = lh_centroids[:, -2] > k_min(lh_centroids[:, -1])
-    lh_centroids = lh_centroids[k_complete]
+    # redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
+    # k_mins = [16, 17.8, 19, 19.7, 20.2, 20.8, 21.2, 21.8]
+    # coeffs = np.polyfit(redshift_centers, k_mins, deg=2)
+    # k_min = np.poly1d(coeffs)
+    # k_complete = lh_centroids[:, -2] > k_min(lh_centroids[:, -1])
+    # lh_centroids = lh_centroids[k_complete]
 
-    d_centroids = jnp.ones_like(lh_centroids) * d_mag
-    d_centroids = d_centroids.at[:, -1].set(d_z)
+    d_centroids = jnp.ones_like(lh_centroids) * LH_D_MAG
+    d_centroids = d_centroids.at[:, -1].set(LH_D_Z)
 
     return lh_centroids, d_centroids
 
@@ -88,25 +98,11 @@ def get_feniks_data(
     drn,
     ran_key,
     ssp_data,
-    lh_sig=LH_SIG,
-    lh_n_centroids=LH_N_CENTROIDS,
-    z_min=FENIKS_Z_MIN,
-    z_max=FENIKS_Z_MAX,
-    mag_thresh=FENIKS_MAGK_THRESH,
-    data_sky_area_degsq=FENIKS_AREA_DEG2,
-    num_halos=1000,
-    lc_sky_area_degsq=FENIKS_AREA_DEG2,
-    lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
-    n_z_phot_table=120,
     phot=PHOT,
     zout=ZOUT,
     translate=TRANSLATE,
     filter_info=FILTER_INFO,
     tcurves_file=TCURVES_FILE,
-    dmag=D_MAG,
-    dz=D_Z,
-    cosmo_params=DEFAULT_COSMOLOGY,
 ):
     # Transmission curves
     tcurves = []
@@ -166,7 +162,7 @@ def get_feniks_data(
     uds_J = get_mag_ab(phot, "fcol_UDS_J")
     uds_H = get_mag_ab(phot, "fcol_UDS_H")
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
-    uds_Ktot = get_mag_ab(phot, "ftot_Kuds")
+    # uds_Ktot = get_mag_ab(phot, "ftot_Kuds")
 
     # mask nans
     nans = (
@@ -179,7 +175,7 @@ def get_feniks_data(
         | (uds_J == -99.0)
         | (uds_H == -99.0)
         | (uds_K == -99.0)
-        | (uds_Ktot == -99.0)
+        # | (uds_Ktot == -99.0)
     )
 
     megacam_uS = megacam_uS[~nans]
@@ -191,7 +187,7 @@ def get_feniks_data(
     uds_J = uds_J[~nans]
     uds_H = uds_H[~nans]
     uds_K = uds_K[~nans]
-    uds_Ktot = uds_Ktot[~nans]
+    # uds_Ktot = uds_Ktot[~nans]
 
     zout = zout[~nans]
     N_obj_post_cuts = len(zout)
@@ -207,7 +203,7 @@ def get_feniks_data(
             video_Y,
             uds_J,
             uds_H,
-            uds_Ktot,
+            uds_K,
             zout["z_phot"],
         )
     ).T
@@ -233,23 +229,18 @@ def get_feniks_data(
             video_uds_YJ,
             uds_JH,
             uds_HK,
-            uds_Ktot,
+            uds_K,
             zout["z_phot"],
         )
     ).T
 
     # mask redshift
-    z_mask = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+    z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
     dataset = dataset[z_mask]
     mags = mags[z_mask]
     zout = zout[z_mask]
 
-    lh_centroids, d_centroids = get_lh_centroids(
-        dataset,
-        z_min,
-        z_max,
-        mag_thresh,
-    )
+    lh_centroids, d_centroids = get_lh_centroids(dataset)
 
     # run initial diffndhist with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
@@ -268,12 +259,12 @@ def get_feniks_data(
         tcurves,
         mag_columns,
         mag_thresh_column,
-        mag_thresh,
+        FENIKS_MAGK_THRESH,
         frac_cat,
         lh_centroids,
         d_centroids,
         N_data_lh,
-        data_sky_area_degsq,
-        # lg_n_data_err_lh,
-        # lc_data,
+        FENIKS_AREA_DEG2,
+        LH_D_MAG,
+        LH_D_Z,
     )

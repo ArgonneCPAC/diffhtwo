@@ -20,7 +20,7 @@ from jax.flatten_util import ravel_pytree
 
 from .. import diffndhist as diffndhist2
 from ..n_mag import get_n_data_err
-from ..n_specphot import n_colors_mags_lh, n_spec_kern, phot_kern
+from ..n_specphot import mag_kern, n_colors_mags_lh, n_spec_kern
 from ..param_utils import get_param_collection_from_u_theta
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
@@ -89,7 +89,7 @@ def get_mag_func_loss(
     lg_n_avg_err,
     lg_n_thresh,
 ):
-    mags, weights = phot_kern(
+    mags, weights = mag_kern(
         ran_key,
         param_collection,
         lc_data,

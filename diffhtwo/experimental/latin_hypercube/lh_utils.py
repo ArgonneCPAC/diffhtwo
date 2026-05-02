@@ -1,6 +1,7 @@
 from collections import namedtuple
 
 import jax.numpy as jnp
+import matplotlib.pyplot as plt
 import numpy as np
 
 from .. import diffndhist
@@ -23,14 +24,32 @@ def get_data_mag_func(dataset, z_min, z_max, data_sky_area_degsq, dmag=0.2):
     return mag_bin_edges, lg_n, lg_n_avg_err
 
 
+def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max):
+    fig, ax = plt.subplots()
+
+    bins = np.linspace(N_data_z.min(), N_data_z.max(), 20)
+    label = "N$_{bins, z}$ = " + str(len(N_data_z))
+    ax.hist(N_data_z, bins=bins, alpha=0.8, histtype="step", color="k", label=label)
+
+    label = "N$_{bins, sel}$ = " + str(len(N_data_z_subset))
+    ax.hist(N_data_z_subset, bins=bins, alpha=0.5, color="k", label=label)
+
+    ax.set_title(str(z_min) + " < z < " + str(z_max))
+    ax.set_yscale("log")
+    ax.set_ylabel("#")
+    ax.set_xlabel("counts")
+    ax.legend()
+    plt.show()
+
+
 def get_zbins_lh_lc(
     ran_key,
     dataset,
     z_min,
     z_max,
     ssp_data,
-    N_centroids=None,
-    num_halos=500,
+    N_centroids,
+    num_halos=1000,
     lc_sky_area_degsq=1000,
     lgmp_min=10.0,
     lgmp_max=15.0,
@@ -63,24 +82,24 @@ def get_zbins_lh_lc(
     d_centroids = []
     lc_data = []
     for zbin in range(0, len(z_min)):
-        z_sel = (dataset.lh_centroids[:, -1] > z_min[zbin]) & (
-            dataset.lh_centroids[:, -1] < z_max[zbin]
+        z_sel = (dataset.lh_centroids[:, -1] > (z_min[zbin] + (dataset.lh_dz / 2))) & (
+            dataset.lh_centroids[:, -1] < (z_max[zbin] - (dataset.lh_dz / 2))
         )
 
-        print("zbin N_centroids: " + str(z_sel.sum()))
+        print(z_sel.sum())
 
-        lh_centroids_z_subset = dataset.lh_centroids[z_sel]
-        d_centroids_z_subset = dataset.d_centroids[z_sel]
-        N_data_z_subset = dataset.N_data[z_sel]
+        lh_centroids_z = dataset.lh_centroids[z_sel]
+        d_centroids_z = dataset.d_centroids[z_sel]
+        N_data_z = dataset.N_data[z_sel]
 
-        if N_centroids is not None:
-            lh_idx = np.random.choice(
-                lh_centroids_z_subset.shape[0], size=N_centroids, replace=False
-            )
+        # select first N_centroids with N_data in descending order
+        lh_idx = jnp.argsort(N_data_z)[::-1][:N_centroids]
 
-            lh_centroids_z_subset = lh_centroids_z_subset[lh_idx]
-            d_centroids_z_subset = d_centroids_z_subset[lh_idx]
-            N_data_z_subset = N_data_z_subset[lh_idx]
+        lh_centroids_z_subset = lh_centroids_z[lh_idx]
+        d_centroids_z_subset = d_centroids_z[lh_idx]
+        N_data_z_subset = N_data_z[lh_idx]
+
+        plot_N_z_subset(N_data_z_subset, N_data_z, z_min[zbin], z_max[zbin])
 
         z_phot_table = 10 ** jnp.linspace(
             np.log10(z_min[zbin]), np.log10(z_max[zbin]), n_z_phot_table

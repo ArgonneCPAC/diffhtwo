@@ -20,7 +20,7 @@ COSMO = FlatLambdaCDM(
 FENIKS_AREA_DEG2 = 2828.247933129912 / 3600
 FENIKS_Z_MIN = 0.2
 FENIKS_Z_MAX = 4.0
-FENIKS_MAGK_THRESH = 24.3  # total mag
+FENIKS_MAGK_THRESH = 24.3  # col mag
 
 SDSS_AREA_DEG2 = 7199
 SDSS_Z_MIN = 0.02
@@ -42,5 +42,7 @@ DATASET = namedtuple(
         "d_centroids",
         "N_data",
         "data_sky_area_degsq",
+        "lh_dmag",
+        "lh_dz",
     ],
 )
