@@ -126,7 +126,7 @@ def plot_n_colors_mag(
         suptitle + "   |   " + str(z_min) + " < z < " + str(z_max), fontsize=24
     )
     for i in range(0, n_panels):
-        if i == n_panels - 1:
+        if i >= n_panels - len(dataset.mag_columns):
             bins = np.linspace(
                 dataset_colors_mag_z[:, i].min() - 0.2,
                 dataset_colors_mag_z[:, i].max(),
@@ -143,6 +143,7 @@ def plot_n_colors_mag(
 
         bin_centers = (bins[1:] + bins[:-1]) / 2
         ax[0, i].set_xlim(bins[0], bins[-1])
+        ax[0, i].set_xticks([])
         ax[1, i].set_xlim(bins[0], bins[-1])
 
         n_data, bin_edges, _ = ax[0, i].hist(
@@ -167,14 +168,38 @@ def plot_n_colors_mag(
             ylim_top = 3 * n_diffsky.max()
 
         ax[0, i].set_yscale("log")
-        ax[0, i].tick_params(axis="both", direction="in", labelsize=labelsize)
 
-        offset = n_data / n_diffsky
+        ax[0, i].tick_params(
+            which="major",
+            length=6,
+            width=1.5,
+            direction="in",
+            top=True,
+            right=True,
+            labelsize=labelsize,
+        )
+        ax[0, i].tick_params(
+            which="minor", length=3, width=1.5, direction="in", top=True, right=True
+        )
+        ax[1, i].tick_params(
+            which="major",
+            length=6,
+            width=1.5,
+            direction="in",
+            top=True,
+            right=True,
+            labelsize=labelsize,
+        )
+        ax[1, i].tick_params(
+            which="minor", length=3, width=1.5, direction="in", top=True, right=True
+        )
+
+        offset = n_diffsky / n_data
         ax[1, i].plot(bin_centers, offset, lw=2.0, color="k")
         ax[1, i].set_ylim(0.09, 10.1)
         ax[1, i].set_yscale("log")
         ax[1, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-        ax[1, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+
         ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
         ax[1, i].set_yticks(ax_offset_yticks)
         ax[1, i].set_yticklabels(["", "0.2", "0.5", "1", "2", "5", ""])
@@ -205,7 +230,7 @@ def plot_n_colors_mag(
         ax[0, i].set_ylim(1e-6, ylim_top)
 
     ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
-    ax[1, 0].set_ylabel("n$_{" + data_label + "}$ / n$_{diffsky}$", fontsize=fontsize)
+    ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
         savedir
         + "_fit_z"
@@ -214,7 +239,7 @@ def plot_n_colors_mag(
         + str(z_max)
         + "_"
         + savedir.split("/")[-2]
-        + ".pdf"
+        + ".png"
     )
 
     plt.show()
@@ -312,7 +337,8 @@ def plot_n_mags(
         )
 
         bin_centers = (bins[1:] + bins[:-1]) / 2
-        ax[0, i].set_xlim(bins[0], bins[-1] - 0.2)
+        ax[0, i].set_xlim(bins[0], bins[-1] + 0.2)
+        ax[0, i].set_xticks([])
         ax[1, i].set_xlim(bins[0], bins[-1] + 0.2)
 
         n_data, bin_edges, _ = ax[0, i].hist(
@@ -337,14 +363,37 @@ def plot_n_mags(
             ylim_top = 2 * n_diffsky.max()
 
         ax[0, i].set_yscale("log")
-        ax[0, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+        ax[0, i].tick_params(
+            which="major",
+            length=6,
+            width=1.5,
+            direction="in",
+            top=True,
+            right=True,
+            labelsize=labelsize,
+        )
+        ax[0, i].tick_params(
+            which="minor", length=3, width=1.5, direction="in", top=True, right=True
+        )
+        ax[1, i].tick_params(
+            which="major",
+            length=6,
+            width=1.5,
+            direction="in",
+            top=True,
+            right=True,
+            labelsize=labelsize,
+        )
+        ax[1, i].tick_params(
+            which="minor", length=3, width=1.5, direction="in", top=True, right=True
+        )
 
-        offset = n_data / n_diffsky
+        offset = n_diffsky / n_data
         ax[1, i].plot(bin_centers, offset, lw=2.0, color="k")
         ax[1, i].set_ylim(0.09, 10.1)
         ax[1, i].set_yscale("log")
         ax[1, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
-        ax[1, i].tick_params(axis="both", direction="in", labelsize=labelsize)
+
         ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
         ax[1, i].set_yticks(ax_offset_yticks)
         ax[1, i].set_yticklabels(["", "0.2", "0.5", "1", "2", "5", ""])
@@ -375,7 +424,7 @@ def plot_n_mags(
         ax[0, i].set_ylim(1e-6, ylim_top)
 
     ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
-    ax[1, 0].set_ylabel("n$_{" + data_label + "}$ / n$_{diffsky}$", fontsize=fontsize)
+    ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
         savedir
         + "_mags_z"
@@ -384,7 +433,7 @@ def plot_n_mags(
         + str(z_max)
         + "_"
         + savedir.split("/")[-2]
-        + ".pdf"
+        + ".png"
     )
 
     plt.show()

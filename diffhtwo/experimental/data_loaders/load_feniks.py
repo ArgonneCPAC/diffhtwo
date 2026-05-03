@@ -27,10 +27,10 @@ TRANSLATE = "filters_w_FENIKS.translate"
 FILTER_INFO = "kz_FILTER.RES.latest.info"
 TCURVES_FILE = "kz_FILTER.RES.latest"
 
-LH_SIG = 3
+LH_SIG = 3.5
 LH_N_CENTROIDS = 50_000
 
-LH_D_MAG = 0.5  # 0.7
+LH_D_MAG = 0.7  # 0.7
 LH_D_Z = 0.5
 
 
@@ -64,11 +64,16 @@ def refresh_lh_centroids(DATASET):
 
 def get_lh_centroids(dataset):
     mu = np.mean(dataset, axis=0)
-    mu[0] = mu[0] + 1  # u - g
+
+    mu[0] = mu[0] + 0.5  # u - g
     mu[1] = mu[1] + 0.5  # g - r
-    mu[2] = mu[2] - 0.1  # r - i
+    mu[2] = mu[2] + 0.5  # r - i
+    mu[6] = mu[6] + 0.15  # J - H
+    mu[8] = mu[8] + 0.5  # u
+
     mu[-2] = mu[-2] - 1.8  # K
     mu[-1] = mu[-1] + 0.2  # redshift
+
     cov = np.cov(dataset.T)
 
     lh_centroids = lh.latin_hypercube_from_cov(
@@ -107,7 +112,7 @@ def get_feniks_data(
     # Transmission curves
     tcurves = []
     feniks_filters = [
-        "MegaCam_uS",
+        "MegaCam_uS",  # mag_column
         "HSC_G",
         "HSC_R",
         "HSC_I",
@@ -117,7 +122,7 @@ def get_feniks_data(
         "UDS_H",
         "UDS_K",  # mag_column, mag_thresh_column
     ]
-    mag_columns = [8]
+    mag_columns = [0, 8]
     mag_thresh_column = 8
 
     translate = ascii.read(drn + "/" + translate, header_start=None)
@@ -229,6 +234,7 @@ def get_feniks_data(
             video_uds_YJ,
             uds_JH,
             uds_HK,
+            megacam_uS,
             uds_K,
             zout["z_phot"],
         )
