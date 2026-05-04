@@ -1,3 +1,4 @@
+import warnings
 from collections import namedtuple
 
 import jax.numpy as jnp
@@ -19,13 +20,13 @@ from ..utils import (
     get_tcurve,
 )
 
-FENIKS = namedtuple("FENIKS", DATASET._fields)
-
 PHOT = "feniks_phot_selected.cat"
 ZOUT = "feniks_zout_selected.ecsv"
 TRANSLATE = "filters_w_FENIKS.translate"
 FILTER_INFO = "kz_FILTER.RES.latest.info"
 TCURVES_FILE = "kz_FILTER.RES.latest"
+
+FENIKS = namedtuple("FENIKS", DATASET._fields)
 
 LH_SIG = 3.5
 LH_N_CENTROIDS = 50_000
@@ -35,7 +36,10 @@ LH_D_Z = 0.5
 
 
 def get_mag_ab(phot_table, col_name, ZP=25):
-    mag_ab = -2.5 * np.log10(phot_table[col_name]) + ZP
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        mag_ab = -2.5 * np.log10(phot_table[col_name]) + ZP
+
     mag_ab[~np.isfinite(mag_ab)] = -99.0
 
     return mag_ab.data

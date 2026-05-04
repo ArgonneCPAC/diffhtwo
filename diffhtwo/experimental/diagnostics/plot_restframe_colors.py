@@ -86,5 +86,4 @@ def plot_uvj(ran_key, param_collection, ssp_data, drn, savedir, num_halos=100):
             ax[z].set_yticks([])
     ax[0].set_ylabel(r"$(U-V)_0$ [AB]")
     plt.legend()
-    plt.savefig(savedir + "_uvj.pdf", dpi=200)
-    plt.show()
+    plt.savefig(savedir + "_uvj.png", dpi=200)

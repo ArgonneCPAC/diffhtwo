@@ -1,3 +1,5 @@
+import warnings
+
 import jax.numpy as jnp
 import numpy as np
 from diffstar.defaults import FB
@@ -194,7 +196,10 @@ def plot_n_colors_mag(
             which="minor", length=3, width=1.5, direction="in", top=True, right=True
         )
 
-        offset = n_diffsky / n_data
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
+            offset = n_diffsky / n_data
+
         ax[1, i].plot(bin_centers, offset, lw=2.0, color="k")
         ax[1, i].set_ylim(0.09, 10.1)
         ax[1, i].set_yscale("log")
@@ -241,8 +246,6 @@ def plot_n_colors_mag(
         + savedir.split("/")[-2]
         + ".png"
     )
-
-    plt.show()
 
 
 def plot_n_mags(
@@ -388,7 +391,10 @@ def plot_n_mags(
             which="minor", length=3, width=1.5, direction="in", top=True, right=True
         )
 
-        offset = n_diffsky / n_data
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=RuntimeWarning)
+            offset = n_diffsky / n_data
+
         ax[1, i].plot(bin_centers, offset, lw=2.0, color="k")
         ax[1, i].set_ylim(0.09, 10.1)
         ax[1, i].set_yscale("log")
@@ -435,5 +441,3 @@ def plot_n_mags(
         + savedir.split("/")[-2]
         + ".png"
     )
-
-    plt.show()
