@@ -1,0 +1,17 @@
+base_path: "/home/kzaidi/diffdir"
+
+start_runid: "run48"
+start_fit_type: "diffstarpop+spspop+merging"
+
+fit_runid: "run48"
+fit_type: "diffstarpop+spspop+merging"
+
+epoch:
+  n_it: 1
+  n_steps: 2
+  step_size: 0.1
+
+  feniks_n_z_bins: 3
+  feniks_n_centroids: 1000
+
+  num_halos: 3000

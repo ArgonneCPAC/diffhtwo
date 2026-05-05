@@ -86,7 +86,9 @@ def get_zbins_lh_lc(
             dataset.lh_centroids[:, -1] < (z_max[zbin] - (dataset.lh_dz / 2))
         )
 
-        print(z_sel.sum())
+        print(
+            f"{z_sel.sum()} centroids available in this z-bin out of which {N_centroids} will be selected"
+        )
 
         lh_centroids_z = dataset.lh_centroids[z_sel]
         d_centroids_z = dataset.d_centroids[z_sel]
