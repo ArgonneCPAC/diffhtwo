@@ -4,10 +4,12 @@ from collections import namedtuple
 from functools import partial
 
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
-from diffsky.experimental.kernels import mc_randoms, rest_phot_kernels
+from diffsky.experimental.kernels import mc_randoms
 from diffsky.merging import compute_x_tot_from_x_in_situ, merging_kernels, merging_model
 from jax import jit as jjit
 from jax import numpy as jnp
+
+from . import rest_phot_kernels
 
 
 @partial(jjit, static_argnames=["n_t_table"])
