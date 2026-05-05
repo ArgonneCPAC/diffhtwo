@@ -8,11 +8,12 @@ from dsps.data_loaders.defaults import TransmissionCurve
 
 from .. import diffndhist
 from ..defaults import (
-    DATASET,
     FENIKS_AREA_DEG2,
     FENIKS_MAGK_THRESH,
     FENIKS_Z_MAX,
     FENIKS_Z_MIN,
+    Dataset,
+    FilterInfo,
 )
 from ..latin_hypercube import latin_hypercube as lh
 from ..utils import (
@@ -26,7 +27,7 @@ TRANSLATE = "filters_w_FENIKS.translate"
 FILTER_INFO = "kz_FILTER.RES.latest.info"
 TCURVES_FILE = "kz_FILTER.RES.latest"
 
-FENIKS = namedtuple("FENIKS", DATASET._fields)
+Feniks = namedtuple("Feniks", Dataset._fields)
 
 LH_SIG = 3.5
 LH_N_CENTROIDS = 50_000
@@ -69,14 +70,14 @@ def refresh_lh_centroids(DATASET):
 def get_lh_centroids(dataset):
     mu = np.mean(dataset, axis=0)
 
-    mu[0] = mu[0] + 0.5  # u - g
-    mu[1] = mu[1] + 0.5  # g - r
-    mu[2] = mu[2] + 0.5  # r - i
-    mu[6] = mu[6] + 0.15  # J - H
-    mu[8] = mu[8] + 0.5  # u
+    mu[0] = mu[0] + 0.0  # u - g
+    mu[1] = mu[1] + 0.0  # g - r
+    mu[2] = mu[2] + 0.0  # r - i
+    mu[6] = mu[6] + 0.0  # J - H
+    mu[8] = mu[8] + 0.0  # u
 
-    mu[-2] = mu[-2] - 1.8  # K
-    mu[-1] = mu[-1] + 0.2  # redshift
+    mu[-2] = mu[-2] - 0  # K
+    mu[-1] = mu[-1] + 0.0  # redshift
 
     cov = np.cov(dataset.T)
 
@@ -113,27 +114,49 @@ def get_feniks_data(
     filter_info=FILTER_INFO,
     tcurves_file=TCURVES_FILE,
 ):
-    # Transmission curves
-    tcurves = []
-    feniks_filters = [
-        "MegaCam_uS",  # mag_column
-        "HSC_G",
-        "HSC_R",
-        "HSC_I",
-        "HSC_Z",
-        "VIDEO_Y",
-        "UDS_J",
-        "UDS_H",
-        "UDS_K",  # mag_column, mag_thresh_column
-    ]
-    mag_columns = [0, 8]
-    mag_thresh_column = 8
+    # Transmission curves and filter mag thresholds
+    FeniksFilters = namedtuple(
+        "FeniksFilters",
+        [
+            "MegaCam_uS",
+            "HSC_G",
+            "HSC_R",
+            "HSC_I",
+            "HSC_Z",
+            "VIDEO_Y",
+            "UDS_J",
+            "UDS_H",
+            "UDS_K",
+        ],
+    )
+    feniks_mag_thresh = FeniksFilters(
+        MegaCam_uS=27.0,
+        HSC_G=27.0,
+        HSC_R=27.0,
+        HSC_I=27.0,
+        HSC_Z=27.0,
+        VIDEO_Y=27.0,
+        UDS_J=27.0,
+        UDS_H=27.0,
+        UDS_K=FENIKS_MAGK_THRESH,
+    )
+    feniks_in_lh = FeniksFilters(
+        MegaCam_uS=True,
+        HSC_G=False,
+        HSC_R=False,
+        HSC_I=False,
+        HSC_Z=False,
+        VIDEO_Y=False,
+        UDS_J=False,
+        UDS_H=False,
+        UDS_K=True,
+    )
 
     translate = ascii.read(drn + "/" + translate, header_start=None)
     filter_info = drn + "/" + filter_info
     tcurves_file = drn + "/" + tcurves_file
-
-    for feniks_filter in feniks_filters:
+    tcurves = []
+    for feniks_filter in FeniksFilters._fields:
         feniks_filter_number = get_feniks_filter_number_from_translate_file(
             translate, feniks_filter
         )
@@ -142,24 +165,10 @@ def get_feniks_data(
         )
         tcurves.append(TransmissionCurve(feniks_filter_wave_aa, feniks_filter_trans))
 
+    filter_info = FilterInfo(feniks_mag_thresh, feniks_in_lh, tcurves)
+
     phot = ascii.read(drn + "/" + phot)
     zout = ascii.read(drn + "/" + zout)
-    N_obj_pre_cuts = len(zout)
-
-    clean = (
-        (phot["fcol_MegaCam_uS"] != -99)
-        & (phot["fcol_HSC_G"] != -99)
-        & (phot["fcol_HSC_R"] != -99)
-        & (phot["fcol_HSC_I"] != -99)
-        & (phot["fcol_HSC_Z"] != -99)
-        & (phot["fcol_VIDEO_Y"] != -99)
-        & (phot["fcol_UDS_J"] != -99)
-        & (phot["fcol_UDS_H"] != -99)
-        & (phot["fcol_UDS_K"] != -99)
-    )
-
-    phot = phot[clean]
-    zout = zout[clean]
 
     # get mags
     megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
@@ -171,34 +180,87 @@ def get_feniks_data(
     uds_J = get_mag_ab(phot, "fcol_UDS_J")
     uds_H = get_mag_ab(phot, "fcol_UDS_H")
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
-    # uds_Ktot = get_mag_ab(phot, "ftot_Kuds")
 
-    # mask nans
-    nans = (
-        (megacam_uS == -99.0)
-        | (hsc_g == -99.0)
-        | (hsc_r == -99.0)
-        | (hsc_i == -99.0)
-        | (hsc_z == -99.0)
-        | (video_Y == -99)
-        | (uds_J == -99.0)
-        | (uds_H == -99.0)
-        | (uds_K == -99.0)
-        # | (uds_Ktot == -99.0)
+    # get mag thresh cuts
+    mag_thresh = (
+        (megacam_uS < feniks_mag_thresh.MegaCam_uS)
+        & (hsc_g < feniks_mag_thresh.HSC_G)
+        & (hsc_r < feniks_mag_thresh.HSC_R)
+        & (hsc_i < feniks_mag_thresh.HSC_I)
+        & (hsc_z < feniks_mag_thresh.HSC_Z)
+        & (video_Y < feniks_mag_thresh.VIDEO_Y)
+        & (uds_J < feniks_mag_thresh.UDS_J)
+        & (uds_H < feniks_mag_thresh.UDS_H)
+        & (uds_K < feniks_mag_thresh.UDS_K)
     )
 
-    megacam_uS = megacam_uS[~nans]
-    hsc_g = hsc_g[~nans]
-    hsc_r = hsc_r[~nans]
-    hsc_i = hsc_i[~nans]
-    hsc_z = hsc_z[~nans]
-    video_Y = video_Y[~nans]
-    uds_J = uds_J[~nans]
-    uds_H = uds_H[~nans]
-    uds_K = uds_K[~nans]
-    # uds_Ktot = uds_Ktot[~nans]
+    # apply mag_thresh cuts and record n_gals.
+    # This is the starting point from which any further cuts will
+    # lead to frac_cat (fraction of catalog thrown due to bad data) being calculated
+    phot = phot[mag_thresh]
+    zout = zout[mag_thresh]
+    megacam_uS = megacam_uS[mag_thresh]
+    hsc_g = hsc_g[mag_thresh]
+    hsc_r = hsc_r[mag_thresh]
+    hsc_i = hsc_i[mag_thresh]
+    hsc_z = hsc_z[mag_thresh]
+    video_Y = video_Y[mag_thresh]
+    uds_J = uds_J[mag_thresh]
+    uds_H = uds_H[mag_thresh]
+    uds_K = uds_K[mag_thresh]
 
-    zout = zout[~nans]
+    N_obj_pre_cuts = len(zout)
+
+    # remove mags with bad data in any of the bands
+    clean = (
+        (megacam_uS != -99)
+        & (hsc_g != -99)
+        & (hsc_r != -99)
+        & (hsc_i != -99)
+        & (hsc_z != -99)
+        & (video_Y != -99)
+        & (uds_J != -99)
+        & (uds_H != -99)
+        & (uds_K != -99)
+    )
+
+    phot = phot[clean]
+    zout = zout[clean]
+    megacam_uS = megacam_uS[clean]
+    hsc_g = hsc_g[clean]
+    hsc_r = hsc_r[clean]
+    hsc_i = hsc_i[clean]
+    hsc_z = hsc_z[clean]
+    video_Y = video_Y[clean]
+    uds_J = uds_J[clean]
+    uds_H = uds_H[clean]
+    uds_K = uds_K[clean]
+
+    # mask nans
+    # nans = (
+    #     (megacam_uS == -99.0)
+    #     | (hsc_g == -99.0)
+    #     | (hsc_r == -99.0)
+    #     | (hsc_i == -99.0)
+    #     | (hsc_z == -99.0)
+    #     | (video_Y == -99)
+    #     | (uds_J == -99.0)
+    #     | (uds_H == -99.0)
+    #     | (uds_K == -99.0)
+    # )
+
+    # megacam_uS = megacam_uS[~nans]
+    # hsc_g = hsc_g[~nans]
+    # hsc_r = hsc_r[~nans]
+    # hsc_i = hsc_i[~nans]
+    # hsc_z = hsc_z[~nans]
+    # video_Y = video_Y[~nans]
+    # uds_J = uds_J[~nans]
+    # uds_H = uds_H[~nans]
+    # uds_K = uds_K[~nans]
+
+    # zout = zout[~nans]
+
     N_obj_post_cuts = len(zout)
     frac_cat = N_obj_post_cuts / N_obj_pre_cuts
 
@@ -244,6 +306,20 @@ def get_feniks_data(
         )
     ).T
 
+    dataset_dim_labels = [
+        "u - g",
+        "g - r",
+        "r - i",
+        "i - z",
+        "z - Y",
+        "Y - J",
+        "J - H",
+        "H - K",
+        "u",
+        "K",
+        "redshift",
+    ]
+
     # mask redshift
     z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
     dataset = dataset[z_mask]
@@ -263,18 +339,16 @@ def get_feniks_data(
         lh_centroids_hi,
     )
 
-    return FENIKS(
+    return Feniks(
         dataset,
+        dataset_dim_labels,
         mags,
-        tcurves,
-        mag_columns,
-        mag_thresh_column,
-        FENIKS_MAGK_THRESH,
+        filter_info,
         frac_cat,
         lh_centroids,
         d_centroids,
         N_data_lh,
-        FENIKS_AREA_DEG2,
         LH_D_MAG,
         LH_D_Z,
+        FENIKS_AREA_DEG2,
     )

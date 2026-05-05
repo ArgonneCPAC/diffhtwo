@@ -8,6 +8,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
+from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
+from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
 from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
@@ -20,7 +22,7 @@ from diffhtwo.experimental.optimizers import Np_specphot_opt
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--config", default="config_diffsky.yaml")
+    p.add_argument("--config", default="config.yaml")
     args = p.parse_args()
 
     with open(args.config) as f:
@@ -51,6 +53,10 @@ if __name__ == "__main__":
     param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
         fit_start_drn,
         cfg["start_runid"] + "_" + cfg["start_fit_type"],
+    )
+    param_collection_fit = param_collection_fit._replace(
+        ssperr_params=ZERO_SSPERR_PARAMS,
+        merging_params=DEFAULT_MERGE_PARAMS,
     )
     u_theta_fit = pu.get_u_theta_from_param_collection(param_collection_fit)
 

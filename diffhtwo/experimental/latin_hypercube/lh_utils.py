@@ -55,26 +55,26 @@ def get_zbins_lh_lc(
     lgmp_max=15.0,
     n_z_phot_table=15,
 ):
-    META_DATA = namedtuple(
-        "META_DATA",
+    MetaData = namedtuple(
+        "MetaData",
         [
-            "mag_columns",
-            "mag_thresh_column",
             "mag_thresh",
+            "in_lh_idx",
             "frac_cat",
             "data_sky_area_degsq",
         ],
     )
-    meta_data = META_DATA(
-        dataset.mag_columns,
-        dataset.mag_thresh_column,
-        dataset.mag_thresh,
+    in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
+    in_lh_idx = jnp.where(in_lh)[0]
+    meta_data = MetaData(
+        dataset.filter_info.mag_thresh,
+        in_lh_idx,
         dataset.frac_cat,
         dataset.data_sky_area_degsq,
     )
 
-    FITTING_DATA = namedtuple(
-        "FITTING_DATA", ["N_data", "lh_centroids", "d_centroids", "lc_data"]
+    FittingData = namedtuple(
+        "FittingData", ["N_data", "lh_centroids", "d_centroids", "lc_data"]
     )
 
     N_data = []
@@ -115,7 +115,7 @@ def get_zbins_lh_lc(
             lgmp_max,
             lc_sky_area_degsq,
             ssp_data,
-            dataset.tcurves,
+            dataset.filter_info.tcurves,
             z_phot_table,
         )
 
@@ -132,7 +132,7 @@ def get_zbins_lh_lc(
     d_centroids = jnp.array(d_centroids)
     lc_data = pu.stack_lc_data(lc_data)
 
-    fitting_data = FITTING_DATA(N_data, lh_centroids, d_centroids, lc_data)
+    fitting_data = FittingData(N_data, lh_centroids, d_centroids, lc_data)
 
     return meta_data, fitting_data
 

@@ -21,9 +21,8 @@ def N_colors_mags_lh(
         ran_key,
         param_collection,
         fitting_data.lc_data,
-        meta_data.mag_columns,
-        meta_data.mag_thresh_column,
         meta_data.mag_thresh,
+        meta_data.in_lh_idx,
         meta_data.frac_cat,
     )
 

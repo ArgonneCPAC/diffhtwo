@@ -9,6 +9,7 @@ from diffsky.experimental.kernels import specphot_kernels_merging as spkm
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
+from jax.debug import print
 
 from . import diffndhist as diffndhist2
 from . import emline_luminosity
@@ -75,26 +76,24 @@ def get_colors_mags(
     ran_key,
     param_collection,
     lc_data,
-    mag_columns,
-    mag_thresh_column,
     mag_thresh,
+    in_lh_idx,
     frac_cat,
 ):
     mags, weights = mag_kern(
         ran_key,
         param_collection,
         lc_data,
-        mag_columns,
-        mag_thresh_column,
         mag_thresh,
         frac_cat,
     )
     # collect colors and mags
     n_gals, n_bands = mags.shape
     obs_color_mag = mags[:, 0 : n_bands - 1] - mags[:, 1:n_bands]
-    for mag_column in mag_columns:
-        mag = mags[:, mag_column][:, None]
-        obs_color_mag = jnp.hstack((obs_color_mag, mag))
+
+    # beyond colors, additional lh dimensions holding apparent magnitudes
+    mags_in_lh = mags[:, in_lh_idx]
+    obs_color_mag = jnp.hstack((obs_color_mag, mags_in_lh))
 
     return obs_color_mag, weights
 
@@ -104,8 +103,6 @@ def mag_kern(
     ran_key,
     param_collection,
     lc_data,
-    mag_columns,
-    mag_thresh_column,
     mag_thresh,
     frac_cat,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -139,8 +136,14 @@ def mag_kern(
     )
 
     # apply mag thresh cut before incorporating frac_cat with nhalos_weights
-    obs_mag_thresh_band = obs_mags[:, mag_thresh_column]
-    mag_thresh_mask = obs_mag_thresh_band < mag_thresh
+    n_gals, n_bands = obs_mags.shape
+    mag_thresh_mask = jnp.ones((n_gals,), dtype=bool)
+
+    for band in range(0, n_bands):
+        if mag_thresh[band] is not None:
+            band_mag_thresh_mask = obs_mags[:, band] < mag_thresh[band]
+            mag_thresh_mask *= band_mag_thresh_mask
+
     weights = weights * jnp.where(mag_thresh_mask, frac_cat, 0.0)
 
     return obs_mags, weights

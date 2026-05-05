@@ -1,7 +1,9 @@
+import argparse
 import os
 
 import jax.numpy as jnp
 import numpy as np
+import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
 from diffsky.diagnostics import plot_cosmos_merging as pcm
 from diffsky.experimental.diagnostics import check_smhm
@@ -19,45 +21,40 @@ from diffhtwo.experimental.diagnostics.plot_phot import plot_n_colors_mag, plot_
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
 
 if __name__ == "__main__":
-    os.environ["COSMOS20_DRN"] = "/Users/kumail/diffdir/data/COSMOS20"
-    os.environ[
-        "DSPS_DRN"
-    ] = "/Users/kumail/diffdir/data/COSMOS20/portal.nersc.gov/project/hacc/aphearin/DSPS_data"
-    os.environ["SDSS_DRN"] = "/Users/kumail/diffdir/sdss"
-    os.environ["FENIKS_DRN"] = "/Users/kumail/diffdir/feniks"
-    os.environ["HIZELS_DRN"] = "/Users/kumail/diffdir/hizels"
+    p = argparse.ArgumentParser()
+    p.add_argument("--config", default="config.yaml")
+    args = p.parse_args()
 
-    os.environ[
-        "SSP_DATA"
-    ] = "/Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5"
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
 
-    feniks_drn = os.environ["FENIKS_DRN"]
-    ssp_fn = os.environ["SSP_DATA"]
+    feniks_drn = cfg["base_path"] + "/feniks"
+    ssp_filename = (
+        cfg["base_path"]
+        + "/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5"
+    )
+    os.environ["COSMOS20_DRN"] = cfg["base_path"] + "/COSMOS20"
+    os.environ["DSPS_DRN"] = (
+        cfg["base_path"] + "/COSMOS20/portal.nersc.gov/project/hacc/aphearin/DSPS_data"
+    )
 
     ran_key = jran.key(0)
 
-    fit_runid = "run48"
-    fit_type = "diffstarpop+spspop+merging"
-
+    fit_drn = cfg["base_path"] + "/fits/" + cfg["fit_runid"] + "/"
+    fit_diagnostics_save_drn = (
+        cfg["base_path"]
+        + "/fits/"
+        + cfg["fit_runid"]
+        + "/diagnostic_plots/"
+        + cfg["fit_type"]
+    )
     param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
-        "/Users/kumail/diffdir/fits/" + fit_runid + "/",
-        fit_runid + "_" + fit_type,
-    )
-
-    savedir = (
-        "/Users/kumail/diffdir/fits/" + fit_runid + "/diagnostic_plots/" + fit_type
-    )
-
-    os.makedirs(savedir, exist_ok=True)
-
-    check_smhm.plot_diffstarpop_insitu_smhm(
-        DEFAULT_DIFFSTARPOP_PARAMS,
-        param_collection_fit.diffstarpop_params,
-        savedir + "/insitu_smhm_" + fit_type + "_w_default.png",
+        fit_drn,
+        cfg["fit_runid"] + "_" + cfg["fit_type"],
     )
 
     # get ssp data
-    ssp_data = load_ssp_templates(fn=ssp_fn)
+    ssp_data = load_ssp_templates(fn=ssp_filename)
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
     emline_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     emline_wave_table = jnp.array([emline_wave_aa])
@@ -105,7 +102,7 @@ if __name__ == "__main__":
     ]
 
     # get feniks dataset
-    FENIKS = load_feniks.get_feniks_data(
+    feniks = load_feniks.get_feniks_data(
         feniks_drn,
         ran_key,
         ssp_data,
@@ -125,14 +122,14 @@ if __name__ == "__main__":
         ]
     )
 
-    for zbin in range(0, len(feniks_zbins)):
+    for zbin in range(0, 1):
         z_min = feniks_zbins[zbin][0]
         z_max = feniks_zbins[zbin][1]
         print(
             f"Generating FENIKS photometry plots for {zbin+1}/{len(feniks_zbins)} z-bin..."
         )
         plot_n_colors_mag(
-            FENIKS,
+            feniks,
             "FENIKS",
             param_collection_fit,
             "diffsky",
@@ -141,12 +138,11 @@ if __name__ == "__main__":
             z_min,
             z_max,
             ssp_data,
-            suptitle="K < " + str(FENIKS.mag_thresh) + " AB",
-            savedir=savedir + "/feniks",
+            savedir=fit_diagnostics_save_drn + "/feniks",
         )
 
         plot_n_mags(
-            FENIKS,
+            feniks,
             "FENIKS",
             param_collection_fit,
             "diffsky",
@@ -155,8 +151,7 @@ if __name__ == "__main__":
             z_min,
             z_max,
             ssp_data,
-            suptitle="K < " + str(FENIKS.mag_thresh) + " AB",
-            savedir=savedir + "/feniks",
+            savedir=fit_diagnostics_save_drn + "/feniks",
         )
 
         print(
@@ -166,9 +161,17 @@ if __name__ == "__main__":
         psspem.plot_ssp_err_model_delta_mag_vs_wavelength(
             ssp_err_params=param_collection_fit.ssperr_params,
             z_obs=z_obs,
-            drn_out=savedir,
-            model_nickname="feniks_" + fit_runid + "_" + fit_type + "_z" + str(z_obs),
+            drn_out=fit_diagnostics_save_drn,
+            model_nickname="feniks_z" + str(z_obs),
         )
+
+    # Plot in-situ SMHM
+    print("Generating FENIKS in-situ SMHM plot...")
+    check_smhm.plot_diffstarpop_insitu_smhm(
+        DEFAULT_DIFFSTARPOP_PARAMS,
+        param_collection_fit.diffstarpop_params,
+        fit_diagnostics_save_drn + "/insitu_smhm_w_default.png",
+    )
 
     # Plot feniks UVJ
     print("Generating FENIKS UVJ plot...")
@@ -177,7 +180,7 @@ if __name__ == "__main__":
         param_collection_fit,
         ssp_data,
         feniks_drn,
-        savedir + "/feniks",
+        fit_diagnostics_save_drn + "/feniks",
         num_halos=10000,
     )
 
@@ -188,13 +191,13 @@ if __name__ == "__main__":
     )
     pcm.plot_ex_situ_fraction(
         pdata=pdata,
-        model_nickname="feniks_" + fit_runid + "_" + fit_type,
-        drn_out=savedir,
+        model_nickname="feniks",
+        drn_out=fit_diagnostics_save_drn,
     )
 
     # Plot feniks Avpop
     print("Generating FENIKS Avpop plot...")
     _ = make_avpop_mono_comparison_plots(
         param_collection_fit.spspop_params.dustpop_params.avpop_params,
-        fname=savedir + "/feniks_avpop_mono.png",
+        fname=fit_diagnostics_save_drn + "/feniks_avpop_mono.png",
     )

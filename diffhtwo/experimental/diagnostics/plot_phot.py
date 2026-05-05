@@ -53,7 +53,6 @@ def plot_n_colors_mag(
     z_min,
     z_max,
     ssp_data,
-    suptitle,
     savedir,
     param_collection2=None,
     label2=None,
@@ -84,16 +83,17 @@ def plot_n_colors_mag(
         lgmp_max,
         lc_sky_area_degsq,
         ssp_data,
-        dataset.tcurves,
+        dataset.filter_info.tcurves,
         z_phot_table,
     )
+    in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
+    in_lh_idx = jnp.where(in_lh)[0]
     obs_color_mag1, weights1 = get_colors_mags(
         ran_key,
         param_collection1,
         lc_data,
-        dataset.mag_columns,
-        dataset.mag_thresh_column,
-        dataset.mag_thresh,
+        dataset.filter_info.mag_thresh,
+        in_lh_idx,
         dataset.frac_cat,
     )
 
@@ -124,11 +124,9 @@ def plot_n_colors_mag(
     fig.subplots_adjust(
         left=0.05, hspace=0, top=0.875, right=0.99, bottom=0.15, wspace=0.0
     )
-    fig.suptitle(
-        suptitle + "   |   " + str(z_min) + " < z < " + str(z_max), fontsize=24
-    )
+    fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=24)
     for i in range(0, n_panels):
-        if i >= n_panels - len(dataset.mag_columns):
+        if i >= n_panels - len(in_lh_idx):
             bins = np.linspace(
                 dataset_colors_mag_z[:, i].min() - 0.2,
                 dataset_colors_mag_z[:, i].max(),
@@ -258,7 +256,6 @@ def plot_n_mags(
     z_min,
     z_max,
     ssp_data,
-    suptitle,
     savedir,
     param_collection2=None,
     label2=None,
@@ -289,16 +286,14 @@ def plot_n_mags(
         lgmp_max,
         lc_sky_area_degsq,
         ssp_data,
-        dataset.tcurves,
+        dataset.filter_info.tcurves,
         z_phot_table,
     )
     obs_mags1, weights1 = mag_kern(
         ran_key,
         param_collection1,
         lc_data,
-        dataset.mag_columns,
-        dataset.mag_thresh_column,
-        dataset.mag_thresh,
+        dataset.filter_info.mag_thresh,
         dataset.frac_cat,
     )
 
@@ -329,9 +324,7 @@ def plot_n_mags(
     fig.subplots_adjust(
         left=0.05, hspace=0, top=0.875, right=0.99, bottom=0.15, wspace=0.0
     )
-    fig.suptitle(
-        suptitle + "   |   " + str(z_min) + " < z < " + str(z_max), fontsize=24
-    )
+    fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=24)
     for i in range(0, n_panels):
         bins = np.linspace(
             dataset_mags_z[:, i].min(),

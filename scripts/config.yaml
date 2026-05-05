@@ -1,4 +1,4 @@
-base_path: "/home/kzaidi/diffdir"
+base_path: "/Users/kumail/diffdir"
 
 start_runid: "run48"
 start_fit_type: "diffstarpop+spspop+merging"
@@ -14,4 +14,4 @@ epoch:
   feniks_n_z_bins: 3
   feniks_n_centroids: 1000
 
-  num_halos: 3000
+  num_halos: 300
