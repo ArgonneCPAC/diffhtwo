@@ -4,7 +4,7 @@ start_runid: "run49"
 start_fit_type: "spspop+diffstarpop"
 
 fit_runid: "run50"
-fit_type: "spspop+diffstarpop"
+fit_type: "diffstarpop+spspop+ssperrpop"
 
 epoch:
   n_it: 1

@@ -29,10 +29,10 @@ TCURVES_FILE = "kz_FILTER.RES.latest"
 
 Feniks = namedtuple("Feniks", Dataset._fields)
 
-LH_SIG = 3.5
+LH_SIG = 3.0
 LH_N_CENTROIDS = 50_000
 
-LH_D_MAG = 0.7  # 0.7
+LH_D_MAG = 0.5  # 0.7
 LH_D_Z = 0.5
 
 
@@ -70,14 +70,17 @@ def refresh_lh_centroids(DATASET):
 def get_lh_centroids(dataset):
     mu = np.mean(dataset, axis=0)
 
-    mu[0] = mu[0] + 0.0  # u - g
+    mu[0] = mu[0] + 0.4  # u - g
     mu[1] = mu[1] + 0.0  # g - r
     mu[2] = mu[2] + 0.0  # r - i
+    mu[3] = mu[3] + 0.1  # z - Y
+    mu[4] = mu[4] + 0.15  # z - Y
+    mu[5] = mu[5] + 0.25  # z - Y
     mu[6] = mu[6] + 0.0  # J - H
     mu[8] = mu[8] + 0.0  # u
 
-    mu[-2] = mu[-2] - 0  # K
-    mu[-1] = mu[-1] + 0.0  # redshift
+    mu[-2] = mu[-2] - 1  # K
+    mu[-1] = mu[-1] + 0.5  # redshift
 
     cov = np.cov(dataset.T)
 
@@ -88,15 +91,16 @@ def get_lh_centroids(dataset):
     redshift_mask = (lh_centroids[:, -1] > (FENIKS_Z_MIN + (LH_D_Z / 2))) & (
         lh_centroids[:, -1] < (FENIKS_Z_MAX - (LH_D_Z / 2))
     )
-    k_mask = lh_centroids[:, -2] <= FENIKS_MAGK_THRESH
-    lh_centroids = lh_centroids[redshift_mask & k_mask]
+    k_mask = lh_centroids[:, -2] < FENIKS_MAGK_THRESH
+    u_mask = lh_centroids[:, -3] < 27.0
+    lh_centroids = lh_centroids[redshift_mask & k_mask & u_mask]
 
-    # redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
-    # k_mins = [16, 17.8, 19, 19.7, 20.2, 20.8, 21.2, 21.8]
-    # coeffs = np.polyfit(redshift_centers, k_mins, deg=2)
-    # k_min = np.poly1d(coeffs)
-    # k_complete = lh_centroids[:, -2] > k_min(lh_centroids[:, -1])
-    # lh_centroids = lh_centroids[k_complete]
+    redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
+    k_mins = [16, 17.8, 19, 19.7, 20.2, 20.8, 21.2, 21.8]
+    coeffs = np.polyfit(redshift_centers, k_mins, deg=2)
+    k_min = np.poly1d(coeffs)
+    k_bright = lh_centroids[:, -2] > k_min(lh_centroids[:, -1])
+    lh_centroids = lh_centroids[k_bright]
 
     d_centroids = jnp.ones_like(lh_centroids) * LH_D_MAG
     d_centroids = d_centroids.at[:, -1].set(LH_D_Z)
