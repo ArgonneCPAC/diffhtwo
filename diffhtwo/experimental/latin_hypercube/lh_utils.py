@@ -42,6 +42,7 @@ def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max, savedir):
     ax.set_xlabel("counts")
     ax.legend()
     fig.savefig(savedir + "/lh_N_z" + z_min_label + "-" + z_max_label + ".png")
+    plt.close()
 
 
 def get_zbins_lh_lc(
