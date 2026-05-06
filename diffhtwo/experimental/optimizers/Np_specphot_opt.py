@@ -2,7 +2,7 @@
 """ """
 import jax
 
-jax.config.update("jax_enable_x64", False)
+jax.config.update("jax_enable_x64", True)
 jax.config.update("jax_debug_nans", False)
 jax.config.update("jax_debug_infs", False)
 print("debug_nans =", jax.config.jax_debug_nans)
