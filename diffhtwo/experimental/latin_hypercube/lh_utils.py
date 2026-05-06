@@ -24,7 +24,7 @@ def get_data_mag_func(dataset, z_min, z_max, data_sky_area_degsq, dmag=0.2):
     return mag_bin_edges, lg_n, lg_n_avg_err
 
 
-def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max):
+def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max, savedir):
     fig, ax = plt.subplots()
 
     bins = np.linspace(N_data_z.min(), N_data_z.max(), 20)
@@ -34,12 +34,14 @@ def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max):
     label = "N$_{bins, sel}$ = " + str(len(N_data_z_subset))
     ax.hist(N_data_z_subset, bins=bins, alpha=0.5, color="k", label=label)
 
-    ax.set_title(str(z_min) + " < z < " + str(z_max))
+    z_min_label = str(np.round(z_min, 2))
+    z_max_label = str(np.round(z_max, 2))
+    ax.set_title(z_min_label + " < z < " + z_max_label)
     ax.set_yscale("log")
     ax.set_ylabel("#")
     ax.set_xlabel("counts")
     ax.legend()
-    plt.show()
+    fig.savefig(savedir + "/lh_N_z" + z_min_label + "-" + z_max_label + ".png")
 
 
 def get_zbins_lh_lc(
@@ -49,6 +51,7 @@ def get_zbins_lh_lc(
     z_max,
     ssp_data,
     N_centroids,
+    lh_N_z_savedir,
     num_halos=1000,
     lc_sky_area_degsq=1000,
     lgmp_min=10.0,
@@ -101,7 +104,9 @@ def get_zbins_lh_lc(
         d_centroids_z_subset = d_centroids_z[lh_idx]
         N_data_z_subset = N_data_z[lh_idx]
 
-        plot_N_z_subset(N_data_z_subset, N_data_z, z_min[zbin], z_max[zbin])
+        plot_N_z_subset(
+            N_data_z_subset, N_data_z, z_min[zbin], z_max[zbin], lh_N_z_savedir
+        )
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min[zbin]), jnp.log10(z_max[zbin]), n_z_phot_table

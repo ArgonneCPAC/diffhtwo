@@ -71,6 +71,7 @@ if __name__ == "__main__":
         + cfg["fit_type"]
     )
     os.makedirs(fit_diagnostics_save_drn + "/loss", exist_ok=True)
+    os.makedirs(fit_diagnostics_save_drn + "/lh_N_z", exist_ok=True)
 
     feniks_z = np.linspace(df.FENIKS_Z_MIN, df.FENIKS_Z_MAX - 0.5, 4)
     feniks_z_min = feniks_z[:-1]
@@ -79,6 +80,7 @@ if __name__ == "__main__":
     initial_pts = []
     start = time.time()
     for epoch in range(0, cfg["epoch"]["n_it"]):
+        print(f"Running Epoch {epoch+1}/{cfg['epoch']['n_it']}...")
         FENIKS = load_feniks.refresh_lh_centroids(FENIKS)
 
         feniks_z_idx = np.random.choice(
@@ -93,6 +95,7 @@ if __name__ == "__main__":
             feniks_z_max[feniks_z_idx],
             ssp_data,
             cfg["epoch"]["feniks_n_centroids"],
+            fit_diagnostics_save_drn + "/lh_N_z",
             num_halos=cfg["epoch"]["num_halos"],
         )
 
