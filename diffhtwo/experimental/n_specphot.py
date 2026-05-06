@@ -108,7 +108,7 @@ def mag_kern(
     fb=FB,
     mc_merge=0,
 ):
-    phot_kern_results, phot_randoms = pkm._mc_phot_kern_merging(
+    phot_kern_results, phot_randoms, merging_randoms = pkm._mc_phot_kern_merging(
         ran_key,
         lc_data.z_obs,
         lc_data.t_obs,
