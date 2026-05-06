@@ -29,7 +29,7 @@ TCURVES_FILE = "kz_FILTER.RES.latest"
 
 Feniks = namedtuple("Feniks", Dataset._fields)
 
-LH_SIG = 3.0
+LH_SIG = 3.5
 LH_N_CENTROIDS = 50_000
 
 LH_D_MAG = 0.5  # 0.7
