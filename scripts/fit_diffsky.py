@@ -148,3 +148,4 @@ if __name__ == "__main__":
     ax_loss.set_xlabel("steps")
     ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     plt.savefig(fit_diagnostics_save_drn + "/loss/feniks_loss_" + ts + ".png")
+    plt.close()
