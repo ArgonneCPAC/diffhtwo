@@ -54,10 +54,6 @@ if __name__ == "__main__":
         fit_start_drn,
         cfg["start_runid"] + "_" + cfg["start_fit_type"],
     )
-    param_collection_fit = param_collection_fit._replace(
-        ssperr_params=ZERO_SSPERR_PARAMS,
-        merging_params=DEFAULT_MERGE_PARAMS,
-    )
     u_theta_fit = pu.get_u_theta_from_param_collection(param_collection_fit)
 
     # fit dirs
