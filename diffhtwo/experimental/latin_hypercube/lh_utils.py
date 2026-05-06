@@ -104,7 +104,7 @@ def get_zbins_lh_lc(
         plot_N_z_subset(N_data_z_subset, N_data_z, z_min[zbin], z_max[zbin])
 
         z_phot_table = 10 ** jnp.linspace(
-            np.log10(z_min[zbin]), np.log10(z_max[zbin]), n_z_phot_table
+            jnp.log10(z_min[zbin]), jnp.log10(z_max[zbin]), n_z_phot_table
         )
         lc_args = (
             ran_key,
