@@ -29,7 +29,7 @@ def n_colors_mags_lh(
     redshift_as_last_dimension_in_lh=False,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
-    obs_color_mag, weights = get_colors_mags(
+    obs_color_mag, weights, phot_kern_results = get_colors_mags(
         ran_key,
         param_collection,
         lc_data,
@@ -79,7 +79,7 @@ def get_colors_mags(
     in_lh_idx,
     frac_cat,
 ):
-    mags, weights = mag_kern(
+    mags, weights, phot_kern_results = mag_kern(
         ran_key,
         param_collection,
         lc_data,
@@ -94,7 +94,7 @@ def get_colors_mags(
     mags_in_lh = mags[:, in_lh_idx]
     obs_color_mag = jnp.hstack((obs_color_mag, mags_in_lh))
 
-    return obs_color_mag, weights
+    return obs_color_mag, weights, phot_kern_results
 
 
 @jjit
@@ -145,7 +145,7 @@ def mag_kern(
 
     weights = weights * jnp.where(mag_thresh_mask, frac_cat, 0.0)
 
-    return obs_mags, weights
+    return obs_mags, weights, phot_kern_results
 
 
 def get_mc_colors_mags(

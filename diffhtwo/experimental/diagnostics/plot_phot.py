@@ -88,7 +88,7 @@ def plot_n_colors_mag(
     )
     in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
     in_lh_idx = jnp.where(in_lh)[0]
-    obs_color_mag1, weights1 = get_colors_mags(
+    obs_color_mag1, weights1, phot_kern_results1 = get_colors_mags(
         ran_key,
         param_collection1,
         lc_data,
@@ -289,7 +289,7 @@ def plot_n_mags(
         dataset.filter_info.tcurves,
         z_phot_table,
     )
-    obs_mags1, weights1 = mag_kern(
+    obs_mags1, weights1, phot_kern_results1 = mag_kern(
         ran_key,
         param_collection1,
         lc_data,

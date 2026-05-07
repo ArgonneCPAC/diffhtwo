@@ -17,7 +17,7 @@ def N_colors_mags_lh(
     redshift_as_last_dimension_in_lh=True,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
-    obs_color_mag, weights = get_colors_mags(
+    obs_color_mag, weights, phot_kern_results = get_colors_mags(
         ran_key,
         param_collection,
         fitting_data.lc_data,
