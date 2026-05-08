@@ -17,7 +17,11 @@ from diffhtwo.experimental.data_loaders import load_feniks
 from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
     make_avpop_mono_comparison_plots,
 )
-from diffhtwo.experimental.diagnostics.plot_phot import plot_n_colors_mag, plot_n_mags
+from diffhtwo.experimental.diagnostics.plot_phot import (
+    plot_massive_cen_colors,
+    plot_n_colors_mag,
+    plot_n_mags,
+)
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
 
 if __name__ == "__main__":
@@ -137,7 +141,7 @@ if __name__ == "__main__":
             z_min,
             z_max,
             ssp_data,
-            savedir=fit_diagnostics_save_drn + "/feniks",
+            fit_diagnostics_save_drn + "/feniks",
         )
 
         plot_n_mags(
@@ -150,7 +154,7 @@ if __name__ == "__main__":
             z_min,
             z_max,
             ssp_data,
-            savedir=fit_diagnostics_save_drn + "/feniks",
+            fit_diagnostics_save_drn + "/feniks",
         )
 
         print(
@@ -162,6 +166,21 @@ if __name__ == "__main__":
             z_obs=z_obs,
             drn_out=fit_diagnostics_save_drn,
             model_nickname="feniks_z" + str(z_obs),
+        )
+
+        print(
+            f"Generating massive central colors plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+        )
+
+        plot_massive_cen_colors(
+            feniks,
+            param_collection_fit,
+            feniks_dim_labels,
+            ran_key,
+            z_min,
+            z_max,
+            ssp_data,
+            fit_diagnostics_save_drn + "/feniks",
         )
 
     # Plot in-situ SMHM

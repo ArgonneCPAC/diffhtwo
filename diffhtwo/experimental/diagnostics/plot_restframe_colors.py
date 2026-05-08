@@ -17,8 +17,8 @@ def plot_uvj(ran_key, param_collection, ssp_data, drn, savedir, num_halos=100):
     filter_info = drn + "/" + FILTER_INFO
     tcurves_file = drn + "/" + TCURVES_FILE
 
-    # U: Johnsons Morgan; V: Johnsons Morgan; J: 2MASS
-    filter_numbers = [150, 152, 161]
+    # U: maiz-apellaniz_Johnson_U; V: maiz-apellaniz_Johnson_V; J: 2MASS
+    filter_numbers = [153, 155, 161]
     uvj_tcurves = []
     for filter_number in filter_numbers:
         filter_wave_aa, filter_trans = get_tcurve(

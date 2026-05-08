@@ -16,6 +16,10 @@ orange = "#FF8C00"  # DarkOrange
 # blue = "#00BFFF"  # DeepSkyBlue
 # orange = "#FFA500"  # Orange
 
+mblue = "tab:blue"
+morange = "tab:orange"
+mred = "tab:red"
+
 color1 = orange
 color2 = "k"
 color_data = blue
@@ -32,15 +36,11 @@ legend_fontsize = 30
 
 
 try:
-    import matplotlib as mpl
     from matplotlib import pyplot as plt
 
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
-
-
-mpl.rcParams["axes.linewidth"] = 2.5
 
 
 def plot_n_colors_mag(
@@ -59,7 +59,7 @@ def plot_n_colors_mag(
     lg_n_thresh=None,
     lgmp_min=10.0,
     lgmp_max=15.0,
-    num_halos=10000,
+    num_halos=5000,
     lc_sky_area_degsq=1000,
     n_z_phot_table=30,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -244,6 +244,7 @@ def plot_n_colors_mag(
         + savedir.split("/")[-2]
         + ".png"
     )
+    plt.close()
 
 
 def plot_n_mags(
@@ -262,7 +263,7 @@ def plot_n_mags(
     lg_n_thresh=None,
     lgmp_min=10.0,
     lgmp_max=15.0,
-    num_halos=10000,
+    num_halos=5000,
     lc_sky_area_degsq=1000,
     n_z_phot_table=30,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -434,3 +435,4 @@ def plot_n_mags(
         + savedir.split("/")[-2]
         + ".png"
     )
+    plt.close()

@@ -12,6 +12,7 @@ from jax import jit as jjit
 
 from . import diffndhist as diffndhist2
 from . import emline_luminosity
+from .kernels.lc_phot_kern import mc_phot_kern_merging_wrapper
 from .n_mag import N_0, N_FLOOR, get_n_data_err
 
 
@@ -108,25 +109,10 @@ def mag_kern(
     fb=FB,
     mc_merge=0,
 ):
-    phot_kern_results, phot_randoms, merging_randoms = pkm._mc_phot_kern_merging(
+    phot_kern_results = mc_phot_kern_merging_wrapper(
         ran_key,
-        lc_data.z_obs,
-        lc_data.t_obs,
-        lc_data.mah_params,
-        lc_data.ssp_data,
-        lc_data.precomputed_ssp_mag_table,
-        lc_data.z_phot_table,
-        lc_data.wave_eff_table,
-        *param_collection,
-        cosmo_params,
-        fb,
-        lc_data.logmp_infall,
-        lc_data.logmhost_infall,
-        lc_data.t_infall,
-        lc_data.is_central,
-        lc_data.nhalos,
-        lc_data.halo_indx,
-        mc_merge,
+        param_collection,
+        lc_data,
     )
     obs_mags = phot_kern_results.obs_mags
 
