@@ -1,51 +1,34 @@
-import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
-from diffstar.defaults import FB
-from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
-from ..lightcone_generators import generate_lc_data
-from ..n_specphot import mag_kern
+from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 
 
 def plot_massive_cen_colors(
-    dataset,
-    param_collection,
-    dimension_labels,
     ran_key,
+    param_collection,
     z_min,
     z_max,
+    dimension_labels,
     ssp_data,
+    tcurves,
     model_nickname,
     savedir,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
-    num_halos=5000,
-    lc_sky_area_degsq=1000,
-    n_z_phot_table=30,
-    cosmo_params=DEFAULT_COSMOLOGY,
-    fb=FB,
+    mag_thresh=None,
+    frac_cat=None,
+    num_halos=10000,
+    show_plot=True,
 ):
-    z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
-    lc_data = generate_lc_data(
-        ran_key,
-        num_halos,
-        z_min,
-        z_max,
-        lgmp_min,
-        lgmp_max,
-        lc_sky_area_degsq,
-        ssp_data,
-        dataset.filter_info.tcurves,
-        z_phot_table,
-    )
-
-    obs_color_mag, weights, phot_kern_results = mag_kern(
+    lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
         ran_key,
         param_collection,
-        lc_data,
-        dataset.filter_info.mag_thresh,
-        dataset.frac_cat,
+        z_min,
+        z_max,
+        num_halos,
+        ssp_data,
+        tcurves,
+        mag_thresh=mag_thresh,
+        frac_cat=frac_cat,
     )
 
     sm_cut = (phot_kern_results.logsm_obs > 11.5) & (lc_data.is_central == 1)
@@ -107,4 +90,6 @@ def plot_massive_cen_colors(
         + z_max_label
         + ".png"
     )
+    if show_plot:
+        plt.show()
     plt.close()

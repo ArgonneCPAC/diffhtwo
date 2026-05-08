@@ -1,15 +1,13 @@
 import jax.numpy as jnp
-import numpy as np
 from diffsky.experimental.kernels import phot_kernels_merging as pkm
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
 from ..lightcone_generators import generate_lc_data
-from ..n_specphot import compute_cat_weights
+from .cat_weights import compute_cat_weights
 
 
-@jjit
 def multiband_lc_phot_kern(
     ran_key,
     param_collection,
@@ -25,7 +23,9 @@ def multiband_lc_phot_kern(
     lc_sky_area_degsq=1000,
     n_z_phot_table=15,
 ):
-    z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
+    z_phot_table = 10 ** jnp.linspace(
+        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+    )
     lc_data = generate_lc_data(
         ran_key,
         num_halos,

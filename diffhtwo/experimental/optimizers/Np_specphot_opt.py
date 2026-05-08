@@ -210,12 +210,14 @@ def fit_N_multi_z(
             jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
         )
         opt_state = opt_update(i, grads, opt_state)
-        return opt_state, loss
+        return opt_state, (loss, grads)
 
-    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+    opt_state, (loss_hist, grads_hist) = lax.scan(
+        _opt_update, opt_state, jnp.arange(n_steps)
+    )
     u_theta_fit = get_params(opt_state)
 
-    return loss_hist, u_theta_fit
+    return loss_hist, u_theta_fit, grads_hist
 
 
 def _loss_emline_kern(

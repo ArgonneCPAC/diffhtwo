@@ -1,11 +1,89 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from diffstar.diffstarpop.kernels import satquenchpop_model as sqpm
+from matplotlib import lines as mlines
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 
 mblue = "tab:blue"
 morange = "tab:orange"
 mred = "tab:red"
+
+tarr = np.linspace(-10, 15, 40_000)
+qprob_cen = 0.35
+host_configs = [(12.0, mblue), (13.0, morange), (15.0, mred)]
+mu_configs = [(-0.5, "--"), (-3.0, "-")]
+
+
+def plot_satquench_model(diffstarpop_params, model_nickname, savedir, show_plot=True):
+    sqpm_params = sqpm.SatQuenchPopParams(
+        diffstarpop_params.qp_lgmh_crit,
+        diffstarpop_params.td_lgmhc,
+        diffstarpop_params.td_mlo,
+        diffstarpop_params.td_mhi,
+        diffstarpop_params.qphi_lgmu_crit,
+        diffstarpop_params.lgmu_lo_mh_lo,
+        diffstarpop_params.lgmu_hi_mh_lo,
+        diffstarpop_params.lgmu_lo_mh_hi,
+        diffstarpop_params.lgmu_hi_mh_hi,
+    )
+    param_configs = [
+        (sqpm.DEFAULT_SATQUENCHPOP_PARAMS, "default"),
+        (sqpm_params, model_nickname),
+    ]
+    fig, ax = plt.subplots(1, 2, figsize=(14, 4.5))
+    ylim = (0.001, 1)
+    xlim = (-3.9, 5)
+
+    i = 0
+    for params, title in param_configs:
+        for lgmh, color in host_configs:
+            for lgmu, ls in mu_configs:
+                q = sqpm.get_qprob_sat(params, lgmu, lgmh, tarr, qprob_cen)
+                ax[i].plot(tarr, q, color=color, ls=ls)
+        ax[i].plot(
+            np.linspace(*xlim, 100),
+            np.zeros(100) + qprob_cen,
+            ":",
+            color="k",
+            label=r"${\rm P_{Q, cen}}$",
+        )
+        ax[i].plot(np.zeros(100), np.linspace(*ylim, 100), ":", color="k")
+        ax[i].set_ylim(ylim)
+        ax[i].set_xlim(xlim)
+        ax[i].set_title(title)
+
+        xlabel = ax[i].set_xlabel(r"${\rm Gyr\ since\ infall}$")
+        ylabel = ax[i].set_ylabel(r"$P_{\rm quench}$")
+
+        i += 1
+
+    red_line = mlines.Line2D([], [], ls="-", c=mred, label=r"$m_{\rm host}=15$")
+    orange_line = mlines.Line2D([], [], ls="-", c=morange, label=r"$m_{\rm host}=13$")
+    blue_line = mlines.Line2D([], [], ls="-", c=mblue, label=r"$m_{\rm host}=12$")
+    dashed_line = mlines.Line2D([], [], ls="--", c="gray", label=r"$\mu=1/3$")
+    solid_line = mlines.Line2D([], [], ls="-", c="gray", label=r"$\mu=1/1000$")
+    black_line = mlines.Line2D([], [], ls=":", c="k", label=r"${\rm P_{Q, cen}}$")
+    leg0 = ax[0].legend(handles=[red_line, orange_line, blue_line], loc="lower left")
+    ax[0].add_artist(leg0)
+
+    ax[0].legend(handles=[dashed_line, solid_line, black_line], loc="lower right")
+
+    fig.savefig(
+        savedir + "/satquench_" + model_nickname + ".png",
+        bbox_extra_artists=[xlabel, ylabel],
+        bbox_inches="tight",
+        dpi=200,
+    )
+    if show_plot:
+        plt.show()
+    plt.close()
+
+
+p_merge = [0.9, 0.6, 0.3]
+log_sm = [8, 9, 10]
+logmhost_infall = [12, 13, 14]
+colors = [mred, morange, mblue]
 
 
 def generate_sat_plots(
@@ -17,6 +95,8 @@ def generate_sat_plots(
     tcurves,
     model_nickname,
     savedir,
+    mag_thresh=None,
+    frac_cat=None,
     num_halos=10000,
 ):
     lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
@@ -27,6 +107,8 @@ def generate_sat_plots(
         num_halos,
         ssp_data,
         tcurves,
+        mag_thresh=mag_thresh,
+        frac_cat=frac_cat,
     )
     z_min_label = str(np.round(z_min, 2))
     z_max_label = str(np.round(z_max, 2))
@@ -60,9 +142,6 @@ def plot_sat_ssfr_mhost(
     model_nickname,
     savedir,
 ):
-    p_merge = [0.9, 0.6, 0.3]
-    logmhost_infall = [12, 13, 14]
-    colors = [mred, morange, mblue]
     fig, ax = plt.subplots(3, len(p_merge), figsize=(14, 14))
     fig.suptitle(
         "Satellite ssfr | " + z_min_label + " < z < " + z_max_label, y=0.91, fontsize=20
@@ -123,10 +202,6 @@ def plot_sat_ssfr_sm(
     model_nickname,
     savedir,
 ):
-    p_merge = [0.9, 0.6, 0.3]
-    log_sm = [8, 9, 10]
-    colors = [mred, morange, mblue]
-
     fig, ax = plt.subplots(3, len(p_merge), figsize=(14, 14))
     fig.suptitle(
         "Satellite ssfr | " + z_min_label + " < z < " + z_max_label, y=0.91, fontsize=20
@@ -184,10 +259,6 @@ def plot_sat_lgfburst_mhost(
     model_nickname,
     savedir,
 ):
-    p_merge = [0.9, 0.6, 0.3]
-    logmhost_infall = [10, 11, 12]
-    colors = [mred, morange, mblue]
-
     fig, ax = plt.subplots(3, len(p_merge), figsize=(14, 14))
     fig.suptitle(
         "Satellite lgfburst | " + z_min_label + " < z < " + z_max_label,
@@ -245,10 +316,6 @@ def plot_sat_lgfburst_sm(
     model_nickname,
     savedir,
 ):
-    p_merge = [0.9, 0.6, 0.3]
-    log_sm = [6, 7, 8]
-    colors = [mred, morange, mblue]
-
     fig, ax = plt.subplots(3, len(p_merge), figsize=(14, 14))
     fig.suptitle(
         "Satellite lgfburst | " + z_min_label + " < z < " + z_max_label,

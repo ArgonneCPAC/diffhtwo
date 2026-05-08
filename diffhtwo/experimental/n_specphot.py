@@ -12,6 +12,7 @@ from jax import jit as jjit
 
 from . import diffndhist as diffndhist2
 from . import emline_luminosity
+from .kernels.cat_weights import compute_cat_weights
 from .kernels.lc_phot_kern import mc_phot_kern_merging_wrapper
 from .n_mag import N_0, N_FLOOR, get_n_data_err
 
@@ -124,22 +125,6 @@ def mag_kern(
     weights = compute_cat_weights(weights, phot_kern_results, mag_thresh, frac_cat)
 
     return obs_mags, weights, phot_kern_results
-
-
-@jjit
-def compute_cat_weights(weights, phot_kern_results, mag_thresh, frac_cat):
-    obs_mags = phot_kern_results.obs_mags
-    n_gals, n_bands = obs_mags.shape
-    mag_thresh_mask = jnp.ones((n_gals,), dtype=bool)
-
-    for band in range(0, n_bands):
-        if mag_thresh[band] is not None:
-            band_mag_thresh_mask = obs_mags[:, band] < mag_thresh[band]
-            mag_thresh_mask *= band_mag_thresh_mask
-
-    weights = weights * jnp.where(mag_thresh_mask, frac_cat, 0.0)
-
-    return weights
 
 
 def get_mc_colors_mags(
