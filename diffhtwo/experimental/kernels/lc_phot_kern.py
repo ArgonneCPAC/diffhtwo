@@ -3,10 +3,13 @@ import numpy as np
 from diffsky.experimental.kernels import phot_kernels_merging as pkm
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
+from jax import jit as jjit
 
-from diffhtwo.experimental.lightcone_generators import generate_lc_data
+from ..lightcone_generators import generate_lc_data
+from ..n_specphot import compute_cat_weights
 
 
+@jjit
 def multiband_lc_phot_kern(
     ran_key,
     param_collection,
@@ -15,6 +18,8 @@ def multiband_lc_phot_kern(
     num_halos,
     ssp_data,
     tcurves,
+    mag_thresh=None,
+    frac_cat=None,
     lgmp_min=10,
     lgmp_max=15,
     lc_sky_area_degsq=1000,
@@ -43,9 +48,13 @@ def multiband_lc_phot_kern(
         lc_data.is_central, lc_data.nhalos, lc_data.nhalos * lc_data.nhalos_host
     )
 
+    if mag_thresh is not None:
+        weights = compute_cat_weights(weights, phot_kern_results, mag_thresh, frac_cat)
+
     return lc_data, phot_kern_results, weights
 
 
+@jjit
 def mc_phot_kern_merging_wrapper(
     ran_key,
     param_collection,

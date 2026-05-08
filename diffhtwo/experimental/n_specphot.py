@@ -120,7 +120,15 @@ def mag_kern(
         lc_data.is_central, lc_data.nhalos, lc_data.nhalos * lc_data.nhalos_host
     )
 
-    # apply mag thresh cut before incorporating frac_cat with nhalos_weights
+    # update weights to incorporate mag thresh cuts and frac_cat
+    weights = compute_cat_weights(weights, phot_kern_results, mag_thresh, frac_cat)
+
+    return obs_mags, weights, phot_kern_results
+
+
+@jjit
+def compute_cat_weights(weights, phot_kern_results, mag_thresh, frac_cat):
+    obs_mags = phot_kern_results.obs_mags
     n_gals, n_bands = obs_mags.shape
     mag_thresh_mask = jnp.ones((n_gals,), dtype=bool)
 
@@ -131,7 +139,7 @@ def mag_kern(
 
     weights = weights * jnp.where(mag_thresh_mask, frac_cat, 0.0)
 
-    return obs_mags, weights, phot_kern_results
+    return weights
 
 
 def get_mc_colors_mags(
