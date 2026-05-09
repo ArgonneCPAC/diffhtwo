@@ -119,20 +119,7 @@ def get_feniks_data(
     tcurves_file=TCURVES_FILE,
 ):
     # Transmission curves and filter mag thresholds
-    FeniksFilters = namedtuple(
-        "FeniksFilters",
-        [
-            "MegaCam_uS",
-            "HSC_G",
-            "HSC_R",
-            "HSC_I",
-            "HSC_Z",
-            "VIDEO_Y",
-            "UDS_J",
-            "UDS_H",
-            "UDS_K",
-        ],
-    )
+
     feniks_mag_thresh = FeniksFilters(
         MegaCam_uS=27.0,
         HSC_G=27.0,
@@ -356,3 +343,19 @@ def get_feniks_data(
         LH_D_Z,
         FENIKS_AREA_DEG2,
     )
+
+
+FeniksFilters = namedtuple(
+    "FeniksFilters",
+    [
+        "MegaCam_uS",
+        "HSC_G",
+        "HSC_R",
+        "HSC_I",
+        "HSC_Z",
+        "VIDEO_Y",
+        "UDS_J",
+        "UDS_H",
+        "UDS_K",
+    ],
+)

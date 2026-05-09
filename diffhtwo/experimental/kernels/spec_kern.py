@@ -1,202 +1,14 @@
-from functools import partial
-
 import jax.numpy as jnp
 from diffsky.burstpop import freqburst_mono
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
 from diffsky.experimental.kernels import mc_randoms
-from diffsky.experimental.kernels import phot_kernels_merging as pkm
 from diffsky.experimental.kernels import specphot_kernels_merging as spkm
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from . import diffndhist as diffndhist2
-from . import emline_luminosity
-from .kernels.cat_weights import compute_cat_weights
-from .kernels.lc_phot_kern import mc_phot_kern_merging_wrapper
-from .n_mag import N_0, N_FLOOR, get_n_data_err
-
-
-@partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
-def n_colors_mags_lh(
-    ran_key,
-    param_collection,
-    lc_data,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    lh_centroids,
-    d_centroids,
-    frac_cat,
-    redshift_as_last_dimension_in_lh=False,
-    cosmo_params=DEFAULT_COSMOLOGY,
-):
-    obs_color_mag, weights, phot_kern_results = get_colors_mags(
-        ran_key,
-        param_collection,
-        lc_data,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
-        frac_cat,
-    )
-
-    # calculate number density in LH bins
-    sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
-    lh_centroids_lo = lh_centroids - (d_centroids / 2)
-    lh_centroids_hi = lh_centroids + (d_centroids / 2)
-
-    if redshift_as_last_dimension_in_lh:
-        z_obs = lc_data.z_obs.reshape(lc_data.z_obs.size, 1)
-        obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
-
-        N = diffndhist2.tw_ndhist_weighted(
-            obs_color_mag,
-            sig,
-            weights,
-            lh_centroids_lo,
-            lh_centroids_hi,
-        )
-        lg_n, lg_n_avg_err = get_n_data_err(N, lc_data.lh_vol_mpc3)
-
-    else:
-        N = diffndhist2.tw_ndhist_weighted(
-            obs_color_mag,
-            sig,
-            weights,
-            lh_centroids_lo,
-            lh_centroids_hi,
-        )
-        lg_n, lg_n_avg_err = get_n_data_err(N, lc_data.lc_tot_vol_mpc3)
-
-    return lg_n, lg_n_avg_err
-
-
-@jjit
-def get_colors_mags(
-    ran_key,
-    param_collection,
-    lc_data,
-    mag_thresh,
-    in_lh_idx,
-    frac_cat,
-):
-    mags, weights, phot_kern_results = mag_kern(
-        ran_key,
-        param_collection,
-        lc_data,
-        mag_thresh,
-        frac_cat,
-    )
-    # collect colors and mags
-    n_gals, n_bands = mags.shape
-    obs_color_mag = mags[:, 0 : n_bands - 1] - mags[:, 1:n_bands]
-
-    # beyond colors, additional lh dimensions holding apparent magnitudes
-    mags_in_lh = mags[:, in_lh_idx]
-    obs_color_mag = jnp.hstack((obs_color_mag, mags_in_lh))
-
-    return obs_color_mag, weights, phot_kern_results
-
-
-@jjit
-def mag_kern(
-    ran_key,
-    param_collection,
-    lc_data,
-    mag_thresh,
-    frac_cat,
-    cosmo_params=DEFAULT_COSMOLOGY,
-    fb=FB,
-    mc_merge=0,
-):
-    phot_kern_results = mc_phot_kern_merging_wrapper(
-        ran_key,
-        param_collection,
-        lc_data,
-    )
-    obs_mags = phot_kern_results.obs_mags
-
-    weights = jnp.where(
-        lc_data.is_central, lc_data.nhalos, lc_data.nhalos * lc_data.nhalos_host
-    )
-
-    # update weights to incorporate mag thresh cuts and frac_cat
-    weights = compute_cat_weights(weights, phot_kern_results, mag_thresh, frac_cat)
-
-    return obs_mags, weights, phot_kern_results
-
-
-def get_mc_colors_mags(
-    ran_key,
-    param_collection,
-    lc_data,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-):
-    mags, z_obs = monte_carlo_phot_kern(
-        ran_key,
-        param_collection,
-        lc_data,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
-    )
-    # collect colors and mags
-    n_gals, n_bands = mags.shape
-    obs_color_mag = mags[:, 0 : n_bands - 1] - mags[:, 1:n_bands]
-    for mag_column in mag_columns:
-        mag = mags[:, mag_column][:, None]
-        obs_color_mag = jnp.hstack((obs_color_mag, mag))
-
-    obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
-
-    return obs_color_mag
-
-
-def monte_carlo_phot_kern(
-    ran_key,
-    param_collection,
-    lc_data,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    cosmo_params=DEFAULT_COSMOLOGY,
-    fb=FB,
-    mc_merge=0,
-):
-    phot_kern_results, phot_randoms = pkm._mc_phot_kern_merging(
-        ran_key,
-        lc_data.z_obs,
-        lc_data.t_obs,
-        lc_data.mah_params,
-        lc_data.ssp_data,
-        lc_data.precomputed_ssp_mag_table,
-        lc_data.z_phot_table,
-        lc_data.wave_eff_table,
-        *param_collection,
-        cosmo_params,
-        fb,
-        lc_data.logmp_infall,
-        lc_data.logmhost_infall,
-        lc_data.t_infall,
-        lc_data.is_central,
-        lc_data.nhalos,
-        lc_data.halo_indx,
-        mc_merge,
-    )
-    obs_mags = phot_kern_results.obs_mags
-
-    # apply mag thresh cut
-    obs_mag_thresh_band = obs_mags[:, mag_thresh_column]
-    mag_thresh_sel = obs_mag_thresh_band < mag_thresh
-    obs_mags = obs_mags[mag_thresh_sel]
-
-    z_obs = lc_data.z_obs.reshape(lc_data.z_obs.size, 1)
-    z_obs = z_obs[mag_thresh_sel]
-
-    return obs_mags, z_obs
+from .. import emline_luminosity
+from ..n_mag import N_0, N_FLOOR
 
 
 @jjit
@@ -227,19 +39,20 @@ def n_spec_kern(
         lc_data.logmhost_infall,
         lc_data.t_infall,
         lc_data.is_central,
-        lc_data.nhalos,
+        lc_data.sat_weight,
         lc_data.halo_indx,
         mc_merge,
     )
 
     (phot_kern_results, phot_randoms, spec_kern_results) = _res
     linelum_gal = spec_kern_results.linelum_gal
+    gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     sig = jnp.diff(lg_emline_Lbin_edges) / 2
     sig = sig.reshape(sig.size, 1)
     _, emline_N = emline_luminosity.get_emline_luminosity_func(
         linelum_gal,
-        lc_data.nhalos,
+        gal_weight,
         sig=sig,
         lgL_bin_edges=lg_emline_Lbin_edges,
     )
@@ -304,13 +117,14 @@ def n_spec_q_ms_burst(
         lc_data.logmhost_infall,
         lc_data.t_infall,
         lc_data.is_central,
-        lc_data.nhalos,
+        lc_data.sat_weight,
         lc_data.halo_indx,
         mc_merge,
     )
 
     (phot_kern_results, _, spec_kern_results) = _res
     linelum_gal = spec_kern_results.linelum_gal
+    gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     sig = jnp.diff(lg_emline_Lbin_edges) / 2
     sig = sig.reshape(sig.size, 1)
@@ -318,7 +132,7 @@ def n_spec_q_ms_burst(
     # composite
     _, emline_N = emline_luminosity.get_emline_luminosity_func(
         linelum_gal,
-        lc_data.nhalos,
+        gal_weight,
         sig=sig,
         lgL_bin_edges=lg_emline_Lbin_edges,
     )
@@ -331,7 +145,7 @@ def n_spec_q_ms_burst(
     linelums_q = linelum_gal[mc_is_q]
     _, emline_N_q = emline_luminosity.get_emline_luminosity_func(
         linelums_q,
-        lc_data.nhalos[mc_is_q],
+        gal_weight[mc_is_q],
         sig=sig,
         lgL_bin_edges=lg_emline_Lbin_edges,
     )
@@ -342,7 +156,7 @@ def n_spec_q_ms_burst(
     linelums_ms = linelum_gal[mc_is_ms]
     _, emline_N_ms = emline_luminosity.get_emline_luminosity_func(
         linelums_ms,
-        lc_data.nhalos[mc_is_ms],
+        gal_weight[mc_is_ms],
         sig=sig,
         lgL_bin_edges=lg_emline_Lbin_edges,
     )
@@ -353,7 +167,7 @@ def n_spec_q_ms_burst(
     linelums_burst = linelum_gal[mc_is_burst]
     _, emline_N_burst = emline_luminosity.get_emline_luminosity_func(
         linelums_burst,
-        lc_data.nhalos[mc_is_burst],
+        gal_weight[mc_is_burst],
         sig=sig,
         lgL_bin_edges=lg_emline_Lbin_edges,
     )

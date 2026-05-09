@@ -17,12 +17,13 @@ from diffhtwo.experimental.data_loaders import load_feniks
 from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
     make_avpop_mono_comparison_plots,
 )
+from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_phot import (
-    plot_massive_cen_colors,
     plot_n_colors_mag,
     plot_n_mags,
 )
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
+from diffhtwo.experimental.diagnostics.plot_satquench import generate_sat_plots
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -124,7 +125,11 @@ if __name__ == "__main__":
             [2.6, 3.0],
         ]
     )
-
+    data_label = "feniks"
+    tcurves = feniks.filter_info.tcurves
+    mag_thresh = feniks.filter_info.mag_thresh
+    frac_cat = feniks.frac_cat
+    num_halos = 10000
     for zbin in range(0, len(feniks_zbins)):
         z_min = feniks_zbins[zbin][0]
         z_max = feniks_zbins[zbin][1]
@@ -133,7 +138,7 @@ if __name__ == "__main__":
         )
         plot_n_colors_mag(
             feniks,
-            "FENIKS",
+            data_label,
             param_collection_fit,
             "diffsky",
             feniks_dim_labels,
@@ -141,12 +146,12 @@ if __name__ == "__main__":
             z_min,
             z_max,
             ssp_data,
-            fit_diagnostics_save_drn + "/feniks",
+            fit_diagnostics_save_drn,
         )
 
         plot_n_mags(
             feniks,
-            "FENIKS",
+            data_label,
             param_collection_fit,
             "diffsky",
             feniks_mag_labels,
@@ -154,7 +159,7 @@ if __name__ == "__main__":
             z_min,
             z_max,
             ssp_data,
-            fit_diagnostics_save_drn + "/feniks",
+            fit_diagnostics_save_drn,
         )
 
         print(
@@ -171,16 +176,35 @@ if __name__ == "__main__":
         print(
             f"Generating massive central colors plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
         )
-
         plot_massive_cen_colors(
-            feniks,
-            param_collection_fit,
-            feniks_dim_labels,
             ran_key,
+            param_collection_fit,
+            z_min,
+            z_max,
+            feniks_dim_labels,
+            ssp_data,
+            tcurves,
+            data_label,
+            fit_diagnostics_save_drn,
+            mag_thresh=mag_thresh,
+            frac_cat=frac_cat,
+            num_halos=num_halos,
+            show_plot=False,
+        )
+        print(f"Generating satquench plots for {zbin+1}/{len(feniks_zbins)} z-bin...")
+        generate_sat_plots(
+            ran_key,
+            param_collection_fit,
             z_min,
             z_max,
             ssp_data,
-            fit_diagnostics_save_drn + "/feniks",
+            tcurves,
+            data_label,
+            fit_diagnostics_save_drn,
+            mag_thresh=mag_thresh,
+            frac_cat=frac_cat,
+            num_halos=num_halos,
+            plt_show=False,
         )
 
     # Plot in-situ SMHM
@@ -199,7 +223,7 @@ if __name__ == "__main__":
         ssp_data,
         feniks_drn,
         fit_diagnostics_save_drn + "/feniks",
-        num_halos=10000,
+        num_halos=num_halos,
     )
 
     # Plot feniks ex-situ frac

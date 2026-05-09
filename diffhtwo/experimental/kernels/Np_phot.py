@@ -4,8 +4,8 @@ import jax.numpy as jnp
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from . import diffndhist as diffndhist2
-from .n_specphot import get_colors_mags
+from .. import diffndhist as diffndhist2
+from .phot_kern import get_colors_mags
 
 
 @partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])

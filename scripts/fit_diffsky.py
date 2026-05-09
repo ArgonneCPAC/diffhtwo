@@ -8,12 +8,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
-from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
-from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
-from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
-    DiffstarPop_Params_Diffstarpopfits_mgash,
-    DiffstarPop_UParams_Diffstarpopfits_mgash,
-)
 from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
@@ -23,8 +17,6 @@ from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks
 from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
 from diffhtwo.experimental.optimizers import Np_specphot_opt
-
-DIFFSTARPOP_UM = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1_nomerging"]
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -59,9 +51,6 @@ if __name__ == "__main__":
     param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
         fit_start_drn,
         cfg["start_runid"] + "_" + cfg["start_fit_type"],
-    )
-    param_collection_fit = param_collection_fit._replace(
-        diffstarpop_params=DIFFSTARPOP_UM
     )
     u_theta_fit = pu.get_u_theta_from_param_collection(param_collection_fit)
 
@@ -100,11 +89,11 @@ if __name__ == "__main__":
             feniks_z_max[feniks_z_idx],
             ssp_data,
             cfg["epoch"]["feniks_n_centroids"],
-            fit_diagnostics_save_drn + "/lh_N_z",
+            lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
             num_halos=cfg["epoch"]["num_halos"],
         )
 
-        loss_hist, u_theta_fit, grads_hist = Np_specphot_opt.fit_N_multi_z(
+        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_multi_z(
             u_theta_fit,
             trainable_params,
             ran_key,
@@ -113,7 +102,6 @@ if __name__ == "__main__":
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
         )
-        print(grads_hist)
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
         lc_mock.write_diffsky_param_collection_merging(

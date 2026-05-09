@@ -44,14 +44,14 @@ def multiband_lc_phot_kern(
         param_collection,
         lc_data,
     )
-    weights = jnp.where(
-        lc_data.is_central, lc_data.nhalos, lc_data.nhalos * lc_data.nhalos_host
-    )
+    gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     if mag_thresh is not None:
-        weights = compute_cat_weights(weights, phot_kern_results, mag_thresh, frac_cat)
+        gal_weight = compute_cat_weights(
+            gal_weight, phot_kern_results, mag_thresh, frac_cat
+        )
 
-    return lc_data, phot_kern_results, weights
+    return lc_data, phot_kern_results, gal_weight
 
 
 @jjit
@@ -79,7 +79,7 @@ def mc_phot_kern_merging_wrapper(
         lc_data.logmhost_infall,
         lc_data.t_infall,
         lc_data.is_central,
-        lc_data.nhalos,
+        lc_data.sat_weight,
         lc_data.halo_indx,
         mc_merge,
     )

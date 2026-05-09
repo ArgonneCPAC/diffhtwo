@@ -5,9 +5,9 @@ import numpy as np
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
+from ..kernels.phot_kern import get_colors_mags, mag_kern
 from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
-from ..n_specphot import get_colors_mags, mag_kern
 
 blue = "#1E90FF"  # DodgerBlue
 orange = "#FF8C00"  # DarkOrange
@@ -99,7 +99,7 @@ def plot_n_colors_mag(
 
     n_panels = obs_color_mag1.shape[1]
 
-    if data_label == "SDSS":
+    if data_label == "sdss":
         fig_width = 3.0 * n_panels
         fig_height = 1.5 * n_panels
 
@@ -107,7 +107,7 @@ def plot_n_colors_mag(
         labelsize = 3.25 * n_panels
         legend_fontsize = 3 * n_panels
 
-    if data_label == "FENIKS":
+    if data_label == "feniks":
         fig_width = 2.25 * n_panels
         fig_height = n_panels / 1.5
 
@@ -236,6 +236,8 @@ def plot_n_colors_mag(
     ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
         savedir
+        + "/"
+        + data_label
         + "_fit_z"
         + str(z_min)
         + "-"
@@ -300,7 +302,7 @@ def plot_n_mags(
 
     n_panels = obs_mags1.shape[1]
 
-    if data_label == "SDSS":
+    if data_label == "sdss":
         fig_width = 3.0 * n_panels
         fig_height = 1.5 * n_panels
 
@@ -308,7 +310,7 @@ def plot_n_mags(
         labelsize = 3.25 * n_panels
         legend_fontsize = 3 * n_panels
 
-    if data_label == "FENIKS":
+    if data_label == "feniks":
         fig_width = 2.25 * n_panels
         fig_height = n_panels / 1.5
 
@@ -427,6 +429,8 @@ def plot_n_mags(
     ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
         savedir
+        + "/"
+        + data_label
         + "_mags_z"
         + str(z_min)
         + "-"

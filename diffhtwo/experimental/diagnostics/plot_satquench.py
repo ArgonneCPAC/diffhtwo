@@ -14,8 +14,65 @@ qprob_cen = 0.35
 host_configs = [(12.0, mblue), (13.0, morange), (15.0, mred)]
 mu_configs = [(-0.5, "--"), (-3.0, "-")]
 
+p_merge = [0.9, 0.6, 0.3]
+log_sm = [8, 9, 10]
+logmhost_infall = [12, 13, 14]
+colors = [mred, morange, mblue]
 
-def plot_satquench_model(diffstarpop_params, model_nickname, savedir, show_plot=True):
+
+def generate_sat_plots(
+    ran_key,
+    param_collection,
+    z_min,
+    z_max,
+    ssp_data,
+    tcurves,
+    model_nickname,
+    savedir,
+    mag_thresh=None,
+    frac_cat=None,
+    num_halos=10000,
+    plt_show=True,
+):
+    lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
+        ran_key,
+        param_collection,
+        z_min,
+        z_max,
+        num_halos,
+        ssp_data,
+        tcurves,
+        mag_thresh=mag_thresh,
+        frac_cat=frac_cat,
+    )
+    z_min_label = str(np.round(z_min, 2))
+    z_max_label = str(np.round(z_max, 2))
+
+    args = (
+        ran_key,
+        lc_data,
+        phot_kern_results,
+        weights,
+        param_collection,
+        z_min_label,
+        z_max_label,
+        model_nickname,
+        savedir,
+    )
+
+    plot_sat_ssfr_mhost(*args, plt_show=plt_show)
+    plot_sat_ssfr_sm(*args, plt_show=plt_show)
+    plot_sat_lgfburst_mhost(*args, plt_show=plt_show)
+    plot_sat_lgfburst_sm(*args, plt_show=plt_show)
+    plot_satquench_model(
+        param_collection.diffstarpop_params,
+        model_nickname,
+        savedir,
+        plt_show=plt_show,
+    )
+
+
+def plot_satquench_model(diffstarpop_params, model_nickname, savedir, plt_show=True):
     sqpm_params = sqpm.SatQuenchPopParams(
         diffstarpop_params.qp_lgmh_crit,
         diffstarpop_params.td_lgmhc,
@@ -75,60 +132,9 @@ def plot_satquench_model(diffstarpop_params, model_nickname, savedir, show_plot=
         bbox_inches="tight",
         dpi=200,
     )
-    if show_plot:
+    if plt_show:
         plt.show()
     plt.close()
-
-
-p_merge = [0.9, 0.6, 0.3]
-log_sm = [8, 9, 10]
-logmhost_infall = [12, 13, 14]
-colors = [mred, morange, mblue]
-
-
-def generate_sat_plots(
-    ran_key,
-    param_collection,
-    z_min,
-    z_max,
-    ssp_data,
-    tcurves,
-    model_nickname,
-    savedir,
-    mag_thresh=None,
-    frac_cat=None,
-    num_halos=10000,
-):
-    lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
-        ran_key,
-        param_collection,
-        z_min,
-        z_max,
-        num_halos,
-        ssp_data,
-        tcurves,
-        mag_thresh=mag_thresh,
-        frac_cat=frac_cat,
-    )
-    z_min_label = str(np.round(z_min, 2))
-    z_max_label = str(np.round(z_max, 2))
-
-    args = (
-        ran_key,
-        lc_data,
-        phot_kern_results,
-        weights,
-        param_collection,
-        z_min_label,
-        z_max_label,
-        model_nickname,
-        savedir,
-    )
-
-    plot_sat_ssfr_mhost(*args)
-    plot_sat_ssfr_sm(*args)
-    plot_sat_lgfburst_mhost(*args)
-    plot_sat_lgfburst_sm(*args)
 
 
 def plot_sat_ssfr_mhost(
@@ -141,6 +147,7 @@ def plot_sat_ssfr_mhost(
     z_max_label,
     model_nickname,
     savedir,
+    plt_show=True,
 ):
     fig, ax = plt.subplots(3, len(p_merge), figsize=(14, 14))
     fig.suptitle(
@@ -187,7 +194,8 @@ def plot_sat_ssfr_mhost(
         bbox_inches="tight",
         dpi=200,
     )
-    plt.show()
+    if plt_show:
+        plt.show()
     plt.close()
 
 
@@ -201,6 +209,7 @@ def plot_sat_ssfr_sm(
     z_max_label,
     model_nickname,
     savedir,
+    plt_show=True,
 ):
     fig, ax = plt.subplots(3, len(p_merge), figsize=(14, 14))
     fig.suptitle(
@@ -244,7 +253,8 @@ def plot_sat_ssfr_sm(
         bbox_inches="tight",
         dpi=200,
     )
-    plt.show()
+    if plt_show:
+        plt.show()
     plt.close()
 
 
@@ -258,6 +268,7 @@ def plot_sat_lgfburst_mhost(
     z_max_label,
     model_nickname,
     savedir,
+    plt_show=True,
 ):
     fig, ax = plt.subplots(3, len(p_merge), figsize=(14, 14))
     fig.suptitle(
@@ -301,7 +312,8 @@ def plot_sat_lgfburst_mhost(
         bbox_inches="tight",
         dpi=200,
     )
-    plt.show()
+    if plt_show:
+        plt.show()
     plt.close()
 
 
@@ -315,6 +327,7 @@ def plot_sat_lgfburst_sm(
     z_max_label,
     model_nickname,
     savedir,
+    plt_show=True,
 ):
     fig, ax = plt.subplots(3, len(p_merge), figsize=(14, 14))
     fig.suptitle(
@@ -355,5 +368,6 @@ def plot_sat_lgfburst_sm(
         bbox_inches="tight",
         dpi=200,
     )
-    plt.show()
+    if plt_show:
+        plt.show()
     plt.close()

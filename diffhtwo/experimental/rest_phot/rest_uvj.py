@@ -98,17 +98,15 @@ def rest_mag_kern(
         lc_data.logmhost_infall,
         lc_data.t_infall,
         lc_data.is_central,
-        lc_data.nhalos,
+        lc_data.sat_weight,
         lc_data.halo_indx,
         mc_merge,
     )
 
     rest_mags = phot_kern_results.obs_mags
-    weights = jnp.where(
-        lc_data.is_central, lc_data.nhalos, lc_data.nhalos * lc_data.nhalos_host
-    )
+    gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
-    return rest_mags, weights
+    return rest_mags, gal_weight
 
 
 def mc_is_q_ms_burst(

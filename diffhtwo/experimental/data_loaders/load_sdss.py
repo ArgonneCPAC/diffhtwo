@@ -109,16 +109,6 @@ def get_sdss_data(
 ):
     sdss, frac_cat = load_sdss_cuts_applied(drn)
 
-    SdssFilters = namedtuple(
-        "SdssFilters",
-        [
-            "sdss_u",
-            "sdss_g",
-            "sdss_r",
-            "sdss_i",
-            "sdss_z",
-        ],
-    )
     sdss_mag_thresh = SdssFilters(
         sdss_u=None,
         sdss_g=None,
@@ -185,3 +175,15 @@ def get_sdss_data(
         LH_D_Z,
         SDSS_AREA_DEG2,
     )
+
+
+SdssFilters = namedtuple(
+    "SdssFilters",
+    [
+        "sdss_u",
+        "sdss_g",
+        "sdss_r",
+        "sdss_i",
+        "sdss_z",
+    ],
+)

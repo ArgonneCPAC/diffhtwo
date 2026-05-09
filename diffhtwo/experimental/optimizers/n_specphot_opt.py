@@ -19,6 +19,7 @@ from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
 from .. import diffndhist as diffndhist2
+from ..loss_kernels.loss_functions import mse_w
 from ..n_mag import get_n_data_err
 from ..n_specphot import mag_kern, n_colors_mags_lh, n_spec_kern
 from ..param_utils import get_param_collection_from_u_theta
@@ -28,18 +29,6 @@ u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
 )
 u_spspop_theta_default, u_spspop_unravel = ravel_pytree(DEFAULT_SPSPOP_U_PARAMS)
 u_zero_ssperrpop_theta, u_zero_ssperrpop_unravel = ravel_pytree(ZERO_SSPERR_U_PARAMS)
-
-
-@jjit
-def _mse_w(lg_n_pred, lg_n_target, lg_n_target_err, lg_n_thresh):
-    mask = lg_n_target > lg_n_thresh
-    nbins = jnp.maximum(jnp.sum(mask), 1)
-
-    resid = (lg_n_pred - lg_n_target) ** 2
-    chi2 = resid / lg_n_target_err
-    chi2 = jnp.where(mask, chi2, 0.0)
-
-    return jnp.sum(chi2) / nbins
 
 
 @partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
@@ -70,7 +59,7 @@ def get_phot_loss(
         redshift_as_last_dimension_in_lh,
     )
     lg_n_model, _ = n_colors_mags_lh(*n_colors_mags_lh_args)
-    phot_loss = _mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
+    phot_loss = mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     return phot_loss
 
@@ -122,7 +111,7 @@ def get_mag_func_loss(
     )
 
     lg_n_model, _ = get_n_data_err(N, lc_data.lc_tot_vol_mpc3)
-    mag_func_loss = _mse_w(lg_n_model, lg_n, lg_n_avg_err, lg_n_thresh)
+    mag_func_loss = mse_w(lg_n_model, lg_n, lg_n_avg_err, lg_n_thresh)
 
     return mag_func_loss
 
@@ -146,7 +135,7 @@ def get_emline_loss(
         lg_emline_Lbin_edges,
     )
 
-    emline_loss = _mse_w(
+    emline_loss = mse_w(
         lg_emline_LF_model,
         lg_emline_LF_target[0],
         lg_emline_LF_target[1],

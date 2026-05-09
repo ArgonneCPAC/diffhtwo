@@ -41,7 +41,8 @@ def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max, savedir):
     ax.set_ylabel("#")
     ax.set_xlabel("counts")
     ax.legend()
-    fig.savefig(savedir + "/lh_N_z" + z_min_label + "-" + z_max_label + ".png")
+    if savedir is not None:
+        fig.savefig(savedir + "/lh_N_z" + z_min_label + "-" + z_max_label + ".png")
     plt.close()
 
 
@@ -52,7 +53,7 @@ def get_zbins_lh_lc(
     z_max,
     ssp_data,
     N_centroids,
-    lh_N_z_savedir,
+    lh_N_z_savedir=None,
     num_halos=1000,
     lc_sky_area_degsq=1000,
     lgmp_min=10.0,
