@@ -1,5 +1,6 @@
 import jax.numpy as jnp
 import numpy as np
+import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import (
     DEFAULT_PARAM_COLLECTION,
     check_param_collection_is_ok,
@@ -16,7 +17,8 @@ from ..Np_specphot_opt import (
 )
 
 
-def test_phot_opt(fake_subset_ssp_data, feniks):
+@pytest.fixture(scope="module")
+def feniks_data(fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
     ran_key = jran.key(0)
@@ -35,9 +37,15 @@ def test_phot_opt(fake_subset_ssp_data, feniks):
         N_centroids,
         num_halos=num_halos,
     )
+    return feniks_meta_data, feniks_fitting_data
+
+
+def test_phot_opt(feniks_data):
+    feniks_meta_data, feniks_fitting_data = feniks_data
+
+    ran_key = jran.key(0)
 
     u_theta = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
-
     loss, grads = _loss_and_grad_phot_kern_multi_z(
         u_theta,
         ran_key,
@@ -67,26 +75,14 @@ def test_phot_opt(fake_subset_ssp_data, feniks):
     assert check_param_collection_is_ok(param_collection_fit)
 
 
-def test_specphot_opt(fake_subset_ssp_data, feniks, hizels):
+def test_specphot_opt(fake_subset_ssp_data, feniks_data, hizels):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
     emline_wave_table = jnp.array([emline_wave_aa])
 
+    feniks_meta_data, feniks_fitting_data = feniks_data
+
     ran_key = jran.key(0)
 
-    z_mins = [0.2, 1.0]
-    z_maxs = [1.0, 2.0]
-
-    N_centroids = 200
-    num_halos = 100
-    feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
-        ran_key,
-        feniks,
-        z_mins,
-        z_maxs,
-        ssp_data,
-        N_centroids,
-        num_halos=num_halos,
-    )
     # duplicate feniks data for sdss data
     sdss_meta_data, sdss_fitting_data = feniks_meta_data, feniks_fitting_data
 

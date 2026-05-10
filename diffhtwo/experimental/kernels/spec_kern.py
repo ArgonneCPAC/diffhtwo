@@ -59,9 +59,9 @@ def n_spec_kern(
     # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
     emline_N = jnp.where(emline_N > N_FLOOR, emline_N, N_0)
 
-    lg_emline_LF_model = jnp.log10(emline_N / lc_data.lc_tot_vol_mpc3)
+    lg_emline_LF = jnp.log10(emline_N / lc_data.lc_tot_vol_mpc3)
 
-    return lg_emline_LF_model
+    return lg_emline_LF
 
 
 def n_spec_q_ms_burst(
