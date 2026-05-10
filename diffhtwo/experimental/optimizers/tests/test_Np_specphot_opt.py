@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import jax.numpy as jnp
 import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import (
@@ -9,7 +7,6 @@ from diffsky.param_utils.diffsky_param_wrapper_merging import (
 from jax import random as jran
 
 from ... import param_utils as pu
-from ...data_loaders import load_feniks, load_hizels
 from ...latin_hypercube import lh_utils as lhu
 from ..Np_specphot_opt import (
     _loss_and_grad_phot_kern_multi_z,
@@ -18,27 +15,11 @@ from ..Np_specphot_opt import (
     fit_sdss_feniks_hizels,
 )
 
-BASE_PATH = Path(__file__).resolve().parent.parent.parent
-FENIKS_DRN = BASE_PATH / "data" / "feniks_test_data"
-PHOT = "feniks_phot_selected_for_testing.cat"
-ZOUT = "feniks_zout_selected_for_testing.ecsv"
 
-HIZELS_DRN = BASE_PATH / "data" / "hizels"
-
-
-def test_phot_opt(fake_subset_ssp_data):
+def test_phot_opt(fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
     ran_key = jran.key(0)
-
-    # load feniks test data
-    feniks = load_feniks.get_feniks_data(
-        FENIKS_DRN,
-        ran_key,
-        ssp_data,
-        phot=PHOT,
-        zout=ZOUT,
-    )
 
     z_mins = [0.2, 1.0]
     z_maxs = [1.0, 2.0]
@@ -86,21 +67,11 @@ def test_phot_opt(fake_subset_ssp_data):
     assert check_param_collection_is_ok(param_collection_fit)
 
 
-def test_specphot_opt(fake_subset_ssp_data):
+def test_specphot_opt(fake_subset_ssp_data, feniks, hizels):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
     emline_wave_table = jnp.array([emline_wave_aa])
 
     ran_key = jran.key(0)
-
-    # load feniks test data
-    feniks = load_feniks.get_feniks_data(
-        FENIKS_DRN,
-        ran_key,
-        ssp_data,
-        phot=PHOT,
-        zout=ZOUT,
-    )
-    feniks_tcurves = feniks.filter_info.tcurves
 
     z_mins = [0.2, 1.0]
     z_maxs = [1.0, 2.0]
@@ -118,14 +89,6 @@ def test_specphot_opt(fake_subset_ssp_data):
     )
     # duplicate feniks data for sdss data
     sdss_meta_data, sdss_fitting_data = feniks_meta_data, feniks_fitting_data
-
-    # load hizels data
-    hizels = load_hizels.get_hizels_data(
-        HIZELS_DRN,
-        ran_key,
-        ssp_data,
-        feniks_tcurves,
-    )
 
     u_theta = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
     loss, grads = _loss_and_grad_sdss_feniks_hizels(

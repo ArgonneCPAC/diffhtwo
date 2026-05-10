@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import (
     DEFAULT_PARAM_COLLECTION,
@@ -9,11 +7,8 @@ from jax import random as jran
 
 from ..lc_phot_kern import mc_phot_kern_merging_wrapper, multiband_lc_phot_kern
 
-BASE_PATH = Path(__file__).resolve().parent.parent.parent
-FENIKS_FILTERS_PATH = BASE_PATH / "data" / "feniks_filters"
 
-
-def test(fake_subset_ssp_data, feniks_tcurves):
+def test_lc_phot_kern(fake_subset_ssp_data, feniks_tcurves):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
     ran_key = jran.key(0)

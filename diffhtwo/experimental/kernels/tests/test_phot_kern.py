@@ -1,37 +1,17 @@
-from pathlib import Path
-
 import jax.numpy as jnp
 import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from jax import random as jran
 
-from ...data_loaders import load_feniks
 from ...lightcone_generators import generate_lc_data
 from ..phot_kern import get_colors_mags, mag_kern
 
-BASE_PATH = Path(__file__).resolve().parent.parent.parent
-FENIKS_DRN = BASE_PATH / "data" / "feniks_test_data"
-FENIKS_FILTERS_PATH = BASE_PATH / "data" / "feniks_filters"
 
-
-PHOT = "feniks_phot_selected_for_testing.cat"
-ZOUT = "feniks_zout_selected_for_testing.ecsv"
-
-
-def test_phot_kern(fake_subset_ssp_data):
+def test_phot_kern(fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
+    tcurves = feniks.filter_info.tcurves
 
     ran_key = jran.key(0)
-
-    # load feniks test data
-    feniks = load_feniks.get_feniks_data(
-        FENIKS_DRN,
-        ran_key,
-        ssp_data,
-        phot=PHOT,
-        zout=ZOUT,
-    )
-    tcurves = feniks.filter_info.tcurves
 
     z_min = 0.2
     z_max = 0.5
