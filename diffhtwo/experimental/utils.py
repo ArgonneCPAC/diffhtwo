@@ -8,8 +8,8 @@ from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 from jax.tree_util import tree_flatten_with_path
 
+from .kernels.spec_kern import n_spec_q_ms_burst
 from .lightcone_generators import generate_lc_data
-from .n_specphot import n_spec_q_ms_burst
 
 
 @jjit
@@ -99,6 +99,14 @@ def get_halpha_LF_q_ms_burst(
         lg_halpha_LF_ms,
         lg_halpha_LF_burst,
     )
+
+
+def load_feniks_tcurve(tcurve_filename):
+    tcurve = np.loadtxt(tcurve_filename)
+    wave = tcurve[:, 0]
+    transmission = tcurve[:, 1]
+
+    return wave, transmission
 
 
 def get_tcurve(get_filter_number, filter_info_filename, tcurves_filename):

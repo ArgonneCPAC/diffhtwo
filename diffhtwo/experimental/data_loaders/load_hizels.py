@@ -3,7 +3,6 @@ from collections import namedtuple
 import jax.numpy as jnp
 import numpy as np
 from astropy.io import ascii
-from diffsky.mass_functions import mc_hosts
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
 from ..lightcone_generators import generate_lc_data
@@ -22,7 +21,7 @@ def get_hizels_data(
     tcurves,
     num_halos=500,
     lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
+    lgmp_max=15.0,
     lc_sky_area_degsq=100,
     n_z_phot_table=15,
 ):
@@ -116,7 +115,7 @@ def lg_phi_h0p7_to_hdefault(lg_phi_h0p7):
 
 
 def get_hizels_halpha(drn):
-    HiZELS_halpha_z0p4 = ascii.read(drn + "/halpha_LF_z0p4.dat")
+    HiZELS_halpha_z0p4 = ascii.read(drn / "halpha_LF_z0p4.dat")
 
     lg_halpha_Lbin_edges_z0p4 = get_lgL_bin_edges(
         HiZELS_halpha_z0p4, "logLHa", "logLHa_binw_full"
@@ -128,7 +127,7 @@ def get_hizels_halpha(drn):
         )
     )
 
-    HiZELS_halpha_z0p84 = ascii.read(drn + "/halpha_LF_z0p84.dat")
+    HiZELS_halpha_z0p84 = ascii.read(drn / "halpha_LF_z0p84.dat")
     lg_halpha_Lbin_edges_z0p84 = get_lgL_bin_edges(
         HiZELS_halpha_z0p84, "logLHa", "logLHa_binw_full"
     )
@@ -139,7 +138,7 @@ def get_hizels_halpha(drn):
         )
     )
 
-    HiZELS_halpha_z1p47 = ascii.read(drn + "/halpha_LF_z1p47.dat")
+    HiZELS_halpha_z1p47 = ascii.read(drn / "halpha_LF_z1p47.dat")
     lg_halpha_Lbin_edges_z1p47 = get_lgL_bin_edges(
         HiZELS_halpha_z1p47, "logLHa", "logLHa_binw_full"
     )
@@ -150,7 +149,7 @@ def get_hizels_halpha(drn):
         )
     )
 
-    HiZELS_halpha_z2p23 = ascii.read(drn + "/halpha_LF_z2p23.dat")
+    HiZELS_halpha_z2p23 = ascii.read(drn / "halpha_LF_z2p23.dat")
     lg_halpha_Lbin_edges_z2p23 = get_lgL_bin_edges(
         HiZELS_halpha_z2p23, "logLHa", "logLHa_binw_full"
     )

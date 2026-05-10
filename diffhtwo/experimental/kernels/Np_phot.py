@@ -4,8 +4,8 @@ import jax.numpy as jnp
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from . import diffndhist as diffndhist2
-from .n_specphot import get_colors_mags
+from .. import diffndhist as diffndhist2
+from .phot_kern import get_colors_mags
 
 
 @partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
@@ -17,13 +17,12 @@ def N_colors_mags_lh(
     redshift_as_last_dimension_in_lh=True,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
-    obs_color_mag, weights = get_colors_mags(
+    obs_color_mag, weights, phot_kern_results = get_colors_mags(
         ran_key,
         param_collection,
         fitting_data.lc_data,
-        meta_data.mag_columns,
-        meta_data.mag_thresh_column,
         meta_data.mag_thresh,
+        meta_data.in_lh_idx,
         meta_data.frac_cat,
     )
 

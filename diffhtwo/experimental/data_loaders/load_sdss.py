@@ -7,15 +7,16 @@ from dsps.data_loaders import load_transmission_curve
 
 from .. import diffndhist
 from ..defaults import (
-    DATASET,
     SDSS_AREA_DEG2,
     SDSS_MAGR_THRESH,
     SDSS_Z_MAX,
     SDSS_Z_MIN,
+    Dataset,
+    FilterInfo,
 )
 from ..latin_hypercube import latin_hypercube as lh
 
-SDSS = namedtuple("SDSS", DATASET._fields)
+Sdss = namedtuple("Sdss", Dataset._fields)
 
 LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
@@ -108,13 +109,26 @@ def get_sdss_data(
 ):
     sdss, frac_cat = load_sdss_cuts_applied(drn)
 
-    sdss_filters = ["sdss_u", "sdss_g", "sdss_r", "sdss_i", "sdss_z"]
+    sdss_mag_thresh = SdssFilters(
+        sdss_u=None,
+        sdss_g=None,
+        sdss_r=SDSS_MAGR_THRESH,
+        sdss_i=None,
+        sdss_z=None,
+    )
+    sdss_in_lh = SdssFilters(
+        sdss_u=False,
+        sdss_g=False,
+        sdss_r=True,
+        sdss_i=False,
+        sdss_z=False,
+    )
+
     tcurves = []
-    for bn_pat in sdss_filters:
-        tcurve = load_transmission_curve(bn_pat=bn_pat + "*", drn=drn + "/filters")
+    for bn_pat in SdssFilters._fields:
+        tcurve = load_transmission_curve(bn_pat=bn_pat + "*", drn=drn + "/sdss_filters")
         tcurves.append(tcurve)
-    mag_columns = [2]
-    mag_thresh_column = 2
+    filter_info = FilterInfo(sdss_mag_thresh, sdss_in_lh, tcurves)
 
     sdss_u = sdss["modelMag_u"].data
     sdss_g = sdss["modelMag_g"].data
@@ -125,12 +139,23 @@ def get_sdss_data(
 
     mags = np.vstack((sdss_u, sdss_g, sdss_r, sdss_i, sdss_z, sdss_redshift)).T
 
+    # derive colors from mags
     sdss_ug = sdss_u - sdss_g
     sdss_gr = sdss_g - sdss_r
     sdss_ri = sdss_r - sdss_i
     sdss_iz = sdss_i - sdss_z
 
+    # stack colors_mag
     dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
+    dataset_dim_labels = [
+        r"$u - g$",
+        r"$g - r$",
+        r"$r - i$",
+        r"$i - z$",
+        r"$r$",
+        r"$redshift$",
+    ]
+    mag_labels = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$"]
 
     lh_centroids, d_centroids = get_lh_centroids(dataset)
 
@@ -145,18 +170,29 @@ def get_sdss_data(
         lh_centroids_hi,
     )
 
-    return SDSS(
+    return Sdss(
         dataset,
+        dataset_dim_labels,
         mags,
-        tcurves,
-        mag_columns,
-        mag_thresh_column,
-        SDSS_MAGR_THRESH,
+        mag_labels,
+        filter_info,
         frac_cat,
         lh_centroids,
         d_centroids,
         N_data_lh,
-        SDSS_AREA_DEG2,
         LH_D_MAG,
         LH_D_Z,
+        SDSS_AREA_DEG2,
     )
+
+
+SdssFilters = namedtuple(
+    "SdssFilters",
+    [
+        "sdss_u",
+        "sdss_g",
+        "sdss_r",
+        "sdss_i",
+        "sdss_z",
+    ],
+)

@@ -170,6 +170,15 @@ def get_trainable_params(fit_type="all"):
         )
         return trainable_params
 
+    elif fit_type == "diffstarpop+spspop":
+        trainable_params = (
+            jnp.ones_like(u_theta_default[0], dtype=bool),  # diffstarpop params
+            jnp.ones_like(u_theta_default[1], dtype=bool),  # spspop params
+            zero_trainable[2],  # ssperrpop params
+            zero_trainable[3],  # merging params
+        )
+        return trainable_params
+
     elif fit_type == "spspop+merging":
         trainable_params = (
             zero_trainable[0],  # diffstarpop params
@@ -179,21 +188,21 @@ def get_trainable_params(fit_type="all"):
         )
         return trainable_params
 
+    elif fit_type == "diffstarpop+spspop+ssperrpop":
+        trainable_params = (
+            jnp.ones_like(u_theta_default[0], dtype=bool),  # diffstarpop params
+            jnp.ones_like(u_theta_default[1], dtype=bool),  # spspop params
+            jnp.ones_like(u_theta_default[2], dtype=bool),  # ssperrpop params
+            zero_trainable[3],  # merging params
+        )
+        return trainable_params
+
     elif fit_type == "diffstarpop+spspop+merging":
         trainable_params = (
             jnp.ones_like(u_theta_default[0], dtype=bool),  # diffstarpop params
             jnp.ones_like(u_theta_default[1], dtype=bool),  # spspop params
             zero_trainable[2],  # ssperrpop params
             jnp.ones_like(u_theta_default[3], dtype=bool),  # merging params
-        )
-        return trainable_params
-
-    elif fit_type == "spspop+diffstarpop":
-        trainable_params = (
-            jnp.ones_like(u_theta_default[0], dtype=bool),  # diffstarpop params
-            jnp.ones_like(u_theta_default[1], dtype=bool),  # spspop params
-            zero_trainable[2],  # ssperrpop params
-            zero_trainable[3],  # merging params
         )
         return trainable_params
 

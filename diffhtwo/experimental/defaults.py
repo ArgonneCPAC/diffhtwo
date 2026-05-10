@@ -19,7 +19,7 @@ COSMO = FlatLambdaCDM(
 
 FENIKS_AREA_DEG2 = 2828.247933129912 / 3600
 FENIKS_Z_MIN = 0.2
-FENIKS_Z_MAX = 4.0
+FENIKS_Z_MAX = 3.0
 FENIKS_MAGK_THRESH = 24.3  # col mag
 
 SDSS_AREA_DEG2 = 7199
@@ -27,22 +27,21 @@ SDSS_Z_MIN = 0.02
 SDSS_Z_MAX = 0.2
 SDSS_MAGR_THRESH = 17.6  # model mag
 
-
-DATASET = namedtuple(
-    "DATASET",
+FilterInfo = namedtuple("FilterInfo", ["mag_thresh", "in_lh", "tcurves"])
+Dataset = namedtuple(
+    "Dataset",
     [
         "dataset",
+        "dataset_dim_labels",
         "mags",
-        "tcurves",
-        "mag_columns",
-        "mag_thresh_column",
-        "mag_thresh",
+        "mags_labels",
+        "filter_info",
         "frac_cat",
         "lh_centroids",
         "d_centroids",
         "N_data",
-        "data_sky_area_degsq",
         "lh_dmag",
         "lh_dz",
+        "data_sky_area_degsq",
     ],
 )

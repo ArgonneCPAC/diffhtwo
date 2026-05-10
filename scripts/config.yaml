@@ -1,0 +1,17 @@
+base_path: "/Users/kumail/diffdir"
+
+start_runid: "run50"
+start_fit_type: "spspop+diffstarpop"
+
+fit_runid: "run51"
+fit_type: "diffstarpop+spspop+ssperrpop"
+
+epoch:
+  n_it: 1
+  n_steps: 2
+  step_size: 0.1
+
+  feniks_n_z_bins: 3
+  feniks_n_centroids: 500
+
+  num_halos: 300
