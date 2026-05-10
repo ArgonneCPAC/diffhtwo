@@ -17,7 +17,7 @@ def plot_massive_cen_colors(
     mag_thresh=None,
     frac_cat=None,
     num_halos=10000,
-    show_plot=True,
+    plt_show=True,
 ):
     lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
         ran_key,
@@ -90,6 +90,6 @@ def plot_massive_cen_colors(
         + z_max_label
         + ".png"
     )
-    if show_plot:
+    if plt_show:
         plt.show()
     plt.close()

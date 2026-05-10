@@ -46,17 +46,12 @@ except ImportError:
 def plot_n_colors_mag(
     dataset,
     data_label,
-    param_collection1,
-    label1,
-    dimension_labels,
+    param_collection,
     ran_key,
     z_min,
     z_max,
     ssp_data,
     savedir,
-    param_collection2=None,
-    label2=None,
-    lg_n_thresh=None,
     lgmp_min=10.0,
     lgmp_max=15.0,
     num_halos=5000,
@@ -88,16 +83,16 @@ def plot_n_colors_mag(
     )
     in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
     in_lh_idx = jnp.where(in_lh)[0]
-    obs_color_mag1, weights1, phot_kern_results1 = get_colors_mags(
+    obs_color_mag, weights, phot_kern_results = get_colors_mags(
         ran_key,
-        param_collection1,
+        param_collection,
         lc_data,
         dataset.filter_info.mag_thresh,
         in_lh_idx,
         dataset.frac_cat,
     )
 
-    n_panels = obs_color_mag1.shape[1]
+    n_panels = obs_color_mag.shape[1]
 
     if data_label == "sdss":
         fig_width = 3.0 * n_panels
@@ -156,11 +151,11 @@ def plot_n_colors_mag(
         )
 
         n_diffsky, _, _ = ax[0, i].hist(
-            obs_color_mag1[:, i],
-            weights=weights1 * (1 / lc_data.lc_tot_vol_mpc3),
+            obs_color_mag[:, i],
+            weights=weights * (1 / lc_data.lc_tot_vol_mpc3),
             bins=bins,
             color="deepskyblue",
-            label=label1,
+            label="diffsky",
             alpha=0.5,
         )
 
@@ -201,7 +196,7 @@ def plot_n_colors_mag(
         ax[1, i].plot(bin_centers, offset, lw=2.0, color="k")
         ax[1, i].set_ylim(0.09, 10.1)
         ax[1, i].set_yscale("log")
-        ax[1, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+        ax[1, i].set_xlabel(dataset.dataset_dim_labels[i], fontsize=fontsize)
 
         ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
         ax[1, i].set_yticks(ax_offset_yticks)
@@ -235,16 +230,7 @@ def plot_n_colors_mag(
     ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
     ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
-        savedir
-        + "/"
-        + data_label
-        + "_fit_z"
-        + str(z_min)
-        + "-"
-        + str(z_max)
-        + "_"
-        + savedir.split("/")[-2]
-        + ".png"
+        savedir + "/" + data_label + "_fit_z" + str(z_min) + "-" + str(z_max) + ".png"
     )
     plt.close()
 
@@ -252,17 +238,12 @@ def plot_n_colors_mag(
 def plot_n_mags(
     dataset,
     data_label,
-    param_collection1,
-    label1,
-    dimension_labels,
+    param_collection,
     ran_key,
     z_min,
     z_max,
     ssp_data,
     savedir,
-    param_collection2=None,
-    label2=None,
-    lg_n_thresh=None,
     lgmp_min=10.0,
     lgmp_max=15.0,
     num_halos=5000,
@@ -292,15 +273,15 @@ def plot_n_mags(
         dataset.filter_info.tcurves,
         z_phot_table,
     )
-    obs_mags1, weights1, phot_kern_results1 = mag_kern(
+    obs_mags, weights, phot_kern_results = mag_kern(
         ran_key,
-        param_collection1,
+        param_collection,
         lc_data,
         dataset.filter_info.mag_thresh,
         dataset.frac_cat,
     )
 
-    n_panels = obs_mags1.shape[1]
+    n_panels = obs_mags.shape[1]
 
     if data_label == "sdss":
         fig_width = 3.0 * n_panels
@@ -350,11 +331,11 @@ def plot_n_mags(
         )
 
         n_diffsky, _, _ = ax[0, i].hist(
-            obs_mags1[:, i],
-            weights=weights1 * (1 / lc_data.lc_tot_vol_mpc3),
+            obs_mags[:, i],
+            weights=weights * (1 / lc_data.lc_tot_vol_mpc3),
             bins=bins,
             color="deepskyblue",
-            label=label1,
+            label="diffsky",
             alpha=0.5,
         )
 
@@ -394,7 +375,7 @@ def plot_n_mags(
         ax[1, i].plot(bin_centers, offset, lw=2.0, color="k")
         ax[1, i].set_ylim(0.09, 10.1)
         ax[1, i].set_yscale("log")
-        ax[1, i].set_xlabel(dimension_labels[i], fontsize=fontsize)
+        ax[1, i].set_xlabel(dataset.mags_labels[i], fontsize=fontsize)
 
         ax_offset_yticks = np.array([0.1, 0.2, 0.5, 1, 2, 5, 10])
         ax[1, i].set_yticks(ax_offset_yticks)
@@ -428,15 +409,6 @@ def plot_n_mags(
     ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
     ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
-        savedir
-        + "/"
-        + data_label
-        + "_mags_z"
-        + str(z_min)
-        + "-"
-        + str(z_max)
-        + "_"
-        + savedir.split("/")[-2]
-        + ".png"
+        savedir + "/" + data_label + "_mags_z" + str(z_min) + "-" + str(z_max) + ".png"
     )
     plt.close()

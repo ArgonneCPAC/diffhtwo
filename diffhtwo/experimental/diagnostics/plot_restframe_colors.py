@@ -13,7 +13,9 @@ def uvj_diag(x):
     return 0.8 * x + 0.7
 
 
-def plot_uvj(ran_key, param_collection, ssp_data, drn, savedir, num_halos=100):
+def plot_uvj(
+    ran_key, param_collection, ssp_data, drn, model_nickname, savedir, num_halos=1000
+):
     filter_info = drn + "/" + FILTER_INFO
     tcurves_file = drn + "/" + TCURVES_FILE
 
@@ -86,4 +88,4 @@ def plot_uvj(ran_key, param_collection, ssp_data, drn, savedir, num_halos=100):
             ax[z].set_yticks([])
     ax[0].set_ylabel(r"$(U-V)_0$ [AB]")
     plt.legend()
-    plt.savefig(savedir + "_uvj.png", dpi=200)
+    plt.savefig(savedir + "/" + model_nickname + "_uvj.png", dpi=200)

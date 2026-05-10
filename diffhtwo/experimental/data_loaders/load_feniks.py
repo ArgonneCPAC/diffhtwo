@@ -1,5 +1,6 @@
 import warnings
 from collections import namedtuple
+from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
@@ -16,16 +17,14 @@ from ..defaults import (
     FilterInfo,
 )
 from ..latin_hypercube import latin_hypercube as lh
-from ..utils import (
-    get_feniks_filter_number_from_translate_file,
-    get_tcurve,
-)
+from ..utils import load_feniks_tcurve
+
+BASE_PATH = Path(__file__).resolve().parent.parent
+FENIKS_FILTERS_PATH = BASE_PATH / "data" / "feniks_filters"
+
 
 PHOT = "feniks_phot_selected.cat"
 ZOUT = "feniks_zout_selected.ecsv"
-TRANSLATE = "filters_w_FENIKS.translate"
-FILTER_INFO = "kz_FILTER.RES.latest.info"
-TCURVES_FILE = "kz_FILTER.RES.latest"
 
 Feniks = namedtuple("Feniks", Dataset._fields)
 
@@ -114,9 +113,6 @@ def get_feniks_data(
     ssp_data,
     phot=PHOT,
     zout=ZOUT,
-    translate=TRANSLATE,
-    filter_info=FILTER_INFO,
-    tcurves_file=TCURVES_FILE,
 ):
     # Transmission curves and filter mag thresholds
 
@@ -142,24 +138,17 @@ def get_feniks_data(
         UDS_H=False,
         UDS_K=True,
     )
-
-    translate = ascii.read(drn + "/" + translate, header_start=None)
-    filter_info = drn + "/" + filter_info
-    tcurves_file = drn + "/" + tcurves_file
     tcurves = []
     for feniks_filter in FeniksFilters._fields:
-        feniks_filter_number = get_feniks_filter_number_from_translate_file(
-            translate, feniks_filter
-        )
-        feniks_filter_wave_aa, feniks_filter_trans = get_tcurve(
-            feniks_filter_number, filter_info, tcurves_file
-        )
+        tcurve_filename = FENIKS_FILTERS_PATH / f"{feniks_filter}.txt"
+        feniks_filter_wave_aa, feniks_filter_trans = load_feniks_tcurve(tcurve_filename)
         tcurves.append(TransmissionCurve(feniks_filter_wave_aa, feniks_filter_trans))
 
     filter_info = FilterInfo(feniks_mag_thresh, feniks_in_lh, tcurves)
 
-    phot = ascii.read(drn + "/" + phot)
-    zout = ascii.read(drn + "/" + zout)
+    drn_path = Path(drn)
+    phot = ascii.read(drn_path / phot)
+    zout = ascii.read(drn_path / zout)
 
     # get mags
     megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
@@ -298,17 +287,29 @@ def get_feniks_data(
     ).T
 
     dataset_dim_labels = [
-        "u - g",
-        "g - r",
-        "r - i",
-        "i - z",
-        "z - Y",
-        "Y - J",
-        "J - H",
-        "H - K",
-        "u",
-        "K",
-        "redshift",
+        r"$uS_{MegaCam} - g_{HSC}$",
+        r"$g_{HSC} - r_{HSC}$",
+        r"$r_{HSC} - i_{HSC}$",
+        r"$i_{HSC} - z_{HSC}$",
+        r"$z_{HSC} - Y_{VIDEO}$",
+        r"$Y_{VIDEO} - J_{UDS}$",
+        r"$J_{UDS} - H_{UDS}$",
+        r"$H_{UDS} - K_{UDS}$",
+        r"$uS_{MegaCam}$",
+        r"$K_{UDS}$",
+        r"$redshift$",
+    ]
+
+    mags_labels = [
+        r"$uS_{MegaCam}$",
+        r"$g_{HSC}$",
+        r"$r_{HSC}$",
+        r"$i_{HSC}$",
+        r"$z_{HSC}$",
+        r"$Y_{VIDEO}$",
+        r"$J_{UDS}$",
+        r"$H_{UDS}$",
+        r"$K_{UDS}$",
     ]
 
     # mask redshift
@@ -334,6 +335,7 @@ def get_feniks_data(
         dataset,
         dataset_dim_labels,
         mags,
+        mags_labels,
         filter_info,
         frac_cat,
         lh_centroids,

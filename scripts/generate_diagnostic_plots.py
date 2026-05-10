@@ -27,35 +27,21 @@ from diffhtwo.experimental.diagnostics.plot_satquench import generate_sat_plots
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--config", default="config.yaml")
+    p.add_argument("--config", default="config_diagnostics.yaml")
     args = p.parse_args()
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    feniks_drn = cfg["base_path"] + "/feniks"
-    ssp_filename = (
-        cfg["base_path"]
-        + "/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5"
-    )
-    os.environ["COSMOS20_DRN"] = cfg["base_path"] + "/COSMOS20"
-    os.environ["DSPS_DRN"] = (
-        cfg["base_path"] + "/COSMOS20/portal.nersc.gov/project/hacc/aphearin/DSPS_data"
-    )
-
-    ran_key = jran.key(0)
-
-    fit_drn = cfg["base_path"] + "/fits/" + cfg["fit_runid"] + "/"
-    fit_diagnostics_save_drn = (
-        cfg["base_path"]
-        + "/fits/"
-        + cfg["fit_runid"]
-        + "/diagnostic_plots/"
-        + cfg["fit_type"]
-    )
+    # get directories/files
+    os.environ["COSMOS20_DRN"] = cfg["cosmos20_drn"]
+    os.environ["DSPS_DRN"] = cfg["dsps_drn"]
+    feniks_drn = cfg["feniks_drn"]
+    ssp_filename = cfg["ssp_file"]
+    fit_diagnostics_save_drn = cfg["fit_diagnostics_save_drn"]
     param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
-        fit_drn,
-        cfg["fit_runid"] + "_" + cfg["fit_type"],
+        cfg["model_drn"],
+        cfg["model_nickname"],
     )
 
     # get ssp data
@@ -64,49 +50,8 @@ if __name__ == "__main__":
     emline_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     emline_wave_table = jnp.array([emline_wave_aa])
 
-    # set dim labels for plotting
-    sdss_dim_labels = [
-        r"$u - g$",
-        r"$g - r$",
-        r"$r - i$",
-        r"$i - z$",
-        r"$r$",
-    ]
-
-    feniks_dim_labels = [
-        r"$uS_{MegaCam} - g_{HSC}$",
-        r"$g_{HSC} - r_{HSC}$",
-        r"$r_{HSC} - i_{HSC}$",
-        r"$i_{HSC} - z_{HSC}$",
-        r"$z_{HSC} - Y_{VIDEO}$",
-        r"$Y_{VIDEO} - J_{UDS}$",
-        r"$J_{UDS} - H_{UDS}$",
-        r"$H_{UDS} - K_{UDS}$",
-        r"$uS_{MegaCam}$",
-        r"$K_{UDS}$",
-    ]
-
-    sdss_mag_labels = [
-        r"$u$",
-        r"$g$",
-        r"$r$",
-        r"$i$",
-        r"$z$",
-    ]
-
-    feniks_mag_labels = [
-        r"$uS_{MegaCam}$",
-        r"$g_{HSC}$",
-        r"$r_{HSC}$",
-        r"$i_{HSC}$",
-        r"$z_{HSC}$",
-        r"$Y_{VIDEO}$",
-        r"$J_{UDS}$",
-        r"$H_{UDS}$",
-        r"$K_{UDS}$",
-    ]
-
     # get feniks dataset
+    ran_key = jran.key(0)
     feniks = load_feniks.get_feniks_data(
         feniks_drn,
         ran_key,
@@ -133,113 +78,123 @@ if __name__ == "__main__":
     for zbin in range(0, len(feniks_zbins)):
         z_min = feniks_zbins[zbin][0]
         z_max = feniks_zbins[zbin][1]
-        print(
-            f"Generating FENIKS photometry plots for {zbin+1}/{len(feniks_zbins)} z-bin..."
-        )
-        plot_n_colors_mag(
-            feniks,
-            data_label,
-            param_collection_fit,
-            "diffsky",
-            feniks_dim_labels,
-            ran_key,
-            z_min,
-            z_max,
-            ssp_data,
-            fit_diagnostics_save_drn,
+
+        if cfg["plots"]["plot_colors_mags"]:
+            print(
+                f"Generating FENIKS photometry plots for {zbin+1}/{len(feniks_zbins)} z-bin..."
+            )
+            plot_n_colors_mag(
+                feniks,
+                data_label,
+                param_collection_fit,
+                ran_key,
+                z_min,
+                z_max,
+                ssp_data,
+                fit_diagnostics_save_drn,
+            )
+
+        if cfg["plots"]["plot_mags"]:
+            plot_n_mags(
+                feniks,
+                data_label,
+                param_collection_fit,
+                ran_key,
+                z_min,
+                z_max,
+                ssp_data,
+                fit_diagnostics_save_drn,
+            )
+
+        if cfg["plots"]["plot_ssperr"]:
+            print(
+                f"Generating FENIKS ssp error plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+            )
+            z_obs = np.median((z_min, z_max))
+            psspem.plot_ssp_err_model_delta_mag_vs_wavelength(
+                ssp_err_params=param_collection_fit.ssperr_params,
+                z_obs=z_obs,
+                drn_out=fit_diagnostics_save_drn,
+                model_nickname=data_label,
+            )
+
+        if cfg["plots"]["plot_massive_cen_colors"]:
+            print(
+                f"Generating massive central colors plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+            )
+            plot_massive_cen_colors(
+                ran_key,
+                param_collection_fit,
+                z_min,
+                z_max,
+                feniks.dataset_dim_labels,
+                ssp_data,
+                tcurves,
+                data_label,
+                fit_diagnostics_save_drn,
+                mag_thresh=mag_thresh,
+                frac_cat=frac_cat,
+                num_halos=num_halos,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_satquench"]:
+            print(
+                f"Generating satquench plots for {zbin+1}/{len(feniks_zbins)} z-bin..."
+            )
+            generate_sat_plots(
+                ran_key,
+                param_collection_fit,
+                z_min,
+                z_max,
+                ssp_data,
+                tcurves,
+                data_label,
+                fit_diagnostics_save_drn,
+                mag_thresh=mag_thresh,
+                frac_cat=frac_cat,
+                num_halos=num_halos,
+                plt_show=False,
+            )
+
+    if cfg["plots"]["plot_insitu_smhm"]:
+        # Plot in-situ SMHM
+        print("Generating FENIKS in-situ SMHM plot...")
+        check_smhm.plot_diffstarpop_insitu_smhm(
+            DEFAULT_DIFFSTARPOP_PARAMS,
+            param_collection_fit.diffstarpop_params,
+            fit_diagnostics_save_drn + "/insitu_smhm_w_default.png",
         )
 
-        plot_n_mags(
-            feniks,
-            data_label,
-            param_collection_fit,
-            "diffsky",
-            feniks_mag_labels,
+    if cfg["plots"]["plot_uvj"]:
+        # Plot feniks UVJ
+        print("Generating FENIKS UVJ plot...")
+        plot_uvj(
             ran_key,
-            z_min,
-            z_max,
+            param_collection_fit,
             ssp_data,
+            feniks_drn,
+            data_label,
             fit_diagnostics_save_drn,
+            num_halos=num_halos,
         )
 
-        print(
-            f"Generating FENIKS ssp error plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+    if cfg["plots"]["plot_exsitu_frac"]:
+        # Plot feniks ex-situ frac
+        print("Generating FENIKS ex-situ frac plot...")
+        pdata = pcm.get_plotting_data(
+            **param_collection_fit._asdict(), z_min=0.2, z_max=4.0, num_halos=10000
         )
-        z_obs = np.median((z_min, z_max))
-        psspem.plot_ssp_err_model_delta_mag_vs_wavelength(
-            ssp_err_params=param_collection_fit.ssperr_params,
-            z_obs=z_obs,
+        pcm.plot_ex_situ_fraction(
+            pdata=pdata,
+            model_nickname=data_label,
             drn_out=fit_diagnostics_save_drn,
-            model_nickname="feniks_z" + str(z_obs),
         )
-
-        print(
-            f"Generating massive central colors plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
-        )
-        plot_massive_cen_colors(
-            ran_key,
-            param_collection_fit,
-            z_min,
-            z_max,
-            feniks_dim_labels,
-            ssp_data,
-            tcurves,
-            data_label,
-            fit_diagnostics_save_drn,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
-            num_halos=num_halos,
-            show_plot=False,
-        )
-        print(f"Generating satquench plots for {zbin+1}/{len(feniks_zbins)} z-bin...")
-        generate_sat_plots(
-            ran_key,
-            param_collection_fit,
-            z_min,
-            z_max,
-            ssp_data,
-            tcurves,
-            data_label,
-            fit_diagnostics_save_drn,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
-            num_halos=num_halos,
-            plt_show=False,
-        )
-
-    # Plot in-situ SMHM
-    print("Generating FENIKS in-situ SMHM plot...")
-    check_smhm.plot_diffstarpop_insitu_smhm(
-        DEFAULT_DIFFSTARPOP_PARAMS,
-        param_collection_fit.diffstarpop_params,
-        fit_diagnostics_save_drn + "/insitu_smhm_w_default.png",
-    )
-
-    # Plot feniks UVJ
-    print("Generating FENIKS UVJ plot...")
-    plot_uvj(
-        ran_key,
-        param_collection_fit,
-        ssp_data,
-        feniks_drn,
-        fit_diagnostics_save_drn + "/feniks",
-        num_halos=num_halos,
-    )
-
-    # Plot feniks ex-situ frac
-    print("Generating FENIKS ex-situ frac plot...")
-    pdata = pcm.get_plotting_data(
-        **param_collection_fit._asdict(), z_min=0.2, z_max=4.0, num_halos=10000
-    )
-    pcm.plot_ex_situ_fraction(
-        pdata=pdata,
-        model_nickname="feniks",
-        drn_out=fit_diagnostics_save_drn,
-    )
 
     # Plot feniks Avpop
-    print("Generating FENIKS Avpop plot...")
-    _ = make_avpop_mono_comparison_plots(
-        param_collection_fit.spspop_params.dustpop_params.avpop_params,
-        fname=fit_diagnostics_save_drn + "/feniks_avpop_mono.png",
-    )
+    if cfg["plots"]["plot_avpop"]:
+        print("Generating FENIKS Avpop plot...")
+        _ = make_avpop_mono_comparison_plots(
+            param_collection_fit.spspop_params.dustpop_params.avpop_params,
+            fname=fit_diagnostics_save_drn + "/feniks_avpop_mono.png",
+        )

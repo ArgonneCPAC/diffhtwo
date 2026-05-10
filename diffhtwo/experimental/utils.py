@@ -101,6 +101,14 @@ def get_halpha_LF_q_ms_burst(
     )
 
 
+def load_feniks_tcurve(tcurve_filename):
+    tcurve = np.loadtxt(tcurve_filename)
+    wave = tcurve[:, 0]
+    transmission = tcurve[:, 1]
+
+    return wave, transmission
+
+
 def get_tcurve(get_filter_number, filter_info_filename, tcurves_filename):
     with open(filter_info_filename) as INFO:
         info = INFO.readlines()

@@ -126,7 +126,7 @@ def get_sdss_data(
 
     tcurves = []
     for bn_pat in SdssFilters._fields:
-        tcurve = load_transmission_curve(bn_pat=bn_pat + "*", drn=drn + "/filters")
+        tcurve = load_transmission_curve(bn_pat=bn_pat + "*", drn=drn + "/sdss_filters")
         tcurves.append(tcurve)
     filter_info = FilterInfo(sdss_mag_thresh, sdss_in_lh, tcurves)
 
@@ -147,7 +147,15 @@ def get_sdss_data(
 
     # stack colors_mag
     dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
-    dataset_dim_labels = ["u - g", "g - r", "r - i", "i - z", "r", "redshift"]
+    dataset_dim_labels = [
+        r"$u - g$",
+        r"$g - r$",
+        r"$r - i$",
+        r"$i - z$",
+        r"$r$",
+        r"$redshift$",
+    ]
+    mag_labels = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$"]
 
     lh_centroids, d_centroids = get_lh_centroids(dataset)
 
@@ -166,6 +174,7 @@ def get_sdss_data(
         dataset,
         dataset_dim_labels,
         mags,
+        mag_labels,
         filter_info,
         frac_cat,
         lh_centroids,

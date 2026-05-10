@@ -12,7 +12,7 @@ from dsps.constants import T_TABLE_MIN
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
-from .lc_utils import zbin_vol, zbin_vol_vmap
+from .lc_utils import zbin_vol
 
 N_SFH_TABLE = 100
 
@@ -46,30 +46,9 @@ def generate_lc_data(
     )
     lc_data = lcg.weighted_lc_photdata(*lc_args, cosmo_params=cosmo_params)
 
-    if lh_centroids is not None:
-        lh_centroids_lo = lh_centroids - (d_centroids / 2)
-        lh_centroids_hi = lh_centroids + (d_centroids / 2)
-        lh_vol_mpc3 = zbin_vol_vmap(
-            sky_area_degsq,
-            lh_centroids_lo[:, -1],
-            lh_centroids_hi[:, -1],
-            cosmo_params,
-        )
+    lc_tot_vol_mpc3 = zbin_vol(sky_area_degsq, z_min, z_max, cosmo_params)
 
-        lc_tot_vol_mpc3 = zbin_vol(sky_area_degsq, z_min, z_max, cosmo_params)
-
-        fields = (*lc_data._fields, "lc_tot_vol_mpc3", "sky_area_degsq", "lh_vol_mpc3")
-        values = (*lc_data, lc_tot_vol_mpc3, sky_area_degsq, lh_vol_mpc3)
-        lc_data = namedtuple(lc_data.__class__.__name__, fields)(*values)
-
-    else:
-        lc_tot_vol_mpc3 = zbin_vol(sky_area_degsq, z_min, z_max, cosmo_params)
-
-        fields = (*lc_data._fields, "lc_tot_vol_mpc3", "sky_area_degsq")
-        values = (*lc_data, lc_tot_vol_mpc3, sky_area_degsq)
-        lc_data = namedtuple(lc_data.__class__.__name__, fields)(*values)
-
-    return lc_data
+    return LCD(*lc_data, lc_tot_vol_mpc3, sky_area_degsq)
 
 
 def lc_photdata(
@@ -294,3 +273,15 @@ def lc_photdata(
 
     lc_data = lcg.passively_add_emlines_to_lc_data(ssp_data, lc_data)
     return lc_data
+
+
+LCD = namedtuple(
+    "LCD",
+    lcg.LCData._fields
+    + (
+        "precomputed_ssp_linelum_cgs_table",
+        "line_wave_table",
+        "lc_tot_vol_mpc3",
+        "sky_area_degsq",
+    ),
+)

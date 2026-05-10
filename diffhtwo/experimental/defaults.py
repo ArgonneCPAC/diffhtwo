@@ -34,6 +34,7 @@ Dataset = namedtuple(
         "dataset",
         "dataset_dim_labels",
         "mags",
+        "mags_labels",
         "filter_info",
         "frac_cat",
         "lh_centroids",
