@@ -7,8 +7,8 @@ from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
 from .. import diffndhist as diffndhist2
-from ..n_mag import get_n_data_err
 from .cat_weights import compute_cat_weights
+from .gehrels_err import get_n_data_err
 from .lc_phot_kern import mc_phot_kern_merging_wrapper
 
 
