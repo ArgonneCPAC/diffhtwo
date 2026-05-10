@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run50
-model_nickname: run50_diffstarpop+spspop+ssperrpop
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run50/diagnostic_plots/diffstarpop+spspop+ssperrpop
+model_drn: /Users/kumail/diffdir/fits/run51
+model_nickname: run51_diffstarpop+spspop+ssperrpop
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run51/diagnostic_plots/diffstarpop+spspop+ssperrpop
 
 feniks_drn: /Users/kumail/diffdir/feniks
 cosmos20_drn: /Users/kumail/diffdir/COSMOS20

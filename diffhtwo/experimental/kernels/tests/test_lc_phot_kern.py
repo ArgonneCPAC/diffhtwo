@@ -29,6 +29,7 @@ def test_lc_phot_kern(fake_subset_ssp_data, feniks_tcurves):
     assert np.isfinite(lc_data.cen_weight).all()
     assert np.isfinite(lc_data.sat_weight).all()
     assert np.isfinite(gal_weight).all()
+    assert (gal_weight >= 0).all()
     assert np.isfinite(phot_kern_results.obs_mags).all()
 
     phot_kern_results2 = mc_phot_kern_merging_wrapper(

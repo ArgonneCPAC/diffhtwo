@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import jax.numpy as jnp
 import pytest
 from dsps.data_loaders import load_emline_info as lemi
 from dsps.data_loaders import retrieve_fake_fsps_data
@@ -7,6 +8,7 @@ from dsps.data_loaders.defaults import TransmissionCurve
 from jax import random as jran
 
 from .data_loaders import load_feniks, load_hizels
+from .lightcone_generators import generate_lc_data
 from .utils import load_feniks_tcurve
 
 BASE_PATH = Path(__file__).resolve().parent
@@ -65,3 +67,37 @@ def feniks_tcurves():
         feniks_filter_wave_aa, feniks_filter_trans = load_feniks_tcurve(tcurve_filename)
         tcurves.append(TransmissionCurve(feniks_filter_wave_aa, feniks_filter_trans))
     return tcurves
+
+
+@pytest.fixture(scope="session")
+def feniks_lc_data(fake_subset_ssp_data, feniks):
+    ssp_data, emline_wave_aa = fake_subset_ssp_data
+    tcurves = feniks.filter_info.tcurves
+
+    ran_key = jran.key(0)
+
+    z_min = 0.2
+    z_max = 0.5
+    n_z_phot_table = 15
+    z_phot_table = 10 ** jnp.linspace(
+        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+    )
+
+    num_halos = 100
+    lgmp_min = 10.0
+    lgmp_max = 15
+    lc_sky_area_degsq = 100
+
+    lc_data = generate_lc_data(
+        ran_key,
+        num_halos,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
+    return lc_data
