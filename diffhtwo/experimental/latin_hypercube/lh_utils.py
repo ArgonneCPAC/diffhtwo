@@ -6,44 +6,7 @@ import numpy as np
 
 from .. import diffndhist
 from .. import param_utils as pu
-from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
-from ..n_mag import get_n_data_err
-
-
-def get_data_mag_func(dataset, z_min, z_max, data_sky_area_degsq, dmag=0.2):
-    dataset_z_sel = (dataset[:, -1] > z_min) & (dataset[:, -1] < z_max)
-    mags = dataset[:, -2][dataset_z_sel]
-
-    mag_bin_edges = np.arange(mags.min(), mags.max(), dmag)
-    N, _ = np.histogram(mags, bins=mag_bin_edges)
-
-    vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
-    lg_n, lg_n_avg_err = get_n_data_err(N, vol_mpc3)
-
-    return mag_bin_edges, lg_n, lg_n_avg_err
-
-
-def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max, savedir):
-    fig, ax = plt.subplots()
-
-    bins = np.linspace(N_data_z.min(), N_data_z.max(), 20)
-    label = "N$_{bins, z}$ = " + str(len(N_data_z))
-    ax.hist(N_data_z, bins=bins, alpha=0.8, histtype="step", color="k", label=label)
-
-    label = "N$_{bins, sel}$ = " + str(len(N_data_z_subset))
-    ax.hist(N_data_z_subset, bins=bins, alpha=0.5, color="k", label=label)
-
-    z_min_label = str(np.round(z_min, 2))
-    z_max_label = str(np.round(z_max, 2))
-    ax.set_title(z_min_label + " < z < " + z_max_label)
-    ax.set_yscale("log")
-    ax.set_ylabel("#")
-    ax.set_xlabel("counts")
-    ax.legend()
-    if savedir is not None:
-        fig.savefig(savedir + "/lh_N_z" + z_min_label + "-" + z_max_label + ".png")
-    plt.close()
 
 
 def get_zbins_lh_lc(
@@ -129,6 +92,28 @@ def get_zbins_lh_lc(
     fitting_data = FittingData(N_data, lh_centroids, d_centroids, lc_data)
 
     return meta_data, fitting_data
+
+
+def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max, savedir):
+    fig, ax = plt.subplots()
+
+    bins = np.linspace(N_data_z.min(), N_data_z.max(), 20)
+    label = "N$_{bins, z}$ = " + str(len(N_data_z))
+    ax.hist(N_data_z, bins=bins, alpha=0.8, histtype="step", color="k", label=label)
+
+    label = "N$_{bins, sel}$ = " + str(len(N_data_z_subset))
+    ax.hist(N_data_z_subset, bins=bins, alpha=0.5, color="k", label=label)
+
+    z_min_label = str(np.round(z_min, 2))
+    z_max_label = str(np.round(z_max, 2))
+    ax.set_title(z_min_label + " < z < " + z_max_label)
+    ax.set_yscale("log")
+    ax.set_ylabel("#")
+    ax.set_xlabel("counts")
+    ax.legend()
+    if savedir is not None:
+        fig.savefig(savedir + "/lh_N_z" + z_min_label + "-" + z_max_label + ".png")
+    plt.close()
 
 
 def modulate_dmag(dataset, lh_centroid, Nmax, dmag, D_MAG_MAX=1.0):

@@ -18,10 +18,13 @@ from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
-from .. import diffndhist as diffndhist2
+from ..kernels.phot_kern import (
+    n_colors_mags_lh,
+)
+from ..kernels.spec_kern import (
+    n_spec_kern,
+)
 from ..loss_kernels.loss_functions import mse_w
-from ..n_mag import get_n_data_err
-from ..n_specphot import mag_kern, n_colors_mags_lh, n_spec_kern
 from ..param_utils import get_param_collection_from_u_theta
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
@@ -62,58 +65,6 @@ def get_phot_loss(
     phot_loss = mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     return phot_loss
-
-
-@jjit
-def get_mag_func_loss(
-    ran_key,
-    param_collection,
-    lc_data,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    frac_cat,
-    mag_bin_edges,
-    lg_n,
-    lg_n_avg_err,
-    lg_n_thresh,
-):
-    mags, weights = mag_kern(
-        ran_key,
-        param_collection,
-        lc_data,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
-        frac_cat,
-    )
-
-    mags = mags[:, -1]
-    mags = mags.reshape(mags.size, 1)
-
-    bw = jnp.diff(mag_bin_edges).mean()
-
-    mag_lo = mag_bin_edges[:-1]
-    mag_lo = mag_lo.reshape(mag_lo.size, 1)
-
-    mag_hi = mag_bin_edges[1:]
-    mag_hi = mag_lo.reshape(mag_hi.size, 1)
-
-    sig = jnp.zeros(mag_lo.shape) + (bw / 2)
-    mag_bin_edges = mag_bin_edges.reshape(mag_bin_edges.size, 1)
-
-    N = diffndhist2.tw_ndhist_weighted(
-        mags,
-        sig,
-        weights,
-        mag_lo,
-        mag_hi,
-    )
-
-    lg_n_model, _ = get_n_data_err(N, lc_data.lc_tot_vol_mpc3)
-    mag_func_loss = mse_w(lg_n_model, lg_n, lg_n_avg_err, lg_n_thresh)
-
-    return mag_func_loss
 
 
 @jjit
