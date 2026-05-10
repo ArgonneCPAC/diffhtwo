@@ -1,6 +1,5 @@
 import jax.numpy as jnp
 import numpy as np
-import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import (
     DEFAULT_PARAM_COLLECTION,
     check_param_collection_is_ok,
@@ -8,7 +7,6 @@ from diffsky.param_utils.diffsky_param_wrapper_merging import (
 from jax import random as jran
 
 from ... import param_utils as pu
-from ...latin_hypercube import lh_utils as lhu
 from ..Np_specphot_opt import (
     _loss_and_grad_phot_kern_multi_z,
     _loss_and_grad_sdss_feniks_hizels,
@@ -17,31 +15,8 @@ from ..Np_specphot_opt import (
 )
 
 
-@pytest.fixture(scope="module")
-def feniks_data(fake_subset_ssp_data, feniks):
-    ssp_data, emline_wave_aa = fake_subset_ssp_data
-
-    ran_key = jran.key(0)
-
-    z_mins = [0.2, 1.0]
-    z_maxs = [1.0, 2.0]
-
-    N_centroids = 200
-    num_halos = 100
-    feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
-        ran_key,
-        feniks,
-        z_mins,
-        z_maxs,
-        ssp_data,
-        N_centroids,
-        num_halos=num_halos,
-    )
-    return feniks_meta_data, feniks_fitting_data
-
-
-def test_phot_opt(feniks_data):
-    feniks_meta_data, feniks_fitting_data = feniks_data
+def test_phot_opt(feniks_multi_z_data):
+    feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
 
     ran_key = jran.key(0)
 
@@ -75,11 +50,11 @@ def test_phot_opt(feniks_data):
     assert check_param_collection_is_ok(param_collection_fit)
 
 
-def test_specphot_opt(fake_subset_ssp_data, feniks_data, hizels):
+def test_specphot_opt(fake_subset_ssp_data, feniks_multi_z_data, hizels):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
     emline_wave_table = jnp.array([emline_wave_aa])
 
-    feniks_meta_data, feniks_fitting_data = feniks_data
+    feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
 
     ran_key = jran.key(0)
 

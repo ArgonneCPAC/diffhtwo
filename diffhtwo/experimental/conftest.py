@@ -8,6 +8,7 @@ from dsps.data_loaders.defaults import TransmissionCurve
 from jax import random as jran
 
 from .data_loaders import load_feniks, load_hizels
+from .latin_hypercube import lh_utils as lhu
 from .lightcone_generators import generate_lc_data
 from .utils import load_feniks_tcurve
 
@@ -67,6 +68,49 @@ def feniks_tcurves():
         feniks_filter_wave_aa, feniks_filter_trans = load_feniks_tcurve(tcurve_filename)
         tcurves.append(TransmissionCurve(feniks_filter_wave_aa, feniks_filter_trans))
     return tcurves
+
+
+@pytest.fixture(scope="session")
+def feniks_single_z_data(fake_subset_ssp_data, feniks):
+    ssp_data, emline_wave_aa = fake_subset_ssp_data
+
+    z_min = 0.2
+    z_max = 1.0
+    N_centroids = 100
+
+    ran_key = jran.key(0)
+    feniks_meta_data, feniks_fitting_data = lhu.get_single_zbin_lh_lc(
+        ran_key,
+        feniks,
+        z_min,
+        z_max,
+        ssp_data,
+        N_centroids,
+    )
+    return feniks_meta_data, feniks_fitting_data
+
+
+@pytest.fixture(scope="session")
+def feniks_multi_z_data(fake_subset_ssp_data, feniks):
+    ssp_data, emline_wave_aa = fake_subset_ssp_data
+
+    ran_key = jran.key(0)
+
+    z_mins = [0.2, 1.0]
+    z_maxs = [1.0, 2.0]
+
+    N_centroids = 200
+    num_halos = 100
+    feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
+        ran_key,
+        feniks,
+        z_mins,
+        z_maxs,
+        ssp_data,
+        N_centroids,
+        num_halos=num_halos,
+    )
+    return feniks_meta_data, feniks_fitting_data
 
 
 @pytest.fixture(scope="session")

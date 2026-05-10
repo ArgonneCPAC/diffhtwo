@@ -94,6 +94,76 @@ def get_zbins_lh_lc(
     return meta_data, fitting_data
 
 
+def get_single_zbin_lh_lc(
+    ran_key,
+    dataset,
+    z_min,
+    z_max,
+    ssp_data,
+    N_centroids,
+    lh_N_z_savedir=None,
+    num_halos=1000,
+    lc_sky_area_degsq=1000,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
+    n_z_phot_table=15,
+):
+    in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
+    in_lh_idx = jnp.where(in_lh)[0]
+
+    meta_data = MetaData(
+        dataset.filter_info.mag_thresh,
+        in_lh_idx,
+        dataset.frac_cat,
+        dataset.data_sky_area_degsq,
+    )
+
+    z_sel = (dataset.lh_centroids[:, -1] > (z_min + (dataset.lh_dz / 2))) & (
+        dataset.lh_centroids[:, -1] < (z_max - (dataset.lh_dz / 2))
+    )
+
+    print(
+        f"{z_sel.sum()} centroids available in this z-bin out of which {N_centroids} will be selected"
+    )
+
+    lh_centroids_z = dataset.lh_centroids[z_sel]
+    d_centroids_z = dataset.d_centroids[z_sel]
+    N_data_z = dataset.N_data[z_sel]
+
+    # select first N_centroids with N_data in descending order
+    lh_idx = jnp.argsort(N_data_z)[::-1][:N_centroids]
+
+    lh_centroids_z_subset = lh_centroids_z[lh_idx]
+    d_centroids_z_subset = d_centroids_z[lh_idx]
+    N_data_z_subset = N_data_z[lh_idx]
+
+    plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max, lh_N_z_savedir)
+
+    z_phot_table = 10 ** jnp.linspace(
+        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+    )
+    lc_args = (
+        ran_key,
+        num_halos,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        dataset.filter_info.tcurves,
+        z_phot_table,
+    )
+
+    lc_data_z = generate_lc_data(*lc_args)
+
+    fitting_data = FittingData(
+        N_data_z_subset, lh_centroids_z_subset, d_centroids_z_subset, lc_data_z
+    )
+
+    return meta_data, fitting_data
+
+
 def plot_N_z_subset(N_data_z_subset, N_data_z, z_min, z_max, savedir):
     fig, ax = plt.subplots()
 
