@@ -2,13 +2,10 @@ from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
-import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import (
     DEFAULT_PARAM_COLLECTION,
     check_param_collection_is_ok,
 )
-from dsps.data_loaders import load_emline_info as lemi
-from dsps.data_loaders import retrieve_fake_fsps_data
 from jax import random as jran
 
 from ... import param_utils as pu
@@ -27,15 +24,6 @@ PHOT = "feniks_phot_selected_for_testing.cat"
 ZOUT = "feniks_zout_selected_for_testing.ecsv"
 
 HIZELS_DRN = BASE_PATH / "data" / "hizels"
-
-
-@pytest.fixture(scope="module")
-def fake_subset_ssp_data():
-    ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
-    emline_name = ssp_data.ssp_emline_wave._fields[0]
-    emline_wave_aa = ssp_data.ssp_emline_wave[0]
-    ssp_data = lemi.get_subset_emline_data(ssp_data, [emline_name])
-    return ssp_data, emline_wave_aa
 
 
 def test_phot_opt(fake_subset_ssp_data):
@@ -112,6 +100,7 @@ def test_specphot_opt(fake_subset_ssp_data):
         phot=PHOT,
         zout=ZOUT,
     )
+    feniks_tcurves = feniks.filter_info.tcurves
 
     z_mins = [0.2, 1.0]
     z_maxs = [1.0, 2.0]
@@ -135,7 +124,7 @@ def test_specphot_opt(fake_subset_ssp_data):
         HIZELS_DRN,
         ran_key,
         ssp_data,
-        feniks.filter_info.tcurves,
+        feniks_tcurves,
     )
 
     u_theta = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
