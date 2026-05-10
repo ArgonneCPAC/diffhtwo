@@ -3,7 +3,6 @@ from collections import namedtuple
 import jax.numpy as jnp
 import numpy as np
 from astropy.io import ascii
-from diffsky.mass_functions import mc_hosts
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
 from ..lightcone_generators import generate_lc_data
@@ -22,7 +21,7 @@ def get_hizels_data(
     tcurves,
     num_halos=500,
     lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
+    lgmp_max=15.0,
     lc_sky_area_degsq=100,
     n_z_phot_table=15,
 ):

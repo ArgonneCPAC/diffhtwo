@@ -8,7 +8,7 @@ from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
 from .. import emline_luminosity
-from ..n_mag import N_0, N_FLOOR
+from .gehrels_err import N_0, N_FLOOR
 
 
 @jjit
