@@ -59,9 +59,11 @@ def get_phot_loss(
         lh_centroids,
         d_centroids,
         frac_cat,
-        redshift_as_last_dimension_in_lh,
     )
-    lg_n_model, _ = n_colors_mags_lh(*n_colors_mags_lh_args)
+    lg_n_model, _ = n_colors_mags_lh(
+        *n_colors_mags_lh_args,
+        redshift_as_last_dimension_in_lh=redshift_as_last_dimension_in_lh,
+    )
     phot_loss = mse_w(lg_n_model, lg_n_target[0], lg_n_target[1], lg_n_thresh)
 
     return phot_loss

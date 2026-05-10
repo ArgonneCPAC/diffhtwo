@@ -8,8 +8,6 @@ jax.config.update("jax_debug_infs", True)
 from functools import partial
 
 import jax.numpy as jnp
-from diffhalos.lightcone_generators.mc_lightcone_halos import weighted_lc_halos
-from diffsky.mass_functions import mc_hosts
 from diffsky.param_utils.spspop_param_utils import (
     DEFAULT_SPSPOP_U_PARAMS,
     get_bounded_spspop_params_tw_dust,
@@ -26,6 +24,7 @@ from jax.example_libraries import optimizers as jax_opt
 from jax.flatten_util import ravel_pytree
 
 from .. import emline_luminosity
+from ..lightcone_generators import generate_lc_data
 from ..n_mag import N_0, N_FLOOR, n_mag_kern
 
 u_diffstarpop_theta_default, u_diffstarpop_unravel = ravel_pytree(
@@ -80,6 +79,7 @@ def get_phot_loss(
     lc_vol_mpc3,
     t_table,
     ssp_data,
+    tcurves,
     precomputed_ssp_mag_table,
     z_phot_table,
     wave_eff_table,
@@ -88,22 +88,35 @@ def get_phot_loss(
     frac_cat,
     num_halos=100,
     lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
+    lgmp_max=15.0,
 ):
     # generate lightcone and photometry data
-    lc_halopop = weighted_lc_halos(
-        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, lc_sky_area_degsq
+    z_phot_table = 10 ** jnp.linspace(jnp.log10(lc_z_min), jnp.log10(lc_z_max), 15)
+    lc_args = (
+        ran_key,
+        num_halos,
+        lc_z_min,
+        lc_z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
     )
 
+    lc_data = generate_lc_data(*lc_args)
+
+    gal_weight = lc_data.cen_weight * lc_data.sat_weight
     lg_n_model, _ = n_mag_kern(
         diffstarpop_params,
         spspop_params,
         ran_key,
-        lc_halopop.z_obs,
-        lc_halopop.t_obs,
-        lc_halopop.mah_params,
-        lc_halopop.logmp0,
-        lc_halopop.nhalos,
+        lc_data.z_obs,
+        lc_data.t_obs,
+        lc_data.mah_params,
+        lc_data.logmp0,
+        gal_weight,
         lc_vol_mpc3,
         t_table,
         ssp_data,
@@ -140,6 +153,7 @@ def get_emline_loss(
     lc_vol_mpc3,
     t_table,
     ssp_data,
+    tcurves,
     diffstarpop_params,
     spspop_params,
     mzr_params,
@@ -148,16 +162,30 @@ def get_emline_loss(
     fb,
     num_halos=100,
     lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
+    lgmp_max=15.0,
 ):
-    lc_halopop = weighted_lc_halos(
-        ran_key, num_halos, lc_z_min, lc_z_max, lgmp_min, lgmp_max, lc_sky_area_degsq
+    z_phot_table = 10 ** jnp.linspace(jnp.log10(lc_z_min), jnp.log10(lc_z_max), 15)
+    lc_args = (
+        ran_key,
+        num_halos,
+        lc_z_min,
+        lc_z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
     )
+
+    lc_data = generate_lc_data(*lc_args)
+
+    gal_weight = lc_data.cen_weight * lc_data.sat_weight
     L_emline_cgs, _ = emline_luminosity.compute_emline_luminosity(
         ran_key,
-        lc_halopop.z_obs,
-        lc_halopop.t_obs,
-        lc_halopop.mah_params,
+        lc_data.z_obs,
+        lc_data.t_obs,
+        lc_data.mah_params,
         diffstarpop_params,
         spspop_params,
         mzr_params,
@@ -172,7 +200,7 @@ def get_emline_loss(
     sig = jnp.diff(lg_emline_Lbin_edges) / 2
     sig = sig.reshape(sig.size, 1)
     _, emline_N = emline_luminosity.get_emline_luminosity_func(
-        L_emline_cgs, lc_halopop.nhalos, sig=sig, lgL_bin_edges=lg_emline_Lbin_edges
+        L_emline_cgs, gal_weight, sig=sig, lgL_bin_edges=lg_emline_Lbin_edges
     )
     # take care of bins with low/zero number counts in a similar way to n_mag.get_n_data_err(), using same N_floor and N_0:
     emline_N = jnp.where(emline_N > N_FLOOR, emline_N, N_0)
@@ -206,6 +234,7 @@ def _loss_phot_kern(
     lc_vol_mpc3,
     t_table,
     ssp_data,
+    tcurves,
     precomputed_ssp_mag_table,
     z_phot_table,
     wave_eff_table,
@@ -245,6 +274,7 @@ def _loss_phot_kern(
         lc_vol_mpc3,
         t_table,
         ssp_data,
+        tcurves,
         precomputed_ssp_mag_table,
         z_phot_table,
         wave_eff_table,
@@ -275,6 +305,7 @@ _L_pk = (
     0,
     None,
     None,
+    None,
     0,
     0,
     0,
@@ -303,6 +334,7 @@ def _loss_emline_kern(
     lc_vol_mpc3,
     t_table,
     ssp_data,
+    tcurves,
     mzr_params,
     scatter_params,
     cosmo_params,
@@ -317,9 +349,6 @@ def _loss_emline_kern(
     u_spspop_params = u_spspop_unravel(u_spspop_theta)
     spspop_params = get_bounded_spspop_params_tw_dust(u_spspop_params)
 
-    u_ssperrpop_params = u_zero_ssperrpop_unravel(u_ssperrpop_theta)
-    ssperrpop_params = get_bounded_ssperr_params(u_ssperrpop_params)
-
     emline_loss_args = (
         ran_key,
         emline_wave_aa,
@@ -332,6 +361,7 @@ def _loss_emline_kern(
         lc_vol_mpc3,
         t_table,
         ssp_data,
+        tcurves,
         diffstarpop_params,
         spspop_params,
         mzr_params,
@@ -362,6 +392,7 @@ def _loss_phot_and_emline_multi_z(
     lc_vol_mpc3,
     t_table,
     ssp_data,
+    tcurves,
     precomputed_ssp_mag_table,
     z_phot_table,
     wave_eff_table,
@@ -394,6 +425,7 @@ def _loss_phot_and_emline_multi_z(
         lc_vol_mpc3,
         t_table,
         ssp_data,
+        tcurves,
         precomputed_ssp_mag_table,
         z_phot_table,
         wave_eff_table,
@@ -458,6 +490,7 @@ def fit_phot_and_emline_multi_z(
     lc_vol_mpc3,
     t_table,
     ssp_data,
+    tcurves,
     precomputed_ssp_mag_table,
     z_phot_table,
     wave_eff_table,
@@ -494,6 +527,7 @@ def fit_phot_and_emline_multi_z(
         lc_vol_mpc3,
         t_table,
         ssp_data,
+        tcurves,
         precomputed_ssp_mag_table,
         z_phot_table,
         wave_eff_table,
