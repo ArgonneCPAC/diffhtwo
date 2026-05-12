@@ -2,10 +2,10 @@ from collections import namedtuple
 
 import jax.numpy as jnp
 import numpy as np
+from diffsky import diffndhist_lomem
 from DisCoWebS.data_loader import sdss_loader as sdl
 from dsps.data_loaders import load_transmission_curve
 
-from .. import diffndhist
 from ..defaults import (
     SDSS_AREA_DEG2,
     SDSS_MAGR_THRESH,
@@ -54,11 +54,10 @@ def load_sdss_cuts_applied(drn):
 def refresh_lh_centroids(DATASET):
     lh_centroids, d_centroids = get_lh_centroids(DATASET.dataset)
 
-    # run initial diffndhist with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
     lh_centroids_hi = lh_centroids + (d_centroids / 2)
-    N_data_lh = diffndhist.tw_ndhist(
+    N_data_lh = diffndhist_lomem.tw_ndhist(
         DATASET.dataset,
         dataset_sig,
         lh_centroids_lo,
@@ -159,11 +158,11 @@ def get_sdss_data(
 
     lh_centroids, d_centroids = get_lh_centroids(dataset)
 
-    # run initial diffndhist with fixed dmag
+    # run initial diffndhist_lomem with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
     lh_centroids_hi = lh_centroids + (d_centroids / 2)
-    N_data_lh = diffndhist.tw_ndhist(
+    N_data_lh = diffndhist_lomem.tw_ndhist(
         dataset,
         dataset_sig,
         lh_centroids_lo,

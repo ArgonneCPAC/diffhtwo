@@ -1,10 +1,10 @@
 from functools import partial
 
 import jax.numpy as jnp
+from diffsky import diffndhist_lomem
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from .. import diffndhist as diffndhist2
 from .phot_kern import get_colors_mags
 
 
@@ -35,7 +35,7 @@ def N_colors_mags_lh(
         z_obs = fitting_data.lc_data.z_obs.reshape(fitting_data.lc_data.z_obs.size, 1)
         obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
 
-        N = diffndhist2.tw_ndhist_weighted(
+        N = diffndhist_lomem.tw_ndhist_weighted(
             obs_color_mag,
             sig,
             weights,
@@ -44,7 +44,7 @@ def N_colors_mags_lh(
         )
 
     else:
-        N = diffndhist2.tw_ndhist_weighted(
+        N = diffndhist_lomem.tw_ndhist_weighted(
             obs_color_mag,
             sig,
             weights,

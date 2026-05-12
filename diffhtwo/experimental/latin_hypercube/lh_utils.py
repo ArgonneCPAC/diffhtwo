@@ -3,8 +3,8 @@ from collections import namedtuple
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
+from diffsky import diffndhist_lomem
 
-from .. import diffndhist
 from .. import param_utils as pu
 from ..lightcone_generators import generate_lc_data
 
@@ -191,7 +191,7 @@ def modulate_dmag(dataset, lh_centroid, Nmax, dmag, D_MAG_MAX=1.0):
 
     while dmag < D_MAG_MAX:
         sig = jnp.zeros(lh_centroid.shape) + (dmag / 2)
-        Nbin = diffndhist.tw_ndhist(
+        Nbin = diffndhist_lomem.tw_ndhist(
             dataset,
             sig,  # (nbins, ndim)
             lh_centroid - (dmag / 2),  # (nbins, ndim)
@@ -220,7 +220,7 @@ def enlarge_lh_bins(dataset, lh_centroids, Nmax, dmag, dz):
 
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
 
-    N_data_lh = diffndhist.tw_ndhist(
+    N_data_lh = diffndhist_lomem.tw_ndhist(
         dataset,
         dataset_sig,
         lh_centroids - (d_centroids / 2),

@@ -6,6 +6,7 @@ jax.config.update("jax_enable_x64", True)
 jax.config.update("jax_debug_nans", True)
 jax.config.update("jax_debug_infs", True)
 import jax.numpy as jnp
+from diffsky import diffndhist_lomem
 from diffsky.dustpop import tw_dustpop_mono_noise
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
 from diffsky.experimental.kernels import mc_phot_kernels as mcpk
@@ -13,7 +14,6 @@ from diffsky.experimental.kernels import ssp_weight_kernels as sspwk
 from jax import jit as jjit
 from jax import vmap
 
-from . import diffndhist as diffndhist2
 from .emline_utils import get_ssp_emline_luminosity
 
 LGMET_SCATTER = 0.2
@@ -167,7 +167,7 @@ def get_emline_luminosity_func(
     if sig is None:
         sig = jnp.zeros_like(lgL_bin_lo) + (dlgL_bin / 2)
 
-    tw_hist_weighted = diffndhist2.tw_ndhist_weighted(
+    tw_hist_weighted = diffndhist_lomem.tw_ndhist_weighted(
         lgL_emline, sig, w, lgL_bin_lo, lgL_bin_hi
     )
 

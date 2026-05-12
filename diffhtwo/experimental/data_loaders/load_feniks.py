@@ -5,9 +5,9 @@ from pathlib import Path
 import jax.numpy as jnp
 import numpy as np
 from astropy.io import ascii
+from diffsky import diffndhist_lomem
 from dsps.data_loaders.defaults import TransmissionCurve
 
-from .. import diffndhist
 from ..defaults import (
     FENIKS_AREA_DEG2,
     FENIKS_MAGK_THRESH,
@@ -48,11 +48,10 @@ def get_mag_ab(phot_table, col_name, ZP=25):
 def refresh_lh_centroids(DATASET):
     lh_centroids, d_centroids = get_lh_centroids(DATASET.dataset)
 
-    # run initial diffndhist with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
     lh_centroids_hi = lh_centroids + (d_centroids / 2)
-    N_data_lh = diffndhist.tw_ndhist(
+    N_data_lh = diffndhist_lomem.tw_ndhist(
         DATASET.dataset,
         dataset_sig,
         lh_centroids_lo,
@@ -320,11 +319,11 @@ def get_feniks_data(
 
     lh_centroids, d_centroids = get_lh_centroids(dataset)
 
-    # run initial diffndhist with fixed dmag
+    # run initial diffndhist_lomem with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
     lh_centroids_hi = lh_centroids + (d_centroids / 2)
-    N_data_lh = diffndhist.tw_ndhist(
+    N_data_lh = diffndhist_lomem.tw_ndhist(
         dataset,
         dataset_sig,
         lh_centroids_lo,
