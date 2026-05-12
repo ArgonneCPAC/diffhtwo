@@ -1,6 +1,6 @@
 from jax import jit as jjit
 
-from ..kernels.Np_phot import N_colors_mags_lh
+from ..kernels.N_phot import N_colors_mags_lh
 from ..param_utils import get_param_collection_from_u_theta
 from .loss_functions import poisson_loss
 

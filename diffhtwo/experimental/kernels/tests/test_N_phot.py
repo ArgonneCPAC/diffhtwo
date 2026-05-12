@@ -2,7 +2,7 @@ import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from jax import random as jran
 
-from ..Np_phot import N_colors_mags_lh
+from ..N_phot import N_colors_mags_lh
 
 
 def test_N_colors_mags_lh(feniks_single_z_data):

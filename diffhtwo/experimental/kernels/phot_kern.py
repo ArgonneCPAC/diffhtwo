@@ -1,12 +1,12 @@
 from functools import partial
 
 import jax.numpy as jnp
+from diffsky import diffndhist_lomem
 from diffsky.experimental.kernels import phot_kernels_merging as pkm
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from .. import diffndhist as diffndhist2
 from .cat_weights import compute_cat_weights
 from .gehrels_err import get_n_data_err
 from .lc_phot_kern import mc_phot_kern_merging_wrapper
@@ -100,7 +100,7 @@ def n_colors_mags_lh(
         z_obs = lc_data.z_obs.reshape(lc_data.z_obs.size, 1)
         obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
 
-        N = diffndhist2.tw_ndhist_weighted(
+        N = diffndhist_lomem.tw_ndhist_weighted(
             obs_color_mag,
             sig,
             gal_weight,
@@ -110,7 +110,7 @@ def n_colors_mags_lh(
         lg_n, lg_n_avg_err = get_n_data_err(N, lc_data.lh_vol_mpc3)
 
     else:
-        N = diffndhist2.tw_ndhist_weighted(
+        N = diffndhist_lomem.tw_ndhist_weighted(
             obs_color_mag,
             sig,
             gal_weight,
