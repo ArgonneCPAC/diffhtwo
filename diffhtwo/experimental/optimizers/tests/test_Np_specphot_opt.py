@@ -37,9 +37,19 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         u_theta = get_params(opt_state)
         loss, grads = _loss_and_grad_phot_kern_multi_z(u_theta, *other)
 
-        for g in range(len(grads)):
-            assert np.isfinite(grads[g]).all()
-            assert (grads[g] != 0.0).all()
+        assert np.isfinite(
+            grads[0]
+        ).all(), "some of the diffstarpop grads are not finite"
+        assert (grads[0] != 0.0).all(), "some of the diffstarpop grads are exactly zero"
+
+        assert np.isfinite(grads[1]).all(), "some of the spspop grads are not finite"
+        assert (grads[1] != 0.0).all(), "some of the spspop grads are exactly zero"
+
+        assert np.isfinite(grads[2]).all(), "some of the ssperr grads are not finite"
+        assert (grads[2] != 0.0).all(), "some of the ssperr grads are exactly zero"
+
+        assert np.isfinite(grads[3]).all(), "some of the merging grads are not finite"
+        assert (grads[3] != 0.0).all(), "some of the merging grads are exactly zero"
 
         opt_state = opt_update(i, grads, opt_state)
 
