@@ -17,7 +17,6 @@ from ..Np_specphot_opt import (
 )
 
 
-@pytest.mark.skip(reason="temporarily disabled")
 def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
     feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
 
@@ -91,6 +90,9 @@ def test_phot_opt(feniks_multi_z_data):
     assert check_param_collection_is_ok(param_collection_fit)
 
 
+@pytest.mark.skip(
+    reason="This will be enabled when gd_specphot_kern_merging is implemented"
+)
 def test_specphot_opt(fake_subset_ssp_data, feniks_multi_z_data, hizels):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
     emline_wave_table = jnp.array([emline_wave_aa])

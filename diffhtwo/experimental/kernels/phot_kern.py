@@ -55,7 +55,7 @@ def mag_kern(
         param_collection,
         lc_data,
     )
-    obs_mags = phot_kern_results.obs_mags
+    obs_mags = phot_kern_results.obs_mags_weighted
 
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
