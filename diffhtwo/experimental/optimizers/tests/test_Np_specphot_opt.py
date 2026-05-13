@@ -25,6 +25,11 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
     ran_key = jran.key(0)
 
     u_theta_init = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
+    diffstarpop_fields = DEFAULT_PARAM_COLLECTION.diffstarpop_params._fields
+    spspop_fields = DEFAULT_PARAM_COLLECTION.spspop_params._fields
+    ssperr_fields = DEFAULT_PARAM_COLLECTION.ssperr_params._fields
+    merging_fields = DEFAULT_PARAM_COLLECTION.merging_params._fields
+
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
 
     other = (
@@ -38,19 +43,61 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         u_theta = get_params(opt_state)
         loss, grads = _loss_and_grad_phot_kern_multi_z(u_theta, *other)
 
+        # Check all diffstarpop grads are nonzero
+        diffstarpop_grads = grads[0]
+        diffstarpop_zero_grad_params = []
         assert np.isfinite(
-            grads[0]
+            diffstarpop_grads
         ).all(), "some of the diffstarpop grads are not finite"
-        assert (grads[0] != 0.0).all(), "some of the diffstarpop grads are exactly zero"
+        for g in range(0, len(diffstarpop_grads)):
+            if diffstarpop_grads[g] == 0.0:
+                diffstarpop_zero_grad_params.append(diffstarpop_fields[g])
 
-        assert np.isfinite(grads[1]).all(), "some of the spspop grads are not finite"
-        assert (grads[1] != 0.0).all(), "some of the spspop grads are exactly zero"
+        assert (
+            len(diffstarpop_zero_grad_params) == 0
+        ), f"These diffstarpop params have exactly zero grads: {diffstarpop_zero_grad_params}"
 
-        assert np.isfinite(grads[2]).all(), "some of the ssperr grads are not finite"
-        assert (grads[2] != 0.0).all(), "some of the ssperr grads are exactly zero"
+        # Check all spspop grads are nonzero
+        spspop_grads = grads[1]
+        spspop_zero_grad_params = []
+        assert np.isfinite(
+            spspop_grads
+        ).all(), "some of the spspop grads are not finite"
 
-        assert np.isfinite(grads[3]).all(), "some of the merging grads are not finite"
-        assert (grads[3] != 0.0).all(), "some of the merging grads are exactly zero"
+        for g in range(0, len(spspop_grads)):
+            if spspop_grads[g] == 0.0:
+                spspop_zero_grad_params.append(spspop_fields[g])
+        assert (
+            len(spspop_zero_grad_params) == 0
+        ), f"These spspop params have exactly zero grads: {spspop_zero_grad_params}"
+
+        # Check all ssperr grads are nonzero
+        ssperr_grads = grads[2]
+        ssperr_zero_grad_params = []
+        assert np.isfinite(
+            ssperr_grads
+        ).all(), "some of the ssperr grads are not finite"
+
+        for g in range(0, len(ssperr_grads)):
+            if ssperr_grads[g] == 0.0:
+                ssperr_zero_grad_params.append(ssperr_fields[g])
+        assert (
+            len(ssperr_zero_grad_params) == 0
+        ), f"These ssperr params have exactly zero grads: {ssperr_zero_grad_params}"
+
+        # Check all merging grads are nonzero
+        merging_grads = grads[3]
+        merging_zero_grad_params = []
+        assert np.isfinite(
+            merging_grads
+        ).all(), "some of the merging grads are not finite"
+
+        for g in range(0, len(merging_grads)):
+            if merging_grads[g] == 0.0:
+                merging_zero_grad_params.append(merging_fields[g])
+        assert (
+            len(merging_zero_grad_params) == 0
+        ), f"These merging params have exactly zero grads: {merging_zero_grad_params}"
 
         opt_state = opt_update(i, grads, opt_state)
 
