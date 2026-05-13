@@ -24,6 +24,11 @@ ZOUT = "feniks_zout_selected_for_testing.ecsv"
 
 
 @pytest.fixture(scope="session")
+def ran_key():
+    return jran.key(0)
+
+
+@pytest.fixture(scope="session")
 def fake_subset_ssp_data():
     ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
     emline_name = ssp_data.ssp_emline_wave._fields[0]
