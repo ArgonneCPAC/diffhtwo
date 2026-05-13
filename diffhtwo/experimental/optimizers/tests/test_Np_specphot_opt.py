@@ -115,7 +115,6 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         opt_state = opt_update(i, grads, opt_state)
 
 
-@pytest.mark.skip(reason="wait...")
 def test_phot_opt(feniks_multi_z_data):
     feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
 
