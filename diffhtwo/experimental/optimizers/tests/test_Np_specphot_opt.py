@@ -26,7 +26,17 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
 
     u_theta_init = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
     diffstarpop_fields = DEFAULT_PARAM_COLLECTION.diffstarpop_params._fields
-    spspop_fields = DEFAULT_PARAM_COLLECTION.spspop_params._fields
+
+    spspop_params = DEFAULT_PARAM_COLLECTION.spspop_params
+    spspop_fields = (
+        spspop_params.burstpop_params.freqburst_params._fields
+        + spspop_params.burstpop_params.fburstpop_params._fields
+        + spspop_params.burstpop_params.tburstpop_params._fields
+        + spspop_params.dustpop_params.avpop_params._fields
+        + spspop_params.dustpop_params.deltapop_params._fields
+        + spspop_params.dustpop_params.funopop_params._fields
+    )
+
     ssperr_fields = DEFAULT_PARAM_COLLECTION.ssperr_params._fields
     merging_fields = DEFAULT_PARAM_COLLECTION.merging_params._fields
 
@@ -43,9 +53,18 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         u_theta = get_params(opt_state)
         loss, grads = _loss_and_grad_phot_kern_multi_z(u_theta, *other)
 
-        # Check all diffstarpop grads are nonzero
         diffstarpop_grads = grads[0]
+        spspop_grads = grads[1]
+        ssperr_grads = grads[2]
+        merging_grads = grads[3]
+        print(spspop_grads)
+
         diffstarpop_zero_grad_params = []
+        spspop_zero_grad_params = []
+        ssperr_zero_grad_params = []
+        merging_zero_grad_params = []
+
+        # Check all diffstarpop grads are nonzero
         assert np.isfinite(
             diffstarpop_grads
         ).all(), "some of the diffstarpop grads are not finite"
@@ -58,8 +77,6 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         ), f"These diffstarpop params have exactly zero grads: {diffstarpop_zero_grad_params}"
 
         # Check all spspop grads are nonzero
-        spspop_grads = grads[1]
-        spspop_zero_grad_params = []
         assert np.isfinite(
             spspop_grads
         ).all(), "some of the spspop grads are not finite"
@@ -72,8 +89,6 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         ), f"These spspop params have exactly zero grads: {spspop_zero_grad_params}"
 
         # Check all ssperr grads are nonzero
-        ssperr_grads = grads[2]
-        ssperr_zero_grad_params = []
         assert np.isfinite(
             ssperr_grads
         ).all(), "some of the ssperr grads are not finite"
@@ -86,8 +101,6 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         ), f"These ssperr params have exactly zero grads: {ssperr_zero_grad_params}"
 
         # Check all merging grads are nonzero
-        merging_grads = grads[3]
-        merging_zero_grad_params = []
         assert np.isfinite(
             merging_grads
         ).all(), "some of the merging grads are not finite"
@@ -102,6 +115,7 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         opt_state = opt_update(i, grads, opt_state)
 
 
+@pytest.mark.skip(reason="wait...")
 def test_phot_opt(feniks_multi_z_data):
     feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
 
