@@ -1,4 +1,4 @@
-name: Weekly cron testing of main branch
+name: pytest against diffsky:gd_bugfix
 
 on:
   workflow_dispatch: null
