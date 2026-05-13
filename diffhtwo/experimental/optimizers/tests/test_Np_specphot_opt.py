@@ -24,9 +24,7 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
     step_size = 0.1
     ran_key = jran.key(0)
 
-    u_theta_init = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
     diffstarpop_fields = DEFAULT_PARAM_COLLECTION.diffstarpop_params._fields
-
     spspop_params = DEFAULT_PARAM_COLLECTION.spspop_params
     spspop_fields = (
         spspop_params.burstpop_params.freqburst_params._fields
@@ -36,19 +34,17 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         + spspop_params.dustpop_params.deltapop_params._fields
         + spspop_params.dustpop_params.funopop_params._fields
     )
-
     ssperr_fields = DEFAULT_PARAM_COLLECTION.ssperr_params._fields
     merging_fields = DEFAULT_PARAM_COLLECTION.merging_params._fields
 
+    u_theta_init = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
-
     other = (
         ran_key,
         feniks_meta_data,
         feniks_fitting_data,
     )
     opt_state = opt_init(u_theta_init)
-
     for i in range(n_steps):
         u_theta = get_params(opt_state)
         loss, grads = _loss_and_grad_phot_kern_multi_z(u_theta, *other)
@@ -57,7 +53,6 @@ def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
         spspop_grads = grads[1]
         ssperr_grads = grads[2]
         merging_grads = grads[3]
-        print(spspop_grads)
 
         diffstarpop_zero_grad_params = []
         spspop_zero_grad_params = []
