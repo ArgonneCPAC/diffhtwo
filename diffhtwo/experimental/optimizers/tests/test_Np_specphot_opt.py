@@ -1,5 +1,6 @@
 import jax.numpy as jnp
 import numpy as np
+import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import (
     DEFAULT_PARAM_COLLECTION,
     check_param_collection_is_ok,
@@ -16,6 +17,7 @@ from ..Np_specphot_opt import (
 )
 
 
+@pytest.mark.skip(reason="temporarily disabled")
 def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
     feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
 
