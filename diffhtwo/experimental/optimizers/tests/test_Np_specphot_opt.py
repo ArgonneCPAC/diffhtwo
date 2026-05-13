@@ -36,26 +36,13 @@ def multistep_grads(ran_key, feniks_multi_z_data):
         loss, grads = _loss_and_grad_phot_kern_multi_z(u_theta, *other)
         multistep_grads.append(grads)
         opt_state = opt_update(i, grads, opt_state)
+    return multistep_grads, n_steps
 
-    return multistep_grads
 
-
-def test_all_diffstarpop_u_param_grads_are_nonzero(multistep_grads):
+@pytest.fixture(scope="module")
+def diffsky_param_fields():
     diffstarpop_fields = DEFAULT_PARAM_COLLECTION.diffstarpop_params._fields
 
-    for step in range(len(multistep_grads)):
-        diffstarpop_grads = multistep_grads[step][0]
-        diffstarpop_zero_grad_params = []
-
-        assert np.isfinite(
-            diffstarpop_grads
-        ).all(), "some of the diffstarpop grads are not finite"
-        for g in range(0, len(diffstarpop_grads)):
-            if diffstarpop_grads[g] == 0.0:
-                diffstarpop_zero_grad_params.append(diffstarpop_fields[g])
-
-
-def test_all_spspop_u_param_grads_are_nonzero(multistep_grads):
     spspop_params = DEFAULT_PARAM_COLLECTION.spspop_params
     spspop_fields = (
         spspop_params.burstpop_params.freqburst_params._fields
@@ -66,48 +53,47 @@ def test_all_spspop_u_param_grads_are_nonzero(multistep_grads):
         + spspop_params.dustpop_params.funopop_params._fields
     )
 
-    for step in range(len(multistep_grads)):
-        spspop_grads = multistep_grads[step][1]
-        print(step)
-        print(spspop_grads)
-        spspop_zero_grad_params = []
-
-        assert np.isfinite(
-            spspop_grads
-        ).all(), "some of the spspop grads are not finite"
-        for g in range(0, len(spspop_grads)):
-            if spspop_grads[g] == 0.0:
-                spspop_zero_grad_params.append(spspop_fields[g])
-
-
-def test_all_ssperr_u_param_grads_are_nonzero(multistep_grads):
     ssperr_fields = DEFAULT_PARAM_COLLECTION.ssperr_params._fields
 
-    for step in range(len(multistep_grads)):
-        ssperr_grads = multistep_grads[step][2]
-        ssperr_zero_grad_params = []
-
-        assert np.isfinite(
-            ssperr_grads
-        ).all(), "some of the ssperr grads are not finite"
-        for g in range(0, len(ssperr_grads)):
-            if ssperr_grads[g] == 0.0:
-                ssperr_zero_grad_params.append(ssperr_fields[g])
-
-
-def test_all_merging_u_param_grads_are_nonzero(multistep_grads):
     merging_fields = DEFAULT_PARAM_COLLECTION.merging_params._fields
 
+    return diffstarpop_fields, spspop_fields, ssperr_fields, merging_fields
+
+
+@pytest.fixture(scope="module")
+def diffsky_param_names():
+    return "diffstarpop", "spspop", "ssperr", "merging"
+
+
+@pytest.mark.parametrize("param_idx", [0, 1, 2, 3])
+def test_all_diffsky_u_param_grads_are_nonzero(
+    param_idx, diffsky_param_fields, diffsky_param_names, multistep_grads
+):
+    multistep_grads, n_steps = multistep_grads
+    fields = diffsky_param_fields[param_idx]
+
+    grads = multistep_grads[0][param_idx]
+    n_grads = len(grads)
+    zero_grad_flags = np.zeros(n_grads)
+
     for step in range(len(multistep_grads)):
-        merging_grads = multistep_grads[step][3]
-        merging_zero_grad_params = []
+        grads = multistep_grads[step][param_idx]
 
         assert np.isfinite(
-            merging_grads
-        ).all(), "some of the merging grads are not finite"
-        for g in range(0, len(merging_grads)):
-            if merging_grads[g] == 0.0:
-                merging_zero_grad_params.append(merging_fields[g])
+            grads
+        ).all(), f"some of the {diffsky_param_names[param_idx]} grads are not finite"
+        for g in range(0, n_grads):
+            if grads[g] == 0.0:
+                zero_grad_flags[g] += 1
+
+    zero_grad_params = []
+    for g in range(0, n_grads):
+        if zero_grad_flags[g] == n_steps:
+            zero_grad_params.append(fields[g])
+
+    assert (
+        len(zero_grad_params) == 0
+    ), f"These {diffsky_param_names[param_idx]} have exactly zero grads: {zero_grad_params}"
 
 
 def test_phot_opt(ran_key, feniks_multi_z_data):
