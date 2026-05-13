@@ -1,10 +1,12 @@
 import jax.numpy as jnp
 import numpy as np
+import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import (
     DEFAULT_PARAM_COLLECTION,
     check_param_collection_is_ok,
 )
 from jax import random as jran
+from jax.example_libraries import optimizers as jax_opt
 
 from ... import param_utils as pu
 from ..Np_specphot_opt import (
@@ -13,6 +15,45 @@ from ..Np_specphot_opt import (
     fit_N_multi_z,
     fit_sdss_feniks_hizels,
 )
+
+
+@pytest.mark.skip(reason="temporarily disabled")
+def test_all_diffsky_u_param_grads_stay_nonzero_multistep(feniks_multi_z_data):
+    feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
+
+    n_steps = 10
+    step_size = 0.1
+    ran_key = jran.key(0)
+
+    u_theta_init = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+
+    other = (
+        ran_key,
+        feniks_meta_data,
+        feniks_fitting_data,
+    )
+    opt_state = opt_init(u_theta_init)
+
+    for i in range(n_steps):
+        u_theta = get_params(opt_state)
+        loss, grads = _loss_and_grad_phot_kern_multi_z(u_theta, *other)
+
+        assert np.isfinite(
+            grads[0]
+        ).all(), "some of the diffstarpop grads are not finite"
+        assert (grads[0] != 0.0).all(), "some of the diffstarpop grads are exactly zero"
+
+        assert np.isfinite(grads[1]).all(), "some of the spspop grads are not finite"
+        assert (grads[1] != 0.0).all(), "some of the spspop grads are exactly zero"
+
+        assert np.isfinite(grads[2]).all(), "some of the ssperr grads are not finite"
+        assert (grads[2] != 0.0).all(), "some of the ssperr grads are exactly zero"
+
+        assert np.isfinite(grads[3]).all(), "some of the merging grads are not finite"
+        assert (grads[3] != 0.0).all(), "some of the merging grads are exactly zero"
+
+        opt_state = opt_update(i, grads, opt_state)
 
 
 def test_phot_opt(feniks_multi_z_data):
