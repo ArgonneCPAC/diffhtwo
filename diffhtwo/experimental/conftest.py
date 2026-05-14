@@ -82,7 +82,7 @@ def feniks_single_z_data(ran_key, fake_subset_ssp_data, feniks):
 
     z_min = FENIKS_Z[0]
     z_max = FENIKS_Z[1]
-    frac_N_centroids = 0.9
+    N_centroids = 100
 
     feniks_meta_data, feniks_fitting_data = lhu.get_single_zbin_lh_lc(
         ran_key,
@@ -90,7 +90,7 @@ def feniks_single_z_data(ran_key, fake_subset_ssp_data, feniks):
         z_min,
         z_max,
         ssp_data,
-        frac_N_centroids,
+        N_centroids,
     )
     return feniks_meta_data, feniks_fitting_data
 
@@ -106,7 +106,7 @@ def feniks_multi_z_data(ran_key, fake_subset_ssp_data, feniks):
     z_mins = feniks_z_min[:2]
     z_maxs = feniks_z_max[:2]
 
-    frac_N_centroids = 0.9
+    N_centroids = 100
     num_halos = 100
     feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
         ran_key,
@@ -114,7 +114,7 @@ def feniks_multi_z_data(ran_key, fake_subset_ssp_data, feniks):
         z_mins,
         z_maxs,
         ssp_data,
-        frac_N_centroids,
+        N_centroids,
         num_halos=num_halos,
     )
     return feniks_meta_data, feniks_fitting_data

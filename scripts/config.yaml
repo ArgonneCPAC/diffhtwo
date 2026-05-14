@@ -12,7 +12,7 @@ epoch:
   step_size: 0.1
 
   feniks_N_z_bins: 3
-  feniks_frac_N_centroids: 0.85
+  feniks_N_centroids: 600
 
   num_halos: 3000
 

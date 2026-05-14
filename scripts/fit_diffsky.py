@@ -115,7 +115,7 @@ if __name__ == "__main__":
             feniks_z_min[feniks_z_idx],
             feniks_z_max[feniks_z_idx],
             ssp_data,
-            cfg["epoch"]["feniks_frac_N_centroids"],
+            cfg["epoch"]["feniks_N_centroids"],
             lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
             num_halos=cfg["epoch"]["num_halos"],
         )
