@@ -109,7 +109,6 @@ def test_phot_opt(ran_key, feniks_multi_z_data):
     assert np.isfinite(loss)
     for g in range(len(grads)):
         assert np.isfinite(grads[g]).all()
-        # assert (grad[g] != 0.0).all()
 
     trainable_params = pu.get_trainable_params(fit_type="all")
     loss_hist, u_theta_fit = fit_N_multi_z(
@@ -156,7 +155,6 @@ def test_specphot_opt(ran_key, fake_subset_ssp_data, feniks_multi_z_data, hizels
     assert np.isfinite(loss)
     for g in range(len(grads)):
         assert np.isfinite(grads[g]).all()
-        # assert (grad[g] != 0.0).all()
 
     trainable_params = pu.get_trainable_params(fit_type="all")
     loss_hist, u_theta_fit = fit_sdss_feniks_hizels(
