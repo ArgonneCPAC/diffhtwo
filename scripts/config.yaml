@@ -15,3 +15,9 @@ epoch:
   feniks_n_centroids: 500
 
   num_halos: 300
+
+defaults:
+  diffstarpop: False
+  spspop: False
+  ssperr: False
+  merging: False

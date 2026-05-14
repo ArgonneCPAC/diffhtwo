@@ -9,13 +9,13 @@ ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kr
 
 plots:
   num_halos : 1000
-  plot_colors_mags: True
-  plot_mags: True
-  plot_ssperr: True
-  plot_massive_cen_colors: True
-  plot_satquench: True
-  plot_satquench_model: True
-  plot_insitu_smhm: True
-  plot_uvj: True
+  plot_colors_mags: False
+  plot_mags: False
+  plot_ssperr: False
+  plot_massive_cen_colors: False
+  plot_satquench: False
+  plot_satquench_model: False
+  plot_insitu_smhm: False
+  plot_uvj: False
   plot_exsitu_frac: True
-  plot_avpop: True
+  plot_avpop: False

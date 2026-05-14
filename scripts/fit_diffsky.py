@@ -8,6 +8,12 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
+from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
+from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
+from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
+from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
+    DiffstarPop_Params_Diffstarpopfits_mgash,
+)
 from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
@@ -17,6 +23,10 @@ from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks
 from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
 from diffhtwo.experimental.optimizers import Np_specphot_opt
+
+DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
+    "galacticus_in_plus_ex_situ"
+]
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -52,6 +62,23 @@ if __name__ == "__main__":
         fit_start_drn,
         cfg["start_runid"] + "_" + cfg["start_fit_type"],
     )
+    if cfg["defaults"]["diffstarpop"]:
+        param_collection_fit = param_collection_fit._replace(
+            diffstarpop_params=DIFFSTARPOP_GALACTICUS_exsitu
+        )
+    if cfg["defaults"]["spspop"]:
+        param_collection_fit = param_collection_fit._replace(
+            spspop_params=DEFAULT_SPSPOP_PARAMS
+        )
+    if cfg["defaults"]["ssperr"]:
+        param_collection_fit = param_collection_fit._replace(
+            ssperr_params=ZERO_SSPERR_PARAMS
+        )
+    if cfg["defaults"]["merging"]:
+        param_collection_fit = param_collection_fit._replace(
+            merging_params=DEFAULT_MERGE_PARAMS
+        )
+
     u_theta_fit = pu.get_u_theta_from_param_collection(param_collection_fit)
 
     # fit dirs
