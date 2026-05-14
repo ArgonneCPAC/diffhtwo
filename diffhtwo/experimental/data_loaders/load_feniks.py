@@ -73,7 +73,7 @@ def get_lh_centroids(dataset):
     mu[2] = mu[2] + 0.0  # r - i
     mu[3] = mu[3] + 0.1  # z - Y
     mu[4] = mu[4] + 0.15  # z - Y
-    mu[5] = mu[5] + 0.25  # z - Y
+    mu[5] = mu[5] + 0.0  # Y - J
     mu[6] = mu[6] + 0.0  # J - H
     mu[8] = mu[8] + 0.0  # u
 
@@ -116,14 +116,14 @@ def get_feniks_data(
     # Transmission curves and filter mag thresholds
 
     feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=27.0,
-        HSC_G=27.0,
-        HSC_R=27.0,
-        HSC_I=27.0,
-        HSC_Z=27.0,
-        VIDEO_Y=27.0,
-        UDS_J=27.0,
-        UDS_H=27.0,
+        MegaCam_uS=25.0,
+        HSC_G=25.0,
+        HSC_R=25.0,
+        HSC_I=25.0,
+        HSC_Z=25.0,
+        VIDEO_Y=25.0,
+        UDS_J=25.0,
+        UDS_H=25.0,
         UDS_K=FENIKS_MAGK_THRESH,
     )
     feniks_in_lh = FeniksFilters(
