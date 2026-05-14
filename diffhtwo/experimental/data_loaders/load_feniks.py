@@ -29,7 +29,7 @@ ZOUT = "feniks_zout_selected.ecsv"
 
 Feniks = namedtuple("Feniks", Dataset._fields)
 
-LH_SIG = 3.5
+LH_SIG = 3.0
 LH_N_CENTROIDS = 50_000
 
 LH_D_MAG = 0.7
@@ -69,17 +69,17 @@ def refresh_lh_centroids(DATASET):
 def get_lh_centroids(dataset):
     mu = np.mean(dataset, axis=0)
 
-    mu[0] = mu[0] + 0.4  # u - g
-    mu[1] = mu[1] + 0.0  # g - r
-    mu[2] = mu[2] + 0.0  # r - i
-    mu[3] = mu[3] + 0.1  # z - Y
-    mu[4] = mu[4] + 0.15  # z - Y
-    mu[5] = mu[5] + 0.0  # Y - J
-    mu[6] = mu[6] + 0.0  # J - H
-    mu[8] = mu[8] + 0.0  # u
+    # mu[0] = mu[0] + 0.4  # u - g
+    # mu[1] = mu[1] + 0.0  # g - r
+    # mu[2] = mu[2] + 0.0  # r - i
+    # mu[3] = mu[3] + 0.1  # z - Y
+    # mu[4] = mu[4] + 0.15  # z - Y
+    # mu[5] = mu[5] + 0.0  # Y - J
+    # mu[6] = mu[6] + 0.0  # J - H
+    # mu[8] = mu[8] + 0.0  # u
 
-    mu[-2] = mu[-2] - 1  # K
-    mu[-1] = mu[-1] + 0.5  # redshift
+    # mu[-2] = mu[-2] - 1  # K
+    # mu[-1] = mu[-1] + 0.5  # redshift
 
     cov = np.cov(dataset.T)
 
