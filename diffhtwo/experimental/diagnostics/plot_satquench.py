@@ -6,18 +6,19 @@ from matplotlib import lines as mlines
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 
 mblue = "tab:blue"
+mgreen = "tab:green"
 morange = "tab:orange"
 mred = "tab:red"
 
 tarr = np.linspace(-10, 15, 40_000)
 qprob_cen = 0.35
-host_configs = [(12.0, mblue), (13.0, morange), (15.0, mred)]
+host_configs = [(12.0, mblue), (13.0, mgreen), (14.0, morange), (15.0, mred)]
 mu_configs = [(-0.5, "--"), (-3.0, "-")]
 
 p_merge = [0.9, 0.6, 0.3]
 log_sm = [8, 9, 10]
 logmhost_infall = [12, 13, 14]
-colors = [mred, morange, mblue]
+colors = [mred, mgreen, mblue]
 
 
 def generate_sat_plots(
@@ -64,12 +65,6 @@ def generate_sat_plots(
     plot_sat_ssfr_sm(*args, plt_show=plt_show)
     plot_sat_lgfburst_mhost(*args, plt_show=plt_show)
     plot_sat_lgfburst_sm(*args, plt_show=plt_show)
-    plot_satquench_model(
-        param_collection.diffstarpop_params,
-        model_nickname,
-        savedir,
-        plt_show=plt_show,
-    )
 
 
 def plot_satquench_model(diffstarpop_params, model_nickname, savedir, plt_show=True):
@@ -116,12 +111,15 @@ def plot_satquench_model(diffstarpop_params, model_nickname, savedir, plt_show=T
         i += 1
 
     red_line = mlines.Line2D([], [], ls="-", c=mred, label=r"$m_{\rm host}=15$")
-    orange_line = mlines.Line2D([], [], ls="-", c=morange, label=r"$m_{\rm host}=13$")
+    orange_line = mlines.Line2D([], [], ls="-", c=morange, label=r"$m_{\rm host}=14$")
+    green_line = mlines.Line2D([], [], ls="-", c=mgreen, label=r"$m_{\rm host}=13$")
     blue_line = mlines.Line2D([], [], ls="-", c=mblue, label=r"$m_{\rm host}=12$")
     dashed_line = mlines.Line2D([], [], ls="--", c="gray", label=r"$\mu=1/3$")
     solid_line = mlines.Line2D([], [], ls="-", c="gray", label=r"$\mu=1/1000$")
     black_line = mlines.Line2D([], [], ls=":", c="k", label=r"${\rm P_{Q, cen}}$")
-    leg0 = ax[0].legend(handles=[red_line, orange_line, blue_line], loc="lower left")
+    leg0 = ax[0].legend(
+        handles=[red_line, orange_line, green_line, blue_line], loc="lower left"
+    )
     ax[0].add_artist(leg0)
 
     ax[0].legend(handles=[dashed_line, solid_line, black_line], loc="lower right")
