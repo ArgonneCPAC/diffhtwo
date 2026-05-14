@@ -15,7 +15,7 @@ def get_zbins_lh_lc(
     z_min,
     z_max,
     ssp_data,
-    N_centroids,
+    frac_N_centroids,
     lh_N_z_savedir=None,
     num_halos=1000,
     lc_sky_area_degsq=1000,
@@ -40,9 +40,11 @@ def get_zbins_lh_lc(
         z_sel = (dataset.lh_centroids[:, -1] > (z_min[zbin] + (dataset.lh_dz / 2))) & (
             dataset.lh_centroids[:, -1] < (z_max[zbin] - (dataset.lh_dz / 2))
         )
+        N_centroids_available = z_sel.sum()
+        N_centroids = int(frac_N_centroids * N_centroids_available)
 
         print(
-            f"{z_sel.sum()} centroids available in this z-bin out of which {N_centroids} will be selected"
+            f"{N_centroids_available} centroids available in this z-bin out of which {N_centroids} will be selected"
         )
 
         lh_centroids_z = dataset.lh_centroids[z_sel]
@@ -100,7 +102,7 @@ def get_single_zbin_lh_lc(
     z_min,
     z_max,
     ssp_data,
-    N_centroids,
+    frac_N_centroids,
     lh_N_z_savedir=None,
     num_halos=1000,
     lc_sky_area_degsq=1000,
@@ -121,9 +123,11 @@ def get_single_zbin_lh_lc(
     z_sel = (dataset.lh_centroids[:, -1] > (z_min + (dataset.lh_dz / 2))) & (
         dataset.lh_centroids[:, -1] < (z_max - (dataset.lh_dz / 2))
     )
+    N_centroids_available = z_sel.sum()
+    N_centroids = int(frac_N_centroids * N_centroids_available)
 
     print(
-        f"{z_sel.sum()} centroids available in this z-bin out of which {N_centroids} will be selected"
+        f"{N_centroids_available} centroids available in this z-bin out of which {N_centroids} will be selected"
     )
 
     lh_centroids_z = dataset.lh_centroids[z_sel]

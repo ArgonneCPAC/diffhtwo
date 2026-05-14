@@ -105,7 +105,7 @@ if __name__ == "__main__":
         FENIKS = load_feniks.refresh_lh_centroids(FENIKS)
 
         feniks_z_idx = np.random.choice(
-            len(feniks_z_min), cfg["epoch"]["feniks_n_z_bins"], replace=False
+            len(feniks_z_min), cfg["epoch"]["feniks_N_z_bins"], replace=False
         )
 
         # FENIKS
@@ -115,7 +115,7 @@ if __name__ == "__main__":
             feniks_z_min[feniks_z_idx],
             feniks_z_max[feniks_z_idx],
             ssp_data,
-            cfg["epoch"]["feniks_n_centroids"],
+            cfg["epoch"]["feniks_frac_N_centroids"],
             lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
             num_halos=cfg["epoch"]["num_halos"],
         )

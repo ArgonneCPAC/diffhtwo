@@ -79,6 +79,60 @@ if __name__ == "__main__":
     mag_thresh = feniks.filter_info.mag_thresh
     frac_cat = feniks.frac_cat
     num_halos = cfg["plots"]["num_halos"]
+
+    if cfg["plots"]["plot_satquench_model"]:
+        plot_satquench_model(
+            param_collection_fit.diffstarpop_params,
+            data_label,
+            fit_diagnostics_save_drn,
+            plt_show=False,
+        )
+
+    if cfg["plots"]["plot_insitu_smhm"]:
+        # Plot in-situ SMHM
+        print("Generating FENIKS in-situ SMHM plot...")
+        check_smhm.plot_diffstarpop_insitu_smhm(
+            DEFAULT_DIFFSTARPOP_PARAMS,
+            param_collection_fit.diffstarpop_params,
+            fit_diagnostics_save_drn + "/insitu_smhm_w_default.png",
+        )
+
+    if cfg["plots"]["plot_uvj"]:
+        # Plot feniks UVJ
+        print("Generating FENIKS UVJ plot...")
+        plot_uvj(
+            ran_key,
+            param_collection_fit,
+            ssp_data,
+            feniks_drn,
+            data_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+        )
+
+    if cfg["plots"]["plot_exsitu_frac"]:
+        # Plot feniks ex-situ frac
+        print("Generating FENIKS ex-situ frac plot...")
+        pdata = pcm.get_plotting_data(
+            **param_collection_fit._asdict(),
+            z_min=FENIKS_Z_MIN,
+            z_max=FENIKS_Z_MAX,
+            num_halos=num_halos,
+        )
+        pcm.plot_ex_situ_fraction(
+            pdata=pdata,
+            model_nickname=data_label,
+            drn_out=fit_diagnostics_save_drn,
+        )
+
+    # Plot feniks Avpop
+    if cfg["plots"]["plot_avpop"]:
+        print("Generating FENIKS Avpop plot...")
+        _ = make_avpop_mono_comparison_plots(
+            param_collection_fit.spspop_params.dustpop_params.avpop_params,
+            fname=fit_diagnostics_save_drn + "/feniks_avpop_mono.png",
+        )
+
     for zbin in range(0, len(feniks_zbins)):
         z_min = feniks_zbins[zbin][0]
         z_max = feniks_zbins[zbin][1]
@@ -160,56 +214,3 @@ if __name__ == "__main__":
                 num_halos=num_halos,
                 plt_show=False,
             )
-
-    if cfg["plots"]["plot_satquench_model"]:
-        plot_satquench_model(
-            param_collection_fit.diffstarpop_params,
-            data_label,
-            fit_diagnostics_save_drn,
-            plt_show=False,
-        )
-
-    if cfg["plots"]["plot_insitu_smhm"]:
-        # Plot in-situ SMHM
-        print("Generating FENIKS in-situ SMHM plot...")
-        check_smhm.plot_diffstarpop_insitu_smhm(
-            DEFAULT_DIFFSTARPOP_PARAMS,
-            param_collection_fit.diffstarpop_params,
-            fit_diagnostics_save_drn + "/insitu_smhm_w_default.png",
-        )
-
-    if cfg["plots"]["plot_uvj"]:
-        # Plot feniks UVJ
-        print("Generating FENIKS UVJ plot...")
-        plot_uvj(
-            ran_key,
-            param_collection_fit,
-            ssp_data,
-            feniks_drn,
-            data_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-        )
-
-    if cfg["plots"]["plot_exsitu_frac"]:
-        # Plot feniks ex-situ frac
-        print("Generating FENIKS ex-situ frac plot...")
-        pdata = pcm.get_plotting_data(
-            **param_collection_fit._asdict(),
-            z_min=FENIKS_Z_MIN,
-            z_max=FENIKS_Z_MAX,
-            num_halos=num_halos,
-        )
-        pcm.plot_ex_situ_fraction(
-            pdata=pdata,
-            model_nickname=data_label,
-            drn_out=fit_diagnostics_save_drn,
-        )
-
-    # Plot feniks Avpop
-    if cfg["plots"]["plot_avpop"]:
-        print("Generating FENIKS Avpop plot...")
-        _ = make_avpop_mono_comparison_plots(
-            param_collection_fit.spspop_params.dustpop_params.avpop_params,
-            fname=fit_diagnostics_save_drn + "/feniks_avpop_mono.png",
-        )

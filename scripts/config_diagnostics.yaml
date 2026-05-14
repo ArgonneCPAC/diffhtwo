@@ -1,6 +1,6 @@
 model_drn: /Users/kumail/diffdir/fits/run51
-model_nickname: run51_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run51/diagnostic_plots/diffstarpop+spspop+merging
+model_nickname: run51_all
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run51/diagnostic_plots/all
 
 feniks_drn: /Users/kumail/diffdir/feniks
 cosmos20_drn: /Users/kumail/diffdir/COSMOS20
@@ -8,14 +8,14 @@ dsps_drn: /Users/kumail/diffdir/COSMOS20/portal.nersc.gov/project/hacc/aphearin/
 ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5
 
 plots:
-  num_halos : 1000
-  plot_colors_mags: False
-  plot_mags: False
-  plot_ssperr: False
-  plot_massive_cen_colors: False
-  plot_satquench: False
-  plot_satquench_model: False
-  plot_insitu_smhm: False
-  plot_uvj: False
+  num_halos : 2000
+  plot_colors_mags: True
+  plot_mags: True
+  plot_ssperr: True
+  plot_massive_cen_colors: True
+  plot_satquench: True
+  plot_satquench_model: True
+  plot_insitu_smhm: True
+  plot_uvj: True
   plot_exsitu_frac: True
-  plot_avpop: False
+  plot_avpop: True
