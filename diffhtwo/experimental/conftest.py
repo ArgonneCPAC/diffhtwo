@@ -8,6 +8,7 @@ from dsps.data_loaders.defaults import TransmissionCurve
 from jax import random as jran
 
 from .data_loaders import load_feniks, load_hizels
+from .defaults import FENIKS_Z
 from .latin_hypercube import lh_utils as lhu
 from .lightcone_generators import generate_lc_data
 from .utils import load_feniks_tcurve
@@ -38,9 +39,9 @@ def fake_subset_ssp_data():
 
 
 @pytest.fixture(scope="session")
-def feniks(fake_subset_ssp_data):
+def feniks(ran_key, fake_subset_ssp_data):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
-    ran_key = jran.key(0)
+
     feniks = load_feniks.get_feniks_data(
         FENIKS_DRN,
         ran_key,
@@ -52,9 +53,9 @@ def feniks(fake_subset_ssp_data):
 
 
 @pytest.fixture(scope="session")
-def hizels(fake_subset_ssp_data, feniks_tcurves):
+def hizels(ran_key, fake_subset_ssp_data, feniks_tcurves):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
-    ran_key = jran.key(0)
+
     hizels = load_hizels.get_hizels_data(
         HIZELS_DRN,
         ran_key,
@@ -76,14 +77,13 @@ def feniks_tcurves():
 
 
 @pytest.fixture(scope="session")
-def feniks_single_z_data(fake_subset_ssp_data, feniks):
+def feniks_single_z_data(ran_key, fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
-    z_min = 0.2
-    z_max = 1.0
+    z_min = FENIKS_Z[0]
+    z_max = FENIKS_Z[1]
     N_centroids = 100
 
-    ran_key = jran.key(0)
     feniks_meta_data, feniks_fitting_data = lhu.get_single_zbin_lh_lc(
         ran_key,
         feniks,
@@ -96,15 +96,17 @@ def feniks_single_z_data(fake_subset_ssp_data, feniks):
 
 
 @pytest.fixture(scope="session")
-def feniks_multi_z_data(fake_subset_ssp_data, feniks):
+def feniks_multi_z_data(ran_key, fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
-    ran_key = jran.key(0)
+    feniks_z = FENIKS_Z
+    feniks_z_min = feniks_z[:-1]
+    feniks_z_max = feniks_z[1:]
 
-    z_mins = [0.2, 1.0]
-    z_maxs = [1.0, 2.0]
+    z_mins = feniks_z_min[:2]
+    z_maxs = feniks_z_max[:2]
 
-    N_centroids = 200
+    N_centroids = 100
     num_halos = 100
     feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
         ran_key,
@@ -119,14 +121,12 @@ def feniks_multi_z_data(fake_subset_ssp_data, feniks):
 
 
 @pytest.fixture(scope="session")
-def feniks_lc_data(fake_subset_ssp_data, feniks):
+def feniks_lc_data(ran_key, fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
     tcurves = feniks.filter_info.tcurves
 
-    ran_key = jran.key(0)
-
-    z_min = 0.2
-    z_max = 0.5
+    z_min = FENIKS_Z[0]
+    z_max = FENIKS_Z[1]
     n_z_phot_table = 15
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -134,7 +134,7 @@ def feniks_lc_data(fake_subset_ssp_data, feniks):
 
     num_halos = 100
     lgmp_min = 10.0
-    lgmp_max = 15
+    lgmp_max = 15.0
     lc_sky_area_degsq = 100
 
     lc_data = generate_lc_data(

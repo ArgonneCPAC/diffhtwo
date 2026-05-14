@@ -11,6 +11,7 @@ from dsps.data_loaders.defaults import TransmissionCurve
 from ..defaults import (
     FENIKS_AREA_DEG2,
     FENIKS_MAGK_THRESH,
+    FENIKS_MAGOTHER_THRESH,
     FENIKS_Z_MAX,
     FENIKS_Z_MIN,
     Dataset,
@@ -90,7 +91,7 @@ def get_lh_centroids(dataset):
         lh_centroids[:, -1] < (FENIKS_Z_MAX - (LH_D_Z / 2))
     )
     k_mask = lh_centroids[:, -2] < FENIKS_MAGK_THRESH
-    u_mask = lh_centroids[:, -3] < 27.0
+    u_mask = lh_centroids[:, -3] < FENIKS_MAGOTHER_THRESH
     lh_centroids = lh_centroids[redshift_mask & k_mask & u_mask]
 
     redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
@@ -116,14 +117,14 @@ def get_feniks_data(
     # Transmission curves and filter mag thresholds
 
     feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=25.0,
-        HSC_G=25.0,
-        HSC_R=25.0,
-        HSC_I=25.0,
-        HSC_Z=25.0,
-        VIDEO_Y=25.0,
-        UDS_J=25.0,
-        UDS_H=25.0,
+        MegaCam_uS=FENIKS_MAGOTHER_THRESH,
+        HSC_G=FENIKS_MAGOTHER_THRESH,
+        HSC_R=FENIKS_MAGOTHER_THRESH,
+        HSC_I=FENIKS_MAGOTHER_THRESH,
+        HSC_Z=FENIKS_MAGOTHER_THRESH,
+        VIDEO_Y=FENIKS_MAGOTHER_THRESH,
+        UDS_J=FENIKS_MAGOTHER_THRESH,
+        UDS_H=FENIKS_MAGOTHER_THRESH,
         UDS_K=FENIKS_MAGK_THRESH,
     )
     feniks_in_lh = FeniksFilters(
@@ -323,6 +324,7 @@ def get_feniks_data(
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
     lh_centroids_hi = lh_centroids + (d_centroids / 2)
+
     N_data_lh = diffndhist_lomem.tw_ndhist(
         dataset,
         dataset_sig,

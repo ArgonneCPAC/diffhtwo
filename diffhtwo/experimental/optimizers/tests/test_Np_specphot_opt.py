@@ -41,21 +41,23 @@ def multistep_grads(ran_key, feniks_multi_z_data):
 
 @pytest.fixture(scope="module")
 def diffsky_param_fields():
-    diffstarpop_fields = DEFAULT_PARAM_COLLECTION.diffstarpop_params._fields
+    diffstarpop_fields = np.array(DEFAULT_PARAM_COLLECTION.diffstarpop_params._fields)
 
     spspop_params = DEFAULT_PARAM_COLLECTION.spspop_params
-    spspop_fields = (
-        spspop_params.burstpop_params.freqburst_params._fields
-        + spspop_params.burstpop_params.fburstpop_params._fields
-        + spspop_params.burstpop_params.tburstpop_params._fields
-        + spspop_params.dustpop_params.avpop_params._fields
-        + spspop_params.dustpop_params.deltapop_params._fields
-        + spspop_params.dustpop_params.funopop_params._fields
+    spspop_fields = np.array(
+        (
+            spspop_params.burstpop_params.freqburst_params._fields
+            + spspop_params.burstpop_params.fburstpop_params._fields
+            + spspop_params.burstpop_params.tburstpop_params._fields
+            + spspop_params.dustpop_params.avpop_params._fields
+            + spspop_params.dustpop_params.deltapop_params._fields
+            + spspop_params.dustpop_params.funopop_params._fields
+        )
     )
 
-    ssperr_fields = DEFAULT_PARAM_COLLECTION.ssperr_params._fields
+    ssperr_fields = np.array(DEFAULT_PARAM_COLLECTION.ssperr_params._fields)
 
-    merging_fields = DEFAULT_PARAM_COLLECTION.merging_params._fields
+    merging_fields = np.array(DEFAULT_PARAM_COLLECTION.merging_params._fields)
 
     return diffstarpop_fields, spspop_fields, ssperr_fields, merging_fields
 
@@ -72,8 +74,7 @@ def test_all_diffsky_u_param_grads_are_nonzero(
     multistep_grads, n_steps = multistep_grads
     fields = diffsky_param_fields[param_idx]
 
-    grads = multistep_grads[0][param_idx]
-    n_grads = len(grads)
+    n_grads = len(fields)
     zero_grad_flags = np.zeros(n_grads)
 
     for step in range(len(multistep_grads)):
@@ -86,10 +87,7 @@ def test_all_diffsky_u_param_grads_are_nonzero(
             if grads[g] == 0.0:
                 zero_grad_flags[g] += 1
 
-    zero_grad_params = []
-    for g in range(0, n_grads):
-        if zero_grad_flags[g] == n_steps:
-            zero_grad_params.append(fields[g])
+    zero_grad_params = fields[zero_grad_flags == n_steps]
 
     assert (
         len(zero_grad_params) == 0

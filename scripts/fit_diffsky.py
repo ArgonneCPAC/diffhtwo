@@ -67,7 +67,7 @@ if __name__ == "__main__":
     os.makedirs(fit_diagnostics_save_drn + "/loss", exist_ok=True)
     os.makedirs(fit_diagnostics_save_drn + "/lh_N_z", exist_ok=True)
 
-    feniks_z = np.linspace(df.FENIKS_Z_MIN, df.FENIKS_Z_MAX, 5)
+    feniks_z = df.FENIKS_Z
     feniks_z_min = feniks_z[:-1]
     feniks_z_max = feniks_z[1:]
 

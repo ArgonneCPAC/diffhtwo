@@ -74,7 +74,7 @@ if __name__ == "__main__":
     tcurves = feniks.filter_info.tcurves
     mag_thresh = feniks.filter_info.mag_thresh
     frac_cat = feniks.frac_cat
-    num_halos = 10000
+    num_halos = 1000
     for zbin in range(0, len(feniks_zbins)):
         z_min = feniks_zbins[zbin][0]
         z_max = feniks_zbins[zbin][1]
@@ -183,7 +183,7 @@ if __name__ == "__main__":
         # Plot feniks ex-situ frac
         print("Generating FENIKS ex-situ frac plot...")
         pdata = pcm.get_plotting_data(
-            **param_collection_fit._asdict(), z_min=0.2, z_max=4.0, num_halos=10000
+            **param_collection_fit._asdict(), z_min=0.2, z_max=4.0, num_halos=num_halos
         )
         pcm.plot_ex_situ_fraction(
             pdata=pdata,

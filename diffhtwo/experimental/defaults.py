@@ -1,5 +1,6 @@
 from collections import namedtuple
 
+import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
@@ -21,6 +22,8 @@ FENIKS_AREA_DEG2 = 2828.247933129912 / 3600
 FENIKS_Z_MIN = 0.2
 FENIKS_Z_MAX = 3.0
 FENIKS_MAGK_THRESH = 24.3  # col mag
+FENIKS_MAGOTHER_THRESH = 25.0
+FENIKS_Z = np.linspace(FENIKS_Z_MIN, FENIKS_Z_MAX, 5)
 
 SDSS_AREA_DEG2 = 7199
 SDSS_Z_MIN = 0.02
