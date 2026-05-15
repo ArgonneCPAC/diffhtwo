@@ -7,14 +7,14 @@ fit_runid: "run52"
 fit_type: "diffstarpop+spspop"
 
 epoch:
-  n_it: 10
-  n_steps: 50
+  n_it: 1
+  n_steps: 2
   step_size: 0.1
 
   feniks_N_z_bins: 3
-  feniks_N_centroids: 600
+  feniks_N_centroids: 180
 
-  num_halos: 3000
+  num_halos: 300
 
 defaults:
   diffstarpop: False
