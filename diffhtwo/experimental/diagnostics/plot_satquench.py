@@ -190,7 +190,7 @@ def plot_sat_ssfr_mhost(
     xlim = (-14, -9)
     for m in range(0, len(logmhost_infall)):
         for p in range(0, len(p_merge)):
-            sat = lc_data.is_central != 1
+            sat = (lc_data.is_central) != 1 & (phot_kern_results.logsm_obs > 6)
             merging_sat = (
                 (sat)
                 & (phot_kern_results.p_merge > p_merge[p])
@@ -260,7 +260,7 @@ def plot_sat_ssfr_sm(
     xlim = (-14, -9)
     for m in range(0, len(log_sm)):
         for p in range(0, len(p_merge)):
-            sat = lc_data.is_central != 1
+            sat = (lc_data.is_central) != 1 & (phot_kern_results.logsm_obs > 6)
             merging_sat = (
                 (sat)
                 & (phot_kern_results.p_merge > p_merge[p])
@@ -326,7 +326,7 @@ def plot_sat_lgfburst_mhost(
     )
     for m in range(0, len(logmhost_infall)):
         for p in range(0, len(p_merge)):
-            sat = lc_data.is_central != 1
+            sat = (lc_data.is_central) != 1 & (phot_kern_results.logsm_obs > 6)
             merging_sat = (
                 (sat)
                 & (phot_kern_results.p_merge > p_merge[p])
@@ -393,7 +393,7 @@ def plot_sat_lgfburst_sm(
     )
     for m in range(0, len(log_sm)):
         for p in range(0, len(p_merge)):
-            sat = lc_data.is_central != 1
+            sat = (lc_data.is_central) != 1 & (phot_kern_results.logsm_obs > 6)
             merging_sat = (
                 (sat)
                 & (phot_kern_results.p_merge > p_merge[p])
