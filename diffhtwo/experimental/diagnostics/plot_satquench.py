@@ -15,7 +15,7 @@ mred = "tab:red"
 
 tarr = np.linspace(-10, 15, 40_000)
 qprob_cen = 0.35
-host_configs = [(12.0, mblue), (13.0, mgreen), (14.0, morange), (15.0, mred)]
+host_configs = [(11.5, mblue), (12.5, mgreen), (13.5, morange), (14.5, mred)]
 mu_configs = [(-0.5, "--"), (-3.0, "-")]
 
 p_merge = [0.9, 0.6, 0.3]
@@ -480,10 +480,10 @@ def plot_satquench_model(diffstarpop_params, model_nickname, savedir, plt_show=T
 
         i += 1
 
-    red_line = mlines.Line2D([], [], ls="-", c=mred, label=r"$m_{\rm host}=15$")
-    orange_line = mlines.Line2D([], [], ls="-", c=morange, label=r"$m_{\rm host}=14$")
-    green_line = mlines.Line2D([], [], ls="-", c=mgreen, label=r"$m_{\rm host}=13$")
-    blue_line = mlines.Line2D([], [], ls="-", c=mblue, label=r"$m_{\rm host}=12$")
+    red_line = mlines.Line2D([], [], ls="-", c=mred, label=r"$m_{\rm host}=14.5$")
+    orange_line = mlines.Line2D([], [], ls="-", c=morange, label=r"$m_{\rm host}=13.5$")
+    green_line = mlines.Line2D([], [], ls="-", c=mgreen, label=r"$m_{\rm host}=12.5$")
+    blue_line = mlines.Line2D([], [], ls="-", c=mblue, label=r"$m_{\rm host}=11.5$")
     dashed_line = mlines.Line2D([], [], ls="--", c="gray", label=r"$\mu=1/3$")
     solid_line = mlines.Line2D([], [], ls="-", c="gray", label=r"$\mu=1/1000$")
     black_line = mlines.Line2D([], [], ls=":", c="k", label=r"${\rm P_{Q, cen}}$")
