@@ -56,11 +56,7 @@ if __name__ == "__main__":
 
     # get feniks dataset
     ran_key = jran.key(0)
-    feniks = load_feniks.get_feniks_data(
-        feniks_drn,
-        ran_key,
-        ssp_data,
-    )
+    feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data, cfg["lh_d_mag"])
 
     # Plot feniks fitted color-mag space and app mag funcs
     feniks_zbins = np.array(

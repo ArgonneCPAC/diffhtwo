@@ -1,6 +1,8 @@
-model_drn: /Users/kumail/diffdir/fits/run58
-model_nickname: run58_all
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run58/diagnostic_plots/all
+model_drn: /Users/kumail/diffdir/fits/run59
+model_nickname: run59_all
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run59/diagnostic_plots/all
+
+lh_d_mag: 0.5
 
 feniks_drn: /Users/kumail/diffdir/feniks
 cosmos20_drn: /Users/kumail/diffdir/COSMOS20
