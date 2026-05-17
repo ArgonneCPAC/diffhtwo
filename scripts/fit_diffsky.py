@@ -18,7 +18,6 @@ from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
-from diffhtwo.experimental import defaults as df
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks
 from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
@@ -51,9 +50,7 @@ if __name__ == "__main__":
     # load feniks data
     ran_key = jran.key(0)
     FENIKS = load_feniks.get_feniks_data(
-        feniks_drn,
-        ran_key,
-        ssp_data,
+        feniks_drn, ran_key, ssp_data, cfg["feniks"]["lh_d_mag"]
     )
 
     # start fit dirs
@@ -96,15 +93,15 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
-    feniks_z = df.FENIKS_Z
-    feniks_z_min = feniks_z[:-1][: cfg["epoch"]["feniks_N_z_bins"]]
-    feniks_z_max = feniks_z[1:][: cfg["epoch"]["feniks_N_z_bins"]]
+    feniks_z = cfg["feniks"]["z"]
+    feniks_z_min = feniks_z[:-1][: cfg["feniks"]["epoch"]["N_z_bins"]]
+    feniks_z_max = feniks_z[1:][: cfg["feniks"]["epoch"]["N_z_bins"]]
 
     initial_pts = []
     start = time.time()
-    for epoch in range(0, cfg["epoch"]["n_it"]):
-        print(f"Running Epoch {epoch+1}/{cfg['epoch']['n_it']}...")
-        FENIKS = load_feniks.refresh_lh_centroids(FENIKS)
+    for epoch in range(0, cfg["feniks"]["epoch"]["n_it"]):
+        print(f'Running Epoch {epoch+1}/{cfg["feniks"]["epoch"]["n_it"]}...')
+        FENIKS = load_feniks.refresh_lh_centroids(FENIKS, cfg["feniks"]["lh_d_mag"])
 
         # FENIKS
         feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
@@ -113,9 +110,9 @@ if __name__ == "__main__":
             feniks_z_min,
             feniks_z_max,
             ssp_data,
-            cfg["epoch"]["feniks_N_centroids"],
+            cfg["feniks"]["epoch"]["N_centroids"],
             lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
-            num_halos=cfg["epoch"]["num_halos"],
+            num_halos=cfg["feniks"]["epoch"]["num_halos"],
         )
 
         loss_hist, u_theta_fit = Np_specphot_opt.fit_N_multi_z(
@@ -124,8 +121,8 @@ if __name__ == "__main__":
             ran_key,
             feniks_meta_data,
             feniks_fitting_data,
-            n_steps=cfg["epoch"]["n_steps"],
-            step_size=cfg["epoch"]["step_size"],
+            n_steps=cfg["feniks"]["epoch"]["n_steps"],
+            step_size=cfg["feniks"]["epoch"]["step_size"],
         )
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
@@ -136,13 +133,15 @@ if __name__ == "__main__":
         )
 
         if epoch == 0:
-            STEPS = np.arange(1, cfg["epoch"]["n_steps"] + 1, 1)
+            STEPS = np.arange(1, cfg["feniks"]["epoch"]["n_steps"] + 1, 1)
 
             LOSS_HIST = loss_hist
 
             initial_pts.append((STEPS[0], LOSS_HIST[0]))
         else:
-            steps = np.arange(STEPS[-1] + 1, STEPS[-1] + cfg["epoch"]["n_steps"] + 1, 1)
+            steps = np.arange(
+                STEPS[-1] + 1, STEPS[-1] + cfg["feniks"]["epoch"]["n_steps"] + 1, 1
+            )
             initial_pts.append((steps[0], loss_hist[0]))
 
             STEPS = np.concatenate((STEPS, steps))
@@ -151,9 +150,11 @@ if __name__ == "__main__":
     end = time.time()
     elapsed = end - start
     print(
-        f'Gradient descent took {elapsed/60:.3f} minutes for {cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]} steps.'
+        f'Gradient descent took {elapsed/60:.3f} minutes for {cfg["feniks"]["epoch"]["n_steps"]*cfg["feniks"]["epoch"]["n_it"]} steps.'
     )
-    print(f'speed: {elapsed/(cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]):.3f} s/it')
+    print(
+        f'speed: {elapsed/(cfg["feniks"]["epoch"]["n_steps"]*cfg["feniks"]["epoch"]["n_it"]):.3f} s/it'
+    )
 
     # gradient descent figure
     fig_loss, ax_loss = plt.subplots(1)

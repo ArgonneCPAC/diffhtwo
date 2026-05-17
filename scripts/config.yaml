@@ -3,19 +3,21 @@ base_path: "/Users/kumail/diffdir"
 start_runid: "run50"
 start_fit_type: "spspop+diffstarpop"
 
-fit_runid: "run52"
+fit_runid: "run60"
 fit_type: "diffstarpop+spspop"
 
-epoch:
-  n_it: 1
-  n_steps: 2
-  step_size: 0.1
-
-  feniks_N_z_bins: 3
-  feniks_N_centroids: 100
-
-  num_halos: 300
-
+feniks:
+  lh_d_mag: 0.5
+  z: [0.2, 1, 2, 3]
+  
+  epoch:
+    n_it: 1
+    n_steps: 2
+    step_size: 0.1
+    N_z_bins: 3
+    N_centroids: 100
+    num_halos: 300
+    
 defaults:
   diffstarpop: False
   spspop: False

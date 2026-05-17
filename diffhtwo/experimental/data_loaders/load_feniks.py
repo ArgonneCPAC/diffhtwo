@@ -32,7 +32,7 @@ Feniks = namedtuple("Feniks", Dataset._fields)
 LH_SIG = 3.0
 LH_N_CENTROIDS = 30_000
 
-LH_D_MAG = 0.5
+# LH_D_MAG = 0.5
 LH_D_Z = 0.5
 
 
@@ -46,8 +46,8 @@ def get_mag_ab(phot_table, col_name, ZP=25):
     return mag_ab.data
 
 
-def refresh_lh_centroids(DATASET):
-    lh_centroids, d_centroids = get_lh_centroids(DATASET.dataset)
+def refresh_lh_centroids(DATASET, lh_d_mag):
+    lh_centroids, d_centroids = get_lh_centroids(DATASET.dataset, lh_d_mag)
 
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
@@ -66,7 +66,7 @@ def refresh_lh_centroids(DATASET):
     return DATASET
 
 
-def get_lh_centroids(dataset):
+def get_lh_centroids(dataset, lh_d_mag):
     mu = np.mean(dataset, axis=0)
 
     # mu[0] = mu[0] + 0.4  # u - g
@@ -101,7 +101,7 @@ def get_lh_centroids(dataset):
     k_bright = lh_centroids[:, -2] > k_min(lh_centroids[:, -1])
     lh_centroids = lh_centroids[k_bright]
 
-    d_centroids = jnp.ones_like(lh_centroids) * LH_D_MAG
+    d_centroids = jnp.ones_like(lh_centroids) * lh_d_mag
     d_centroids = d_centroids.at[:, -1].set(LH_D_Z)
 
     return lh_centroids, d_centroids
@@ -111,6 +111,7 @@ def get_feniks_data(
     drn,
     ran_key,
     ssp_data,
+    lh_d_mag,
     phot=PHOT,
     zout=ZOUT,
 ):
@@ -318,7 +319,7 @@ def get_feniks_data(
     mags = mags[z_mask]
     zout = zout[z_mask]
 
-    lh_centroids, d_centroids = get_lh_centroids(dataset)
+    lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
 
     # run initial diffndhist_lomem with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
@@ -342,7 +343,7 @@ def get_feniks_data(
         lh_centroids,
         d_centroids,
         N_data_lh,
-        LH_D_MAG,
+        lh_d_mag,
         LH_D_Z,
         FENIKS_AREA_DEG2,
     )
