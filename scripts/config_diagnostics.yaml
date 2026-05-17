@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run54
-model_nickname: run54_all
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run54/diagnostic_plots/all
+model_drn: /Users/kumail/diffdir/fits/run56
+model_nickname: run56_all
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run56/diagnostic_plots/all
 
 feniks_drn: /Users/kumail/diffdir/feniks
 cosmos20_drn: /Users/kumail/diffdir/COSMOS20
@@ -8,7 +8,7 @@ dsps_drn: /Users/kumail/diffdir/COSMOS20/portal.nersc.gov/project/hacc/aphearin/
 ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5
 
 plots:
-  num_halos : 2000
+  num_halos : 3000
   plot_colors_mags: True
   plot_mags: True
   plot_ssperr: True

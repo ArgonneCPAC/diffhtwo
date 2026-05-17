@@ -97,8 +97,8 @@ if __name__ == "__main__":
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
     feniks_z = df.FENIKS_Z
-    feniks_z_min = feniks_z[:-1]
-    feniks_z_max = feniks_z[1:]
+    feniks_z_min = feniks_z[:-1][: cfg["epoch"]["feniks_N_z_bins"]]
+    feniks_z_max = feniks_z[1:][: cfg["epoch"]["feniks_N_z_bins"]]
 
     initial_pts = []
     start = time.time()
@@ -106,16 +106,12 @@ if __name__ == "__main__":
         print(f"Running Epoch {epoch+1}/{cfg['epoch']['n_it']}...")
         FENIKS = load_feniks.refresh_lh_centroids(FENIKS)
 
-        feniks_z_idx = np.random.choice(
-            len(feniks_z_min), cfg["epoch"]["feniks_N_z_bins"], replace=False
-        )
-
         # FENIKS
         feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
             ran_key,
             FENIKS,
-            feniks_z_min[feniks_z_idx],
-            feniks_z_max[feniks_z_idx],
+            feniks_z_min,
+            feniks_z_max,
             ssp_data,
             cfg["epoch"]["feniks_N_centroids"],
             lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",

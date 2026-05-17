@@ -30,7 +30,7 @@ ZOUT = "feniks_zout_selected.ecsv"
 Feniks = namedtuple("Feniks", Dataset._fields)
 
 LH_SIG = 3.0
-LH_N_CENTROIDS = 50_000
+LH_N_CENTROIDS = 30_000
 
 LH_D_MAG = 0.7
 LH_D_Z = 0.5
