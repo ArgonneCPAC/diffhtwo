@@ -68,7 +68,6 @@ def generate_sat_plots(
     plot_sat_ssfr_sm(*args, plt_show=plt_show)
     plot_sat_lgfburst_mhost(*args, plt_show=plt_show)
     plot_sat_lgfburst_sm(*args, plt_show=plt_show)
-    plot_sat_tquench(*args, plt_show=plt_show)
 
 
 def plot_sat_tquench(

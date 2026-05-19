@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run66
-model_nickname: run66_all
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run66/diagnostic_plots/all
+model_drn: /Users/kumail/diffdir/fits/run67
+model_nickname: run67_all
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run67/diagnostic_plots/all
 
 lh_d_mag: 0.6
 
@@ -11,13 +11,13 @@ ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kr
 
 plots:
   num_halos : 2500
-  plot_colors_mags: False
-  plot_mags: False
-  plot_ssperr: False
+  plot_colors_mags: True
+  plot_mags: True
+  plot_ssperr: True
   plot_massive_cen_colors: True
-  plot_satquench: False
+  plot_satquench: True
   plot_satquench_model: True
-  plot_insitu_smhm: False
-  plot_uvj: False
-  plot_exsitu_frac: False
-  plot_avpop: False
+  plot_insitu_smhm: True
+  plot_uvj: True
+  plot_exsitu_frac: True
+  plot_avpop: True

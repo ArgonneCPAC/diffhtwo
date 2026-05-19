@@ -8,7 +8,6 @@ from dsps.data_loaders.defaults import TransmissionCurve
 from jax import random as jran
 
 from .data_loaders import load_feniks, load_hizels
-from .defaults import FENIKS_Z
 from .latin_hypercube import lh_utils as lhu
 from .lightcone_generators import generate_lc_data
 from .utils import load_feniks_tcurve
@@ -80,8 +79,8 @@ def feniks_tcurves():
 def feniks_single_z_data(ran_key, fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
-    z_min = FENIKS_Z[0]
-    z_max = FENIKS_Z[1]
+    z_min = 0.2
+    z_max = 1.0
     N_centroids = 100
 
     feniks_meta_data, feniks_fitting_data = lhu.get_single_zbin_lh_lc(
@@ -99,9 +98,8 @@ def feniks_single_z_data(ran_key, fake_subset_ssp_data, feniks):
 def feniks_multi_z_data(ran_key, fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
-    feniks_z = FENIKS_Z
-    feniks_z_min = feniks_z[:-1]
-    feniks_z_max = feniks_z[1:]
+    feniks_z_min = [0.2, 1]
+    feniks_z_max = [1, 2]
 
     z_mins = feniks_z_min[:2]
     z_maxs = feniks_z_max[:2]
@@ -125,8 +123,8 @@ def feniks_lc_data(ran_key, fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
     tcurves = feniks.filter_info.tcurves
 
-    z_min = FENIKS_Z[0]
-    z_max = FENIKS_Z[1]
+    z_min = 0.2
+    z_max = 1.0
     n_z_phot_table = 15
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
