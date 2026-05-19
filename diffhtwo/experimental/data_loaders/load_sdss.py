@@ -20,7 +20,7 @@ Sdss = namedtuple("Sdss", Dataset._fields)
 
 LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
-LH_D_MAG = 0.2
+LH_D_MAG = 0.02
 LH_D_Z = 0.01
 
 
