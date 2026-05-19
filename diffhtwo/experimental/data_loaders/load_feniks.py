@@ -111,7 +111,7 @@ def get_feniks_data(
     drn,
     ran_key,
     ssp_data,
-    lh_d_mag,
+    lh_d_mag=0.6,
     phot=PHOT,
     zout=ZOUT,
 ):
