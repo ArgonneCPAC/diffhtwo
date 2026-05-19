@@ -1,6 +1,5 @@
 from collections import namedtuple
 
-import numpy as np
 from astropy.cosmology import FlatLambdaCDM
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY

@@ -12,7 +12,7 @@ on:
 
 jobs:
   tests:
-    name: pytest with diffsky@gd_bugfix
+    name: pytest with diffsky@gd_bugfix_rapid_q
     runs-on: "ubuntu-latest"
 
     steps:
@@ -45,7 +45,7 @@ jobs:
             scipy \
             python-build
           pip uninstall diffsky --yes
-          pip install --no-deps git+https://github.com/ArgonneCPAC/diffsky.git@gd_bugfix
+          pip install --no-deps git+https://github.com/ArgonneCPAC/diffsky.git@gd_bugfix_rapid_q
 
           python -m pip install --no-build-isolation --no-deps -e .
 

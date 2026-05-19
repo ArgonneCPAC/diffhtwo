@@ -31,7 +31,8 @@ def plot_massive_cen_colors(
         frac_cat=frac_cat,
     )
 
-    sm_cut = (phot_kern_results.logsm_obs > 11.5) & (lc_data.is_central == 1)
+    sm_cut = (lc_data.logmp_obs > 13.0) & (lc_data.is_central == 1)
+    # sm_cut = (phot_kern_results.logsm_obs > 11.5) & (lc_data.is_central == 1)
 
     obs_mags = phot_kern_results.obs_mags
     obs_mags_in_situ = phot_kern_results.obs_mags_in_situ
@@ -50,7 +51,9 @@ def plot_massive_cen_colors(
     z_min_label = str(np.round(z_min, 2))
     z_max_label = str(np.round(z_max, 2))
 
-    fig.suptitle("centrals w/ logsm > 11.5 | " + z_min_label + " < z < " + z_max_label)
+    fig.suptitle(
+        "centrals w/ logmp_obs > 13 | " + z_min_label + " < z < " + z_max_label
+    )
     for c in range(0, n_colors):
         std = np.std(obs_colors_in_situ[:, c][sm_cut])
         med = np.median(obs_colors_in_situ[:, c][sm_cut])
