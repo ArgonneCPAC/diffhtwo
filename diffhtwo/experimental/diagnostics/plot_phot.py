@@ -230,7 +230,8 @@ def plot_n_colors_mag(
     ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
     ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
-        savedir + "/" + data_label + "_fit_z" + str(z_min) + "-" + str(z_max) + ".png"
+        savedir + "/" + data_label + "_fit_z" + str(z_min) + "-" + str(z_max) + ".png",
+        bbox_inches="tight",
     )
     plt.close()
 
@@ -409,6 +410,7 @@ def plot_n_mags(
     ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
     ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
-        savedir + "/" + data_label + "_mags_z" + str(z_min) + "-" + str(z_max) + ".png"
+        savedir + "/" + data_label + "_mags_z" + str(z_min) + "-" + str(z_max) + ".png",
+        bbox_inches="tight",
     )
     plt.close()

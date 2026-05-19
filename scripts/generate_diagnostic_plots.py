@@ -13,8 +13,13 @@ from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
-from diffhtwo.experimental.data_loaders import load_feniks
-from diffhtwo.experimental.defaults import FENIKS_Z_MAX, FENIKS_Z_MIN
+from diffhtwo.experimental.data_loaders import load_feniks, load_sdss
+from diffhtwo.experimental.defaults import (
+    FENIKS_Z_MAX,
+    FENIKS_Z_MIN,
+    SDSS_Z_MAX,
+    SDSS_Z_MIN,
+)
 from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
     make_avpop_mono_comparison_plots,
 )
@@ -41,6 +46,7 @@ if __name__ == "__main__":
     os.environ["COSMOS20_DRN"] = cfg["cosmos20_drn"]
     os.environ["DSPS_DRN"] = cfg["dsps_drn"]
     feniks_drn = cfg["feniks_drn"]
+    sdss_drn = cfg["sdss_drn"]
     ssp_filename = cfg["ssp_file"]
     fit_diagnostics_save_drn = cfg["fit_diagnostics_save_drn"]
     param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
@@ -48,19 +54,20 @@ if __name__ == "__main__":
         cfg["model_nickname"],
     )
 
+    num_halos = cfg["plots"]["num_halos"]
+
     # get ssp data
     ssp_data = load_ssp_templates(fn=ssp_filename)
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
     emline_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     emline_wave_table = jnp.array([emline_wave_aa])
-
-    # get feniks dataset
     ran_key = jran.key(0)
-    feniks = load_feniks.get_feniks_data(
-        feniks_drn, ran_key, ssp_data, lh_d_mag=cfg["lh_d_mag"]
-    )
 
-    # Plot feniks fitted color-mag space and app mag funcs
+    """
+    Plot FENIKS
+    """
+    feniks_label = "feniks"
+    feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
     feniks_zbins = np.array(
         [
             [0.2, 0.4],
@@ -72,16 +79,11 @@ if __name__ == "__main__":
             [2.6, 3.0],
         ]
     )
-    data_label = "feniks"
-    tcurves = feniks.filter_info.tcurves
-    mag_thresh = feniks.filter_info.mag_thresh
-    frac_cat = feniks.frac_cat
-    num_halos = cfg["plots"]["num_halos"]
 
     if cfg["plots"]["plot_satquench_model"]:
         plot_satquench_model(
             param_collection_fit.diffstarpop_params,
-            data_label,
+            feniks_label,
             fit_diagnostics_save_drn,
             plt_show=False,
         )
@@ -103,7 +105,7 @@ if __name__ == "__main__":
             param_collection_fit,
             ssp_data,
             feniks_drn,
-            data_label,
+            feniks_label,
             fit_diagnostics_save_drn,
             num_halos=num_halos,
         )
@@ -119,7 +121,11 @@ if __name__ == "__main__":
         )
         pcm.plot_ex_situ_fraction(
             pdata=pdata,
-            model_nickname=data_label,
+            model_nickname=feniks_label
+            + "_z"
+            + str(FENIKS_Z_MIN)
+            + "-"
+            + str(FENIKS_Z_MAX),
             drn_out=fit_diagnostics_save_drn,
         )
 
@@ -131,7 +137,7 @@ if __name__ == "__main__":
             fname=fit_diagnostics_save_drn + "/feniks_avpop_mono.png",
         )
 
-    for zbin in range(0, len(feniks_zbins)):
+    for zbin in range(0, 1):
         z_min = feniks_zbins[zbin][0]
         z_max = feniks_zbins[zbin][1]
 
@@ -141,7 +147,7 @@ if __name__ == "__main__":
             )
             plot_n_colors_mag(
                 feniks,
-                data_label,
+                feniks_label,
                 param_collection_fit,
                 ran_key,
                 z_min,
@@ -153,7 +159,7 @@ if __name__ == "__main__":
         if cfg["plots"]["plot_mags"]:
             plot_n_mags(
                 feniks,
-                data_label,
+                feniks_label,
                 param_collection_fit,
                 ran_key,
                 z_min,
@@ -171,7 +177,7 @@ if __name__ == "__main__":
                 ssp_err_params=param_collection_fit.ssperr_params,
                 z_obs=z_obs,
                 drn_out=fit_diagnostics_save_drn,
-                model_nickname=data_label,
+                model_nickname=feniks_label,
             )
 
         if cfg["plots"]["plot_massive_cen_colors"]:
@@ -185,14 +191,31 @@ if __name__ == "__main__":
                 z_max,
                 feniks.dataset_dim_labels,
                 ssp_data,
-                tcurves,
-                data_label,
+                feniks.filter_info.tcurves,
+                feniks_label,
                 fit_diagnostics_save_drn,
-                mag_thresh=mag_thresh,
-                frac_cat=frac_cat,
                 num_halos=num_halos,
                 plt_show=False,
             )
+
+            # print(
+            #     f"Generating massive central colors plot for {zbin+1}/{len(feniks_zbins)} z-bin with feniks specific additional weights that take into account magthresh and frac_cat..."
+            # )
+            # plot_massive_cen_colors(
+            #     ran_key,
+            #     param_collection_fit,
+            #     z_min,
+            #     z_max,
+            #     feniks.dataset_dim_labels,
+            #     ssp_data,
+            #     tcurves,
+            #     feniks_label + "_weighted",
+            #     fit_diagnostics_save_drn,
+            #     mag_thresh=mag_thresh,
+            #     frac_cat=frac_cat,
+            #     num_halos=num_halos,
+            #     plt_show=False,
+            # )
 
         if cfg["plots"]["plot_satquench"]:
             print(
@@ -204,11 +227,127 @@ if __name__ == "__main__":
                 z_min,
                 z_max,
                 ssp_data,
-                tcurves,
-                data_label,
+                feniks.filter_info.tcurves,
+                feniks_label,
                 fit_diagnostics_save_drn,
-                mag_thresh=mag_thresh,
-                frac_cat=frac_cat,
+                mag_thresh=feniks.filter_info.mag_thresh,
+                frac_cat=feniks.frac_cat,
+                num_halos=num_halos,
+                plt_show=False,
+            )
+
+    """
+    Plot SDSS
+    """
+    sdss_label = "sdss"
+    sdss = load_sdss.get_sdss_data(sdss_drn, ran_key, ssp_data)
+    sdss_zbins = np.array(
+        [
+            [0.02, 0.06],
+            [0.06, 0.1],
+            [0.1, 0.14],
+            [0.14, 0.18],
+            [0.18, 0.2],
+        ]
+    )
+
+    if cfg["plots"]["plot_satquench_model"]:
+        plot_satquench_model(
+            param_collection_fit.diffstarpop_params,
+            sdss_label,
+            fit_diagnostics_save_drn,
+            plt_show=False,
+        )
+
+    if cfg["plots"]["plot_exsitu_frac"]:
+        # Plot feniks ex-situ frac
+        print("Generating SDSS ex-situ frac plot...")
+        pdata = pcm.get_plotting_data(
+            **param_collection_fit._asdict(),
+            z_min=SDSS_Z_MIN,
+            z_max=SDSS_Z_MAX,
+            num_halos=num_halos,
+        )
+        pcm.plot_ex_situ_fraction(
+            pdata=pdata,
+            model_nickname=sdss_label + "_z" + str(SDSS_Z_MIN) + "-" + str(SDSS_Z_MAX),
+            drn_out=fit_diagnostics_save_drn,
+        )
+
+    for zbin in range(0, len(sdss_zbins)):
+        z_min = sdss_zbins[zbin][0]
+        z_max = sdss_zbins[zbin][1]
+
+        if cfg["plots"]["plot_colors_mags"]:
+            print(
+                f"Generating SDSS photometry plots for {zbin+1}/{len(sdss_zbins)} z-bin..."
+            )
+            plot_n_colors_mag(
+                sdss,
+                sdss_label,
+                param_collection_fit,
+                ran_key,
+                z_min,
+                z_max,
+                ssp_data,
+                fit_diagnostics_save_drn,
+            )
+
+        if cfg["plots"]["plot_mags"]:
+            plot_n_mags(
+                sdss,
+                sdss_label,
+                param_collection_fit,
+                ran_key,
+                z_min,
+                z_max,
+                ssp_data,
+                fit_diagnostics_save_drn,
+            )
+
+        if cfg["plots"]["plot_ssperr"]:
+            print(
+                f"Generating SDSS ssp error plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
+            )
+            z_obs = np.median((z_min, z_max))
+            psspem.plot_ssp_err_model_delta_mag_vs_wavelength(
+                ssp_err_params=param_collection_fit.ssperr_params,
+                z_obs=z_obs,
+                drn_out=fit_diagnostics_save_drn,
+                model_nickname=sdss_label,
+            )
+
+        if cfg["plots"]["plot_massive_cen_colors"]:
+            print(
+                f"Generating massive central colors plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
+            )
+            plot_massive_cen_colors(
+                ran_key,
+                param_collection_fit,
+                z_min,
+                z_max,
+                sdss.dataset_dim_labels,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                num_halos=num_halos,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_satquench"]:
+            print(f"Generating satquench plots for {zbin+1}/{len(sdss_zbins)} z-bin...")
+            generate_sat_plots(
+                ran_key,
+                param_collection_fit,
+                z_min,
+                z_max,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                mag_thresh=sdss.filter_info.mag_thresh,
+                frac_cat=sdss.frac_cat,
                 num_halos=num_halos,
                 plt_show=False,
             )

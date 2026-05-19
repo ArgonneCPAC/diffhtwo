@@ -1,9 +1,9 @@
 base_path: "/Users/kumail/diffdir"
 
-start_runid: "run67"
+start_runid: "run69"
 start_fit_type: "all"
 
-fit_runid: "run68"
+fit_runid: "run70"
 fit_type: "all"
 
 feniks:

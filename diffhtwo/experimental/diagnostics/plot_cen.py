@@ -17,6 +17,7 @@ def plot_massive_cen_colors(
     mag_thresh=None,
     frac_cat=None,
     num_halos=10000,
+    logsm_obs_thresh=11,
     plt_show=True,
 ):
     lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
@@ -31,7 +32,9 @@ def plot_massive_cen_colors(
         frac_cat=frac_cat,
     )
 
-    sm_cut = (phot_kern_results.logsm_obs > 11.0) & (lc_data.is_central == 1)
+    sm_cut = (phot_kern_results.logsm_obs > logsm_obs_thresh) & (
+        lc_data.is_central == 1
+    )
 
     obs_mags = phot_kern_results.obs_mags
     obs_mags_in_situ = phot_kern_results.obs_mags_in_situ
@@ -51,7 +54,12 @@ def plot_massive_cen_colors(
     z_max_label = str(np.round(z_max, 2))
 
     fig.suptitle(
-        "centrals w/ logsm_obs > 11 | " + z_min_label + " < z < " + z_max_label
+        "centrals w/ logsm_obs > "
+        + str(logsm_obs_thresh)
+        + " | "
+        + z_min_label
+        + " < z < "
+        + z_max_label
     )
     for c in range(0, n_colors):
         std = np.std(obs_colors_in_situ[:, c][sm_cut])
