@@ -74,8 +74,8 @@ def refresh_lh_centroids(DATASET):
 def get_lh_centroids(dataset):
     mu = np.mean(dataset, axis=0)
 
-    mu[-3] = mu[-3] - 1.0  # u
-    mu[-2] = mu[-2] - 1.5  # r
+    # mu[-3] = mu[-3] - 1.0  # u
+    # mu[-2] = mu[-2] - 1.5  # r
     # mu[-1] = mu[-1] 0.02  # redshift
 
     cov = np.cov(dataset.T)
