@@ -73,9 +73,10 @@ def refresh_lh_centroids(DATASET):
 
 def get_lh_centroids(dataset):
     mu = np.mean(dataset, axis=0)
-    mu[1] = mu[1] - 0.1  #
-    mu[-2] = mu[-2] - 1.8  # r
-    mu[-1] = mu[-1] - 0.02  # redshift
+    # mu[1] = mu[1] - 0.1  #
+    mu[-3] = mu[-3] - 1.0  # u
+    mu[-2] = mu[-2] - 1.0  # r
+    # mu[-1] = mu[-1] 0.02  # redshift
     cov = np.cov(dataset.T)
 
     lh_centroids = lh.latin_hypercube_from_cov(
@@ -116,7 +117,7 @@ def get_sdss_data(
         sdss_z=None,
     )
     sdss_in_lh = SdssFilters(
-        sdss_u=False,
+        sdss_u=True,
         sdss_g=False,
         sdss_r=True,
         sdss_i=False,
@@ -145,12 +146,15 @@ def get_sdss_data(
     sdss_iz = sdss_i - sdss_z
 
     # stack colors_mag
-    dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
+    dataset = np.vstack(
+        (sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_u, sdss_r, sdss_redshift)
+    ).T
     dataset_dim_labels = [
         r"$u - g$",
         r"$g - r$",
         r"$r - i$",
         r"$i - z$",
+        r"$u$",
         r"$r$",
         r"$redshift$",
     ]

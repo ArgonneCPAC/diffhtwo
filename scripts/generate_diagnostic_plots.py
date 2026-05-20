@@ -63,6 +63,30 @@ if __name__ == "__main__":
     emline_wave_table = jnp.array([emline_wave_aa])
     ran_key = jran.key(0)
 
+    if cfg["plots"]["plot_satquench_model"]:
+        plot_satquench_model(
+            param_collection_fit.diffstarpop_params,
+            "fit",
+            fit_diagnostics_save_drn,
+            plt_show=False,
+        )
+
+    if cfg["plots"]["plot_insitu_smhm"]:
+        # Plot in-situ SMHM
+        print("Generating in-situ SMHM plot...")
+        check_smhm.plot_diffstarpop_insitu_smhm(
+            DEFAULT_DIFFSTARPOP_PARAMS,
+            param_collection_fit.diffstarpop_params,
+            fit_diagnostics_save_drn + "/insitu_smhm_w_default.png",
+        )
+        # Plot feniks Avpop
+        if cfg["plots"]["plot_avpop"]:
+            print("Generating Avpop plot...")
+            _ = make_avpop_mono_comparison_plots(
+                param_collection_fit.spspop_params.dustpop_params.avpop_params,
+                fname=fit_diagnostics_save_drn + "/avpop_mono.png",
+            )
+
     """
     Plot FENIKS
     """
@@ -80,23 +104,6 @@ if __name__ == "__main__":
                 [2.6, 3.0],
             ]
         )
-
-        if cfg["plots"]["plot_satquench_model"]:
-            plot_satquench_model(
-                param_collection_fit.diffstarpop_params,
-                "fit",
-                fit_diagnostics_save_drn,
-                plt_show=False,
-            )
-
-        if cfg["plots"]["plot_insitu_smhm"]:
-            # Plot in-situ SMHM
-            print("Generating FENIKS in-situ SMHM plot...")
-            check_smhm.plot_diffstarpop_insitu_smhm(
-                DEFAULT_DIFFSTARPOP_PARAMS,
-                param_collection_fit.diffstarpop_params,
-                fit_diagnostics_save_drn + "/insitu_smhm_w_default.png",
-            )
 
         if cfg["plots"]["plot_uvj"]:
             # Plot feniks UVJ
@@ -128,14 +135,6 @@ if __name__ == "__main__":
                 + "-"
                 + str(FENIKS_Z_MAX),
                 drn_out=fit_diagnostics_save_drn,
-            )
-
-        # Plot feniks Avpop
-        if cfg["plots"]["plot_avpop"]:
-            print("Generating FENIKS Avpop plot...")
-            _ = make_avpop_mono_comparison_plots(
-                param_collection_fit.spspop_params.dustpop_params.avpop_params,
-                fname=fit_diagnostics_save_drn + "/feniks_avpop_mono.png",
             )
 
         for zbin in range(0, 1):
