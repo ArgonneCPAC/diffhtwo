@@ -123,12 +123,20 @@ if __name__ == "__main__":
             step_size=cfg["epoch"]["step_size"],
         )
 
-        param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
-        lc_mock.write_diffsky_param_collection_merging(
-            fit_save_drn,
-            cfg["fit_runid"] + "_" + cfg["fit_type"],
-            param_collection_fit,
+        np.savez_compressed(
+            fit_save_drn + "/" + cfg["fit_runid"] + "_" + cfg["fit_type"] + ".npz",
+            diffstarpop=np.asarray(u_theta_fit[0]),
+            spspop=np.asarray(u_theta_fit[1]),
+            ssperr=np.asarray(u_theta_fit[2]),
+            merging=np.asarray(u_theta_fit[3]),
         )
+
+        # param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
+        # lc_mock.write_diffsky_param_collection_merging(
+        #     fit_save_drn,
+        #     cfg["fit_runid"] + "_" + cfg["fit_type"],
+        #     param_collection_fit,
+        # )
 
         if epoch == 0:
             STEPS = np.arange(1, cfg["epoch"]["n_steps"] + 1, 1)
@@ -163,3 +171,13 @@ if __name__ == "__main__":
     ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     plt.savefig(fit_diagnostics_save_drn + "/loss/sdss_loss_" + ts + ".png")
     plt.close()
+
+    param_collection_fit = pu.get_param_collection_from_u_theta_npz(
+        fit_save_drn + "/" + cfg["fit_runid"] + "_" + cfg["fit_type"] + ".npz"
+    )
+
+    lc_mock.write_diffsky_param_collection_merging(
+        fit_save_drn,
+        cfg["fit_runid"] + "_" + cfg["fit_type"],
+        param_collection_fit,
+    )

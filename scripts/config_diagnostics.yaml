@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run79
-model_nickname: run79_all
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run79/diagnostic_plots/all
+model_drn: /Users/kumail/diffdir/fits/run83
+model_nickname: run83_all
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run83/diagnostic_plots/all
 
 feniks_drn: /Users/kumail/diffdir/feniks
 sdss_drn: /Users/kumail/diffdir/sdss
