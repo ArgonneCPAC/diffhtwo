@@ -23,6 +23,9 @@ from diffhtwo.experimental.defaults import (
 from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
     make_avpop_mono_comparison_plots,
 )
+from diffhtwo.experimental.diagnostics.plot_burstpop import (
+    make_fburstpop_comparison_plot,
+)
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_n_colors_mag,
@@ -79,13 +82,21 @@ if __name__ == "__main__":
             param_collection_fit.diffstarpop_params,
             fit_diagnostics_save_drn + "/insitu_smhm_w_default.png",
         )
-        # Plot feniks Avpop
-        if cfg["plots"]["plot_avpop"]:
-            print("Generating Avpop plot...")
-            _ = make_avpop_mono_comparison_plots(
-                param_collection_fit.spspop_params.dustpop_params.avpop_params,
-                fname=fit_diagnostics_save_drn + "/avpop_mono.png",
-            )
+    # Plot feniks Avpop
+    if cfg["plots"]["plot_avpop"]:
+        print("Generating Avpop plot...")
+        _ = make_avpop_mono_comparison_plots(
+            param_collection_fit.spspop_params.dustpop_params.avpop_params,
+            fname=fit_diagnostics_save_drn + "/avpop_mono.png",
+        )
+
+    if cfg["plots"]["plot_burstpop"]:
+        print("Generating fburstpop plot...")
+        _ = make_fburstpop_comparison_plot(
+            param_collection_fit.spspop_params.burstpop_params.fburstpop_params,
+            fname=fit_diagnostics_save_drn + "/burstpop.png",
+            label1="fit",
+        )
 
     """
     Plot FENIKS
