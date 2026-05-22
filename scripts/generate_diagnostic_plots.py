@@ -25,6 +25,7 @@ from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
 )
 from diffhtwo.experimental.diagnostics.plot_burstpop import (
     make_fburstpop_comparison_plot,
+    plot_lgfburst_mh_z,
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_phot import (
@@ -146,6 +147,23 @@ if __name__ == "__main__":
                 + "-"
                 + str(FENIKS_Z_MAX),
                 drn_out=fit_diagnostics_save_drn,
+            )
+
+        if cfg["plots"]["plot_fburst_mh_z"]:
+            print("Generating FENIKS lgfburst plot...")
+            plot_lgfburst_mh_z(
+                ran_key,
+                param_collection_fit,
+                FENIKS_Z_MIN,
+                FENIKS_Z_MAX,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                # mag_thresh=feniks.filter_info.mag_thresh,
+                # frac_cat=feniks.frac_cat,
+                num_halos=num_halos,
+                plt_show=False,
             )
 
         for zbin in range(0, 1):
@@ -280,6 +298,23 @@ if __name__ == "__main__":
                 + "-"
                 + str(SDSS_Z_MAX),
                 drn_out=fit_diagnostics_save_drn,
+            )
+
+        if cfg["plots"]["plot_fburst_mh_z"]:
+            print("Generating SDSS lgfburst plot...")
+            plot_lgfburst_mh_z(
+                ran_key,
+                param_collection_fit,
+                SDSS_Z_MIN,
+                SDSS_Z_MAX,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                # mag_thresh=sdss.filter_info.mag_thresh,
+                # frac_cat=sdss.frac_cat,
+                num_halos=num_halos,
+                plt_show=False,
             )
 
         for zbin in range(0, len(sdss_zbins)):

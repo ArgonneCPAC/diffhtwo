@@ -2,8 +2,11 @@
 Based on diffsky.burstpop.diagnostics.plot_fburstpop
 """
 import numpy as np
+from diffsky.burstpop import freqburst_mono
 from diffsky.burstpop.fburstpop_mono import get_fburst_from_fburstpop_params
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
+
+from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 
 DEFAULT_FBURSTPOP_PARAMS = (
     DEFAULT_PARAM_COLLECTION.spspop_params.burstpop_params.fburstpop_params
@@ -70,3 +73,120 @@ def make_fburstpop_comparison_plot(
             fname, bbox_extra_artists=[xlabel, ylabel], bbox_inches="tight", dpi=200
         )
     return fig
+
+
+def _lgfburst_weighted(arr):
+    arr = np.asarray(arr)
+
+    m_star = 10 ** arr[:, 0]
+    f_burst = 10 ** arr[:, 1]
+    p_burst = arr[:, 2]
+    gal_weight = arr[:, 3]
+
+    m_star_burst = np.sum(m_star * f_burst * p_burst * gal_weight)
+    m_star_tot = np.sum(m_star * gal_weight)
+
+    lgfburst = np.log10(m_star_burst / m_star_tot)
+
+    return lgfburst
+
+
+def plot_lgfburst_mh_z(
+    ran_key,
+    param_collection,
+    z_min,
+    z_max,
+    ssp_data,
+    tcurves,
+    model_nickname,
+    savedir,
+    mag_thresh=None,
+    frac_cat=None,
+    num_halos=10000,
+    gridsize=100,
+    mincnt=1,
+    plt_show=True,
+):
+    lc_data, phot_kern_results, gal_weight = multiband_lc_phot_kern(
+        ran_key,
+        param_collection,
+        z_min,
+        z_max,
+        num_halos,
+        ssp_data,
+        tcurves,
+        mag_thresh=mag_thresh,
+        frac_cat=frac_cat,
+    )
+
+    p_burst = freqburst_mono.get_freqburst_from_freqburst_params(
+        param_collection.spspop_params.burstpop_params.freqburst_params,
+        phot_kern_results.logsm_obs,
+        phot_kern_results.logssfr_obs,
+    )
+    C = np.column_stack(
+        [phot_kern_results.logsm_obs, phot_kern_results.lgfburst, p_burst, gal_weight]
+    )
+    fig, ax = plt.subplots(1, 2, figsize=(10, 4), width_ratios=[1, 1.2])
+    vmin, vmax = -10, -2.5
+
+    """Plot fburst w/ halo mass and redshift"""
+    ax[0].hexbin(
+        lc_data.z_obs,
+        lc_data.logmp_obs,
+        C=C,
+        reduce_C_function=_lgfburst_weighted,
+        cmap="coolwarm_r",
+        vmin=vmin,
+        vmax=-vmax,
+        mincnt=mincnt,
+        gridsize=gridsize,
+        rasterized=True,
+    )
+
+    ax[0].set_xlabel("redshift")
+    ax[0].set_ylabel("log$_{10}$ (M$_{h, peak}$ [M\u2609])")
+    ax[0].set_xlim(z_min, z_max)
+    ax[0].set_ylim(10, 15)
+
+    """Plot fburst w/ stellar mass and redshift"""
+    logsm_min, log_sm_max = 6, 12
+    hb1 = ax[1].hexbin(
+        lc_data.z_obs,
+        phot_kern_results.logsm_obs,
+        C=C,
+        reduce_C_function=_lgfburst_weighted,
+        cmap="coolwarm_r",
+        vmin=vmin,
+        vmax=vmax,
+        mincnt=mincnt,
+        extent=(z_min, z_max, logsm_min, log_sm_max),
+        gridsize=gridsize,
+        rasterized=True,
+    )
+    cbar1 = plt.colorbar(hb1, ax=ax[1], label="log$_{10}$ ($\U0001D453_{burst}$)")
+    cbar1.ax.invert_yaxis()
+
+    ax[1].set_xlabel("redshift")
+    ax[1].set_ylabel("log$_{10}$ (M$_{*}$ [M\u2609])")
+    ax[1].set_xlim(z_min, z_max)
+    ax[1].set_ylim(logsm_min, log_sm_max)
+
+    z_min_label = str(np.round(z_min, 2))
+    z_max_label = str(np.round(z_max, 2))
+    fig.savefig(
+        savedir
+        + "/sat_"
+        + model_nickname
+        + "_fburst_mh_z"
+        + z_min_label
+        + "-"
+        + z_max_label
+        + ".png",
+        bbox_inches="tight",
+        dpi=200,
+    )
+
+    if plt_show:
+        plt.show()
+    plt.close()
