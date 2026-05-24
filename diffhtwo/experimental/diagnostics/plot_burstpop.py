@@ -103,8 +103,9 @@ def plot_lgfburst_mh_z(
     mag_thresh=None,
     frac_cat=None,
     num_halos=10000,
-    gridsize=100,
+    gridsize=50,
     mincnt=1,
+    plot="cen+sat",
     plt_show=True,
 ):
     lc_data, phot_kern_results, gal_weight = multiband_lc_phot_kern(
@@ -119,26 +120,38 @@ def plot_lgfburst_mh_z(
         frac_cat=frac_cat,
     )
 
+    if plot == "cen":
+        sel = lc_data.is_central == 1
+    elif plot == "sat":
+        sel = lc_data.is_central != 1
+    elif plot == "cen+sat":
+        sel = np.isfinite(lc_data.is_central)
+
     p_burst = freqburst_mono.get_freqburst_from_freqburst_params(
         param_collection.spspop_params.burstpop_params.freqburst_params,
         phot_kern_results.logsm_obs,
         phot_kern_results.logssfr_obs,
     )
     C = np.column_stack(
-        [phot_kern_results.logsm_obs, phot_kern_results.lgfburst, p_burst, gal_weight]
+        [
+            phot_kern_results.logsm_obs[sel],
+            phot_kern_results.lgfburst[sel],
+            p_burst[sel],
+            gal_weight[sel],
+        ]
     )
     fig, ax = plt.subplots(1, 2, figsize=(10, 4), width_ratios=[1, 1.2])
-    vmin, vmax = -10, -2.5
+    vmin, vmax = -6, -2.5
 
     """Plot fburst w/ halo mass and redshift"""
     ax[0].hexbin(
-        lc_data.z_obs,
-        lc_data.logmp_obs,
+        lc_data.z_obs[sel],
+        lc_data.logmp_obs[sel],
         C=C,
         reduce_C_function=_lgfburst_weighted,
         cmap="coolwarm_r",
         vmin=vmin,
-        vmax=-vmax,
+        vmax=vmax,
         mincnt=mincnt,
         gridsize=gridsize,
         rasterized=True,
@@ -150,10 +163,10 @@ def plot_lgfburst_mh_z(
     ax[0].set_ylim(10, 15)
 
     """Plot fburst w/ stellar mass and redshift"""
-    logsm_min, log_sm_max = 6, 12
+    logsm_min, log_sm_max = 8, 12
     hb1 = ax[1].hexbin(
-        lc_data.z_obs,
-        phot_kern_results.logsm_obs,
+        lc_data.z_obs[sel],
+        phot_kern_results.logsm_obs[sel],
         C=C,
         reduce_C_function=_lgfburst_weighted,
         cmap="coolwarm_r",

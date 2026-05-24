@@ -19,8 +19,13 @@ from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
-from diffhtwo.experimental.data_loaders import load_sdss
-from diffhtwo.experimental.defaults import SDSS_Z_MAX, SDSS_Z_MIN
+from diffhtwo.experimental.data_loaders import load_feniks, load_sdss
+from diffhtwo.experimental.defaults import (
+    FENIKS_Z_MAX,
+    FENIKS_Z_MIN,
+    SDSS_Z_MAX,
+    SDSS_Z_MIN,
+)
 from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
@@ -30,13 +35,15 @@ DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--config", default="config_sdss.yaml")
+    p.add_argument("--config", default="config_sdss_feniks.yaml")
     args = p.parse_args()
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
     sdss_drn = cfg["base_path"] + "/sdss"
+    feniks_drn = cfg["base_path"] + "/feniks"
+
     ssp_filename = (
         cfg["base_path"]
         + "/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5"
@@ -48,10 +55,12 @@ if __name__ == "__main__":
     emline_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     emline_wave_table = jnp.array([emline_wave_aa])
 
-    # load sdss data
+    # load data
     ran_key = jran.key(0)
     SDSS = load_sdss.get_sdss_data(sdss_drn, ran_key, ssp_data)
-
+    FENIKS = load_feniks.get_feniks_data(
+        feniks_drn, ran_key, ssp_data, lh_d_mag=cfg["feniks"]["lh_d_mag"]
+    )
     # start fit dirs
     fit_start_drn = cfg["base_path"] + "/fits/" + cfg["start_runid"] + "/"
     param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
@@ -88,12 +97,16 @@ if __name__ == "__main__":
         + cfg["fit_type"]
     )
     os.makedirs(fit_diagnostics_save_drn + "/loss", exist_ok=True)
-    os.makedirs(fit_diagnostics_save_drn + "/lh_N_z", exist_ok=True)
+    os.makedirs(fit_diagnostics_save_drn + "/sdss_lh_N_z", exist_ok=True)
+    os.makedirs(fit_diagnostics_save_drn + "/feniks_lh_N_z", exist_ok=True)
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
     sdss_z_min = [SDSS_Z_MIN, 0.1]
     sdss_z_max = [0.1, SDSS_Z_MAX]
+
+    feniks_z_min = [FENIKS_Z_MIN, 1]
+    feniks_z_max = [1, FENIKS_Z_MAX]
 
     initial_pts = []
     start = time.time()
@@ -109,16 +122,32 @@ if __name__ == "__main__":
             sdss_z_max,
             ssp_data,
             cfg["epoch"]["N_centroids"],
-            lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
+            lh_N_z_savedir=fit_diagnostics_save_drn + "/sdss_lh_N_z",
             num_halos=cfg["epoch"]["num_halos"],
         )
 
-        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_multi_z(
+        # FENIKS
+        feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
+            ran_key,
+            FENIKS,
+            feniks_z_min,
+            feniks_z_max,
+            ssp_data,
+            cfg["epoch"]["N_centroids"],
+            lh_N_z_savedir=fit_diagnostics_save_drn + "/feniks_lh_N_z",
+            num_halos=cfg["epoch"]["num_halos"],
+        )
+
+        loss_hist, u_theta_fit = Np_specphot_opt.fit_sdss_feniks_hizels(
             u_theta_fit,
             trainable_params,
             ran_key,
             sdss_meta_data,
             sdss_fitting_data,
+            feniks_meta_data,
+            feniks_fitting_data,
+            # hizels,
+            # line_wave_table,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
         )

@@ -73,11 +73,11 @@ def _loss_sdss_feniks_hizels(
     sdss_fitting_data,
     feniks_meta_data,
     feniks_fitting_data,
-    hizels,
-    line_wave_table,
+    # hizels,
+    # line_wave_table,
     fit_sdss=True,
     fit_feniks=True,
-    fit_hizels=False,
+    # fit_hizels=False,
 ):
     loss = 0.0
 
@@ -102,19 +102,19 @@ def _loss_sdss_feniks_hizels(
         loss += feniks_phot_loss
 
     # hizels
-    if fit_hizels:
-        hizels_emline_multi_line_multi_z_loss_args = (
-            u_theta,
-            ran_key,
-            hizels.lg_LF,
-            hizels.lg_Lbin_edges,
-            hizels.lc_data,
-            line_wave_table,
-        )
-        hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
-            *hizels_emline_multi_line_multi_z_loss_args
-        )
-        loss += hizels_emline_loss
+    # if fit_hizels:
+    #     hizels_emline_multi_line_multi_z_loss_args = (
+    #         u_theta,
+    #         ran_key,
+    #         hizels.lg_LF,
+    #         hizels.lg_Lbin_edges,
+    #         hizels.lc_data,
+    #         line_wave_table,
+    #     )
+    #     hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
+    #         *hizels_emline_multi_line_multi_z_loss_args
+    #     )
+    #     loss += hizels_emline_loss
 
     return loss
 
@@ -131,8 +131,8 @@ def fit_sdss_feniks_hizels(
     sdss_fitting_data,
     feniks_meta_data,
     feniks_fitting_data,
-    hizels,
-    line_wave_table,
+    # hizels,
+    # line_wave_table,
     n_steps=2,
     step_size=1e-2,
 ):
@@ -145,8 +145,8 @@ def fit_sdss_feniks_hizels(
         sdss_fitting_data,
         feniks_meta_data,
         feniks_fitting_data,
-        hizels,
-        line_wave_table,
+        # hizels,
+        # line_wave_table,
     )
 
     def _opt_update(opt_state, i):

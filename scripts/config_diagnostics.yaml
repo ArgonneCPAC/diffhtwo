@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run88
-model_nickname: run88_all
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run88/diagnostic_plots/all
+model_drn: /Users/kumail/diffdir/fits/run90
+model_nickname: run90_all
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run90/diagnostic_plots/all
 
 feniks_drn: /Users/kumail/diffdir/feniks
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -13,15 +13,15 @@ plot_sdss: True
 
 plots:
   num_halos : 3000
-  plot_colors_mags: False
-  plot_mags: False
-  plot_ssperr: False
-  plot_massive_cen_colors: False
-  plot_satquench: False
-  plot_satquench_model: False
-  plot_insitu_smhm: False
-  plot_uvj: False
-  plot_exsitu_frac: False
-  plot_avpop: False
-  plot_burstpop: False
+  plot_colors_mags: True
+  plot_mags: True
+  plot_ssperr: True
+  plot_massive_cen_colors: True
+  plot_satquench: True
+  plot_satquench_model: True
+  plot_insitu_smhm: True
+  plot_uvj: True
+  plot_exsitu_frac: True
+  plot_avpop: True
+  plot_burstpop: True
   plot_fburst_mh_z: True
