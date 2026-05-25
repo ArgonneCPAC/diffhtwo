@@ -106,7 +106,7 @@ if __name__ == "__main__":
     sdss_z_max = [0.1, SDSS_Z_MAX]
 
     feniks_z_min = [FENIKS_Z_MIN, 1]
-    feniks_z_max = [1, FENIKS_Z_MAX]
+    feniks_z_max = [1, 2]
 
     initial_pts = []
     start = time.time()
@@ -121,7 +121,7 @@ if __name__ == "__main__":
             sdss_z_min,
             sdss_z_max,
             ssp_data,
-            cfg["epoch"]["N_centroids"],
+            cfg["sdss"]["N_centroids"],
             lh_N_z_savedir=fit_diagnostics_save_drn + "/sdss_lh_N_z",
             num_halos=cfg["epoch"]["num_halos"],
         )
@@ -133,7 +133,7 @@ if __name__ == "__main__":
             feniks_z_min,
             feniks_z_max,
             ssp_data,
-            cfg["epoch"]["N_centroids"],
+            cfg["feniks"]["N_centroids"],
             lh_N_z_savedir=fit_diagnostics_save_drn + "/feniks_lh_N_z",
             num_halos=cfg["epoch"]["num_halos"],
         )
@@ -190,5 +190,5 @@ if __name__ == "__main__":
     ax_loss.set_ylabel("Poisson Loss")
     ax_loss.set_xlabel("steps")
     ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    plt.savefig(fit_diagnostics_save_drn + "/loss/sdss_loss_" + ts + ".png")
+    plt.savefig(fit_diagnostics_save_drn + "/loss/sdss_feniks_loss_" + ts + ".png")
     plt.close()

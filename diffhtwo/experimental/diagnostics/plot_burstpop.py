@@ -103,7 +103,7 @@ def plot_lgfburst_mh_z(
     mag_thresh=None,
     frac_cat=None,
     num_halos=10000,
-    gridsize=50,
+    gridsize=25,
     mincnt=1,
     plot="cen+sat",
     plt_show=True,

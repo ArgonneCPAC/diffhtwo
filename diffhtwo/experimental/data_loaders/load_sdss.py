@@ -18,7 +18,7 @@ from ..latin_hypercube import latin_hypercube as lh
 
 Sdss = namedtuple("Sdss", Dataset._fields)
 
-LH_N_CENTROIDS = 40_000
+LH_N_CENTROIDS = 20_000
 LH_SIG = 2.5
 LH_D_MAG = 0.1
 LH_D_Z = 0.01

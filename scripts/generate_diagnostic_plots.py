@@ -166,7 +166,7 @@ if __name__ == "__main__":
                 plt_show=False,
             )
 
-        for zbin in range(0, 1):
+        for zbin in range(0, len(feniks_zbins)):
             z_min = feniks_zbins[zbin][0]
             z_max = feniks_zbins[zbin][1]
 
