@@ -91,7 +91,7 @@ def get_lh_centroids(dataset):
     lh_centroids = lh_centroids[redshift_mask & r_mask]
 
     redshift = [0.02, 0.065, 0.11, 0.155, 0.2]
-    r_mins = [12, 13.5, 14.5, 15.3, 16]
+    r_mins = [12, 12.5, 14, 14.5, 15]
     coeffs = np.polyfit(redshift, r_mins, deg=2)
     r_min = np.poly1d(coeffs)
     r_bright = lh_centroids[:, -2] > r_min(lh_centroids[:, -1])
