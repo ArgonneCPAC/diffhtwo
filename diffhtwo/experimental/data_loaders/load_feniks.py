@@ -75,9 +75,9 @@ def get_lh_centroids(dataset, lh_d_mag):
     # mu[4] = mu[4] + 0.15  # z - Y
     # mu[5] = mu[5] + 0.0  # Y - J
     # mu[6] = mu[6] + 0.0  # J - H
-    # mu[8] = mu[8] + 0.0  # u
+    mu[-3] = mu[-3] - 1.0  # u
 
-    # mu[-2] = mu[-2] - 1  # K
+    mu[-2] = mu[-2] - 1.0  # K
     # mu[-1] = mu[-1] + 0.5  # redshift
 
     cov = np.cov(dataset.T)
