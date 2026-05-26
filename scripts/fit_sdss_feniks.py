@@ -21,7 +21,6 @@ from jax import random as jran
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks, load_sdss
 from diffhtwo.experimental.defaults import (
-    FENIKS_Z_MAX,
     FENIKS_Z_MIN,
     SDSS_Z_MAX,
     SDSS_Z_MIN,

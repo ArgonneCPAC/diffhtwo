@@ -189,7 +189,7 @@ def plot_lgfburst_mh_z(
     z_max_label = str(np.round(z_max, 2))
     fig.savefig(
         savedir
-        + "/sat_"
+        + "/"
         + model_nickname
         + "_fburst_mh_z"
         + z_min_label

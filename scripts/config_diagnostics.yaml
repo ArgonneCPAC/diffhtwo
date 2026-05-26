@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run98
-model_nickname: run98_all
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run98/diagnostic_plots/all
+model_drn: /Users/kumail/diffdir/fits/run99
+model_nickname: run99_all
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run99/diagnostic_plots/all
 
 feniks_drn: /Users/kumail/diffdir/feniks
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -17,7 +17,7 @@ plots:
   plot_mags: True
   plot_ssperr: True
   plot_massive_cen_colors: True
-  plot_satquench: True
+  plot_satquench: False
   plot_satquench_model: True
   plot_insitu_smhm: True
   plot_uvj: True
