@@ -32,7 +32,7 @@ Feniks = namedtuple("Feniks", Dataset._fields)
 LH_SIG = 3.0
 LH_N_CENTROIDS = 60_000
 
-LH_D_Z = 0.5
+LH_D_Z = 0.3
 
 
 def get_mag_ab(phot_table, col_name, ZP=25):

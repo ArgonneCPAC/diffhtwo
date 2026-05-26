@@ -67,7 +67,7 @@ def plot_massive_cen_colors(
         bins = np.linspace(
             med - (3 * std),
             med + (3 * std),
-            40,
+            20,
         )
         ax[c].hist(
             obs_colors_in_situ[:, c][sm_cut],
