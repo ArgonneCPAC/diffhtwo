@@ -122,7 +122,7 @@ def get_feniks_data(
         HSC_R=FENIKS_MAGOTHER_THRESH,
         HSC_I=FENIKS_MAGOTHER_THRESH,
         HSC_Z=FENIKS_MAGOTHER_THRESH,
-        VIDEO_Y=FENIKS_MAGOTHER_THRESH,
+        # VIDEO_Y=FENIKS_MAGOTHER_THRESH,
         UDS_J=FENIKS_MAGOTHER_THRESH,
         UDS_H=FENIKS_MAGOTHER_THRESH,
         UDS_K=FENIKS_MAGK_THRESH,
@@ -133,7 +133,7 @@ def get_feniks_data(
         HSC_R=False,
         HSC_I=False,
         HSC_Z=False,
-        VIDEO_Y=False,
+        # VIDEO_Y=False,
         UDS_J=False,
         UDS_H=False,
         UDS_K=True,
@@ -156,7 +156,7 @@ def get_feniks_data(
     hsc_r = get_mag_ab(phot, "fcol_HSC_R")
     hsc_i = get_mag_ab(phot, "fcol_HSC_I")
     hsc_z = get_mag_ab(phot, "fcol_HSC_Z")
-    video_Y = get_mag_ab(phot, "fcol_VIDEO_Y")
+    # video_Y = get_mag_ab(phot, "fcol_VIDEO_Y")
     uds_J = get_mag_ab(phot, "fcol_UDS_J")
     uds_H = get_mag_ab(phot, "fcol_UDS_H")
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
@@ -168,7 +168,7 @@ def get_feniks_data(
         & (hsc_r < feniks_mag_thresh.HSC_R)
         & (hsc_i < feniks_mag_thresh.HSC_I)
         & (hsc_z < feniks_mag_thresh.HSC_Z)
-        & (video_Y < feniks_mag_thresh.VIDEO_Y)
+        # & (video_Y < feniks_mag_thresh.VIDEO_Y)
         & (uds_J < feniks_mag_thresh.UDS_J)
         & (uds_H < feniks_mag_thresh.UDS_H)
         & (uds_K < feniks_mag_thresh.UDS_K)
@@ -184,7 +184,7 @@ def get_feniks_data(
     hsc_r = hsc_r[mag_thresh]
     hsc_i = hsc_i[mag_thresh]
     hsc_z = hsc_z[mag_thresh]
-    video_Y = video_Y[mag_thresh]
+    # video_Y = video_Y[mag_thresh]
     uds_J = uds_J[mag_thresh]
     uds_H = uds_H[mag_thresh]
     uds_K = uds_K[mag_thresh]
@@ -198,7 +198,7 @@ def get_feniks_data(
         & (hsc_r != -99)
         & (hsc_i != -99)
         & (hsc_z != -99)
-        & (video_Y != -99)
+        # & (video_Y != -99)
         & (uds_J != -99)
         & (uds_H != -99)
         & (uds_K != -99)
@@ -211,7 +211,7 @@ def get_feniks_data(
     hsc_r = hsc_r[clean]
     hsc_i = hsc_i[clean]
     hsc_z = hsc_z[clean]
-    video_Y = video_Y[clean]
+    # video_Y = video_Y[clean]
     uds_J = uds_J[clean]
     uds_H = uds_H[clean]
     uds_K = uds_K[clean]
@@ -251,7 +251,7 @@ def get_feniks_data(
             hsc_r,
             hsc_i,
             hsc_z,
-            video_Y,
+            # video_Y,
             uds_J,
             uds_H,
             uds_K,
@@ -264,8 +264,8 @@ def get_feniks_data(
     hsc_gr = hsc_g - hsc_r
     hsc_ri = hsc_r - hsc_i
     hsc_iz = hsc_i - hsc_z
-    hsc_video_zY = hsc_z - video_Y
-    video_uds_YJ = video_Y - uds_J
+    hsc_uds_zJ = hsc_z - uds_J
+    # video_uds_YJ = video_Y - uds_J
     uds_JH = uds_J - uds_H
     uds_HK = uds_H - uds_K
 
@@ -276,8 +276,7 @@ def get_feniks_data(
             hsc_gr,
             hsc_ri,
             hsc_iz,
-            hsc_video_zY,
-            video_uds_YJ,
+            hsc_uds_zJ,
             uds_JH,
             uds_HK,
             megacam_uS,
@@ -291,8 +290,8 @@ def get_feniks_data(
         r"$g_{HSC} - r_{HSC}$",
         r"$r_{HSC} - i_{HSC}$",
         r"$i_{HSC} - z_{HSC}$",
-        r"$z_{HSC} - Y_{VIDEO}$",
-        r"$Y_{VIDEO} - J_{UDS}$",
+        r"$z_{HSC} - J_{UDS}$",
+        # r"$Y_{VIDEO} - J_{UDS}$",
         r"$J_{UDS} - H_{UDS}$",
         r"$H_{UDS} - K_{UDS}$",
         r"$uS_{MegaCam}$",
@@ -306,7 +305,7 @@ def get_feniks_data(
         r"$r_{HSC}$",
         r"$i_{HSC}$",
         r"$z_{HSC}$",
-        r"$Y_{VIDEO}$",
+        # r"$Y_{VIDEO}$",
         r"$J_{UDS}$",
         r"$H_{UDS}$",
         r"$K_{UDS}$",
@@ -356,7 +355,7 @@ FeniksFilters = namedtuple(
         "HSC_R",
         "HSC_I",
         "HSC_Z",
-        "VIDEO_Y",
+        # "VIDEO_Y",
         "UDS_J",
         "UDS_H",
         "UDS_K",

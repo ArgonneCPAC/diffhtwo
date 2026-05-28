@@ -7,7 +7,7 @@ fit_runid: "runtest"
 fit_type: "all"
 
 feniks:
-  lh_d_mag: 0.6
+  lh_d_mag: 0.4
   N_centroids: 2000
 
 epoch:

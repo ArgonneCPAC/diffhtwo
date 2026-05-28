@@ -29,10 +29,12 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_phot import (
+    plot_color_pdfs,
     plot_n_colors_mag,
     plot_n_mags,
 )
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
+from diffhtwo.experimental.diagnostics.plot_sat import plot_merging_sat_colors
 from diffhtwo.experimental.diagnostics.plot_satquench import (
     generate_sat_plots,
     plot_satquench_model,
@@ -103,7 +105,7 @@ if __name__ == "__main__":
     Plot FENIKS
     """
     if cfg["plot_feniks"]:
-        feniks_label = "feniks"
+        feniks_label = "feniks"  # + cfg["model_nickname"].split("_")[0]
         feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
         feniks_zbins = np.array(
             [
@@ -170,6 +172,21 @@ if __name__ == "__main__":
             z_min = feniks_zbins[zbin][0]
             z_max = feniks_zbins[zbin][1]
 
+            if cfg["plots"]["plot_color_pdfs"]:
+                print(
+                    f"Generating FENIKS color PDFs for {zbin+1}/{len(feniks_zbins)} z-bin..."
+                )
+                plot_color_pdfs(
+                    feniks,
+                    feniks_label,
+                    param_collection_fit,
+                    ran_key,
+                    z_min,
+                    z_max,
+                    ssp_data,
+                    fit_diagnostics_save_drn,
+                )
+
             if cfg["plots"]["plot_colors_mags"]:
                 print(
                     f"Generating FENIKS photometry plots for {zbin+1}/{len(feniks_zbins)} z-bin..."
@@ -211,9 +228,27 @@ if __name__ == "__main__":
 
             if cfg["plots"]["plot_massive_cen_colors"]:
                 print(
-                    f"Generating massive central colors plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+                    f"Generating FENIKS massive central colors plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
                 )
                 plot_massive_cen_colors(
+                    ran_key,
+                    param_collection_fit,
+                    z_min,
+                    z_max,
+                    feniks.dataset_dim_labels,
+                    ssp_data,
+                    feniks.filter_info.tcurves,
+                    feniks_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
+
+            if cfg["plots"]["plot_merging_sat_colors"]:
+                print(
+                    f"Generating FENIKS merging sat colors plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+                )
+                plot_merging_sat_colors(
                     ran_key,
                     param_collection_fit,
                     z_min,
@@ -248,7 +283,7 @@ if __name__ == "__main__":
 
             if cfg["plots"]["plot_satquench"]:
                 print(
-                    f"Generating satquench plots for {zbin+1}/{len(feniks_zbins)} z-bin..."
+                    f"Generating FENIKS satquench plots for {zbin+1}/{len(feniks_zbins)} z-bin..."
                 )
                 generate_sat_plots(
                     ran_key,
@@ -269,7 +304,7 @@ if __name__ == "__main__":
     Plot SDSS
     """
     if cfg["plot_sdss"]:
-        sdss_label = "sdss"
+        sdss_label = "sdss"  # + cfg["model_nickname"].split("_")[0]
         sdss = load_sdss.get_sdss_data(sdss_drn, ran_key, ssp_data)
         sdss_zbins = np.array(
             [
@@ -321,6 +356,21 @@ if __name__ == "__main__":
             z_min = sdss_zbins[zbin][0]
             z_max = sdss_zbins[zbin][1]
 
+            if cfg["plots"]["plot_color_pdfs"]:
+                print(
+                    f"Generating SDSS color PDFs for {zbin+1}/{len(sdss_zbins)} z-bin..."
+                )
+                plot_color_pdfs(
+                    sdss,
+                    sdss_label,
+                    param_collection_fit,
+                    ran_key,
+                    z_min,
+                    z_max,
+                    ssp_data,
+                    fit_diagnostics_save_drn,
+                )
+
             if cfg["plots"]["plot_colors_mags"]:
                 print(
                     f"Generating SDSS photometry plots for {zbin+1}/{len(sdss_zbins)} z-bin..."
@@ -362,7 +412,7 @@ if __name__ == "__main__":
 
             if cfg["plots"]["plot_massive_cen_colors"]:
                 print(
-                    f"Generating massive central colors plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
+                    f"Generating SDSS massive central colors plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
                 )
                 plot_massive_cen_colors(
                     ran_key,
@@ -378,9 +428,27 @@ if __name__ == "__main__":
                     plt_show=False,
                 )
 
+            if cfg["plots"]["plot_merging_sat_colors"]:
+                print(
+                    f"Generating SDSS merging sat colors plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
+                )
+                plot_merging_sat_colors(
+                    ran_key,
+                    param_collection_fit,
+                    z_min,
+                    z_max,
+                    sdss.dataset_dim_labels,
+                    ssp_data,
+                    sdss.filter_info.tcurves,
+                    sdss_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
+
             if cfg["plots"]["plot_satquench"]:
                 print(
-                    f"Generating satquench plots for {zbin+1}/{len(sdss_zbins)} z-bin..."
+                    f"Generating SDSS satquench plots for {zbin+1}/{len(sdss_zbins)} z-bin..."
                 )
                 generate_sat_plots(
                     ran_key,

@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run100
-model_nickname: run100_all
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run100/diagnostic_plots/all
+model_drn: /Users/kumail/diffdir/fits/run106
+model_nickname: run106_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run106/diagnostic_plots/diffstarpop+spspop+merging
 
 feniks_drn: /Users/kumail/diffdir/feniks
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -13,10 +13,12 @@ plot_sdss: False
 
 plots:
   num_halos : 3000
+  plot_color_pdfs: False
   plot_colors_mags: False
   plot_mags: False
   plot_ssperr: False
-  plot_massive_cen_colors: True
+  plot_massive_cen_colors: False
+  plot_merging_sat_colors: True
   plot_satquench: False
   plot_satquench_model: False
   plot_insitu_smhm: False

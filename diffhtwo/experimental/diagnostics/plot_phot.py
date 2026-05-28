@@ -43,6 +43,152 @@ except ImportError:
     HAS_MATPLOTLIB = False
 
 
+def plot_color_pdfs(
+    dataset,
+    data_label,
+    param_collection,
+    ran_key,
+    z_min,
+    z_max,
+    ssp_data,
+    savedir,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
+    num_halos=5000,
+    lc_sky_area_degsq=1000,
+    n_z_phot_table=30,
+    cosmo_params=DEFAULT_COSMOLOGY,
+    fb=FB,
+):
+    dataset_colors_mag = dataset.dataset
+    data_sky_area_degsq = dataset.data_sky_area_degsq
+
+    z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
+    z_mask = (dataset_colors_mag[:, -1] > z_min) & (dataset_colors_mag[:, -1] < z_max)
+    dataset_colors_mag_z = dataset_colors_mag[z_mask]
+    data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
+
+    z_phot_table = 10 ** jnp.linspace(np.log10(z_min), np.log10(z_max), n_z_phot_table)
+    lc_data = generate_lc_data(
+        ran_key,
+        num_halos,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        dataset.filter_info.tcurves,
+        z_phot_table,
+    )
+    in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
+    in_lh_idx = jnp.where(in_lh)[0]
+    obs_color_mag, weights, phot_kern_results = get_colors_mags(
+        ran_key,
+        param_collection,
+        lc_data,
+        dataset.filter_info.mag_thresh,
+        in_lh_idx,
+        dataset.frac_cat,
+    )
+
+    n_panels = obs_color_mag.shape[1] - len(in_lh_idx)
+
+    if data_label == "sdss":
+        fig_width = 3.0 * n_panels
+        fig_height = n_panels
+
+        fontsize = 4 * n_panels
+        # labelsize = 3.25 * n_panels
+        legend_fontsize = 3 * n_panels
+
+    if data_label == "feniks":
+        fig_width = 2.25 * n_panels
+        fig_height = n_panels / 2.5
+
+        fontsize = 2.25 * n_panels
+        # labelsize = 1.75 * n_panels
+        legend_fontsize = 1.25 * n_panels
+
+    fig, ax = plt.subplots(
+        1,
+        n_panels,
+        figsize=(fig_width, fig_height),
+    )
+    fig.subplots_adjust(
+        left=0.05, hspace=0, top=0.875, right=0.99, bottom=0.15, wspace=0.0
+    )
+    fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=24)
+    for i in range(0, n_panels):
+        std = np.std(dataset_colors_mag_z[:, i])
+        med = np.median(dataset_colors_mag_z[:, i])
+        bins = np.linspace(
+            med - (6 * std),
+            med + (6 * std),
+            20,
+        )
+
+        # bin_centers = (bins[1:] + bins[:-1]) / 2
+        ax[i].set_xlim(bins[0], bins[-1])
+        ax[i].set_xticks([])
+        ax[i].set_xlim(bins[0], bins[-1])
+        ax[i].set_xlabel(dataset.dataset_dim_labels[i], fontsize=fontsize)
+
+        n_data, bin_edges, _ = ax[i].hist(
+            dataset_colors_mag_z[:, i],
+            weights=np.ones_like(dataset_colors_mag_z[:, i]) * (1 / data_vol_mpc3),
+            bins=bins,
+            color="k",
+            label=data_label,
+            alpha=0.5,
+            density=True,
+        )
+
+        n_diffsky, _, _ = ax[i].hist(
+            obs_color_mag[:, i],
+            weights=weights * (1 / lc_data.lc_tot_vol_mpc3),
+            bins=bins,
+            color="deepskyblue",
+            label="diffsky",
+            alpha=0.5,
+            density=True,
+        )
+
+        ax[i].tick_params(
+            which="major",
+            length=0,
+            # width=1.5,
+            # direction="in",
+            # top=True,
+            # right=True,
+            # labelsize=labelsize,
+        )
+        # ax[i].tick_params(which="minor", length=0, top=True, right=True)
+
+        if i != 0:
+            ax[i].set_yticklabels([])
+
+    ax[-1].legend(
+        framealpha=0.5,
+        loc="best",
+        ncols=1,
+        fontsize=legend_fontsize,
+    )
+
+    ax[0].set_ylabel("PDF", fontsize=fontsize)
+    fig.savefig(
+        savedir
+        + "/"
+        + data_label
+        + "_color_pdfs_z"
+        + str(z_min)
+        + "-"
+        + str(z_max)
+        + ".png"
+    )
+    plt.close()
+
+
 def plot_n_colors_mag(
     dataset,
     data_label,
@@ -230,8 +376,7 @@ def plot_n_colors_mag(
     ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
     ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
-        savedir + "/" + data_label + "_fit_z" + str(z_min) + "-" + str(z_max) + ".png",
-        bbox_inches="tight",
+        savedir + "/" + data_label + "_fit_z" + str(z_min) + "-" + str(z_max) + ".png"
     )
     plt.close()
 
@@ -410,7 +555,6 @@ def plot_n_mags(
     ax[0, 0].set_ylabel("n [Mpc$^{-3}$]", fontsize=fontsize)
     ax[1, 0].set_ylabel("n$_{diffsky}$ / n$_{" + data_label + "}$", fontsize=fontsize)
     fig.savefig(
-        savedir + "/" + data_label + "_mags_z" + str(z_min) + "-" + str(z_max) + ".png",
-        bbox_inches="tight",
+        savedir + "/" + data_label + "_mags_z" + str(z_min) + "-" + str(z_max) + ".png"
     )
     plt.close()
