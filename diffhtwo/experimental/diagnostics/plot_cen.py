@@ -98,7 +98,9 @@ def plot_massive_cen_colors(
         + z_min_label
         + "-"
         + z_max_label
-        + ".png"
+        + ".png",
+        bbox_inches="tight",
+        dpi=200,
     )
     if plt_show:
         plt.show()
