@@ -56,6 +56,13 @@ def fit_N_multi_z(
         grads = tuple(
             jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
         )
+
+        # clip gradients
+        global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
+        tau = 1.0
+        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        grads = tuple(g * scale for g in grads)
+
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
 

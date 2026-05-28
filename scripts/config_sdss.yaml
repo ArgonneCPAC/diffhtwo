@@ -3,7 +3,7 @@ base_path: "/Users/kumail/diffdir"
 start_runid: "run73"
 start_fit_type: "all"
 
-fit_runid: "run74"
+fit_runid: "runtest"
 fit_type: "all"
 
 epoch:

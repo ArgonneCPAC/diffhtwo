@@ -118,7 +118,7 @@ def plot_color_pdfs(
     fig.subplots_adjust(
         left=0.05, hspace=0, top=0.875, right=0.99, bottom=0.15, wspace=0.0
     )
-    fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=24)
+    fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=20)
     for i in range(0, n_panels):
         std = np.std(dataset_colors_mag_z[:, i])
         med = np.median(dataset_colors_mag_z[:, i])
