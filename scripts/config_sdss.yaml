@@ -10,7 +10,6 @@ epoch:
   n_it: 1
   n_steps: 25
   step_size: 0.1
-  N_z_bins: 1
   N_centroids: 2000
   num_halos: 300
     

@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run110
-model_nickname: run110_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run110/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run113
+model_nickname: run113_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run113/diagnostic_plots/diffstarpop+spspop+merging
 
 feniks_drn: /Users/kumail/diffdir/feniks
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -13,6 +13,7 @@ plot_sdss: True
 
 plots:
   num_halos : 3000
+  plot_insitu_sm: True
   plot_color_pdfs: True
   plot_colors_mags: True
   plot_mags: True

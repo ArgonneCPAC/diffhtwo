@@ -16,7 +16,7 @@ def plot_massive_cen_colors(
     savedir,
     mag_thresh=None,
     frac_cat=None,
-    num_halos=10000,
+    num_halos=1000,
     logsm_obs_thresh=11,
     plt_show=True,
 ):

@@ -130,7 +130,6 @@ def plot_color_pdfs(
 
         # bin_centers = (bins[1:] + bins[:-1]) / 2
         ax[i].set_xlim(bins[0], bins[-1])
-        ax[i].set_xticks([])
         ax[i].set_xlim(bins[0], bins[-1])
         ax[i].set_xlabel(dataset.dataset_dim_labels[i], fontsize=fontsize)
 

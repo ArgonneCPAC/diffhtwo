@@ -3,6 +3,7 @@ import os
 import time
 from datetime import datetime
 
+import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -124,6 +125,7 @@ if __name__ == "__main__":
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
         )
+        jax.clear_caches()
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
         lc_mock.write_diffsky_param_collection_merging(

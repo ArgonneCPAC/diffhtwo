@@ -28,6 +28,7 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
     plot_lgfburst_mh_z,
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
+from diffhtwo.experimental.diagnostics.plot_insitu_sm import plot_insitu_sm
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_color_pdfs,
     plot_n_colors_mag,
@@ -171,6 +172,24 @@ if __name__ == "__main__":
         for zbin in range(0, len(feniks_zbins)):
             z_min = feniks_zbins[zbin][0]
             z_max = feniks_zbins[zbin][1]
+
+            if cfg["plots"]["plot_insitu_sm"]:
+                print(
+                    f"Generating FENIKS in-situ sm plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+                )
+                plot_insitu_sm(
+                    ran_key,
+                    param_collection_fit,
+                    z_min,
+                    z_max,
+                    feniks.dataset_dim_labels,
+                    ssp_data,
+                    feniks.filter_info.tcurves,
+                    feniks_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
 
             if cfg["plots"]["plot_color_pdfs"]:
                 print(
@@ -355,6 +374,24 @@ if __name__ == "__main__":
         for zbin in range(0, len(sdss_zbins)):
             z_min = sdss_zbins[zbin][0]
             z_max = sdss_zbins[zbin][1]
+
+            if cfg["plots"]["plot_insitu_sm"]:
+                print(
+                    f"Generating SDSS in-situ sm plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
+                )
+                plot_insitu_sm(
+                    ran_key,
+                    param_collection_fit,
+                    z_min,
+                    z_max,
+                    sdss.dataset_dim_labels,
+                    ssp_data,
+                    sdss.filter_info.tcurves,
+                    sdss_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
 
             if cfg["plots"]["plot_color_pdfs"]:
                 print(
