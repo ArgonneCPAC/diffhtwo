@@ -30,6 +30,7 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_insitu_sm import plot_insitu_sm
 from diffhtwo.experimental.diagnostics.plot_phot import (
+    plot_app_mag_funcs,
     plot_color_pdfs,
     plot_n_colors_mag,
     plot_n_mags,
@@ -119,9 +120,20 @@ if __name__ == "__main__":
                 [2.6, 3.0],
             ]
         )
+        if cfg["plots"]["plot_app_mag_funcs"]:
+            print("Generating FENIKS app mag funcs plot...")
+            plot_app_mag_funcs(
+                feniks,
+                feniks_label,
+                param_collection_fit,
+                ran_key,
+                ssp_data,
+                fit_diagnostics_save_drn,
+                num_halos=num_halos,
+                plt_show=False,
+            )
 
         if cfg["plots"]["plot_uvj"]:
-            # Plot feniks UVJ
             print("Generating FENIKS UVJ plot...")
             plot_uvj(
                 ran_key,
@@ -134,7 +146,6 @@ if __name__ == "__main__":
             )
 
         if cfg["plots"]["plot_exsitu_frac"]:
-            # Plot feniks ex-situ frac
             print("Generating FENIKS ex-situ frac plot...")
             pdata = pcm.get_plotting_data(
                 **param_collection_fit._asdict(),
@@ -336,7 +347,6 @@ if __name__ == "__main__":
         )
 
         if cfg["plots"]["plot_exsitu_frac"]:
-            # Plot feniks ex-situ frac
             print("Generating SDSS ex-situ frac plot...")
             pdata = pcm.get_plotting_data(
                 **param_collection_fit._asdict(),

@@ -93,8 +93,8 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
-    sdss_z_min = [SDSS_Z_MIN, 0.1]
-    sdss_z_max = [0.1, SDSS_Z_MAX]
+    sdss_z_min = [SDSS_Z_MIN, 0.08, 0.14]
+    sdss_z_max = [0.08, 0.14, SDSS_Z_MAX]
 
     initial_pts = []
     start = time.time()

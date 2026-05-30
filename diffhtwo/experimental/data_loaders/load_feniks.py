@@ -7,11 +7,11 @@ import numpy as np
 from astropy.io import ascii
 from diffsky import diffndhist_lomem
 from dsps.data_loaders.defaults import TransmissionCurve
+from scipy import optimize
 
 from ..defaults import (
     FENIKS_AREA_DEG2,
     FENIKS_MAGK_THRESH,
-    FENIKS_MAGOTHER_THRESH,
     FENIKS_Z_MAX,
     FENIKS_Z_MIN,
     Dataset,
@@ -35,14 +35,46 @@ LH_N_CENTROIDS = 60_000
 LH_D_Z = 0.3
 
 
-def get_mag_ab(phot_table, col_name, ZP=25):
+def _power_law(x, A, B):
+    return A * (x**B)
+
+
+def _get_mag_thresh(mag, completeness=0.9, power_law_limit=24):
+    mag_bin_edges = np.arange(22, 28, 0.2)
+    mag_bin_centers = (mag_bin_edges[1:] + mag_bin_edges[:-1]) / 2
+
+    N, _ = np.histogram(mag, bins=mag_bin_edges)
+    lg_N = np.log10(N)
+
+    mag_sel = mag_bin_centers < power_law_limit
+    copt, ccov = optimize.curve_fit(_power_law, mag_bin_centers[mag_sel], lg_N[mag_sel])
+
+    lg_N_modeled = _power_law(mag_bin_centers, copt[0], copt[1])
+    ratio = lg_N / lg_N_modeled
+
+    mag_sel_faint = mag_bin_centers >= power_law_limit
+    mag_bin_centers = mag_bin_centers[mag_sel_faint]
+    ratio = ratio[mag_sel_faint]
+
+    for m in range(0, len(mag_bin_centers)):
+        if ratio[m] < completeness:
+            mag_thresh = mag_bin_centers[m]
+            break
+    return np.round(mag_thresh, 1)
+
+
+def get_mag_and_thresh_ab(phot_table, col_name, ZP=25):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         mag_ab = -2.5 * np.log10(phot_table[col_name]) + ZP
 
     mag_ab[~np.isfinite(mag_ab)] = -99.0
 
-    return mag_ab.data
+    mag_ab = mag_ab.data
+
+    mag_thresh = _get_mag_thresh(mag_ab)
+
+    return mag_ab, mag_thresh
 
 
 def refresh_lh_centroids(DATASET, lh_d_mag):
@@ -90,7 +122,7 @@ def get_lh_centroids(dataset, lh_d_mag):
         lh_centroids[:, -1] < (FENIKS_Z_MAX - (LH_D_Z / 2))
     )
     k_mask = lh_centroids[:, -2] < FENIKS_MAGK_THRESH
-    u_mask = lh_centroids[:, -3] < FENIKS_MAGOTHER_THRESH
+    u_mask = lh_centroids[:, -3] < 25
     lh_centroids = lh_centroids[redshift_mask & k_mask & u_mask]
 
     redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
@@ -116,17 +148,6 @@ def get_feniks_data(
 ):
     # Transmission curves and filter mag thresholds
 
-    feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=FENIKS_MAGOTHER_THRESH,
-        HSC_G=FENIKS_MAGOTHER_THRESH,
-        HSC_R=FENIKS_MAGOTHER_THRESH,
-        HSC_I=FENIKS_MAGOTHER_THRESH,
-        HSC_Z=FENIKS_MAGOTHER_THRESH,
-        # VIDEO_Y=FENIKS_MAGOTHER_THRESH,
-        UDS_J=FENIKS_MAGOTHER_THRESH,
-        UDS_H=FENIKS_MAGOTHER_THRESH,
-        UDS_K=FENIKS_MAGK_THRESH,
-    )
     feniks_in_lh = FeniksFilters(
         MegaCam_uS=True,
         HSC_G=False,
@@ -144,22 +165,34 @@ def get_feniks_data(
         feniks_filter_wave_aa, feniks_filter_trans = load_feniks_tcurve(tcurve_filename)
         tcurves.append(TransmissionCurve(feniks_filter_wave_aa, feniks_filter_trans))
 
-    filter_info = FilterInfo(feniks_mag_thresh, feniks_in_lh, tcurves)
-
     drn_path = Path(drn)
     phot = ascii.read(drn_path / phot)
     zout = ascii.read(drn_path / zout)
 
     # get mags
-    megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
-    hsc_g = get_mag_ab(phot, "fcol_HSC_G")
-    hsc_r = get_mag_ab(phot, "fcol_HSC_R")
-    hsc_i = get_mag_ab(phot, "fcol_HSC_I")
-    hsc_z = get_mag_ab(phot, "fcol_HSC_Z")
-    # video_Y = get_mag_ab(phot, "fcol_VIDEO_Y")
-    uds_J = get_mag_ab(phot, "fcol_UDS_J")
-    uds_H = get_mag_ab(phot, "fcol_UDS_H")
-    uds_K = get_mag_ab(phot, "fcol_UDS_K")
+    megacam_uS, megacam_uS_thresh = get_mag_and_thresh_ab(phot, "fcol_MegaCam_uS")
+    hsc_g, hsc_g_thresh = get_mag_and_thresh_ab(phot, "fcol_HSC_G")
+    hsc_r, hsc_r_thresh = get_mag_and_thresh_ab(phot, "fcol_HSC_R")
+    hsc_i, hsc_i_thresh = get_mag_and_thresh_ab(phot, "fcol_HSC_I")
+    hsc_z, hsc_z_thresh = get_mag_and_thresh_ab(phot, "fcol_HSC_Z")
+    # video_Y, video_Y_thresh = get_mag_and_thresh_ab(phot, "fcol_VIDEO_Y")
+    uds_J, uds_J_thresh = get_mag_and_thresh_ab(phot, "fcol_UDS_J")
+    uds_H, uds_H_thresh = get_mag_and_thresh_ab(phot, "fcol_UDS_H")
+    uds_K, uds_K_thresh = get_mag_and_thresh_ab(phot, "fcol_UDS_K")
+
+    feniks_mag_thresh = FeniksFilters(
+        MegaCam_uS=megacam_uS_thresh,
+        HSC_G=hsc_g_thresh,
+        HSC_R=hsc_r_thresh,
+        HSC_I=hsc_i_thresh,
+        HSC_Z=hsc_z_thresh,
+        # VIDEO_Y=video_Y_thresh,
+        UDS_J=uds_J_thresh,
+        UDS_H=uds_H_thresh,
+        UDS_K=FENIKS_MAGK_THRESH,
+    )
+
+    filter_info = FilterInfo(feniks_mag_thresh, feniks_in_lh, tcurves)
 
     # get mag thresh cuts
     mag_thresh = (
