@@ -111,13 +111,11 @@ if __name__ == "__main__":
         feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
         feniks_zbins = np.array(
             [
-                [0.2, 0.4],
-                [0.5, 0.7],
-                [0.9, 1.1],
+                [0.2, 0.5],
+                [0.5, 0.8],
+                [0.8, 1.2],
                 [1.2, 1.6],
-                [1.8, 2.2],
-                [2.2, 2.6],
-                [2.6, 3.0],
+                [1.6, 2.0],
             ]
         )
         if cfg["plots"]["plot_app_mag_funcs"]:

@@ -587,13 +587,11 @@ def plot_app_mag_funcs(
 
     feniks_zbins = np.array(
         [
-            [0.2, 0.4],
-            [0.5, 0.7],
-            [0.9, 1.1],
+            [0.2, 0.5],
+            [0.5, 0.8],
+            [0.8, 1.2],
             [1.2, 1.6],
-            [1.8, 2.2],
-            [2.2, 2.6],
-            [2.6, 3.0],
+            [1.6, 2.0],
         ]
     )
     labels_z = [" z = " + str(np.round(np.median(z), 2)) for z in feniks_zbins]
@@ -610,11 +608,8 @@ def plot_app_mag_funcs(
     # ]
     colors_z = [
         "#001219",
-        "#003d52",
         "#0a7a80",
-        "#40b0a0",
         "#80cca8",
-        "#b8dfa0",
         "#dfd080",
         "#f5e882",
     ]

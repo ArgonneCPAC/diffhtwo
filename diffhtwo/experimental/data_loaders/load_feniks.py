@@ -58,7 +58,7 @@ def _get_mag_thresh(mag, completeness=0.9, power_law_limit=24):
 
     for m in range(0, len(mag_bin_centers)):
         if ratio[m] < completeness:
-            mag_thresh = mag_bin_centers[m]
+            mag_thresh = mag_bin_centers[m - 1]
             break
     return np.round(mag_thresh, 1)
 
