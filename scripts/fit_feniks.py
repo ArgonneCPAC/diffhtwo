@@ -95,8 +95,8 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
-    feniks_z_min = [FENIKS_Z_MIN, 1, 2]
-    feniks_z_max = [1, 2, FENIKS_Z_MAX]
+    feniks_z_min = [FENIKS_Z_MIN, 1]
+    feniks_z_max = [1, 2]
 
     initial_pts = []
     start = time.time()

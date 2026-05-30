@@ -623,7 +623,6 @@ def plot_app_mag_funcs(
 
     fontsize = 10
     labelsize = 10
-    legend_fontsize = 10
     alpha = 0.75
     s = 10
 
@@ -757,13 +756,6 @@ def plot_app_mag_funcs(
                 col = 0
             else:
                 col += 1
-
-    # ax[0, -1].legend(
-    #     framealpha=0.5,
-    #     loc="best",
-    #     ncols=1,
-    #     fontsize=legend_fontsize,
-    # )
 
     ax[0, 0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
     ax[1, 0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
