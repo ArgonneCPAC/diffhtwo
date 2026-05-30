@@ -3,24 +3,35 @@ import os
 import time
 from datetime import datetime
 
+import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
+from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
+from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
+from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
+from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
+    DiffstarPop_Params_Diffstarpopfits_mgash,
+)
 from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
-from diffhtwo.experimental import defaults as df
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks
+from diffhtwo.experimental.defaults import FENIKS_Z_MAX, FENIKS_Z_MIN
 from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
+DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
+    "galacticus_in_plus_ex_situ"
+]
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--config", default="config.yaml")
+    p.add_argument("--config", default="config_feniks.yaml")
     args = p.parse_args()
 
     with open(args.config) as f:
@@ -41,9 +52,7 @@ if __name__ == "__main__":
     # load feniks data
     ran_key = jran.key(0)
     FENIKS = load_feniks.get_feniks_data(
-        feniks_drn,
-        ran_key,
-        ssp_data,
+        feniks_drn, ran_key, ssp_data, lh_d_mag=cfg["feniks"]["lh_d_mag"]
     )
 
     # start fit dirs
@@ -52,6 +61,23 @@ if __name__ == "__main__":
         fit_start_drn,
         cfg["start_runid"] + "_" + cfg["start_fit_type"],
     )
+    if cfg["defaults"]["diffstarpop"]:
+        param_collection_fit = param_collection_fit._replace(
+            diffstarpop_params=DIFFSTARPOP_GALACTICUS_exsitu
+        )
+    if cfg["defaults"]["spspop"]:
+        param_collection_fit = param_collection_fit._replace(
+            spspop_params=DEFAULT_SPSPOP_PARAMS
+        )
+    if cfg["defaults"]["ssperr"]:
+        param_collection_fit = param_collection_fit._replace(
+            ssperr_params=ZERO_SSPERR_PARAMS
+        )
+    if cfg["defaults"]["merging"]:
+        param_collection_fit = param_collection_fit._replace(
+            merging_params=DEFAULT_MERGE_PARAMS
+        )
+
     u_theta_fit = pu.get_u_theta_from_param_collection(param_collection_fit)
 
     # fit dirs
@@ -67,28 +93,25 @@ if __name__ == "__main__":
     os.makedirs(fit_diagnostics_save_drn + "/loss", exist_ok=True)
     os.makedirs(fit_diagnostics_save_drn + "/lh_N_z", exist_ok=True)
 
-    feniks_z = np.linspace(df.FENIKS_Z_MIN, df.FENIKS_Z_MAX, 5)
-    feniks_z_min = feniks_z[:-1]
-    feniks_z_max = feniks_z[1:]
+    os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
+
+    feniks_z_min = [FENIKS_Z_MIN, 1]
+    feniks_z_max = [1, 2]
 
     initial_pts = []
     start = time.time()
     for epoch in range(0, cfg["epoch"]["n_it"]):
-        print(f"Running Epoch {epoch+1}/{cfg['epoch']['n_it']}...")
-        FENIKS = load_feniks.refresh_lh_centroids(FENIKS)
-
-        feniks_z_idx = np.random.choice(
-            len(feniks_z_min), cfg["epoch"]["feniks_n_z_bins"], replace=False
-        )
+        print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
+        FENIKS = load_feniks.refresh_lh_centroids(FENIKS, cfg["feniks"]["lh_d_mag"])
 
         # FENIKS
         feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
             ran_key,
             FENIKS,
-            feniks_z_min[feniks_z_idx],
-            feniks_z_max[feniks_z_idx],
+            feniks_z_min,
+            feniks_z_max,
             ssp_data,
-            cfg["epoch"]["feniks_n_centroids"],
+            cfg["feniks"]["N_centroids"],
             lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
             num_halos=cfg["epoch"]["num_halos"],
         )
@@ -102,6 +125,7 @@ if __name__ == "__main__":
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
         )
+        jax.clear_caches()
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
         lc_mock.write_diffsky_param_collection_merging(

@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from diffsky.experimental.kernels import phot_kernels_merging as pkm
+from diffsky.experimental.kernels import gd_phot_kernels_merging as gpkm
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
@@ -63,7 +63,7 @@ def mc_phot_kern_merging_wrapper(
     fb=FB,
     mc_merge=0,
 ):
-    phot_kern_results, phot_randoms, merging_randoms = pkm._mc_phot_kern_merging(
+    phot_kern_results, phot_randoms, merging_randoms = gpkm._mc_phot_kern_merging(
         ran_key,
         lc_data.z_obs,
         lc_data.t_obs,

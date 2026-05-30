@@ -1,9 +1,6 @@
-import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
-from diffstar.diffstarpop import mc_diffstar_params_galpop
 from diffstar.diffstarpop.kernels import satquenchpop_model as sqpm
-from jax import random as jran
 from matplotlib import lines as mlines
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
@@ -15,7 +12,7 @@ mred = "tab:red"
 
 tarr = np.linspace(-10, 15, 40_000)
 qprob_cen = 0.35
-host_configs = [(12.0, mblue), (13.0, mgreen), (14.0, morange), (15.0, mred)]
+host_configs = [(11.5, mblue), (12.5, mgreen), (13.5, morange), (14.5, mred)]
 mu_configs = [(-0.5, "--"), (-3.0, "-")]
 
 p_merge = [0.9, 0.6, 0.3]
@@ -68,105 +65,6 @@ def generate_sat_plots(
     plot_sat_ssfr_sm(*args, plt_show=plt_show)
     plot_sat_lgfburst_mhost(*args, plt_show=plt_show)
     plot_sat_lgfburst_sm(*args, plt_show=plt_show)
-    plot_sat_tquench(*args, plt_show=plt_show)
-
-
-def plot_sat_tquench(
-    ran_key,
-    lc_data,
-    phot_kern_results,
-    weights,
-    param_collection,
-    z_min_label,
-    z_max_label,
-    model_nickname,
-    savedir,
-    plt_show=True,
-):
-    upid = jnp.where(lc_data.is_central == 1, -1, lc_data.halo_indx)
-    lgmu_infall = lc_data.logmp_infall - lc_data.logmhost_infall
-    gyr_since_infall = lc_data.t_obs - lc_data.t_infall
-
-    ran_key = jran.key(0)
-    _res = mc_diffstar_params_galpop(
-        param_collection.diffstarpop_params,
-        lc_data.logmp0,
-        lc_data.mah_params.t_peak,
-        upid,
-        lgmu_infall,
-        lc_data.logmhost_infall,
-        gyr_since_infall,
-        ran_key,
-    )
-    sfh_params_ms, sfh_params_q, frac_q, mc_is_q = _res
-
-    fig, ax = plt.subplots(figsize=(5, 4.5))
-    fig.suptitle(
-        "Satellite Quenching time | " + z_min_label + " < z < " + z_max_label,
-        y=0.95,
-        fontsize=14,
-    )
-    a = 0.5
-    bins = 50
-
-    t_peak = lc_data.mah_params.t_peak
-    t_q = 10**sfh_params_q.lg_qt
-    is_sat = upid != -1
-    weights = frac_q * weights
-
-    t_range = [0, 20]
-
-    ax.hist(
-        t_peak[is_sat],
-        weights=weights[is_sat],
-        alpha=a,
-        bins=bins,
-        color="tab:blue",
-        histtype="step",
-        label="t$_{peak}$",
-        range=t_range,
-    )
-    ax.hist(
-        t_q[is_sat],
-        weights=weights[is_sat],
-        alpha=a / 2,
-        bins=bins,
-        color="darkorange",
-        label="t$_{q, before}$",
-        range=t_range,
-    )
-    clipped_t_q = jnp.minimum(t_peak, t_q)
-    t_q = jnp.where(is_sat, clipped_t_q, t_q)
-
-    ax.hist(
-        t_q[is_sat],
-        weights=weights[is_sat],
-        alpha=a,
-        bins=bins,
-        color="darkred",
-        label="t$_{q}$",
-        range=t_range,
-    )
-
-    ax.legend(loc="best", fontsize=10)
-    ax.set_yscale("log")
-    ax.set_xlabel("t [Gyr]")
-    ax.set_ylabel("#")
-    fig.savefig(
-        savedir
-        + "/sat_"
-        + model_nickname
-        + "_tquench_z"
-        + z_min_label
-        + "-"
-        + z_max_label
-        + ".png",
-        bbox_inches="tight",
-        dpi=200,
-    )
-    if plt_show:
-        plt.show()
-    plt.close()
 
 
 def plot_sat_ssfr_mhost(
@@ -190,7 +88,7 @@ def plot_sat_ssfr_mhost(
     xlim = (-14, -9)
     for m in range(0, len(logmhost_infall)):
         for p in range(0, len(p_merge)):
-            sat = lc_data.is_central != 1
+            sat = (lc_data.is_central) != 1 & (phot_kern_results.logsm_obs > 6)
             merging_sat = (
                 (sat)
                 & (phot_kern_results.p_merge > p_merge[p])
@@ -260,7 +158,7 @@ def plot_sat_ssfr_sm(
     xlim = (-14, -9)
     for m in range(0, len(log_sm)):
         for p in range(0, len(p_merge)):
-            sat = lc_data.is_central != 1
+            sat = (lc_data.is_central) != 1 & (phot_kern_results.logsm_obs > 6)
             merging_sat = (
                 (sat)
                 & (phot_kern_results.p_merge > p_merge[p])
@@ -326,11 +224,11 @@ def plot_sat_lgfburst_mhost(
     )
     for m in range(0, len(logmhost_infall)):
         for p in range(0, len(p_merge)):
-            sat = lc_data.is_central != 1
+            sat = (lc_data.is_central) != 1 & (phot_kern_results.logsm_obs > 6)
             merging_sat = (
                 (sat)
                 & (phot_kern_results.p_merge > p_merge[p])
-                & (phot_kern_results.logsm_obs > logmhost_infall[m])
+                & (lc_data.logmhost_infall > logmhost_infall[m])
             )
             ax[m][p].hist(
                 phot_kern_results.lgfburst[sat],
@@ -393,7 +291,7 @@ def plot_sat_lgfburst_sm(
     )
     for m in range(0, len(log_sm)):
         for p in range(0, len(p_merge)):
-            sat = lc_data.is_central != 1
+            sat = (lc_data.is_central) != 1 & (phot_kern_results.logsm_obs > 6)
             merging_sat = (
                 (sat)
                 & (phot_kern_results.p_merge > p_merge[p])
@@ -480,10 +378,10 @@ def plot_satquench_model(diffstarpop_params, model_nickname, savedir, plt_show=T
 
         i += 1
 
-    red_line = mlines.Line2D([], [], ls="-", c=mred, label=r"$m_{\rm host}=15$")
-    orange_line = mlines.Line2D([], [], ls="-", c=morange, label=r"$m_{\rm host}=14$")
-    green_line = mlines.Line2D([], [], ls="-", c=mgreen, label=r"$m_{\rm host}=13$")
-    blue_line = mlines.Line2D([], [], ls="-", c=mblue, label=r"$m_{\rm host}=12$")
+    red_line = mlines.Line2D([], [], ls="-", c=mred, label=r"$m_{\rm host}=14.5$")
+    orange_line = mlines.Line2D([], [], ls="-", c=morange, label=r"$m_{\rm host}=13.5$")
+    green_line = mlines.Line2D([], [], ls="-", c=mgreen, label=r"$m_{\rm host}=12.5$")
+    blue_line = mlines.Line2D([], [], ls="-", c=mblue, label=r"$m_{\rm host}=11.5$")
     dashed_line = mlines.Line2D([], [], ls="--", c="gray", label=r"$\mu=1/3$")
     solid_line = mlines.Line2D([], [], ls="-", c="gray", label=r"$\mu=1/1000$")
     black_line = mlines.Line2D([], [], ls=":", c="k", label=r"${\rm P_{Q, cen}}$")

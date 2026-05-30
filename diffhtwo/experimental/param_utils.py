@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+import numpy as np
 from diffsky.experimental.scatter import DEFAULT_SCATTER_U_PARAMS
 from diffsky.merging.merging_model import DEFAULT_MERGE_U_PARAMS
 from diffsky.param_utils import diffsky_param_wrapper_merging as dpwm
@@ -28,6 +29,15 @@ def get_u_unravel_fn(
         u_merging_unravel,
     )
     return u_unravel_fn
+
+
+def get_param_collection_from_u_theta_npz(npz_filename):
+    data = np.load(npz_filename)
+    u_theta = tuple(
+        jnp.array(data[k]) for k in ["diffstarpop", "spspop", "ssperr", "merging"]
+    )
+    param_collection = get_param_collection_from_u_theta(u_theta)
+    return param_collection
 
 
 def get_param_collection_from_u_theta(

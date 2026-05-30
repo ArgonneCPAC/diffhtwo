@@ -20,7 +20,7 @@ Sdss = namedtuple("Sdss", Dataset._fields)
 
 LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
-LH_D_MAG = 0.2
+LH_D_MAG = 0.1
 LH_D_Z = 0.01
 
 
@@ -73,9 +73,11 @@ def refresh_lh_centroids(DATASET):
 
 def get_lh_centroids(dataset):
     mu = np.mean(dataset, axis=0)
-    mu[1] = mu[1] - 0.1  #
-    mu[-2] = mu[-2] - 1.8  # r
-    mu[-1] = mu[-1] - 0.02  # redshift
+
+    mu[-3] = mu[-3] - 0.5  # u
+    mu[-2] = mu[-2] - 0.5  # r
+    # mu[-1] = mu[-1] 0.02  # redshift
+
     cov = np.cov(dataset.T)
 
     lh_centroids = lh.latin_hypercube_from_cov(
@@ -88,12 +90,12 @@ def get_lh_centroids(dataset):
     r_mask = lh_centroids[:, -2] <= SDSS_MAGR_THRESH
     lh_centroids = lh_centroids[redshift_mask & r_mask]
 
-    # redshift = [0.02, 0.065, 0.11, 0.155, 0.2]
-    # r_mins = [12, 13.5, 14.5, 15.3, 16]
-    # coeffs = np.polyfit(redshift, r_mins, deg=2)
-    # r_min = np.poly1d(coeffs)
-    # r_complete = lh_centroids[:, -2] > r_min(lh_centroids[:, -1])
-    # lh_centroids = lh_centroids[r_complete]
+    redshift = [0.02, 0.065, 0.11, 0.155, 0.2]
+    r_mins = [12, 12.5, 14, 14.5, 15]
+    coeffs = np.polyfit(redshift, r_mins, deg=2)
+    r_min = np.poly1d(coeffs)
+    r_bright = lh_centroids[:, -2] > r_min(lh_centroids[:, -1])
+    lh_centroids = lh_centroids[r_bright]
 
     d_centroids = jnp.ones_like(lh_centroids) * LH_D_MAG
     d_centroids = d_centroids.at[:, -1].set(LH_D_Z)
@@ -116,7 +118,7 @@ def get_sdss_data(
         sdss_z=None,
     )
     sdss_in_lh = SdssFilters(
-        sdss_u=False,
+        sdss_u=True,
         sdss_g=False,
         sdss_r=True,
         sdss_i=False,
@@ -145,12 +147,15 @@ def get_sdss_data(
     sdss_iz = sdss_i - sdss_z
 
     # stack colors_mag
-    dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
+    dataset = np.vstack(
+        (sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_u, sdss_r, sdss_redshift)
+    ).T
     dataset_dim_labels = [
         r"$u - g$",
         r"$g - r$",
         r"$r - i$",
         r"$i - z$",
+        r"$u$",
         r"$r$",
         r"$redshift$",
     ]
