@@ -610,8 +610,8 @@ def plot_app_mag_funcs(
         "#001219",
         "#0a7a80",
         "#80cca8",
-        "#dfd080",
-        "#f5e882",
+        "#c8b400",
+        "#e07b00",
     ]
     fig_width = 7.1
     fig_height = 5
