@@ -63,7 +63,7 @@ def _get_mag_thresh(mag, completeness=0.9, power_law_limit=24):
     return np.round(mag_thresh, 1)
 
 
-def get_mag_and_thresh_ab(phot_table, col_name, ZP=25):
+def get_mag_ab(phot_table, col_name, ZP=25):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         mag_ab = -2.5 * np.log10(phot_table[col_name]) + ZP
@@ -71,9 +71,9 @@ def get_mag_and_thresh_ab(phot_table, col_name, ZP=25):
     mag_ab[~np.isfinite(mag_ab)] = -99.0
     mag_ab = mag_ab.data
 
-    mag_thresh = _get_mag_thresh(mag_ab[mag_ab != -99])
+    # mag_thresh = _get_mag_thresh(mag_ab[mag_ab != -99])
 
-    return mag_ab, mag_thresh
+    return mag_ab
 
 
 def refresh_lh_centroids(DATASET, lh_d_mag):
@@ -169,25 +169,24 @@ def get_feniks_data(
     zout = ascii.read(drn_path / zout)
 
     # get mags
-    megacam_uS, megacam_uS_thresh = get_mag_and_thresh_ab(phot, "fcol_MegaCam_uS")
-    hsc_g, hsc_g_thresh = get_mag_and_thresh_ab(phot, "fcol_HSC_G")
-    hsc_r, hsc_r_thresh = get_mag_and_thresh_ab(phot, "fcol_HSC_R")
-    hsc_i, hsc_i_thresh = get_mag_and_thresh_ab(phot, "fcol_HSC_I")
-    hsc_z, hsc_z_thresh = get_mag_and_thresh_ab(phot, "fcol_HSC_Z")
-    # video_Y, video_Y_thresh = get_mag_and_thresh_ab(phot, "fcol_VIDEO_Y")
-    uds_J, uds_J_thresh = get_mag_and_thresh_ab(phot, "fcol_UDS_J")
-    uds_H, uds_H_thresh = get_mag_and_thresh_ab(phot, "fcol_UDS_H")
-    uds_K, uds_K_thresh = get_mag_and_thresh_ab(phot, "fcol_UDS_K")
+    megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
+    hsc_g = get_mag_ab(phot, "fcol_HSC_G")
+    hsc_r = get_mag_ab(phot, "fcol_HSC_R")
+    hsc_i = get_mag_ab(phot, "fcol_HSC_I")
+    hsc_z = get_mag_ab(phot, "fcol_HSC_Z")
+    # video_Y = get_mag_ab(phot, "fcol_VIDEO_Y")
+    uds_J = get_mag_ab(phot, "fcol_UDS_J")
+    uds_H = get_mag_ab(phot, "fcol_UDS_H")
+    uds_K = get_mag_ab(phot, "fcol_UDS_K")
 
     feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=megacam_uS_thresh,
-        HSC_G=hsc_g_thresh,
-        HSC_R=hsc_r_thresh,
-        HSC_I=hsc_i_thresh,
-        HSC_Z=hsc_z_thresh,
-        # VIDEO_Y=video_Y_thresh,
-        UDS_J=uds_J_thresh,
-        UDS_H=uds_H_thresh,
+        MegaCam_uS=24.9,
+        HSC_G=25.1,
+        HSC_R=25.3,
+        HSC_I=25.1,
+        HSC_Z=24.9,
+        UDS_J=24.5,
+        UDS_H=24.3,
         UDS_K=FENIKS_MAGK_THRESH,
     )
 

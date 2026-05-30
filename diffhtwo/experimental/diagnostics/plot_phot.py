@@ -596,22 +596,12 @@ def plot_app_mag_funcs(
     )
     labels_z = [" z = " + str(np.round(np.median(z), 2)) for z in feniks_zbins]
 
-    # colors_z = [
-    #     "#004c6d",
-    #     "#3d3d8f",
-    #     "#7b2f8e",
-    #     "#b0206e",
-    #     "#d94050",
-    #     "#f06b38",
-    #     "#f79d28",
-    #     "#ffd166",
-    # ]
     colors_z = [
-        "#001219",
-        "#0a7a80",
-        "#80cca8",
-        "#c8b400",
-        "#e07b00",
+        "#001219",  # deep navy
+        "#0a7a80",  # teal
+        "#80cca8",  # mint
+        "#c8b44a",  # warm gold
+        "#c87820",  # amber
     ]
     fig_width = 7.1
     fig_height = 5
@@ -739,7 +729,7 @@ def plot_app_mag_funcs(
                 right=True,
             )
 
-            ax[row, col].set_ylim(-6.5, -2.5)
+            ax[row, col].set_ylim(-6.9, -2.5)
             ax[row, col].set_xlim(xlim[i])
             ax[row, col].set_xlabel(dataset.mags_labels[i])
 
