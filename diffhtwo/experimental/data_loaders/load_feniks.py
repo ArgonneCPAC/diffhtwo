@@ -69,10 +69,9 @@ def get_mag_and_thresh_ab(phot_table, col_name, ZP=25):
         mag_ab = -2.5 * np.log10(phot_table[col_name]) + ZP
 
     mag_ab[~np.isfinite(mag_ab)] = -99.0
-
     mag_ab = mag_ab.data
 
-    mag_thresh = _get_mag_thresh(mag_ab)
+    mag_thresh = _get_mag_thresh(mag_ab[mag_ab != -99])
 
     return mag_ab, mag_thresh
 
