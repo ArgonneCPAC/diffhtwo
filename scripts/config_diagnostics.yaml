@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run121
-model_nickname: run121_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run121/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run122
+model_nickname: run122_all
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run122/diagnostic_plots/all
 
 feniks_drn: /Users/kumail/diffdir/feniks
 sdss_drn: /Users/kumail/diffdir/sdss

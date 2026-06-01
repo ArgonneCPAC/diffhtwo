@@ -13,7 +13,7 @@ from jax import jit as jjit
 from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 
-from ..loss_kernels.emline_loss import _loss_emline_kern_multi_line_multi_z
+# from ..loss_kernels.emline_loss import _loss_emline_kern_multi_line_multi_z
 from ..loss_kernels.phot_loss import _loss_phot_kern
 
 _L_pk = (
@@ -58,10 +58,10 @@ def fit_N_multi_z(
         )
 
         # clip gradients
-        global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
-        tau = 1.0
-        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        grads = tuple(g * scale for g in grads)
+        # global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
+        # tau = 1.0
+        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        # grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss

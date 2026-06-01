@@ -121,7 +121,7 @@ def get_lh_centroids(dataset, lh_d_mag):
         lh_centroids[:, -1] < (FENIKS_Z_MAX - (LH_D_Z / 2))
     )
     k_mask = lh_centroids[:, -2] < FENIKS_MAGK_THRESH
-    u_mask = lh_centroids[:, -3] < 25
+    u_mask = lh_centroids[:, -3] < 24.9
     lh_centroids = lh_centroids[redshift_mask & k_mask & u_mask]
 
     redshift_centers = [0.45, 0.95, 1.45, 1.95, 2.45, 2.95, 3.45, 3.95]
