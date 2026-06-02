@@ -1,8 +1,8 @@
 import jax.numpy as jnp
 from diffsky.burstpop import freqburst_mono
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
+from diffsky.experimental.kernels import gd_specphot_kernels_merging as gspkm
 from diffsky.experimental.kernels import mc_randoms
-from diffsky.experimental.kernels import specphot_kernels_merging as spkm
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
@@ -22,7 +22,7 @@ def n_spec_kern(
     fb=FB,
     mc_merge=0,
 ):
-    _res = spkm._mc_specphot_kern_merging(
+    _res = gspkm._mc_specphot_kern_merging(
         ran_key,
         lc_data.z_obs,
         lc_data.t_obs,
@@ -100,7 +100,7 @@ def n_spec_q_ms_burst(
     mc_is_burst = (mc_is_ms) & (mc_is_burst)
     mc_is_ms = (mc_is_ms) & (~mc_is_burst)
 
-    _res = spkm._mc_specphot_kern_merging(
+    _res = gspkm._mc_specphot_kern_merging(
         ran_key,
         lc_data.z_obs,
         lc_data.t_obs,

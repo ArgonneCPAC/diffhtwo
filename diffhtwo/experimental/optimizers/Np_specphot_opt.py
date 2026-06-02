@@ -13,7 +13,7 @@ from jax import jit as jjit
 from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 
-# from ..loss_kernels.emline_loss import _loss_emline_kern_multi_line_multi_z
+from ..loss_kernels.emline_loss import _loss_emline_kern_multi_line_multi_z
 from ..loss_kernels.phot_loss import _loss_phot_kern
 
 _L_pk = (
@@ -58,10 +58,10 @@ def fit_N_multi_z(
         )
 
         # clip gradients
-        # global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
-        # tau = 1.0
-        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        # grads = tuple(g * scale for g in grads)
+        global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
+        tau = 1.0
+        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
@@ -80,11 +80,10 @@ def _loss_sdss_feniks_hizels(
     sdss_fitting_data,
     feniks_meta_data,
     feniks_fitting_data,
-    # hizels,
-    # line_wave_table,
-    fit_sdss=True,
-    fit_feniks=True,
-    # fit_hizels=False,
+    hizels_fitting_data,
+    fit_sdss=False,
+    fit_feniks=False,
+    fit_hizels=True,
 ):
     loss = 0.0
 
@@ -109,19 +108,16 @@ def _loss_sdss_feniks_hizels(
         loss += feniks_phot_loss
 
     # hizels
-    # if fit_hizels:
-    #     hizels_emline_multi_line_multi_z_loss_args = (
-    #         u_theta,
-    #         ran_key,
-    #         hizels.lg_LF,
-    #         hizels.lg_Lbin_edges,
-    #         hizels.lc_data,
-    #         line_wave_table,
-    #     )
-    #     hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
-    #         *hizels_emline_multi_line_multi_z_loss_args
-    #     )
-    #     loss += hizels_emline_loss
+    if fit_hizels:
+        hizels_emline_multi_line_multi_z_loss_args = (
+            u_theta,
+            ran_key,
+            hizels_fitting_data,
+        )
+        hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
+            *hizels_emline_multi_line_multi_z_loss_args
+        )
+        loss += hizels_emline_loss
 
     return loss
 
@@ -138,8 +134,7 @@ def fit_sdss_feniks_hizels(
     sdss_fitting_data,
     feniks_meta_data,
     feniks_fitting_data,
-    # hizels,
-    # line_wave_table,
+    hizels_fitting_data,
     n_steps=2,
     step_size=1e-2,
 ):
@@ -152,8 +147,7 @@ def fit_sdss_feniks_hizels(
         sdss_fitting_data,
         feniks_meta_data,
         feniks_fitting_data,
-        # hizels,
-        # line_wave_table,
+        hizels_fitting_data,
     )
 
     def _opt_update(opt_state, i):
@@ -166,6 +160,13 @@ def fit_sdss_feniks_hizels(
         grads = tuple(
             jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
         )
+
+        # clip gradients
+        global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
+        tau = 1.0
+        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        grads = tuple(g * scale for g in grads)
+
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
 

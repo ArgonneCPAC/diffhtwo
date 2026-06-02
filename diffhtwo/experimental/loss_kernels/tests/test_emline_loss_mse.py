@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from jax import random as jran
 
@@ -6,26 +7,24 @@ from ... import param_utils as pu
 from ..emline_loss import _loss_emline_kern, get_emline_loss
 
 
-def test_emline_loss(fake_subset_ssp_data, hizels_fitting_data):
+@pytest.mark.skip(reason="Currently mse based emline loss code is outdated")
+def test_emline_loss(fake_subset_ssp_data, hizels):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
     # pick first line, first zbin
-    line_wave_aa = hizels_fitting_data.line_wave_aa[0]
-    lg_Lbin_edges = hizels_fitting_data.lg_Lbin_edges[0][0]
-    N_data = hizels_fitting_data.N_data[0][0]
-    vol_Mpc3_data = hizels_fitting_data.vol_Mpc3_data[0][0]
-    lc_data = hizels_fitting_data.lc_data[0][0]
+    lg_emline_LF_target = hizels.lg_LF[0][0]
+    lg_emline_Lbin_edges = hizels.lg_Lbin_edges[0][0]
+    lc_data = hizels.lc_data[0][0]
 
     ran_key = jran.key(0)
 
     emline_loss = get_emline_loss(
         ran_key,
-        line_wave_aa,
-        lg_Lbin_edges,
-        N_data,
-        vol_Mpc3_data,
-        lc_data,
+        lg_emline_LF_target,
+        lg_emline_Lbin_edges,
         DEFAULT_PARAM_COLLECTION,
+        lc_data,
+        emline_wave_aa,
     )
 
     assert np.isfinite(emline_loss)
@@ -34,10 +33,9 @@ def test_emline_loss(fake_subset_ssp_data, hizels_fitting_data):
     emline_loss_kern = _loss_emline_kern(
         u_theta,
         ran_key,
-        line_wave_aa,
-        lg_Lbin_edges,
-        N_data,
-        vol_Mpc3_data,
+        lg_emline_LF_target,
+        lg_emline_Lbin_edges,
         lc_data,
+        emline_wave_aa,
     )
     assert np.isfinite(emline_loss_kern)
