@@ -1,4 +1,5 @@
 import jax.numpy as jnp
+import numpy as np
 from diffsky.burstpop import freqburst_mono
 from diffsky.experimental import mc_diffstarpop_wrappers as mcdw
 from diffsky.experimental.kernels import gd_specphot_kernels_merging as gspkm
@@ -8,6 +9,7 @@ from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
 from .. import emline_luminosity
+from ..lightcone_generators import generate_lc_data
 from .gehrels_err import N_0, N_FLOOR
 
 
@@ -175,3 +177,65 @@ def n_spec_q_ms_burst(
     lg_emline_LF_burst = jnp.log10(emline_N_burst / lc_data.lc_tot_vol_mpc3)
 
     return lg_emline_LF, lg_emline_LF_q, lg_emline_LF_ms, lg_emline_LF_burst
+
+
+def get_halpha_LF_q_ms_burst(
+    ran_key,
+    param_collection,
+    lgL_bin_edges,
+    halpha_LF_z,
+    halpha_LF_delta_z,
+    ssp_data,
+    tcurves,
+    halpha_wave_aa,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
+    num_halos=100,
+    sky_area_degsq=10000,
+    n_z_phot_table=15,
+    cosmo_params=DEFAULT_COSMOLOGY,
+    fb=FB,
+):
+    halpha_lc_z_min = halpha_LF_z - (halpha_LF_delta_z / 2)
+    halpha_lc_z_max = halpha_LF_z + (halpha_LF_delta_z / 2)
+    z_phot_table = 10 ** np.linspace(
+        np.log10(halpha_lc_z_min), np.log10(halpha_lc_z_max), n_z_phot_table
+    )
+
+    lc_args = (
+        ran_key,
+        num_halos,
+        halpha_lc_z_min,
+        halpha_lc_z_max,
+        lgmp_min,
+        lgmp_max,
+        sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
+    lc_data = generate_lc_data(*lc_args)
+
+    line_wave_table = jnp.array([halpha_wave_aa])
+    (
+        lg_halpha_LF,
+        lg_halpha_LF_q,
+        lg_halpha_LF_ms,
+        lg_halpha_LF_burst,
+    ) = n_spec_q_ms_burst(
+        ran_key,
+        param_collection,
+        lc_data,
+        line_wave_table,
+        lgL_bin_edges,
+    )
+
+    lgL_bin_centers = 0.5 * (lgL_bin_edges[1:] + lgL_bin_edges[:-1])
+
+    return (
+        lgL_bin_centers,
+        lg_halpha_LF,
+        lg_halpha_LF_q,
+        lg_halpha_LF_ms,
+        lg_halpha_LF_burst,
+    )

@@ -2,14 +2,8 @@ from difflib import get_close_matches
 
 import jax.numpy as jnp
 import numpy as np
-from diffsky.mass_functions import mc_hosts
-from diffstar.defaults import FB
-from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 from jax.tree_util import tree_flatten_with_path
-
-from .kernels.spec_kern import n_spec_q_ms_burst
-from .lightcone_generators import generate_lc_data
 
 
 @jjit
@@ -37,68 +31,6 @@ def lupton_log10(t, log10_clip, t0=0.0, M0=0.0, alpha=1 / jnp.log(10.0)):
 @jjit
 def safe_log10(x, EPS=1e-12):
     return jnp.log(jnp.clip(x, EPS, jnp.inf)) / jnp.log(10.0)
-
-
-def get_halpha_LF_q_ms_burst(
-    ran_key,
-    param_collection,
-    lgL_bin_edges,
-    halpha_LF_z,
-    halpha_LF_delta_z,
-    ssp_data,
-    tcurves,
-    halpha_wave_aa,
-    lgmp_min=10.0,
-    lgmp_max=mc_hosts.LGMH_MAX,
-    num_halos=10000,
-    sky_area_degsq=10000,
-    n_z_phot_table=15,
-    cosmo_params=DEFAULT_COSMOLOGY,
-    fb=FB,
-):
-    halpha_lc_z_min = halpha_LF_z - (halpha_LF_delta_z / 2)
-    halpha_lc_z_max = halpha_LF_z + (halpha_LF_delta_z / 2)
-    z_phot_table = 10 ** np.linspace(
-        np.log10(halpha_lc_z_min), np.log10(halpha_lc_z_max), n_z_phot_table
-    )
-
-    lc_args = (
-        ran_key,
-        num_halos,
-        halpha_lc_z_min,
-        halpha_lc_z_max,
-        lgmp_min,
-        lgmp_max,
-        sky_area_degsq,
-        ssp_data,
-        tcurves,
-        z_phot_table,
-    )
-    lc_data = generate_lc_data(*lc_args)
-
-    line_wave_table = jnp.array([halpha_wave_aa])
-    (
-        lg_halpha_LF,
-        lg_halpha_LF_q,
-        lg_halpha_LF_ms,
-        lg_halpha_LF_burst,
-    ) = n_spec_q_ms_burst(
-        ran_key,
-        param_collection,
-        lc_data,
-        line_wave_table,
-        lgL_bin_edges,
-    )
-
-    lgL_bin_centers = 0.5 * (lgL_bin_edges[1:] + lgL_bin_edges[:-1])
-
-    return (
-        lgL_bin_centers,
-        lg_halpha_LF,
-        lg_halpha_LF_q,
-        lg_halpha_LF_ms,
-        lg_halpha_LF_burst,
-    )
 
 
 def load_feniks_tcurve(tcurve_filename):
