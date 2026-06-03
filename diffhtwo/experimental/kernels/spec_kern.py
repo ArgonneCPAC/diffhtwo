@@ -47,13 +47,13 @@ def n_spec_kern(
     )
 
     (phot_kern_results, phot_randoms, spec_kern_results) = _res
-    linelum_gal = spec_kern_results.linelum_gal
+    linelum_weighted = spec_kern_results.linelum_weighted
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     sig = jnp.diff(lg_emline_Lbin_edges) / 2
     sig = sig.reshape(sig.size, 1)
     _, emline_N = emline_luminosity.get_emline_luminosity_func(
-        linelum_gal,
+        linelum_weighted,
         gal_weight,
         sig=sig,
         lgL_bin_edges=lg_emline_Lbin_edges,

@@ -19,7 +19,7 @@ def N_linelum(
         lc_data,
         line_wave_table,
     )
-    lg_linelum_gal = jnp.log10(spec_kern_results.linelum_gal)
+    lg_linelum_weighted = jnp.log10(spec_kern_results.linelum_weighted)
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     sig = jnp.diff(lg_Lbin_edges) / 2
@@ -30,7 +30,7 @@ def N_linelum(
     Lbin_hi = lg_Lbin_edges[1:]
 
     N_linelum = diffndhist_lomem.tw_ndhist_weighted(
-        lg_linelum_gal,
+        lg_linelum_weighted,
         sig,
         gal_weight,
         Lbin_lo,

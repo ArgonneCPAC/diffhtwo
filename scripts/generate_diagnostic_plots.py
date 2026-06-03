@@ -1,5 +1,6 @@
 import argparse
 import os
+from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
@@ -13,7 +14,7 @@ from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
-from diffhtwo.experimental.data_loaders import load_feniks, load_sdss
+from diffhtwo.experimental.data_loaders import load_feniks, load_hizels, load_sdss
 from diffhtwo.experimental.defaults import (
     FENIKS_Z_MAX,
     FENIKS_Z_MIN,
@@ -28,6 +29,7 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
     plot_lgfburst_mh_z,
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
+from diffhtwo.experimental.diagnostics.plot_halpha import plot_halpha_ms_q_burst
 from diffhtwo.experimental.diagnostics.plot_insitu_sm import plot_insitu_sm
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
@@ -53,8 +55,11 @@ if __name__ == "__main__":
     # get directories/files
     os.environ["COSMOS20_DRN"] = cfg["cosmos20_drn"]
     os.environ["DSPS_DRN"] = cfg["dsps_drn"]
-    feniks_drn = cfg["feniks_drn"]
+
     sdss_drn = cfg["sdss_drn"]
+    feniks_drn = cfg["feniks_drn"]
+    hizels_drn = Path(cfg["hizels_drn"])
+
     ssp_filename = cfg["ssp_file"]
     fit_diagnostics_save_drn = cfg["fit_diagnostics_save_drn"]
     param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
@@ -67,8 +72,7 @@ if __name__ == "__main__":
     # get ssp data
     ssp_data = load_ssp_templates(fn=ssp_filename)
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
-    emline_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
-    emline_wave_table = jnp.array([emline_wave_aa])
+    halpha_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     ran_key = jran.key(0)
 
     if cfg["plots"]["plot_satquench_model"]:
@@ -101,6 +105,33 @@ if __name__ == "__main__":
             param_collection_fit.spspop_params.burstpop_params.fburstpop_params,
             fname=fit_diagnostics_save_drn + "/burstpop.png",
             label1="fit",
+        )
+
+    """
+    Plot HiZELS
+    """
+    if cfg["plot_hizels"]:
+        feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
+        hizels_drn = Path(hizels_drn)
+        hizels_label = "hizels"
+        hizels = load_hizels.get_hizels_data(
+            hizels_drn,
+            ran_key,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+        )
+        plot_halpha_ms_q_burst(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            plt_show=False,
         )
 
     """
