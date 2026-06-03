@@ -82,7 +82,7 @@ def _loss_sdss_feniks_hizels(
     feniks_fitting_data,
     hizels_fitting_data,
     fit_sdss=False,
-    fit_feniks=False,
+    fit_feniks=True,
     fit_hizels=True,
 ):
     loss = 0.0

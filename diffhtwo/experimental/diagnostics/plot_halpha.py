@@ -12,6 +12,7 @@ def plot_halpha_ms_q_burst(
     halpha_wave_aa,
     model_nickname,
     savedir,
+    num_halos=100,
     plt_show=True,
 ):
     alpha = 1
@@ -25,7 +26,7 @@ def plot_halpha_ms_q_burst(
     ylim = (-5.5, -1.4)
 
     fig, ax = plt.subplots(1, 4, figsize=(12, 3.2))
-    # fig.subplots_adjust(hspace=0.2, left=0.065, right=0.98, bottom=0.17, top=0.88)
+    fig.subplots_adjust(hspace=0.2, left=0.065, right=0.98, bottom=0.17, top=0.88)
 
     for i in range(0, 4):
         (
@@ -43,6 +44,7 @@ def plot_halpha_ms_q_burst(
             ssp_data,
             tcurves,  # dummy arg,
             halpha_wave_aa,
+            num_halos=num_halos,
         )
         ax[i].errorbar(
             lgL_bin_centers,
