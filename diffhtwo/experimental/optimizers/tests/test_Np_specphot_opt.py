@@ -1,4 +1,3 @@
-import jax.numpy as jnp
 import numpy as np
 import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import (
