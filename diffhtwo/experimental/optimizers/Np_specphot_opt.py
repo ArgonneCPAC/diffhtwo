@@ -110,7 +110,7 @@ def fit_feniks_hizels(
             ran_key,
             hizels_fitting_data,
         )
-        w_phot = 2.0
+        w_phot = 10.0
         w_emline = 1.0
         loss = w_phot * loss_phot + w_emline * loss_emline
         grads = tuple(
