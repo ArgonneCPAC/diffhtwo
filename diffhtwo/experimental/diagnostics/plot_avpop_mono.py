@@ -11,6 +11,8 @@ from jax import jit as jjit
 from jax import vmap
 from matplotlib import pyplot as plt
 
+plt.rc("font", family="serif", serif=["Times New Roman"])
+
 _A = (None, 0, None, None, None)
 _B = (None, None, 0, None, None)
 _C = (None, 0, 0, None, None)

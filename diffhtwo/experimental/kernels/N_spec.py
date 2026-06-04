@@ -13,12 +13,17 @@ def N_linelum(
     lc_data,
     param_collection,
 ):
-    spec_kern_results = mc_specphot_kern_merging_wrapper(
+    (
+        phot_kern_results,
+        phot_randoms,
+        spec_kern_results,
+    ) = mc_specphot_kern_merging_wrapper(
         ran_key,
         param_collection,
         lc_data,
         line_wave_table,
     )
+
     lg_linelum_weighted = jnp.log10(spec_kern_results.linelum_weighted)
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 

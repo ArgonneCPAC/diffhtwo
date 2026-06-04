@@ -5,6 +5,8 @@ from dsps.data_loaders.defaults import TransmissionCurve
 from ..rest_phot.rest_uvj import uvj_q_ms_burst
 from ..utils import get_tcurve
 
+plt.rc("font", family="serif", serif=["Times New Roman"])
+
 FILTER_INFO = "kz_FILTER.RES.latest.info"
 TCURVES_FILE = "kz_FILTER.RES.latest"
 

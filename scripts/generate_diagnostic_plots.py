@@ -29,7 +29,13 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
     plot_lgfburst_mh_z,
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
-from diffhtwo.experimental.diagnostics.plot_halpha import plot_halpha_ms_q_burst
+from diffhtwo.experimental.diagnostics.plot_halpha import (
+    plot_halpha,
+    plot_halpha_insitu_exsitu,
+    plot_halpha_ms_q_burst,
+    plot_halpha_sfr,
+    plot_halpha_ssfr,
+)
 from diffhtwo.experimental.diagnostics.plot_insitu_sm import plot_insitu_sm
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
@@ -121,7 +127,65 @@ if __name__ == "__main__":
             feniks.filter_info.tcurves,
             halpha_wave_aa,
         )
+
+        print("Generating h-alpha LF plot...")
+        plot_halpha(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            plt_show=False,
+        )
+
+        print("Generating h-alpha LF ms/q/burst plot...")
         plot_halpha_ms_q_burst(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            plt_show=False,
+        )
+
+        print("Generating h-alpha LF ssfr plot...")
+        plot_halpha_ssfr(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            plt_show=False,
+        )
+
+        print("Generating h-alpha LF sfr plot...")
+        plot_halpha_sfr(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            plt_show=False,
+        )
+
+        print("Generating h-alpha LF in-situ/ex-situ plot...")
+        plot_halpha_insitu_exsitu(
             ran_key,
             hizels,
             param_collection_fit,

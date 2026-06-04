@@ -5,6 +5,8 @@ from diffsky.mass_functions import mc_hosts
 from diffhtwo.experimental.lightcone_generators import lc_photdata
 from diffhtwo.experimental.n_specphot import get_mc_colors_mags
 
+plt.rc("font", family="serif", serif=["Times New Roman"])
+
 
 def N_frac(C_bin, N_tot):
     return len(C_bin) / N_tot
