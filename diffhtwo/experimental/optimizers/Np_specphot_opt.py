@@ -11,6 +11,7 @@ from functools import partial
 import jax.numpy as jnp
 from jax import jit as jjit
 from jax import lax, value_and_grad, vmap
+from jax.debug import print
 from jax.example_libraries import optimizers as jax_opt
 
 from ..loss_kernels.emline_loss import _loss_emline_kern_multi_line_multi_z
@@ -113,6 +114,9 @@ def fit_feniks_hizels(
         # grad norm scaling
         gn_phot = pytree_norm(grad_phot)
         gn_emline = pytree_norm(grad_emline)
+        print(
+            f"gn_phot={gn_phot:.4f}  gn_emline={gn_emline:.4f}  ratio={gn_emline/gn_phot:.1f}x"
+        )
         mean_gn = (gn_phot + gn_emline) / 2.0
         lr_w = 0.02
         log_w_phot = jnp.clip(
