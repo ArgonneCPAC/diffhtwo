@@ -114,9 +114,13 @@ def fit_feniks_hizels(
         gn_phot = pytree_norm(grad_phot)
         gn_emline = pytree_norm(grad_emline)
         mean_gn = (gn_phot + gn_emline) / 2.0
-        lr_w = 0.05
-        log_w_phot = log_w_phot + lr_w * (jnp.log(mean_gn) - jnp.log(gn_phot))
-        log_w_emline = log_w_emline + lr_w * (jnp.log(mean_gn) - jnp.log(gn_emline))
+        lr_w = 0.02
+        log_w_phot = jnp.clip(
+            log_w_phot + lr_w * (jnp.log(mean_gn) - jnp.log(gn_phot)), -2.0, 2.0
+        )
+        log_w_emline = jnp.clip(
+            log_w_emline + lr_w * (jnp.log(mean_gn) - jnp.log(gn_emline)), -2.0, 2.0
+        )
         w_phot = jnp.exp(log_w_phot)
         w_emline = jnp.exp(log_w_emline)
         loss = w_phot * loss_phot + w_emline * loss_emline
