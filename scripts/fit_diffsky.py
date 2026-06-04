@@ -152,8 +152,8 @@ if __name__ == "__main__":
 
         (
             loss_hist,
-            log_w_phot_hist,
-            log_w_emline_hist,
+            loss_phot_hist,
+            loss_emline_hist,
             u_theta_fit,
         ) = Np_specphot_opt.fit_feniks_hizels(
             u_theta_fit,
@@ -166,19 +166,6 @@ if __name__ == "__main__":
             step_size=cfg["epoch"]["step_size"],
         )
 
-        w_phot_hist = np.exp(log_w_phot_hist)
-        w_emline_hist = np.exp(log_w_emline_hist)
-
-        print(
-            f"{'step':>5}  {'loss':>10}  {'w_phot':>8}  {'w_emline':>10}  {'ratio':>8}"
-        )
-        print("-" * 48)
-        for i in range(len(loss_hist)):
-            ratio = w_emline_hist[i] / w_phot_hist[i]
-            print(
-                f"{i:>5}  {loss_hist[i]:>10.4f}  {w_phot_hist[i]:>8.4f}  {w_emline_hist[i]:>10.4f}  {ratio:>8.2f}x"
-            )
-
         jax.clear_caches()
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
@@ -187,35 +174,48 @@ if __name__ == "__main__":
             cfg["fit_runid"] + "_" + cfg["fit_type"],
             param_collection_fit,
         )
-
         if epoch == 0:
             STEPS = np.arange(1, cfg["epoch"]["n_steps"] + 1, 1)
-
             LOSS_HIST = loss_hist
-
+            LOSS_PHOT_HIST = loss_phot_hist
+            LOSS_EMLINE_HIST = loss_emline_hist
             initial_pts.append((STEPS[0], LOSS_HIST[0]))
         else:
             steps = np.arange(STEPS[-1] + 1, STEPS[-1] + cfg["epoch"]["n_steps"] + 1, 1)
             initial_pts.append((steps[0], loss_hist[0]))
-
             STEPS = np.concatenate((STEPS, steps))
             LOSS_HIST = np.concatenate((LOSS_HIST, loss_hist))
-
+            LOSS_PHOT_HIST = np.concatenate((LOSS_PHOT_HIST, loss_phot_hist))
+            LOSS_EMLINE_HIST = np.concatenate((LOSS_EMLINE_HIST, loss_emline_hist))
     end = time.time()
     elapsed = end - start
     print(
         f'Gradient descent took {elapsed/60:.3f} minutes for {cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]} steps.'
     )
     print(f'speed: {elapsed/(cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]):.3f} s/it')
-
     # gradient descent figure
     fig_loss, ax_loss = plt.subplots(1)
-
     start_step = [s[0] for s in initial_pts]
     start_loss = [s[1] for s in initial_pts]
-    ax_loss.scatter(start_step, start_loss, s=50, c="deepskyblue")
-
-    ax_loss.plot(STEPS, LOSS_HIST, c="deepskyblue")
+    ax_loss.scatter(start_step, start_loss, s=50, c="k")
+    ax_loss.plot(STEPS, LOSS_HIST, c="k", label="total loss")
+    ax_loss.plot(
+        STEPS,
+        LOSS_PHOT_HIST,
+        c="#0a7a80",
+        linestyle="--",
+        alpha=0.7,
+        label="phot loss",
+    )
+    ax_loss.plot(
+        STEPS,
+        LOSS_EMLINE_HIST,
+        c="#c87820",
+        linestyle="--",
+        alpha=0.7,
+        label="emline loss",
+    )
+    ax_loss.legend()
     ax_loss.set_ylabel("Poisson Loss")
     ax_loss.set_xlabel("steps")
     ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")

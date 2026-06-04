@@ -97,8 +97,7 @@ def fit_feniks_hizels(
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
 
-    def _opt_update(carry, i):
-        opt_state, log_w_phot, log_w_emline = carry
+    def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
         loss_phot, grad_phot = _loss_and_grad_phot_kern_multi_z(
             u_theta,
@@ -111,23 +110,8 @@ def fit_feniks_hizels(
             ran_key,
             hizels_fitting_data,
         )
-        # grad norm scaling
-        # gn_phot = pytree_norm(grad_phot)
-        # gn_emline = pytree_norm(grad_emline)
-        # mean_gn = (gn_phot + gn_emline) / 2.0
-        # lr_w = 0.02
-        # log_w_phot = jnp.clip(
-        #     log_w_phot + lr_w * (jnp.log(mean_gn) - jnp.log(gn_phot)), -2.0, 2.0
-        # )
-        # log_w_emline = jnp.clip(
-        #     log_w_emline + lr_w * (jnp.log(mean_gn) - jnp.log(gn_emline)), -2.0, 2.0
-        # )
-        # w_phot = jnp.exp(log_w_phot)
-        # w_emline = jnp.exp(log_w_emline)
-
         w_phot = 1.0
         w_emline = 1.0
-
         loss = w_phot * loss_phot + w_emline * loss_emline
         grads = tuple(
             w_phot * gp + w_emline * ge for gp, ge in zip(grad_phot, grad_emline)
@@ -142,15 +126,13 @@ def fit_feniks_hizels(
         scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
         grads = tuple(g * scale for g in grads)
         opt_state = opt_update(i, grads, opt_state)
-        carry = (opt_state, log_w_phot, log_w_emline)
-        return carry, (loss, log_w_phot, log_w_emline)
+        return opt_state, (loss, loss_phot, loss_emline)
 
-    init_carry = (opt_state, jnp.array(0.0), jnp.array(0.0))
-    (opt_state, _, _), (loss_hist, log_w_phot_hist, log_w_emline_hist) = lax.scan(
-        _opt_update, init_carry, jnp.arange(n_steps)
+    opt_state, (loss_hist, loss_phot_hist, loss_emline_hist) = lax.scan(
+        _opt_update, opt_state, jnp.arange(n_steps)
     )
     u_theta_fit = get_params(opt_state)
-    return loss_hist, log_w_phot_hist, log_w_emline_hist, u_theta_fit
+    return loss_hist, loss_phot_hist, loss_emline_hist, u_theta_fit
 
 
 @jjit
