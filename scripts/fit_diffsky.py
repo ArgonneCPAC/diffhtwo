@@ -216,7 +216,7 @@ if __name__ == "__main__":
         label="emline loss",
     )
     ax_loss.legend()
-    ax_loss.set_ylabel("Poisson Loss")
+    ax_loss.set_ylabel("Poisson Negative Log-Likelihood")
     ax_loss.set_xlabel("steps")
     ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     plt.savefig(fit_diagnostics_save_drn + "/loss/loss_" + ts + ".png")
