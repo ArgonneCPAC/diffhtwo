@@ -21,8 +21,8 @@ from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
-from diffhtwo.experimental.data_loaders import load_feniks, load_hizels, load_sdss
-from diffhtwo.experimental.defaults import FENIKS_Z_MIN, SDSS_Z_MAX, SDSS_Z_MIN
+from diffhtwo.experimental.data_loaders import load_feniks, load_hizels
+from diffhtwo.experimental.defaults import FENIKS_Z_MIN
 from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
@@ -38,7 +38,7 @@ if __name__ == "__main__":
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    sdss_drn = cfg["base_path"] + "/sdss"
+    # sdss_drn = cfg["base_path"] + "/sdss"
     feniks_drn = cfg["base_path"] + "/feniks"
     hizels_drn = Path(cfg["base_path"] + "/hizels")
     ssp_filename = (
@@ -52,8 +52,8 @@ if __name__ == "__main__":
     halpha_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
 
     # load sdss data
-    ran_key = jran.key(0)
-    SDSS = load_sdss.get_sdss_data(sdss_drn, ran_key, ssp_data)
+    # ran_key = jran.key(0)
+    # SDSS = load_sdss.get_sdss_data(sdss_drn, ran_key, ssp_data)
 
     # load feniks data
     ran_key = jran.key(0)
@@ -66,7 +66,7 @@ if __name__ == "__main__":
         hizels_drn,
         ran_key,
         ssp_data,
-        SDSS.filter_info.tcurves,
+        FENIKS.filter_info.tcurves,
         halpha_wave_aa,
         num_halos=cfg["hizels"]["num_halos"],
     )
@@ -112,8 +112,8 @@ if __name__ == "__main__":
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
     # SDSS
-    sdss_z_min = [SDSS_Z_MIN, 0.08, 0.14]
-    sdss_z_max = [0.08, 0.14, SDSS_Z_MAX]
+    # sdss_z_min = [SDSS_Z_MIN, 0.08, 0.14]
+    # sdss_z_max = [0.08, 0.14, SDSS_Z_MAX]
 
     # FENIKS
     feniks_z_min = [FENIKS_Z_MIN, 1]
@@ -125,17 +125,17 @@ if __name__ == "__main__":
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
 
         # SDSS
-        sdss = load_sdss.refresh_lh_centroids(SDSS)
-        sdss_meta_data, sdss_fitting_data = lhu.get_zbins_lh_lc(
-            ran_key,
-            SDSS,
-            sdss_z_min,
-            sdss_z_max,
-            ssp_data,
-            cfg["sdss"]["N_centroids"],
-            lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
-            num_halos=cfg["sdss"]["num_halos"],
-        )
+        # sdss = load_sdss.refresh_lh_centroids(SDSS)
+        # sdss_meta_data, sdss_fitting_data = lhu.get_zbins_lh_lc(
+        #     ran_key,
+        #     SDSS,
+        #     sdss_z_min,
+        #     sdss_z_max,
+        #     ssp_data,
+        #     cfg["sdss"]["N_centroids"],
+        #     lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
+        #     num_halos=cfg["sdss"]["num_halos"],
+        # )
 
         # FENIKS
         FENIKS = load_feniks.refresh_lh_centroids(FENIKS, cfg["feniks"]["lh_d_mag"])
@@ -150,18 +150,34 @@ if __name__ == "__main__":
             num_halos=cfg["feniks"]["num_halos"],
         )
 
-        loss_hist, u_theta_fit = Np_specphot_opt.fit_sdss_feniks_hizels(
+        (
+            loss_hist,
+            log_w_phot_hist,
+            log_w_emline_hist,
+            u_theta_fit,
+        ) = Np_specphot_opt.fit_feniks_hizels(
             u_theta_fit,
             trainable_params,
             ran_key,
-            sdss_meta_data,
-            sdss_fitting_data,
             feniks_meta_data,
             feniks_fitting_data,
             hizels_fitting_data,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
         )
+
+        w_phot_hist = np.exp(log_w_phot_hist)
+        w_emline_hist = np.exp(log_w_emline_hist)
+
+        print(
+            f"{'step':>5}  {'loss':>10}  {'w_phot':>8}  {'w_emline':>10}  {'ratio':>8}"
+        )
+        print("-" * 48)
+        for i in range(len(loss_hist)):
+            ratio = w_emline_hist[i] / w_phot_hist[i]
+            print(
+                f"{i:>5}  {loss_hist[i]:>10.4f}  {w_phot_hist[i]:>8.4f}  {w_emline_hist[i]:>10.4f}  {ratio:>8.2f}x"
+            )
 
         jax.clear_caches()
 
