@@ -5,7 +5,7 @@ from jax import random as jran
 from ..spec_kern import get_halpha_LF_q_ms_burst
 
 
-def test_spec_kern(fake_subset_ssp_data, hizels, feniks):
+def test_spec_kern(fake_subset_ssp_data, hizels_fitting_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
     ran_key = jran.key(0)
@@ -14,9 +14,9 @@ def test_spec_kern(fake_subset_ssp_data, hizels, feniks):
         ran_key,
         DEFAULT_PARAM_COLLECTION,
         emline_wave_aa,
-        hizels.lg_Lbin_edges[0][0],
-        hizels.z[0][0],
-        hizels.dz[0][0],
+        hizels_fitting_data.lg_Lbin_edges[0][0],
+        hizels_fitting_data.z[0][0],
+        hizels_fitting_data.dz[0][0],
         ssp_data,
         feniks.filter_info.tcurves,
     )
