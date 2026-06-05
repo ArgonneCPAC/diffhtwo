@@ -52,16 +52,13 @@ def feniks(ran_key, fake_subset_ssp_data):
 
 
 @pytest.fixture(scope="session")
-def hizels(ran_key, fake_subset_ssp_data, feniks_tcurves):
+def hizels_fitting_data(ran_key, fake_subset_ssp_data, feniks_tcurves):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
-    hizels = load_hizels.get_hizels_data(
-        HIZELS_DRN,
-        ran_key,
-        ssp_data,
-        feniks_tcurves,
+    hizels_fitting_data = load_hizels.get_hizels_data(
+        HIZELS_DRN, ran_key, ssp_data, feniks_tcurves, emline_wave_aa
     )
-    return hizels
+    return hizels_fitting_data
 
 
 @pytest.fixture(scope="session")

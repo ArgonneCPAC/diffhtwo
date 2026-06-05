@@ -4,6 +4,8 @@ from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLL
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 
+plt.rc("font", family="serif", serif=["Times New Roman"])
+
 
 def plot_insitu_sm(
     ran_key,

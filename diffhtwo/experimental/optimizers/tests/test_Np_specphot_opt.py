@@ -1,4 +1,3 @@
-import jax.numpy as jnp
 import numpy as np
 import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import (
@@ -126,12 +125,10 @@ def test_phot_opt(ran_key, feniks_multi_z_data):
     assert check_param_collection_is_ok(param_collection_fit)
 
 
-@pytest.mark.skip(
-    reason="This will be enabled when gd_specphot_kern_merging is implemented"
-)
-def test_specphot_opt(ran_key, fake_subset_ssp_data, feniks_multi_z_data, hizels):
+def test_specphot_opt(
+    ran_key, fake_subset_ssp_data, feniks_multi_z_data, hizels_fitting_data
+):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
-    emline_wave_table = jnp.array([emline_wave_aa])
 
     feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
 
@@ -146,8 +143,7 @@ def test_specphot_opt(ran_key, fake_subset_ssp_data, feniks_multi_z_data, hizels
         sdss_fitting_data,
         feniks_meta_data,
         feniks_fitting_data,
-        hizels,
-        emline_wave_table,
+        hizels_fitting_data,
     )
 
     assert np.isfinite(loss)
@@ -163,8 +159,7 @@ def test_specphot_opt(ran_key, fake_subset_ssp_data, feniks_multi_z_data, hizels
         sdss_fitting_data,
         feniks_meta_data,
         feniks_fitting_data,
-        hizels,
-        emline_wave_table,
+        hizels_fitting_data,
         n_steps=2,
         step_size=0.1,
     )

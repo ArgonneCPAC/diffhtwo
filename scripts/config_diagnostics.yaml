@@ -1,15 +1,19 @@
-model_drn: /Users/kumail/diffdir/fits/run122
-model_nickname: run122_all
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run122/diagnostic_plots/all
+model_drn: /Users/kumail/diffdir/fits/run133
+model_nickname: run133_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run133/diagnostic_plots/diffstarpop+spspop+merging
 
-feniks_drn: /Users/kumail/diffdir/feniks
 sdss_drn: /Users/kumail/diffdir/sdss
+feniks_drn: /Users/kumail/diffdir/feniks
+hizels_drn: /Users/kumail/diffdir/hizels
+
 cosmos20_drn: /Users/kumail/diffdir/COSMOS20
 dsps_drn: /Users/kumail/diffdir/COSMOS20/portal.nersc.gov/project/hacc/aphearin/DSPS_data
 ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5
 
-plot_feniks: True
+
 plot_sdss: False
+plot_feniks: True
+plot_hizels: True
 
 plots:
   num_halos : 3000

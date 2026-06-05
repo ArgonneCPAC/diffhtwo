@@ -14,6 +14,8 @@ DEFAULT_FBURSTPOP_PARAMS = (
 try:
     from matplotlib import pyplot as plt
 
+    plt.rc("font", family="serif", serif=["Times New Roman"])
+
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False

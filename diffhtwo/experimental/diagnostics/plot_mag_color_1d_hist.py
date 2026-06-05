@@ -39,6 +39,8 @@ try:
     from matplotlib import pyplot as plt
     from matplotlib.lines import Line2D
 
+    plt.rc("font", family="serif", serif=["Times New Roman"])
+
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False

@@ -5,6 +5,8 @@ from matplotlib import lines as mlines
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 
+plt.rc("font", family="serif", serif=["Times New Roman"])
+
 mblue = "tab:blue"
 mgreen = "tab:green"
 morange = "tab:orange"
