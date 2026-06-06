@@ -38,7 +38,6 @@ Dataset = namedtuple(
         "z1",
         "z2",
         "z3",
-        "lc_data",
         "filter_info",
         "frac_cat",
         "lh_centroids",

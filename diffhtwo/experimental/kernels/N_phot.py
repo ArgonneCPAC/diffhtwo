@@ -1,3 +1,4 @@
+from collections import namedtuple
 from functools import partial
 
 import jax.numpy as jnp
@@ -6,6 +7,74 @@ from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
 from .phot_kern import get_colors_mags, mag_kern
+
+
+@jjit
+def N_colors_mags(
+    ran_key,
+    param_collection,
+    z_data,
+    mag_thresh,
+    frac_cat,
+):
+    obs_mags, gal_weight, phot_kern_results = mag_kern(
+        ran_key,
+        param_collection,
+        z_data.lc_data,
+        mag_thresh,
+        frac_cat,
+    )
+    fields = z_data._fields[3:]
+    for f in range(0, len(fields)):
+        data = getattr(z_data, fields[f])
+
+        if isinstance(data, list):
+            new_list = []
+            for d in range(0, len(data)):
+                data_n = data[d]
+
+                obs_mags_cond = obs_mags[:, data_n.cond_idx]
+                cond = (obs_mags_cond > data_n.K_min) & (obs_mags_cond <= data_n.K_max)
+                cond_weight = jnp.where(cond, 1.0, 0.0)
+
+                obs_color = (
+                    obs_mags[:, data_n.col_idx[0]] - obs_mags[:, data_n.col_idx[1]]
+                )
+                obs_color = obs_color.reshape(obs_color.size, 1)
+
+                N_model = diffndhist_lomem.tw_ndhist_weighted(
+                    obs_color,
+                    data_n.sig,
+                    gal_weight * cond_weight,
+                    data_n.bin_lo,
+                    data_n.bin_hi,
+                )
+
+                NewTuple = namedtuple(
+                    type(data_n).__name__, [*data_n._fields, "N_model"]
+                )
+                new_list.append(NewTuple(*data_n, N_model))
+            z_data = z_data._replace(**{fields[f]: new_list})
+        else:
+            col_idx = data.col_idx
+            obs_colors = []
+            for c in range(0, len(col_idx) - 1):
+                obs_color = obs_mags[:, col_idx[c]] - obs_mags[:, col_idx[c + 1]]
+                obs_colors.append(obs_color)
+            obs_colors = jnp.array(obs_colors).T
+            N_model = diffndhist_lomem.tw_ndhist_weighted(
+                obs_colors,
+                data.sig,
+                gal_weight,
+                data.bin_lo,
+                data.bin_hi,
+            )
+
+            NewTuple = namedtuple(type(data).__name__, [*data._fields, "N_model"])
+            new = NewTuple(*data, N_model)
+            z_data = z_data._replace(**{fields[f]: new})
+
+    return z_data
 
 
 @jjit

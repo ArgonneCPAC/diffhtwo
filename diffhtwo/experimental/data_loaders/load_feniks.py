@@ -397,8 +397,6 @@ def get_feniks_data(
         ]
     )
 
-    lc_data = []
-
     # Z1 --> get spaces: 2D (g-r, r-i), 1D (u-g | K)
     zbin = 0
     z_min = zbins[zbin][0]
@@ -420,36 +418,46 @@ def get_feniks_data(
         z_phot_table,
     )
 
-    lc_data.append(generate_lc_data(*lc_args))
+    lc_data = generate_lc_data(*lc_args)
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
     Z1 = namedtuple(
         "Z1",
-        [
-            "z_min",
-            "z_max",
-            "gr_ri",
-            "ug",
-        ],
+        ["z_min", "z_max", "lc_data", "gr_ri", "ug"],
     )
 
-    Gr_ri = namedtuple("Gr_ri", ["N", "sig", "bin_lo", "bin_hi"])
+    Gr_ri = namedtuple("Gr_ri", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
     N_gr_ri, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri = get_N_2d(
         hsc_gr[z_sel], hsc_ri[z_sel]
     )
-    gr_ri = Gr_ri(N_gr_ri, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri)
+    col_idx = [1, 2, 3]
+    gr_ri = Gr_ri(col_idx, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri, N_gr_ri)
 
     Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
     ug = []
     Ug_condK = namedtuple(
-        "Ug_condK", ["K_min", "K_max", "N", "sig", "bin_lo", "bin_hi"]
+        "Ug_condK",
+        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
     )
+    col_idx = [0, 1]
+    cond_idx = 7
     for k in range(len(Kbins) - 1):
         K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d, sig, bin_lo, bin_hi = get_N_1d(megacam_hsc_uSg[z_sel][K_sel])
-        ug.append(Ug_condK(Kbins[k], Kbins[k + 1], N_1d, sig, bin_lo, bin_hi))
+        N_1d_ug, sig_ug, bin_lo_ug, bin_hi_ug = get_N_1d(megacam_hsc_uSg[z_sel][K_sel])
+        ug.append(
+            Ug_condK(
+                col_idx,
+                cond_idx,
+                Kbins[k],
+                Kbins[k + 1],
+                sig_ug,
+                bin_lo_ug,
+                bin_hi_ug,
+                N_1d_ug,
+            )
+        )
 
-    z1 = Z1(z_min, z_max, gr_ri, ug)
+    z1 = Z1(z_min, z_max, lc_data, gr_ri, ug)
 
     # Z2 --> get spaces: 2D (r-z, z-J), 1D (u-g | K)
     zbin = 1
@@ -472,33 +480,42 @@ def get_feniks_data(
         z_phot_table,
     )
 
-    lc_data.append(generate_lc_data(*lc_args))
+    lc_data = generate_lc_data(*lc_args)
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
     Z2 = namedtuple(
         "Z2",
-        [
-            "z_min",
-            "z_max",
-            "rz_zJ",
-            "ug",
-        ],
+        ["z_min", "z_max", "lc_data", "rz_zJ", "ug"],
     )
 
-    Rz_zJ = namedtuple("Rz_zJ", ["N", "sig", "bin_lo", "bin_hi"])
+    Rz_zJ = namedtuple("Rz_zJ", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
     N_rz_zJ, sig_rz_zJ, bin_lo_rz_zJ, bin_hi_rz_zJ = get_N_2d(
         hsc_rz[z_sel], hsc_uds_zJ[z_sel]
     )
-    rz_zJ = Rz_zJ(N_rz_zJ, sig_rz_zJ, bin_lo_rz_zJ, bin_hi_rz_zJ)
+    col_idx = [2, 4, 5]
+    rz_zJ = Rz_zJ(col_idx, sig_rz_zJ, bin_lo_rz_zJ, bin_hi_rz_zJ, N_rz_zJ)
 
     Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
     ug = []
+    col_idx = [0, 1]
+    cond_idx = 7
     for k in range(len(Kbins) - 1):
         K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d, sig, bin_lo, bin_hi = get_N_1d(megacam_hsc_uSg[z_sel][K_sel])
-        ug.append(Ug_condK(Kbins[k], Kbins[k + 1], N_1d, sig, bin_lo, bin_hi))
+        N_1d_ug, sig_ug, bin_lo_ug, bin_hi_ug = get_N_1d(megacam_hsc_uSg[z_sel][K_sel])
+        ug.append(
+            Ug_condK(
+                col_idx,
+                cond_idx,
+                Kbins[k],
+                Kbins[k + 1],
+                sig_ug,
+                bin_lo_ug,
+                bin_hi_ug,
+                N_1d_ug,
+            )
+        )
 
-    z2 = Z2(z_min, z_max, rz_zJ, ug)
+    z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug)
 
     # Z3 --> get spaces: 2D (z-J, J-H), 1D (u-g | K), 1D (g-r | K)
     zbin = 2
@@ -521,37 +538,65 @@ def get_feniks_data(
         z_phot_table,
     )
 
-    lc_data.append(generate_lc_data(*lc_args))
+    lc_data = generate_lc_data(*lc_args)
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
     Z3 = namedtuple(
         "Z3",
-        ["z_min", "z_max", "zJ_JH", "ug", "gr"],
+        ["z_min", "z_max", "lc_data", "zJ_JH", "ug", "gr"],
     )
 
-    zJ_JH = namedtuple("zJ_JH", ["N", "sig", "bin_lo", "bin_hi"])
+    zJ_JH = namedtuple("zJ_JH", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
     N_zJ_JH, sig_zJ_JH, bin_lo_zJ_JH, bin_hi_zJ_JH = get_N_2d(
         hsc_uds_zJ[z_sel], uds_JH[z_sel]
     )
-    zJ_JH = zJ_JH(N_zJ_JH, sig_zJ_JH, bin_lo_zJ_JH, bin_hi_zJ_JH)
+    col_idx = [4, 5, 6]
+    zJ_JH = zJ_JH(col_idx, sig_zJ_JH, bin_lo_zJ_JH, bin_hi_zJ_JH, N_zJ_JH)
 
     Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 4)
     ug = []
+    col_idx = [0, 1]
+    cond_idx = 7
     for k in range(len(Kbins) - 1):
         K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d, sig, bin_lo, bin_hi = get_N_1d(megacam_hsc_uSg[z_sel][K_sel])
-        ug.append(Ug_condK(Kbins[k], Kbins[k + 1], N_1d, sig, bin_lo, bin_hi))
+        N_1d_ug, sig_ug, bin_lo_ug, bin_hi_ug = get_N_1d(megacam_hsc_uSg[z_sel][K_sel])
+        ug.append(
+            Ug_condK(
+                col_idx,
+                cond_idx,
+                Kbins[k],
+                Kbins[k + 1],
+                sig_ug,
+                bin_lo_ug,
+                bin_hi_ug,
+                N_1d_ug,
+            )
+        )
 
     gr = []
     Gr_condK = namedtuple(
-        "Gr_condK", ["K_min", "K_max", "N", "sig", "bin_lo", "bin_hi"]
+        "Gr_condK",
+        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
     )
+    col_idx = [1, 2]
+    cond_idx = 7
     for k in range(len(Kbins) - 1):
         K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d, sig, bin_lo, bin_hi = get_N_1d(hsc_gr[z_sel][K_sel])
-        gr.append(Gr_condK(Kbins[k], Kbins[k + 1], N_1d, sig, bin_lo, bin_hi))
+        N_1d_gr, sig_gr, bin_lo_gr, bin_hi_gr = get_N_1d(hsc_gr[z_sel][K_sel])
+        gr.append(
+            Gr_condK(
+                col_idx,
+                cond_idx,
+                Kbins[k],
+                Kbins[k + 1],
+                sig_gr,
+                bin_lo_gr,
+                bin_hi_gr,
+                N_1d_gr,
+            )
+        )
 
-    z3 = Z3(z_min, z_max, zJ_JH, ug, gr)
+    z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug, gr)
 
     lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
 
@@ -575,7 +620,6 @@ def get_feniks_data(
         z1,
         z2,
         z3,
-        lc_data,
         filter_info,
         frac_cat,
         lh_centroids,
@@ -595,7 +639,6 @@ FeniksFilters = namedtuple(
         "HSC_R",
         "HSC_I",
         "HSC_Z",
-        # "VIDEO_Y",
         "UDS_J",
         "UDS_H",
         "UDS_K",

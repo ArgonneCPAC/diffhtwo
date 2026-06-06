@@ -14,7 +14,11 @@ from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 
 from ..loss_kernels.emline_loss import _loss_emline_kern_multi_line_multi_z
-from ..loss_kernels.phot_loss import _loss_phot_kern, _loss_phot_kern_multiband_multiz
+from ..loss_kernels.phot_loss import (
+    _loss_phot_kern,
+    _loss_phot_kern_2d_multiz,
+    _loss_phot_kern_multiband_multiz,
+)
 
 _L_pk = (
     None,
@@ -36,6 +40,8 @@ _loss_and_grad_emline_kern_multi_line_multi_z = jjit(
 _loss_and_grad_phot_kern_multiband_multiz = jjit(
     value_and_grad(_loss_phot_kern_multiband_multiz)
 )
+
+_loss_and_grad_phot_kern_2d_multiz = jjit(value_and_grad(_loss_phot_kern_2d_multiz))
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
@@ -70,6 +76,46 @@ def fit_N_multi_z(
         tau = 1.0
         scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
         grads = tuple(g * scale for g in grads)
+
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, loss
+
+    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+    u_theta_fit = get_params(opt_state)
+
+    return loss_hist, u_theta_fit
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_N_phot_2d(
+    u_theta_init,
+    trainable,
+    ran_key,
+    fitting_data,
+    n_steps=2,
+    step_size=1e-2,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    other = (
+        ran_key,
+        fitting_data,
+    )
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss, grads = _loss_and_grad_phot_kern_2d_multiz(u_theta, *other)
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+
+        # clip gradients
+        # global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
+        # tau = 1.0
+        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        # grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss

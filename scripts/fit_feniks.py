@@ -104,7 +104,7 @@ if __name__ == "__main__":
     for epoch in range(0, cfg["epoch"]["n_it"]):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
 
-        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_phot_1d(
+        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_phot_2d(
             u_theta_fit,
             trainable_params,
             ran_key,
