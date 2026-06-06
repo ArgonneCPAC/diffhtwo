@@ -55,6 +55,24 @@ def N_colors_mags(
                 )
                 new_list.append(NewTuple(*data_n, N_model))
             z_data = z_data._replace(**{fields[f]: new_list})
+
+        elif "mag_idx" in data._fields:
+            mag_idx = data.mag_idx
+            obs_mag = obs_mags[:, mag_idx]
+            obs_mag = obs_mag.reshape(obs_mag.size, 1)
+
+            N_model = diffndhist_lomem.tw_ndhist_weighted(
+                obs_mag,
+                data.sig,
+                gal_weight,
+                data.bin_lo,
+                data.bin_hi,
+            )
+
+            NewTuple = namedtuple(type(data).__name__, [*data._fields, "N_model"])
+            new = NewTuple(*data, N_model)
+            z_data = z_data._replace(**{fields[f]: new})
+
         else:
             col_idx = data.col_idx
             obs_colors = []
