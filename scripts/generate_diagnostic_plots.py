@@ -204,15 +204,8 @@ if __name__ == "__main__":
     if cfg["plot_feniks"]:
         feniks_label = "feniks"  # + cfg["model_nickname"].split("_")[0]
         feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
-        feniks_zbins = np.array(
-            [
-                [0.2, 0.5],
-                [0.5, 0.8],
-                [0.8, 1.2],
-                [1.2, 1.6],
-                [1.6, 2.0],
-            ]
-        )
+        feniks_zbins = feniks.zbins
+
         if cfg["plots"]["plot_app_mag_funcs"]:
             print("Generating FENIKS app mag funcs plot...")
             plot_app_mag_funcs(

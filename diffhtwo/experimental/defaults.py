@@ -19,7 +19,7 @@ COSMO = FlatLambdaCDM(
 
 FENIKS_AREA_DEG2 = 2828.247933129912 / 3600
 FENIKS_Z_MIN = 0.2
-FENIKS_Z_MAX = 3.0
+FENIKS_Z_MAX = 2.5
 FENIKS_MAGK_THRESH = 24.3  # col mag
 
 SDSS_AREA_DEG2 = 7199
@@ -35,9 +35,9 @@ Dataset = namedtuple(
         "dataset_dim_labels",
         "mags",
         "mags_labels",
-        "zbins",
-        "magbin_zbins_bands",
-        "N_zbins_bands",
+        "z1",
+        "z2",
+        "z3",
         "lc_data",
         "filter_info",
         "frac_cat",

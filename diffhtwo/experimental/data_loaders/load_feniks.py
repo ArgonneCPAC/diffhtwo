@@ -77,24 +77,60 @@ def get_mag_ab(phot_table, col_name, ZP=25):
     return mag_ab
 
 
-def get_N_1d_mag_bins(mags, mag_bin_edges=None, dmag=0.2, sig_scale=0.5):
-    mags = mags.reshape(mags.size, 1)
-    if mag_bin_edges is None:
-        mag_bin_edges = np.arange(mags.min(), mags.max(), dmag)
+def get_N_1d(dim1, dim1_bin_edges=None, dmag=0.2, sig_scale=0.5):
+    dataset = dim1.reshape(dim1.size, 1)
+    if dim1_bin_edges is None:
+        dim1_bin_edges = np.arange(dim1.min(), dim1.max(), dmag)
 
-    mag_lo = mag_bin_edges[:-1].reshape(mag_bin_edges[:-1].size, 1)
-    mag_hi = mag_bin_edges[1:].reshape(mag_bin_edges[1:].size, 1)
+    bin_lo = dim1_bin_edges[:-1].reshape(dim1_bin_edges[:-1].size, 1)
+    bin_hi = dim1_bin_edges[1:].reshape(dim1_bin_edges[1:].size, 1)
 
-    sig = jnp.zeros_like(mag_lo) + (dmag * sig_scale)
+    sig = jnp.zeros_like(bin_lo) + (dmag * sig_scale)
 
-    N_mags = diffndhist_lomem.tw_ndhist(
-        mags,
+    N_1d = diffndhist_lomem.tw_ndhist(
+        dataset,
         sig,
-        mag_lo,
-        mag_hi,
+        bin_lo,
+        bin_hi,
     )
 
-    return mag_bin_edges, N_mags
+    return (
+        N_1d,
+        sig,
+        bin_lo,
+        bin_hi,
+    )
+
+
+def get_N_2d(dim1, dim2, sig_scale=0.5):
+    dataset = np.vstack((dim1, dim2)).T
+
+    dim1_bin_edges = np.linspace(dim1.min(), dim1.max(), 11)
+    dim2_bin_edges = np.linspace(dim2.min(), dim2.max(), 11)
+
+    dim1_lo = dim1_bin_edges[:-1]
+    dim2_lo = dim2_bin_edges[:-1]
+    bin_lo = np.meshgrid(dim1_lo, dim2_lo, indexing="ij")
+    bin_lo = np.array(bin_lo).T.reshape(-1, 2)
+
+    dim1_hi = dim1_bin_edges[1:]
+    dim2_hi = dim2_bin_edges[1:]
+    bin_hi = np.meshgrid(dim1_hi, dim2_hi, indexing="ij")
+    bin_hi = np.array(bin_hi).T.reshape(-1, 2)
+
+    sig1 = np.diff(dim1_bin_edges) * sig_scale
+    sig2 = np.diff(dim2_bin_edges) * sig_scale
+    sig = np.meshgrid(sig1, sig2, indexing="ij")
+    sig = np.array(sig).T.reshape(-1, 2)
+
+    N_2d = diffndhist_lomem.tw_ndhist(
+        dataset,
+        sig,
+        bin_lo,
+        bin_hi,
+    )
+
+    return N_2d, sig, bin_lo, bin_hi
 
 
 def refresh_lh_centroids(DATASET, lh_d_mag):
@@ -274,31 +310,6 @@ def get_feniks_data(
     uds_H = uds_H[clean]
     uds_K = uds_K[clean]
 
-    # mask nans
-    # nans = (
-    #     (megacam_uS == -99.0)
-    #     | (hsc_g == -99.0)
-    #     | (hsc_r == -99.0)
-    #     | (hsc_i == -99.0)
-    #     | (hsc_z == -99.0)
-    #     | (video_Y == -99)
-    #     | (uds_J == -99.0)
-    #     | (uds_H == -99.0)
-    #     | (uds_K == -99.0)
-    # )
-
-    # megacam_uS = megacam_uS[~nans]
-    # hsc_g = hsc_g[~nans]
-    # hsc_r = hsc_r[~nans]
-    # hsc_i = hsc_i[~nans]
-    # hsc_z = hsc_z[~nans]
-    # video_Y = video_Y[~nans]
-    # uds_J = uds_J[~nans]
-    # uds_H = uds_H[~nans]
-    # uds_K = uds_K[~nans]
-
-    # zout = zout[~nans]
-
     N_obj_post_cuts = len(zout)
     frac_cat = N_obj_post_cuts / N_obj_pre_cuts
 
@@ -320,6 +331,7 @@ def get_feniks_data(
     # derive colors from mags
     megacam_hsc_uSg = megacam_uS - hsc_g
     hsc_gr = hsc_g - hsc_r
+    hsc_rz = hsc_r - hsc_z
     hsc_ri = hsc_r - hsc_i
     hsc_iz = hsc_i - hsc_z
     hsc_uds_zJ = hsc_z - uds_J
@@ -370,64 +382,176 @@ def get_feniks_data(
     ]
 
     # mask redshift
-    z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
-    dataset = dataset[z_mask]
-    mags = mags[z_mask]
-    zout = zout[z_mask]
+    # z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
+    # dataset = dataset[z_mask]
+    # mags = mags[z_mask]
+    # zout = zout[z_mask]
 
     # prepare 1D app mag functions in z-bins for fitting
 
     zbins = np.array(
         [
-            [0.2, 0.5],
-            [0.5, 0.8],
-            [0.8, 1.2],
-            [1.2, 1.6],
-            [1.6, 2.0],
+            [0.2, 0.7],
+            [0.7, 1.5],
+            [1.5, 2.5],
         ]
     )
-    n_gals, n_dim = mags.shape
-    n_bands = n_dim - 1
-    n_z_bins = len(zbins)
 
-    magbin_zbins_bands = []
-    N_zbins_bands = []
     lc_data = []
-    for zbin in range(n_z_bins):
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
 
-        z_phot_table = 10 ** jnp.linspace(
-            jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-        )
-        lc_args = (
-            ran_key,
-            num_halos,
-            z_min,
-            z_max,
-            lgmp_min,
-            lgmp_max,
-            lc_sky_area_degsq,
-            ssp_data,
-            tcurves,
-            z_phot_table,
-        )
+    # Z1 --> get spaces: 2D (g-r, r-i), 1D (u-g | K)
+    zbin = 0
+    z_min = zbins[zbin][0]
+    z_max = zbins[zbin][1]
 
-        lc_data.append(generate_lc_data(*lc_args))
+    z_phot_table = 10 ** jnp.linspace(
+        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+    )
+    lc_args = (
+        ran_key,
+        num_halos,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
 
-        z_sel = (mags[:, -1] > z_min) & (mags[:, -1] <= z_max)
+    lc_data.append(generate_lc_data(*lc_args))
 
-        magbin_bands = []
-        N_bands = []
-        for band in range(0, n_bands):
-            magbin_edges, N_mags = get_N_1d_mag_bins(
-                mags[:, band][z_sel], mag_bin_edges=mag_bin_edges
-            )
-            magbin_bands.append(magbin_edges)
-            N_bands.append(N_mags)
+    z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+    Z1 = namedtuple(
+        "Z1",
+        [
+            "z_min",
+            "z_max",
+            "gr_ri",
+            "ug",
+        ],
+    )
 
-        magbin_zbins_bands.append(magbin_bands)
-        N_zbins_bands.append(N_bands)
+    Gr_ri = namedtuple("Gr_ri", ["N", "sig", "bin_lo", "bin_hi"])
+    N_gr_ri, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri = get_N_2d(
+        hsc_gr[z_sel], hsc_ri[z_sel]
+    )
+    gr_ri = Gr_ri(N_gr_ri, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri)
+
+    Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
+    ug = []
+    Ug_condK = namedtuple(
+        "Ug_condK", ["K_min", "K_max", "N", "sig", "bin_lo", "bin_hi"]
+    )
+    for k in range(len(Kbins) - 1):
+        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
+        N_1d, sig, bin_lo, bin_hi = get_N_1d(megacam_hsc_uSg[z_sel][K_sel])
+        ug.append(Ug_condK(Kbins[k], Kbins[k + 1], N_1d, sig, bin_lo, bin_hi))
+
+    z1 = Z1(z_min, z_max, gr_ri, ug)
+
+    # Z2 --> get spaces: 2D (r-z, z-J), 1D (u-g | K)
+    zbin = 1
+    z_min = zbins[zbin][0]
+    z_max = zbins[zbin][1]
+
+    z_phot_table = 10 ** jnp.linspace(
+        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+    )
+    lc_args = (
+        ran_key,
+        num_halos,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
+
+    lc_data.append(generate_lc_data(*lc_args))
+
+    z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+    Z2 = namedtuple(
+        "Z2",
+        [
+            "z_min",
+            "z_max",
+            "rz_zJ",
+            "ug",
+        ],
+    )
+
+    Rz_zJ = namedtuple("Rz_zJ", ["N", "sig", "bin_lo", "bin_hi"])
+    N_rz_zJ, sig_rz_zJ, bin_lo_rz_zJ, bin_hi_rz_zJ = get_N_2d(
+        hsc_rz[z_sel], hsc_uds_zJ[z_sel]
+    )
+    rz_zJ = Rz_zJ(N_rz_zJ, sig_rz_zJ, bin_lo_rz_zJ, bin_hi_rz_zJ)
+
+    Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
+    ug = []
+    for k in range(len(Kbins) - 1):
+        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
+        N_1d, sig, bin_lo, bin_hi = get_N_1d(megacam_hsc_uSg[z_sel][K_sel])
+        ug.append(Ug_condK(Kbins[k], Kbins[k + 1], N_1d, sig, bin_lo, bin_hi))
+
+    z2 = Z2(z_min, z_max, rz_zJ, ug)
+
+    # Z3 --> get spaces: 2D (z-J, J-H), 1D (u-g | K), 1D (g-r | K)
+    zbin = 2
+    z_min = zbins[zbin][0]
+    z_max = zbins[zbin][1]
+
+    z_phot_table = 10 ** jnp.linspace(
+        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+    )
+    lc_args = (
+        ran_key,
+        num_halos,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
+
+    lc_data.append(generate_lc_data(*lc_args))
+
+    z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+    Z3 = namedtuple(
+        "Z3",
+        ["z_min", "z_max", "zJ_JH", "ug", "gr"],
+    )
+
+    zJ_JH = namedtuple("zJ_JH", ["N", "sig", "bin_lo", "bin_hi"])
+    N_zJ_JH, sig_zJ_JH, bin_lo_zJ_JH, bin_hi_zJ_JH = get_N_2d(
+        hsc_uds_zJ[z_sel], uds_JH[z_sel]
+    )
+    zJ_JH = zJ_JH(N_zJ_JH, sig_zJ_JH, bin_lo_zJ_JH, bin_hi_zJ_JH)
+
+    Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 4)
+    ug = []
+    for k in range(len(Kbins) - 1):
+        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
+        N_1d, sig, bin_lo, bin_hi = get_N_1d(megacam_hsc_uSg[z_sel][K_sel])
+        ug.append(Ug_condK(Kbins[k], Kbins[k + 1], N_1d, sig, bin_lo, bin_hi))
+
+    gr = []
+    Gr_condK = namedtuple(
+        "Gr_condK", ["K_min", "K_max", "N", "sig", "bin_lo", "bin_hi"]
+    )
+    for k in range(len(Kbins) - 1):
+        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
+        N_1d, sig, bin_lo, bin_hi = get_N_1d(hsc_gr[z_sel][K_sel])
+        gr.append(Gr_condK(Kbins[k], Kbins[k + 1], N_1d, sig, bin_lo, bin_hi))
+
+    z3 = Z3(z_min, z_max, zJ_JH, ug, gr)
 
     lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
 
@@ -448,9 +572,9 @@ def get_feniks_data(
         dataset_dim_labels,
         mags,
         mags_labels,
-        zbins,
-        magbin_zbins_bands,
-        N_zbins_bands,
+        z1,
+        z2,
+        z3,
         lc_data,
         filter_info,
         frac_cat,
