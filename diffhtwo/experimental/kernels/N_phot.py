@@ -5,7 +5,50 @@ from diffsky import diffndhist_lomem
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from .phot_kern import get_colors_mags
+from .phot_kern import get_colors_mags, mag_kern
+
+
+@jjit
+def N_mags_1d(
+    ran_key,
+    param_collection,
+    magbin_bands,
+    lc_data,
+    mag_thresh,
+    frac_cat,
+    sig_scale=0.5,
+):
+    obs_mags, gal_weight, phot_kern_results = mag_kern(
+        ran_key,
+        param_collection,
+        lc_data,
+        mag_thresh,
+        frac_cat,
+    )
+
+    n_gals, n_bands = obs_mags.shape
+    N_bands = []
+    for band in range(0, n_bands):
+        mags = obs_mags[:, band].reshape(obs_mags[:, band].size, 1)
+
+        magbin_edges = magbin_bands[band]
+
+        sig = jnp.diff(magbin_edges) * sig_scale
+        sig = sig.reshape(sig.size, 1)
+
+        mag_lo = magbin_edges[:-1].reshape(magbin_edges[:-1].size, 1)
+        mag_hi = magbin_edges[1:].reshape(magbin_edges[1:].size, 1)
+
+        N_mags = diffndhist_lomem.tw_ndhist_weighted(
+            mags,
+            sig,
+            gal_weight,
+            mag_lo,
+            mag_hi,
+        )
+        N_bands.append(N_mags)
+
+    return N_bands
 
 
 @partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])

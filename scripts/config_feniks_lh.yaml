@@ -7,12 +7,14 @@ fit_runid: "runtest"
 fit_type: "all"
 
 feniks:
-  num_halos: 100
+  lh_d_mag: 0.4
+  N_centroids: 2000
 
 epoch:
   n_it: 1
   n_steps: 2
   step_size: 0.1
+  num_halos: 100
     
 defaults:
   diffstarpop: True

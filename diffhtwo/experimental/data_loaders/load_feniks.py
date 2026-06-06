@@ -18,6 +18,7 @@ from ..defaults import (
     FilterInfo,
 )
 from ..latin_hypercube import latin_hypercube as lh
+from ..lightcone_generators import generate_lc_data
 from ..utils import load_feniks_tcurve
 
 BASE_PATH = Path(__file__).resolve().parent.parent
@@ -74,6 +75,26 @@ def get_mag_ab(phot_table, col_name, ZP=25):
     # mag_thresh = _get_mag_thresh(mag_ab[mag_ab != -99])
 
     return mag_ab
+
+
+def get_N_1d_mag_bins(mags, mag_bin_edges=None, dmag=0.1, sig_scale=0.5):
+    mags = mags.reshape(mags.size, 1)
+    if mag_bin_edges is None:
+        mag_bin_edges = np.arange(mags.min(), mags.max(), dmag)
+
+    mag_lo = mag_bin_edges[:-1].reshape(mag_bin_edges[:-1].size, 1)
+    mag_hi = mag_bin_edges[1:].reshape(mag_bin_edges[1:].size, 1)
+
+    sig = jnp.zeros_like(mag_lo) + (dmag * sig_scale)
+
+    N_mags = diffndhist_lomem.tw_ndhist(
+        mags,
+        sig,
+        mag_lo,
+        mag_hi,
+    )
+
+    return mag_bin_edges, N_mags
 
 
 def refresh_lh_centroids(DATASET, lh_d_mag):
@@ -144,6 +165,11 @@ def get_feniks_data(
     lh_d_mag=0.6,
     phot=PHOT,
     zout=ZOUT,
+    num_halos=250,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
+    lc_sky_area_degsq=100,
+    n_z_phot_table=30,
 ):
     # Transmission curves and filter mag thresholds
 
@@ -348,6 +374,58 @@ def get_feniks_data(
     mags = mags[z_mask]
     zout = zout[z_mask]
 
+    # prepare 1D app mag functions in z-bins for fitting
+
+    zbins = np.array(
+        [
+            [0.2, 0.5],
+            [0.5, 0.8],
+            [0.8, 1.2],
+            [1.2, 1.6],
+            [1.6, 2.0],
+        ]
+    )
+    n_gals, n_dim = mags.shape
+    n_bands = n_dim - 1
+    n_z_bins = len(zbins)
+
+    magbin_zbins_bands = []
+    N_zbins_bands = []
+    lc_data = []
+    for zbin in range(n_z_bins):
+        z_min = zbins[zbin][0]
+        z_max = zbins[zbin][1]
+
+        z_phot_table = 10 ** jnp.linspace(
+            jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+        )
+        lc_args = (
+            ran_key,
+            num_halos,
+            z_min,
+            z_max,
+            lgmp_min,
+            lgmp_max,
+            lc_sky_area_degsq,
+            ssp_data,
+            tcurves,
+            z_phot_table,
+        )
+
+        lc_data.append(generate_lc_data(*lc_args))
+
+        z_sel = (mags[:, -1] > z_min) & (mags[:, -1] <= z_max)
+
+        magbin_bands = []
+        N_bands = []
+        for band in range(0, n_bands):
+            magbin_edges, N_mags = get_N_1d_mag_bins(mags[:, band][z_sel])
+            magbin_bands.append(magbin_edges)
+            N_bands.append(N_mags)
+
+        magbin_zbins_bands.append(magbin_bands)
+        N_zbins_bands.append(N_bands)
+
     lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
 
     # run initial diffndhist_lomem with fixed dmag
@@ -367,6 +445,10 @@ def get_feniks_data(
         dataset_dim_labels,
         mags,
         mags_labels,
+        zbins,
+        magbin_zbins_bands,
+        N_zbins_bands,
+        lc_data,
         filter_info,
         frac_cat,
         lh_centroids,
