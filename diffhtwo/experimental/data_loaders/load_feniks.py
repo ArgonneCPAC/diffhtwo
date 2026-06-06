@@ -77,7 +77,7 @@ def get_mag_ab(phot_table, col_name, ZP=25):
     return mag_ab
 
 
-def get_N_1d_mag_bins(mags, mag_bin_edges=None, dmag=0.1, sig_scale=0.5):
+def get_N_1d_mag_bins(mags, mag_bin_edges=None, dmag=0.2, sig_scale=0.5):
     mags = mags.reshape(mags.size, 1)
     if mag_bin_edges is None:
         mag_bin_edges = np.arange(mags.min(), mags.max(), dmag)
@@ -170,6 +170,7 @@ def get_feniks_data(
     lgmp_max=15.0,
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
+    mag_bin_edges=None,
 ):
     # Transmission curves and filter mag thresholds
 
@@ -419,7 +420,9 @@ def get_feniks_data(
         magbin_bands = []
         N_bands = []
         for band in range(0, n_bands):
-            magbin_edges, N_mags = get_N_1d_mag_bins(mags[:, band][z_sel])
+            magbin_edges, N_mags = get_N_1d_mag_bins(
+                mags[:, band][z_sel], mag_bin_edges=mag_bin_edges
+            )
             magbin_bands.append(magbin_edges)
             N_bands.append(N_mags)
 

@@ -4,7 +4,7 @@ start_runid: "run90"
 start_fit_type: "all"
 
 fit_runid: "runtest"
-fit_type: "all"
+fit_type: "diffstarpop+spspop+merging"
 
 feniks:
   num_halos: 100
