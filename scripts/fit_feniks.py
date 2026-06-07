@@ -51,7 +51,11 @@ if __name__ == "__main__":
     # load feniks data
     ran_key = jran.key(0)
     feniks = load_feniks.get_feniks_data(
-        feniks_drn, ran_key, ssp_data, num_halos=cfg["feniks"]["num_halos"]
+        feniks_drn,
+        ran_key,
+        ssp_data,
+        num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
+        num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
     )
     remove = {"dataset_dim_labels", "mags_labels"}
     FeniksFitting = namedtuple("Feniks", [f for f in feniks._fields if f not in remove])

@@ -27,17 +27,19 @@ def N_colors_mags(
     fields = z_data._fields[3:]
     mag_thresh = jnp.array(mag_thresh)
     for f in range(0, len(fields)):
-        data = getattr(z_data, fields[f])
+        space = getattr(z_data, fields[f])
 
-        if isinstance(data, list):
+        if isinstance(space, list):
             new_list = []
-            for d in range(0, len(data)):
-                data_n = data[d]
-                col_idx = data_n.col_idx
+            for s in range(0, len(space)):
+                space_n = space[s]
+                col_idx = space_n.col_idx
 
                 # get cond weight
-                obs_mags_cond = obs_mags[:, data_n.cond_idx]
-                cond = (obs_mags_cond > data_n.K_min) & (obs_mags_cond <= data_n.K_max)
+                obs_mags_cond = obs_mags[:, space_n.cond_idx]
+                cond = (obs_mags_cond > space_n.K_min) & (
+                    obs_mags_cond <= space_n.K_max
+                )
                 weight = jnp.where(cond, gal_weight, 0.0)
 
                 # get mag_sel weight
@@ -50,20 +52,20 @@ def N_colors_mags(
 
                 N_model = diffndhist_lomem.tw_ndhist_weighted(
                     obs_color,
-                    data_n.sig,
+                    space_n.sig,
                     weight,
-                    data_n.bin_lo,
-                    data_n.bin_hi,
+                    space_n.bin_lo,
+                    space_n.bin_hi,
                 )
 
                 NewTuple = namedtuple(
-                    type(data_n).__name__, [*data_n._fields, "N_model"]
+                    type(space_n).__name__, [*space_n._fields, "N_model"]
                 )
-                new_list.append(NewTuple(*data_n, N_model))
+                new_list.append(NewTuple(*space_n, N_model))
             z_data = z_data._replace(**{fields[f]: new_list})
 
-        elif "mag_idx" in data._fields:
-            mag_idx = data.mag_idx
+        elif "mag_idx" in space._fields:
+            mag_idx = space.mag_idx
             obs_mag = obs_mags[:, mag_idx]
             obs_mag = obs_mag.reshape(obs_mag.size, 1)
 
@@ -73,18 +75,18 @@ def N_colors_mags(
 
             N_model = diffndhist_lomem.tw_ndhist_weighted(
                 obs_mag,
-                data.sig,
+                space.sig,
                 weight,
-                data.bin_lo,
-                data.bin_hi,
+                space.bin_lo,
+                space.bin_hi,
             )
 
-            NewTuple = namedtuple(type(data).__name__, [*data._fields, "N_model"])
-            new = NewTuple(*data, N_model)
+            NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
+            new = NewTuple(*space, N_model)
             z_data = z_data._replace(**{fields[f]: new})
 
         else:
-            col_idx = data.col_idx
+            col_idx = space.col_idx
             obs_colors = []
             for c in range(0, len(col_idx) - 1):
                 obs_color = obs_mags[:, col_idx[c]] - obs_mags[:, col_idx[c + 1]]
@@ -99,14 +101,14 @@ def N_colors_mags(
 
             N_model = diffndhist_lomem.tw_ndhist_weighted(
                 obs_colors,
-                data.sig,
+                space.sig,
                 weight,
-                data.bin_lo,
-                data.bin_hi,
+                space.bin_lo,
+                space.bin_hi,
             )
 
-            NewTuple = namedtuple(type(data).__name__, [*data._fields, "N_model"])
-            new = NewTuple(*data, N_model)
+            NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
+            new = NewTuple(*space, N_model)
             z_data = z_data._replace(**{fields[f]: new})
 
     return z_data

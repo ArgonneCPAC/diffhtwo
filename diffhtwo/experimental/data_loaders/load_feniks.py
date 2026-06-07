@@ -201,7 +201,8 @@ def get_feniks_data(
     lh_d_mag=0.6,
     phot=PHOT,
     zout=ZOUT,
-    num_halos=250,
+    num_halos_coarse_zbins=150,
+    num_halos_fine_zbins=250,
     lgmp_min=10.0,
     lgmp_max=15.0,
     lc_sky_area_degsq=100,
@@ -334,7 +335,7 @@ def get_feniks_data(
     hsc_ri = hsc_r - hsc_i
     hsc_iz = hsc_i - hsc_z
     hsc_uds_zJ = hsc_z - uds_J
-    # video_uds_YJ = video_Y - uds_J
+    hsc_uds_rK = hsc_r - uds_K
     uds_JH = uds_J - uds_H
     uds_HK = uds_H - uds_K
 
@@ -386,8 +387,8 @@ def get_feniks_data(
     # mags = mags[z_mask]
     # zout = zout[z_mask]
 
-    # prepare 1D app mag functions in z-bins for fitting
-
+    ##############################################################################
+    # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
         [
             [0.2, 0.7],
@@ -397,7 +398,16 @@ def get_feniks_data(
     )
 
     ##############################################################################
-    # Z1 --> get spaces: 2D (g-r, r-i), 1D (u-g | K), 1D (K)
+    # Z1 spaces:
+    # 2D (g-r, r-i)
+    # 2D (u-g, r-K)
+    # 1D (u-g | K)
+
+    colors = []
+    Z1 = namedtuple(
+        "Z1",
+        ["z_min", "z_max", "lc_data", "gr_ri", "ug_rK", "ug"],
+    )
     zbin = 0
     z_min = zbins[zbin][0]
     z_max = zbins[zbin][1]
@@ -407,7 +417,7 @@ def get_feniks_data(
     )
     lc_args = (
         ran_key,
-        num_halos,
+        num_halos_coarse_zbins,
         z_min,
         z_max,
         lgmp_min,
@@ -421,11 +431,8 @@ def get_feniks_data(
     lc_data = generate_lc_data(*lc_args)
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-    Z1 = namedtuple(
-        "Z1",
-        ["z_min", "z_max", "lc_data", "gr_ri", "ug", "k", "u"],
-    )
 
+    # 2D (g - r, r - i)
     Gr_ri = namedtuple("Gr_ri", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
     mag_sel_gr_ri = (
         (hsc_g[z_sel] < feniks_mag_thresh.HSC_G)
@@ -438,7 +445,22 @@ def get_feniks_data(
     col_idx = [1, 2, 3]
     gr_ri = Gr_ri(col_idx, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri, N_gr_ri)
 
+    # 2D (u - g, r - K)
+    Ug_rK = namedtuple("Ug_rK", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
+    mag_sel_ugr = (
+        (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS)
+        & (hsc_g[z_sel] < feniks_mag_thresh.HSC_G)
+        & (hsc_r[z_sel] < feniks_mag_thresh.HSC_R)
+    )
+    N_ug_rK, sig_ug_rK, bin_lo_ug_rK, bin_hi_ug_rK = get_N_2d(
+        megacam_hsc_uSg[z_sel][mag_sel_ugr], hsc_uds_rK[z_sel][mag_sel_ugr]
+    )
+    col_idx = [0, 1, 7]
+    ug_rK = Ug_rK(col_idx, sig_ug_rK, bin_lo_ug_rK, bin_hi_ug_rK, N_ug_rK)
+
+    # 1D (u - g | K)
     Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
+
     ug = []
     Ug_condK = namedtuple(
         "Ug_condK",
@@ -467,26 +489,18 @@ def get_feniks_data(
             )
         )
 
-    K = namedtuple(
-        "K",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
-    mag_idx = 7
-    N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
-    k = K(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
-
-    U = namedtuple(
-        "U",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
-    mag_idx = 0
-    N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(megacam_uS[z_sel])
-    u = U(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
-
-    z1 = Z1(z_min, z_max, lc_data, gr_ri, ug, k, u)
+    z1 = Z1(z_min, z_max, lc_data, gr_ri, ug_rK, ug)
+    colors.append(z1)
 
     ##############################################################################
-    # Z2 --> get spaces: 2D (r-z, z-J), 1D (u-g | K)
+    # Z2 spaces:
+    # 2D (r - z, z - J)
+    # 1D (u - g | K)
+
+    Z2 = namedtuple(
+        "Z2",
+        ["z_min", "z_max", "lc_data", "rz_zJ", "ug"],
+    )
     zbin = 1
     z_min = zbins[zbin][0]
     z_max = zbins[zbin][1]
@@ -496,7 +510,7 @@ def get_feniks_data(
     )
     lc_args = (
         ran_key,
-        num_halos,
+        num_halos_coarse_zbins,
         z_min,
         z_max,
         lgmp_min,
@@ -510,11 +524,8 @@ def get_feniks_data(
     lc_data = generate_lc_data(*lc_args)
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-    Z2 = namedtuple(
-        "Z2",
-        ["z_min", "z_max", "lc_data", "rz_zJ", "ug", "k", "u"],
-    )
 
+    # 2D (r - z, z - J)
     Rz_zJ = namedtuple("Rz_zJ", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
     mag_sel_rz_zJ = (
         (hsc_r[z_sel] < feniks_mag_thresh.HSC_R)
@@ -527,7 +538,9 @@ def get_feniks_data(
     col_idx = [2, 4, 5]
     rz_zJ = Rz_zJ(col_idx, sig_rz_zJ, bin_lo_rz_zJ, bin_hi_rz_zJ, N_rz_zJ)
 
+    # 1D (u - g | K)
     Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
+
     ug = []
     mag_sel_ug = (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS) & (
         hsc_g[z_sel] < feniks_mag_thresh.HSC_G
@@ -552,22 +565,20 @@ def get_feniks_data(
             )
         )
 
-    mag_idx = 7
-    N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
-    k = K(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
-
-    U = namedtuple(
-        "U",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
-    mag_idx = 0
-    N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(megacam_uS[z_sel])
-    u = U(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
-
-    z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug, k, u)
+    z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug)
+    colors.append(z2)
 
     ##############################################################################
-    # Z3 --> get spaces: 2D (z-J, J-H), 1D (u-g | K), 1D (g-r | K)
+    # Z3 spaces:
+    # 2D (z - J, J - H)
+    # 2D (u - g, g - r)
+    # 1D (u - g | K)
+    # 1D (g - r | K)
+
+    Z3 = namedtuple(
+        "Z3",
+        ["z_min", "z_max", "lc_data", "zJ_JH", "ug_gr", "ug", "gr"],
+    )
     zbin = 2
     z_min = zbins[zbin][0]
     z_max = zbins[zbin][1]
@@ -577,7 +588,7 @@ def get_feniks_data(
     )
     lc_args = (
         ran_key,
-        num_halos,
+        num_halos_coarse_zbins,
         z_min,
         z_max,
         lgmp_min,
@@ -591,11 +602,8 @@ def get_feniks_data(
     lc_data = generate_lc_data(*lc_args)
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-    Z3 = namedtuple(
-        "Z3",
-        ["z_min", "z_max", "lc_data", "zJ_JH", "ug", "gr", "k", "u"],
-    )
 
+    # 2D (z - J, J - H)
     zJ_JH = namedtuple("zJ_JH", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
     mag_sel_zJ_JH = (
         (hsc_z[z_sel] < feniks_mag_thresh.HSC_Z)
@@ -608,7 +616,22 @@ def get_feniks_data(
     col_idx = [4, 5, 6]
     zJ_JH = zJ_JH(col_idx, sig_zJ_JH, bin_lo_zJ_JH, bin_hi_zJ_JH, N_zJ_JH)
 
+    # 2D (u - g, g - r)
+    Ug_gr = namedtuple("Ug_gr", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
+    mag_sel_ugr = (
+        (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS)
+        & (hsc_g[z_sel] < feniks_mag_thresh.HSC_G)
+        & (hsc_r[z_sel] < feniks_mag_thresh.HSC_R)
+    )
+    N_ug_gr, sig_ug_gr, bin_lo_ug_gr, bin_hi_ug_gr = get_N_2d(
+        megacam_hsc_uSg[z_sel][mag_sel_ugr], hsc_gr[z_sel][mag_sel_ugr]
+    )
+    col_idx = [0, 1, 2]
+    ug_gr = Ug_gr(col_idx, sig_ug_gr, bin_lo_ug_gr, bin_hi_ug_gr, N_ug_gr)
+
+    # 1D (u - g | K)
     Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 4)
+
     ug = []
     mag_sel_ug = (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS) & (
         hsc_g[z_sel] < feniks_mag_thresh.HSC_G
@@ -633,6 +656,7 @@ def get_feniks_data(
             )
         )
 
+    # 1D (g - r | K)
     gr = []
     Gr_condK = namedtuple(
         "Gr_condK",
@@ -661,19 +685,70 @@ def get_feniks_data(
             )
         )
 
-    mag_idx = 7
-    N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
-    k = K(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+    z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug_gr, ug, gr)
+    colors.append(z3)
 
+    ##############################################################################
+    # prepare 1D app mag funcs in finer z-bins for fitting
+    fine_zbins = np.array(
+        [
+            [0.2, 0.5],
+            [0.5, 0.7],
+            [0.7, 1.0],
+            [1.0, 1.5],
+            [1.5, 2.0],
+            [2.0, 2.5],
+        ]
+    )
+    ##############################################################################
+    AppMagFuncs = namedtuple(
+        "AppMagFuncs",
+        ["z_min", "z_max", "lc_data", "k", "u"],
+    )
+    K = namedtuple(
+        "K",
+        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
     U = namedtuple(
         "U",
         ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
     )
-    mag_idx = 0
-    N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(megacam_uS[z_sel])
-    u = U(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+    app_mag_funcs = []
+    for zbin in range(0, len(fine_zbins)):
+        z_min = fine_zbins[zbin][0]
+        z_max = fine_zbins[zbin][1]
 
-    z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug, gr, k, u)
+        z_phot_table = 10 ** jnp.linspace(
+            jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+        )
+        lc_args = (
+            ran_key,
+            num_halos_fine_zbins,
+            z_min,
+            z_max,
+            lgmp_min,
+            lgmp_max,
+            lc_sky_area_degsq,
+            ssp_data,
+            tcurves,
+            z_phot_table,
+        )
+
+        lc_data = generate_lc_data(*lc_args)
+
+        z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+
+        # 1D (K)
+        mag_idx = 7
+        N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
+        k = K(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+
+        # 1D (u)
+        mag_idx = 0
+        N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(megacam_uS[z_sel])
+        u = U(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+
+        app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, k, u))
 
     ##############################################################################
 
@@ -696,9 +771,8 @@ def get_feniks_data(
         dataset_dim_labels,
         mags,
         mags_labels,
-        z1,
-        z2,
-        z3,
+        colors,
+        app_mag_funcs,
         filter_info,
         frac_cat,
         lh_centroids,

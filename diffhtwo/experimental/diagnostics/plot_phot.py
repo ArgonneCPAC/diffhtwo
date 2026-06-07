@@ -713,22 +713,24 @@ def plot_app_mag_funcs(
                 )
 
             ax[row, col].set_xticks(np.arange(15, 30, 2))
+            ax[row, col].minorticks_on()
             ax[row, col].tick_params(
                 which="major",
-                length=3,
-                width=1.5,
                 direction="in",
                 top=True,
                 right=True,
-                labelsize=labelsize,
+                length=6,
+                width=1,
+                labelsize=10,
             )
             ax[row, col].tick_params(
                 which="minor",
-                length=1.5,
-                width=1.5,
                 direction="in",
                 top=True,
                 right=True,
+                length=3,
+                width=0.8,
+                labelsize=10,
             )
 
             ax[row, col].set_ylim(-6.9, -2.5)

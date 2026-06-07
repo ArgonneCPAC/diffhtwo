@@ -7,7 +7,8 @@ fit_runid: "runtest"
 fit_type: "diffstarpop+spspop+merging"
 
 feniks:
-  num_halos: 100
+  num_halos_coarse_zbins: 100
+  num_halos_fine_zbins: 200
 
 epoch:
   n_it: 1
