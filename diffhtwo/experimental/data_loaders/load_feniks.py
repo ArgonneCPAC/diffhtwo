@@ -399,14 +399,15 @@ def get_feniks_data(
 
     ##############################################################################
     # Z1 spaces:
-    # 2D (g-r, r-i)
-    # 2D (u-g, r-K)
-    # 1D (u-g | K)
+    # 2D (g - r, r - i)
+    # 2D (u - g, r - K)
+    # 1D (u - g | K)
+    # 1D (r − i | K): residual quenching scatter at fixed stellar mass
 
     colors = []
     Z1 = namedtuple(
         "Z1",
-        ["z_min", "z_max", "lc_data", "gr_ri", "ug_rK", "ug"],
+        ["z_min", "z_max", "lc_data", "gr_ri", "ug_rK", "ug", "ri"],
     )
     zbin = 0
     z_min = zbins[zbin][0]
@@ -489,17 +490,47 @@ def get_feniks_data(
             )
         )
 
-    z1 = Z1(z_min, z_max, lc_data, gr_ri, ug_rK, ug)
+    # 1D (r − i | K)
+    ri = []
+    Ri_condK = namedtuple(
+        "Ri_condK",
+        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+    mag_sel_ri = (hsc_r[z_sel] < feniks_mag_thresh.HSC_R) & (
+        hsc_i[z_sel] < feniks_mag_thresh.HSC_I
+    )
+    col_idx = [2, 3]
+    cond_idx = 7
+    for k in range(len(Kbins) - 1):
+        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
+        N_1d_ri, sig_ri, bin_lo_ri, bin_hi_ri = get_N_1d(
+            hsc_ri[z_sel][mag_sel_ri & K_sel]
+        )
+        ri.append(
+            Ri_condK(
+                col_idx,
+                cond_idx,
+                Kbins[k],
+                Kbins[k + 1],
+                sig_ri,
+                bin_lo_ri,
+                bin_hi_ri,
+                N_1d_ri,
+            )
+        )
+
+    z1 = Z1(z_min, z_max, lc_data, gr_ri, ug_rK, ug, ri)
     colors.append(z1)
 
     ##############################################################################
     # Z2 spaces:
     # 2D (r - z, z - J)
     # 1D (u - g | K)
+    # 1D (r − z | K): residual quenching scatter at fixed stellar mass
 
     Z2 = namedtuple(
         "Z2",
-        ["z_min", "z_max", "lc_data", "rz_zJ", "ug"],
+        ["z_min", "z_max", "lc_data", "rz_zJ", "ug", "rz"],
     )
     zbin = 1
     z_min = zbins[zbin][0]
@@ -564,8 +595,36 @@ def get_feniks_data(
                 N_1d_ug,
             )
         )
+    # 1D (r - z | K)
+    rz = []
+    Rz_condK = namedtuple(
+        "Rz_condK",
+        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+    mag_sel_rz = (hsc_r[z_sel] < feniks_mag_thresh.HSC_R) & (
+        hsc_z[z_sel] < feniks_mag_thresh.HSC_Z
+    )
+    col_idx = [2, 4]
+    cond_idx = 7
+    for k in range(len(Kbins) - 1):
+        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
+        N_1d_rz, sig_rz, bin_lo_rz, bin_hi_rz = get_N_1d(
+            hsc_rz[z_sel][mag_sel_rz & K_sel]
+        )
+        rz.append(
+            Rz_condK(
+                col_idx,
+                cond_idx,
+                Kbins[k],
+                Kbins[k + 1],
+                sig_rz,
+                bin_lo_rz,
+                bin_hi_rz,
+                N_1d_rz,
+            )
+        )
 
-    z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug)
+    z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug, rz)
     colors.append(z2)
 
     ##############################################################################
@@ -574,10 +633,11 @@ def get_feniks_data(
     # 2D (u - g, g - r)
     # 1D (u - g | K)
     # 1D (g - r | K)
+    # 1D (J − H | K): residual quenching scatter at fixed stellar mass
 
     Z3 = namedtuple(
         "Z3",
-        ["z_min", "z_max", "lc_data", "zJ_JH", "ug_gr", "ug", "gr"],
+        ["z_min", "z_max", "lc_data", "zJ_JH", "ug_gr", "ug", "gr", "jh"],
     )
     zbin = 2
     z_min = zbins[zbin][0]
@@ -685,7 +745,36 @@ def get_feniks_data(
             )
         )
 
-    z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug_gr, ug, gr)
+    # 1D (J − H | K)
+    jh = []
+    JH_condK = namedtuple(
+        "JH_condK",
+        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+    mag_sel_jh = (uds_J[z_sel] < feniks_mag_thresh.UDS_J) & (
+        uds_H[z_sel] < feniks_mag_thresh.UDS_H
+    )
+    col_idx = [5, 6]
+    cond_idx = 7
+    for k in range(len(Kbins) - 1):
+        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
+        N_1d_jh, sig_jh, bin_lo_jh, bin_hi_jh = get_N_1d(
+            uds_JH[z_sel][mag_sel_jh & K_sel]
+        )
+        jh.append(
+            JH_condK(
+                col_idx,
+                cond_idx,
+                Kbins[k],
+                Kbins[k + 1],
+                sig_jh,
+                bin_lo_jh,
+                bin_hi_jh,
+                N_1d_jh,
+            )
+        )
+
+    z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug_gr, ug, gr, jh)
     colors.append(z3)
 
     ##############################################################################
