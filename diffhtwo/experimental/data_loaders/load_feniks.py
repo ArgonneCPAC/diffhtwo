@@ -256,7 +256,16 @@ def get_feniks_data(
     filter_info = FilterInfo(feniks_mag_thresh, feniks_in_lh, tcurves)
 
     # get mag thresh cuts
-    mag_thresh = uds_K < feniks_mag_thresh.UDS_K
+    mag_thresh = (
+        (megacam_uS < feniks_mag_thresh.MegaCam_uS)
+        & (hsc_g < feniks_mag_thresh.HSC_G)
+        & (hsc_r < feniks_mag_thresh.HSC_R)
+        & (hsc_i < feniks_mag_thresh.HSC_I)
+        & (hsc_z < feniks_mag_thresh.HSC_Z)
+        & (uds_J < feniks_mag_thresh.UDS_J)
+        & (uds_H < feniks_mag_thresh.UDS_H)
+        & (uds_K < feniks_mag_thresh.UDS_K)
+    )
 
     # apply mag_thresh cuts and record n_gals.
     # This is the starting point from which any further cuts will
