@@ -703,16 +703,21 @@ def get_feniks_data(
     ##############################################################################
     AppMagFuncs = namedtuple(
         "AppMagFuncs",
-        ["z_min", "z_max", "lc_data", "k", "u"],
-    )
-    K = namedtuple(
-        "K",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+        ["z_min", "z_max", "lc_data", "u", "r", "k"],
     )
     U = namedtuple(
         "U",
         ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
     )
+    R = namedtuple(
+        "R",
+        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+    K = namedtuple(
+        "K",
+        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+
     app_mag_funcs = []
     for zbin in range(0, len(fine_zbins)):
         z_min = fine_zbins[zbin][0]
@@ -738,17 +743,22 @@ def get_feniks_data(
 
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
-        # 1D (K)
-        mag_idx = 7
-        N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
-        k = K(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
-
         # 1D (u)
-        mag_idx = 0
-        N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(megacam_uS[z_sel])
-        u = U(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+        mag_idx_u = 0
+        N_1d_u, sig_u, bin_lo_u, bin_hi_u = get_N_1d(megacam_uS[z_sel])
+        u = U(mag_idx_u, sig_u, bin_lo_u, bin_hi_u, N_1d_u)
 
-        app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, k, u))
+        # 1D (r)
+        mag_idx_r = 2
+        N_1d_r, sig_r, bin_lo_r, bin_hi_r = get_N_1d(hsc_r[z_sel])
+        r = R(mag_idx_r, sig_r, bin_lo_r, bin_hi_r, N_1d_r)
+
+        # 1D (K)
+        mag_idx_k = 7
+        N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
+        k = K(mag_idx_k, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+
+        app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, r, k))
 
     ##############################################################################
 

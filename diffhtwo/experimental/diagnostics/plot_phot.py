@@ -613,10 +613,10 @@ def plot_app_mag_funcs(
     alpha = 0.75
     s = 10
 
-    fig, ax = plt.subplots(2, 4, figsize=(fig_width, fig_height))
-    fig.subplots_adjust(
-        left=0.05, hspace=0.3, top=0.875, right=0.99, bottom=0.1, wspace=0.1
+    fig, ax = plt.subplots(
+        2, 4, figsize=(fig_width, fig_height), constrained_layout=True
     )
+    fig.get_layout_engine().set(rect=[0, 0, 1, 0.95])
 
     handles = [
         mlines.Line2D([], [], color=c, linewidth=6, solid_capstyle="butt", label=label)
@@ -632,7 +632,7 @@ def plot_app_mag_funcs(
         handleheight=0.5,
         columnspacing=0.8,
         handletextpad=0.1,
-        bbox_to_anchor=(0.5, 0.92),
+        bbox_to_anchor=(0.5, 0.99),
         fontsize=7,
     )
 
@@ -721,7 +721,7 @@ def plot_app_mag_funcs(
                 right=True,
                 length=6,
                 width=1,
-                labelsize=10,
+                labelsize=labelsize,
             )
             ax[row, col].tick_params(
                 which="minor",
@@ -730,7 +730,7 @@ def plot_app_mag_funcs(
                 right=True,
                 length=3,
                 width=0.8,
-                labelsize=10,
+                labelsize=labelsize,
             )
 
             ax[row, col].set_ylim(-6.9, -2.5)
@@ -750,8 +750,8 @@ def plot_app_mag_funcs(
     ax[1, 0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
     fig.savefig(
         savedir + "/" + data_label + "_app_mag_funcs.png",
-        bbox_inches="tight",
-        dpi=200,
+        # bbox_extra_artists=(leg,),
+        dpi=300,
     )
     if plt_show:
         plt.show()
