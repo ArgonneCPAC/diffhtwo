@@ -423,7 +423,7 @@ def get_feniks_data(
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
     Z1 = namedtuple(
         "Z1",
-        ["z_min", "z_max", "lc_data", "gr_ri", "ug", "k"],
+        ["z_min", "z_max", "lc_data", "gr_ri", "ug", "k", "u"],
     )
 
     Gr_ri = namedtuple("Gr_ri", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
@@ -475,7 +475,15 @@ def get_feniks_data(
     N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
     k = K(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
 
-    z1 = Z1(z_min, z_max, lc_data, gr_ri, ug, k)
+    U = namedtuple(
+        "U",
+        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+    mag_idx = 0
+    N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(megacam_uS[z_sel])
+    u = U(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+
+    z1 = Z1(z_min, z_max, lc_data, gr_ri, ug, k, u)
 
     ##############################################################################
     # Z2 --> get spaces: 2D (r-z, z-J), 1D (u-g | K)
@@ -504,7 +512,7 @@ def get_feniks_data(
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
     Z2 = namedtuple(
         "Z2",
-        ["z_min", "z_max", "lc_data", "rz_zJ", "ug", "k"],
+        ["z_min", "z_max", "lc_data", "rz_zJ", "ug", "k", "u"],
     )
 
     Rz_zJ = namedtuple("Rz_zJ", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
@@ -548,7 +556,15 @@ def get_feniks_data(
     N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
     k = K(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
 
-    z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug, k)
+    U = namedtuple(
+        "U",
+        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+    mag_idx = 0
+    N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(megacam_uS[z_sel])
+    u = U(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+
+    z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug, k, u)
 
     ##############################################################################
     # Z3 --> get spaces: 2D (z-J, J-H), 1D (u-g | K), 1D (g-r | K)
@@ -577,7 +593,7 @@ def get_feniks_data(
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
     Z3 = namedtuple(
         "Z3",
-        ["z_min", "z_max", "lc_data", "zJ_JH", "ug", "gr", "k"],
+        ["z_min", "z_max", "lc_data", "zJ_JH", "ug", "gr", "k", "u"],
     )
 
     zJ_JH = namedtuple("zJ_JH", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
@@ -649,7 +665,15 @@ def get_feniks_data(
     N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
     k = K(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
 
-    z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug, gr, k)
+    U = namedtuple(
+        "U",
+        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+    mag_idx = 0
+    N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(megacam_uS[z_sel])
+    u = U(mag_idx, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+
+    z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug, gr, k, u)
 
     ##############################################################################
 
