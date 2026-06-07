@@ -25,6 +25,7 @@ def N_colors_mags(
         frac_cat,
     )
     fields = z_data._fields[3:]
+    mag_thresh = jnp.array(mag_thresh)
     for f in range(0, len(fields)):
         data = getattr(z_data, fields[f])
 
@@ -32,20 +33,25 @@ def N_colors_mags(
             new_list = []
             for d in range(0, len(data)):
                 data_n = data[d]
+                col_idx = data_n.col_idx
 
+                # get cond weight
                 obs_mags_cond = obs_mags[:, data_n.cond_idx]
                 cond = (obs_mags_cond > data_n.K_min) & (obs_mags_cond <= data_n.K_max)
-                cond_weight = jnp.where(cond, 1.0, 0.0)
+                weight = jnp.where(cond, gal_weight, 0.0)
 
-                obs_color = (
-                    obs_mags[:, data_n.col_idx[0]] - obs_mags[:, data_n.col_idx[1]]
-                )
+                # get mag_sel weight
+                for c in range(0, len(col_idx)):
+                    mag_sel = obs_mags[:, col_idx[c]] < mag_thresh[col_idx[c]]
+                    weight *= jnp.where(mag_sel, 1.0, 0.0)
+
+                obs_color = obs_mags[:, col_idx[0]] - obs_mags[:, col_idx[1]]
                 obs_color = obs_color.reshape(obs_color.size, 1)
 
                 N_model = diffndhist_lomem.tw_ndhist_weighted(
                     obs_color,
                     data_n.sig,
-                    gal_weight * cond_weight,
+                    weight,
                     data_n.bin_lo,
                     data_n.bin_hi,
                 )
@@ -61,10 +67,14 @@ def N_colors_mags(
             obs_mag = obs_mags[:, mag_idx]
             obs_mag = obs_mag.reshape(obs_mag.size, 1)
 
+            # get mag_sel weight
+            mag_sel = obs_mags[:, mag_idx] < mag_thresh[mag_idx]
+            weight = jnp.where(mag_sel, gal_weight, 0.0)
+
             N_model = diffndhist_lomem.tw_ndhist_weighted(
                 obs_mag,
                 data.sig,
-                gal_weight,
+                weight,
                 data.bin_lo,
                 data.bin_hi,
             )
@@ -80,10 +90,17 @@ def N_colors_mags(
                 obs_color = obs_mags[:, col_idx[c]] - obs_mags[:, col_idx[c + 1]]
                 obs_colors.append(obs_color)
             obs_colors = jnp.array(obs_colors).T
+
+            # get mag_sel weight
+            weight = gal_weight.copy()
+            for c in range(0, len(col_idx)):
+                mag_sel = obs_mags[:, col_idx[c]] < mag_thresh[col_idx[c]]
+                weight *= jnp.where(mag_sel, 1.0, 0.0)
+
             N_model = diffndhist_lomem.tw_ndhist_weighted(
                 obs_colors,
                 data.sig,
-                gal_weight,
+                weight,
                 data.bin_lo,
                 data.bin_hi,
             )
