@@ -197,8 +197,8 @@ def fit_feniks_hizels(
             ran_key,
             hizels_fitting_data,
         )
-        w_phot = 1.0 / feniks_fitting_data.nbins
-        w_emline = 1.0 / hizels_fitting_data.nbins
+        w_phot = 1.0 / 5
+        w_emline = 1.0
 
         loss_phot = w_phot * loss_phot
         loss_emline = w_emline * loss_emline
@@ -213,10 +213,10 @@ def fit_feniks_hizels(
         )
 
         # clip gradients
-        global_norm = pytree_norm(grads)
-        tau = 1.0
-        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        grads = tuple(g * scale for g in grads)
+        # global_norm = pytree_norm(grads)
+        # tau = 1.0
+        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        # grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, (loss, loss_phot, loss_emline)
