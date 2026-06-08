@@ -11,17 +11,14 @@ from ..defaults import (
     SDSS_MAGR_THRESH,
     SDSS_Z_MAX,
     SDSS_Z_MIN,
-    Dataset,
     FilterInfo,
 )
 from ..latin_hypercube import latin_hypercube as lh
 
-Sdss = namedtuple("Sdss", Dataset._fields)
-
 LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
 LH_D_MAG = 0.1
-LH_D_Z = 0.01
+LH_D_Z = 0.05
 
 
 def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
@@ -198,5 +195,23 @@ SdssFilters = namedtuple(
         "sdss_r",
         "sdss_i",
         "sdss_z",
+    ],
+)
+
+Sdss = namedtuple(
+    "Sdss",
+    [
+        "dataset",
+        "dataset_dim_labels",
+        "mags",
+        "mags_labels",
+        "filter_info",
+        "frac_cat",
+        "lh_centroids",
+        "d_centroids",
+        "N_data",
+        "lh_dmag",
+        "lh_dz",
+        "data_sky_area_degsq",
     ],
 )
