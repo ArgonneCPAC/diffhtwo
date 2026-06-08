@@ -18,6 +18,7 @@ Hizels = namedtuple(
         "z",
         "dz",
         "lc_data",
+        "nbins",
     ],
 )
 DELTA_L_HALPHA = -0.4  # uncorrect HiZELS h-alpha L for dust (A_halpha = 1 mag)
@@ -42,6 +43,7 @@ def get_hizels_data(
         hizels_halpha_lg_phi_data,
         hizels_halpha_z_data,
         hizels_halpha_delta_z_data,
+        hizels_halpha_nbins,
     ) = get_hizels_halpha(drn)
 
     line_wave_aa = [halpha_wave_aa]
@@ -82,7 +84,15 @@ def get_hizels_data(
         lc_data.append(line_lc_data)
 
     return Hizels(
-        line_wave_aa, lg_Lbin_edges, N_data, vol_Mpc3_data, lg_phi_data, z, dz, lc_data
+        line_wave_aa,
+        lg_Lbin_edges,
+        N_data,
+        vol_Mpc3_data,
+        lg_phi_data,
+        z,
+        dz,
+        lc_data,
+        hizels_halpha_nbins,
     )
 
 
@@ -213,6 +223,13 @@ def get_hizels_halpha(drn):
         )
     )
 
+    hizels_halpha_nbins = (
+        (lg_halpha_Lbin_edges_z0p4.size - 1)
+        + (lg_halpha_Lbin_edges_z0p84.size - 1)
+        + (lg_halpha_Lbin_edges_z1p47.size - 1)
+        + (lg_halpha_Lbin_edges_z2p23.size - 1)
+    )
+
     hizels_lg_halpha_Lbin_edges_data = [
         lg_halpha_Lbin_edges_z0p4,
         lg_halpha_Lbin_edges_z0p84,
@@ -262,4 +279,5 @@ def get_hizels_halpha(drn):
         hizels_halpha_lg_phi_data,
         hizels_halpha_z_data,
         hizels_halpha_delta_z_data,
+        hizels_halpha_nbins,
     )

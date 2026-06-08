@@ -37,6 +37,7 @@ Dataset = namedtuple(
         "mags_labels",
         "colors",
         "app_mag_funcs",
+        "nbins",
         "filter_info",
         "frac_cat",
         "lh_centroids",

@@ -387,6 +387,8 @@ def get_feniks_data(
     # mags = mags[z_mask]
     # zout = zout[z_mask]
 
+    nbins = 0
+
     ##############################################################################
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
@@ -447,6 +449,7 @@ def get_feniks_data(
     )
     col_idx = [1, 2, 3]
     gr_ri = Gr_ri(col_idx, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri, N_gr_ri)
+    nbins += bin_lo_gr_ri.size
 
     # 2D (u - g, r - K)
     Ug_rK = namedtuple("Ug_rK", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
@@ -460,6 +463,7 @@ def get_feniks_data(
     )
     col_idx = [0, 1, 7]
     ug_rK = Ug_rK(col_idx, sig_ug_rK, bin_lo_ug_rK, bin_hi_ug_rK, N_ug_rK)
+    nbins += bin_lo_ug_rK.size
 
     # 1D (u - g | K)
     Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
@@ -491,6 +495,7 @@ def get_feniks_data(
                 N_1d_ug,
             )
         )
+        nbins += bin_lo_ug.size
 
     # 1D (r − i | K)
     ri = []
@@ -520,6 +525,7 @@ def get_feniks_data(
                 N_1d_ri,
             )
         )
+        nbins += bin_lo_ri.size
 
     # 1D (i − z | K)
     iz = []
@@ -549,6 +555,7 @@ def get_feniks_data(
                 N_1d_iz,
             )
         )
+        nbins += bin_lo_iz.size
 
     # 1D (J − H | K)
     jh = []
@@ -578,6 +585,7 @@ def get_feniks_data(
                 N_1d_jh,
             )
         )
+        nbins += bin_lo_jh.size
 
     z1 = Z1(z_min, z_max, lc_data, gr_ri, ug_rK, ug, ri, iz, jh)
     colors.append(z1)
@@ -629,6 +637,7 @@ def get_feniks_data(
     )
     col_idx = [2, 4, 5]
     rz_zJ = Rz_zJ(col_idx, sig_rz_zJ, bin_lo_rz_zJ, bin_hi_rz_zJ, N_rz_zJ)
+    nbins += bin_lo_rz_zJ.size
 
     # 1D (u - g | K)
     Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
@@ -656,6 +665,8 @@ def get_feniks_data(
                 N_1d_ug,
             )
         )
+        nbins += bin_lo_ug.size
+
     # 1D (r - z | K)
     rz = []
     Rz_condK = namedtuple(
@@ -684,6 +695,7 @@ def get_feniks_data(
                 N_1d_rz,
             )
         )
+        nbins += bin_lo_rz.size
 
     # 1D (J − H | K)
     jh = []
@@ -713,6 +725,7 @@ def get_feniks_data(
                 N_1d_jh,
             )
         )
+        nbins += bin_lo_jh.size
 
     z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug, rz, jh)
     colors.append(z2)
@@ -765,6 +778,7 @@ def get_feniks_data(
     )
     col_idx = [4, 5, 6]
     zJ_JH = zJ_JH(col_idx, sig_zJ_JH, bin_lo_zJ_JH, bin_hi_zJ_JH, N_zJ_JH)
+    nbins += bin_lo_zJ_JH.size
 
     # 2D (u - g, g - r)
     Ug_gr = namedtuple("Ug_gr", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
@@ -778,6 +792,7 @@ def get_feniks_data(
     )
     col_idx = [0, 1, 2]
     ug_gr = Ug_gr(col_idx, sig_ug_gr, bin_lo_ug_gr, bin_hi_ug_gr, N_ug_gr)
+    nbins += bin_lo_ug_gr.size
 
     # 1D (u - g | K)
     Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 4)
@@ -805,6 +820,7 @@ def get_feniks_data(
                 N_1d_ug,
             )
         )
+        nbins += bin_lo_ug.size
 
     # 1D (g - r | K)
     gr = []
@@ -834,6 +850,7 @@ def get_feniks_data(
                 N_1d_gr,
             )
         )
+        nbins += bin_lo_gr.size
 
     # 1D (J − H | K)
     jh = []
@@ -863,6 +880,7 @@ def get_feniks_data(
                 N_1d_jh,
             )
         )
+        nbins += bin_lo_jh.size
 
     z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug_gr, ug, gr, jh)
     colors.append(z3)
@@ -926,16 +944,19 @@ def get_feniks_data(
         mag_idx_u = 0
         N_1d_u, sig_u, bin_lo_u, bin_hi_u = get_N_1d(megacam_uS[z_sel])
         u = U(mag_idx_u, sig_u, bin_lo_u, bin_hi_u, N_1d_u)
+        nbins += bin_lo_u.size
 
         # 1D (r)
         mag_idx_r = 2
         N_1d_r, sig_r, bin_lo_r, bin_hi_r = get_N_1d(hsc_r[z_sel])
         r = R(mag_idx_r, sig_r, bin_lo_r, bin_hi_r, N_1d_r)
+        nbins += bin_lo_r.size
 
         # 1D (K)
         mag_idx_k = 7
         N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
         k = K(mag_idx_k, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
+        nbins += bin_lo_k.size
 
         app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, r, k))
 
@@ -962,6 +983,7 @@ def get_feniks_data(
         mags_labels,
         colors,
         app_mag_funcs,
+        nbins,
         filter_info,
         frac_cat,
         lh_centroids,

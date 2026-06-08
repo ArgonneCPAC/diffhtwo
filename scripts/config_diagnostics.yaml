@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run148
-model_nickname: run148_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run148/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run149
+model_nickname: run149_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run149/diagnostic_plots/diffstarpop+spspop+merging
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
@@ -13,7 +13,7 @@ ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kr
 
 plot_sdss: False
 plot_feniks: True
-plot_hizels: False
+plot_hizels: True
 
 plots:
   num_halos : 3000
