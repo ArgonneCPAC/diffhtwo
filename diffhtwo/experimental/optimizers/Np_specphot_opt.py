@@ -209,10 +209,10 @@ def fit_feniks_hizels(
         )
 
         # clip gradients
-        # global_norm = pytree_norm(grads)
-        # tau = 1.0
-        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        # grads = tuple(g * scale for g in grads)
+        global_norm = pytree_norm(grads)
+        tau = 1.0
+        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, (loss, loss_phot, loss_emline)

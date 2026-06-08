@@ -632,7 +632,7 @@ def plot_app_mag_funcs(
         handleheight=0.5,
         columnspacing=0.8,
         handletextpad=0.1,
-        bbox_to_anchor=(0.5, 0.99),
+        bbox_to_anchor=(0.5, 1.02),
         fontsize=10,
     )
 
