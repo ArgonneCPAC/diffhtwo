@@ -187,7 +187,7 @@ def fit_feniks_hizels(
 
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
-        loss_phot, grad_phot = _loss_and_grad_phot_kern_multiband_multiz(
+        loss_phot, grad_phot = _loss_and_grad_phot_kern_2d_multiz(
             u_theta,
             ran_key,
             feniks_fitting_data,
@@ -209,10 +209,10 @@ def fit_feniks_hizels(
         )
 
         # clip gradients
-        global_norm = pytree_norm(grads)
-        tau = 1.0
-        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        grads = tuple(g * scale for g in grads)
+        # global_norm = pytree_norm(grads)
+        # tau = 1.0
+        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        # grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, (loss, loss_phot, loss_emline)
@@ -222,60 +222,6 @@ def fit_feniks_hizels(
     )
     u_theta_fit = get_params(opt_state)
     return loss_hist, loss_phot_hist, loss_emline_hist, u_theta_fit
-
-
-# @partial(jjit, static_argnames=["n_steps", "step_size"])
-# def fit_feniks_hizels(
-#     u_theta_init,
-#     trainable,
-#     ran_key,
-#     feniks_meta_data,
-#     feniks_fitting_data,
-#     hizels_fitting_data,
-#     n_steps=2,
-#     step_size=1e-2,
-# ):
-#     opt_init, opt_update, get_params = jax_opt.adam(step_size)
-#     opt_state = opt_init(u_theta_init)
-
-#     def _opt_update(opt_state, i):
-#         u_theta = get_params(opt_state)
-#         loss_phot, grad_phot = _loss_and_grad_phot_kern_multi_z(
-#             u_theta,
-#             ran_key,
-#             feniks_meta_data,
-#             feniks_fitting_data,
-#         )
-#         loss_emline, grad_emline = _loss_and_grad_emline_kern_multi_line_multi_z(
-#             u_theta,
-#             ran_key,
-#             hizels_fitting_data,
-#         )
-#         w_phot = 10.0
-#         w_emline = 1.0
-#         loss = w_phot * loss_phot + w_emline * loss_emline
-#         grads = tuple(
-#             w_phot * gp + w_emline * ge for gp, ge in zip(grad_phot, grad_emline)
-#         )
-#         # set grads for untrainable params to 0.0
-#         grads = tuple(
-#             jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
-#         )
-
-#         # clip gradients
-#         global_norm = pytree_norm(grads)
-#         tau = 1.0
-#         scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-#         grads = tuple(g * scale for g in grads)
-
-#         opt_state = opt_update(i, grads, opt_state)
-#         return opt_state, (loss, loss_phot, loss_emline)
-
-#     opt_state, (loss_hist, loss_phot_hist, loss_emline_hist) = lax.scan(
-#         _opt_update, opt_state, jnp.arange(n_steps)
-#     )
-#     u_theta_fit = get_params(opt_state)
-#     return loss_hist, loss_phot_hist, loss_emline_hist, u_theta_fit
 
 
 @jjit

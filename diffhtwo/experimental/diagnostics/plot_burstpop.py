@@ -143,7 +143,7 @@ def plot_lgfburst_mh_z(
         ]
     )
     fig, ax = plt.subplots(1, 2, figsize=(10, 4), width_ratios=[1, 1.2])
-    vmin, vmax = -6, -2.5
+    vmin, vmax = -6, -1.5
 
     """Plot fburst w/ halo mass and redshift"""
     ax[0].hexbin(
