@@ -199,7 +199,11 @@ def fit_feniks_hizels(
         )
         w_phot = 1.0 / feniks_fitting_data.nbins
         w_emline = 1.0 / hizels_fitting_data.nbins
-        loss = w_phot * loss_phot + w_emline * loss_emline
+
+        loss_phot = w_phot * loss_phot
+        loss_emline = w_emline * loss_emline
+        loss = loss_phot + loss_emline
+
         grads = tuple(
             w_phot * gp + w_emline * ge for gp, ge in zip(grad_phot, grad_emline)
         )
