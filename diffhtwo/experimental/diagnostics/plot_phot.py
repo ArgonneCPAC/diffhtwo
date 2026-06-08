@@ -633,7 +633,7 @@ def plot_app_mag_funcs(
         columnspacing=0.8,
         handletextpad=0.1,
         bbox_to_anchor=(0.5, 0.99),
-        fontsize=7,
+        fontsize=10,
     )
 
     xlim = []
