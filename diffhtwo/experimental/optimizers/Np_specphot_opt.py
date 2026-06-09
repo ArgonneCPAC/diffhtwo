@@ -173,6 +173,57 @@ def pytree_norm(grads):
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_sdss_feniks(
+    u_theta_init,
+    trainable,
+    ran_key,
+    sdss_fitting_data,
+    feniks_fitting_data,
+    n_steps=2,
+    step_size=1e-2,
+    w_sdss=1.0,
+    w_feniks=1.0,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss_sdss, grad_sdss = _loss_and_grad_phot_kern_2d_multiz(
+            u_theta,
+            ran_key,
+            sdss_fitting_data,
+        )
+
+        loss_feniks, grad_feniks = _loss_and_grad_phot_kern_2d_multiz(
+            u_theta,
+            ran_key,
+            feniks_fitting_data,
+        )
+
+        loss_sdss = w_sdss * loss_sdss
+        loss_feniks = w_feniks * loss_feniks
+        loss = loss_sdss + loss_feniks
+
+        grads = tuple(
+            w_sdss * gs + w_feniks * gf for gs, gf in zip(grad_sdss, grad_feniks)
+        )
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, (loss, loss_sdss, loss_feniks)
+
+    opt_state, (loss_hist, loss_sdss_hist, loss_feniks_hist) = lax.scan(
+        _opt_update, opt_state, jnp.arange(n_steps)
+    )
+    u_theta_fit = get_params(opt_state)
+    return loss_hist, loss_sdss_hist, loss_feniks_hist, u_theta_fit
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_feniks_hizels(
     u_theta_init,
     trainable,

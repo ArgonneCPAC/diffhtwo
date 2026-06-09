@@ -8,14 +8,16 @@ fit_type: "all"
 
 sdss:
   N_centroids: 100
-  num_halos_coarse_zbins: 100
-  num_halos_fine_zbins: 100
+  num_halos: 100
 
 feniks:
   lh_d_mag: 0.4
   N_centroids: 100
   num_halos_coarse_zbins: 100
   num_halos_fine_zbins: 100
+
+hizels:
+  num_halos: 100
 
 epoch:
   n_it: 1
