@@ -6,12 +6,15 @@ start_fit_type: "all"
 fit_runid: "runtest"
 fit_type: "all"
 
+sdss:
+  num_halos_coarse_zbins: 100
+  num_halos_fine_zbins: 200
+
 epoch:
   n_it: 1
-  n_steps: 25
+  n_steps: 2
   step_size: 0.1
   N_centroids: 2000
-  num_halos: 300
     
 defaults:
   diffstarpop: True

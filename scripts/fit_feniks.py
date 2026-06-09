@@ -48,21 +48,6 @@ if __name__ == "__main__":
     emline_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     emline_wave_table = jnp.array([emline_wave_aa])
 
-    # load feniks data
-    ran_key = jran.key(0)
-    feniks = load_feniks.get_feniks_data(
-        feniks_drn,
-        ran_key,
-        ssp_data,
-        num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
-        num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
-    )
-    remove = {"dataset_dim_labels", "mags_labels"}
-    FeniksFitting = namedtuple("Feniks", [f for f in feniks._fields if f not in remove])
-    feniks_fitting_data = FeniksFitting(
-        **{f: getattr(feniks, f) for f in FeniksFitting._fields}
-    )
-
     # start fit dirs
     fit_start_drn = cfg["base_path"] + "/fits/" + cfg["start_runid"] + "/"
     param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
@@ -105,8 +90,24 @@ if __name__ == "__main__":
 
     initial_pts = []
     start = time.time()
+    ran_key = jran.key(0)
     for epoch in range(0, cfg["epoch"]["n_it"]):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
+
+        feniks = load_feniks.get_feniks_data(
+            feniks_drn,
+            ran_key,
+            ssp_data,
+            num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
+            num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
+        )
+        remove = {"dataset_dim_labels", "mags_labels"}
+        FeniksFitting = namedtuple(
+            "Feniks", [f for f in feniks._fields if f not in remove]
+        )
+        feniks_fitting_data = FeniksFitting(
+            **{f: getattr(feniks, f) for f in FeniksFitting._fields}
+        )
 
         loss_hist, u_theta_fit = Np_specphot_opt.fit_N_phot_2d(
             u_theta_fit,
@@ -116,6 +117,7 @@ if __name__ == "__main__":
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
         )
+
         jax.clear_caches()
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)

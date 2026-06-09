@@ -206,12 +206,22 @@ if __name__ == "__main__":
         feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
 
         if cfg["plots"]["plot_app_mag_funcs"]:
+            feniks_zbins = np.array(
+                [
+                    [0.2, 0.5],
+                    [0.5, 0.7],
+                    [0.7, 1.0],
+                    [1.0, 1.5],
+                    [1.5, 2.0],
+                ]
+            )
             print("Generating FENIKS app mag funcs plot...")
             plot_app_mag_funcs(
                 feniks,
                 feniks_label,
                 param_collection_fit,
                 ran_key,
+                feniks_zbins,
                 ssp_data,
                 fit_diagnostics_save_drn,
                 num_halos=num_halos,
@@ -441,6 +451,19 @@ if __name__ == "__main__":
                 [0.18, 0.2],
             ]
         )
+        if cfg["plots"]["plot_app_mag_funcs"]:
+            print("Generating SDSS app mag funcs plot...")
+            plot_app_mag_funcs(
+                sdss,
+                sdss_label,
+                param_collection_fit,
+                ran_key,
+                sdss_zbins,
+                ssp_data,
+                fit_diagnostics_save_drn,
+                num_halos=num_halos,
+                plt_show=False,
+            )
 
         if cfg["plots"]["plot_exsitu_frac"]:
             print("Generating SDSS ex-situ frac plot...")
