@@ -119,11 +119,11 @@ def get_sdss_data(
     sdss, frac_cat = load_sdss_cuts_applied(drn)
 
     sdss_mag_thresh = SdssFilters(
-        sdss_u=30.0,
-        sdss_g=30.0,
+        sdss_u=19.7,
+        sdss_g=18.0,
         sdss_r=SDSS_MAGR_THRESH,
-        sdss_i=30.0,
-        sdss_z=30.0,
+        sdss_i=17.0,
+        sdss_z=17.0,
     )
     sdss_in_lh = SdssFilters(
         sdss_u=True,
