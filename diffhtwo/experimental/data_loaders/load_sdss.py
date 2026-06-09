@@ -35,13 +35,19 @@ def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
     ]
 
 
-def load_sdss_cuts_applied(drn):
+def load_sdss_cuts_applied(drn, sdss_mag_thresh):
     sdss = sdl.load_sdss_cat(drn)
 
     sdss = apply_ra_dec_cut(sdss)
 
     # implement r <= 17.6
-    mag_thresh_mask = sdss["modelMag_r"] <= SDSS_MAGR_THRESH
+    mag_thresh_mask = (
+        (sdss["modelMag_u"] < sdss_mag_thresh.sdss_u)
+        & (sdss["modelMag_g"] < sdss_mag_thresh.sdss_g)
+        & (sdss["modelMag_r"] < sdss_mag_thresh.sdss_r)
+        & (sdss["modelMag_i"] < sdss_mag_thresh.sdss_i)
+        & (sdss["modelMag_z"] < sdss_mag_thresh.sdss_z)
+    )
     sdss = sdss[mag_thresh_mask]
     N_obj_pre_outlier_cut = len(sdss)
 
@@ -116,8 +122,6 @@ def get_sdss_data(
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
 ):
-    sdss, frac_cat = load_sdss_cuts_applied(drn)
-
     sdss_mag_thresh = SdssFilters(
         sdss_u=19.7,
         sdss_g=18.0,
@@ -125,6 +129,8 @@ def get_sdss_data(
         sdss_i=17.0,
         sdss_z=17.0,
     )
+    sdss, frac_cat = load_sdss_cuts_applied(drn, sdss_mag_thresh)
+
     sdss_in_lh = SdssFilters(
         sdss_u=True,
         sdss_g=False,
