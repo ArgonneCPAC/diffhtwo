@@ -5,6 +5,26 @@ from ..param_utils import get_param_collection_from_u_theta
 from .loss_functions import poisson_loss
 
 
+def _collect_fit_spaces(z_data_model):
+    """
+    Called at trace time (outside jit, or during first trace).
+    Returns a flat list of (N_model, N_data) pairs for spaces where fit=True.
+    fit must be a static Python bool on the namedtuple.
+    """
+    fit_spaces = []
+    fields = z_data_model._fields[3:]
+    for f in fields:
+        space = getattr(z_data_model, f)
+        if isinstance(space, list):
+            for space_n in space:
+                if space_n.fit:  # static Python bool — fine at trace time
+                    fit_spaces.append((space_n.N_model, space_n.N_data))
+        else:
+            if space.fit:
+                fit_spaces.append((space.N_model, space.N_data))
+    return fit_spaces
+
+
 @jjit
 def get_phot_loss_2d_multiz(
     ran_key,
@@ -15,9 +35,7 @@ def get_phot_loss_2d_multiz(
     data_sky_area_degsq,
 ):
     phot_loss_2d = 0.0
-    for z in range(0, len(data)):
-        z_data = data[z]
-
+    for z_data in data:
         z_data_model = N_colors_mags(
             ran_key,
             param_collection,
@@ -25,31 +43,13 @@ def get_phot_loss_2d_multiz(
             mag_thresh,
             frac_cat,
         )
-        fields = z_data_model._fields[3:]
-        for f in range(0, len(fields)):
-            space = getattr(z_data_model, fields[f])
+        sky_rescale = data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
 
-            if isinstance(space, list):
-                for s in range(0, len(space)):
-                    space_n = space[s]
-                    if space_n.fit:
-                        N_model = space_n.N_model
-                        N_data = space_n.N_data
+        # Structure is resolved at trace time — no JAX boolean issue
+        fit_spaces = _collect_fit_spaces(z_data_model)
 
-                        N_model = N_model * (
-                            data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
-                        )
-                        phot_loss_2d += poisson_loss(N_model, N_data)
-
-            else:
-                if space.fit:
-                    N_model = space.N_model
-                    N_data = space.N_data
-
-                    N_model = N_model * (
-                        data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
-                    )
-                    phot_loss_2d += poisson_loss(N_model, N_data)
+        for N_model, N_data in fit_spaces:
+            phot_loss_2d += poisson_loss(N_model * sky_rescale, N_data)
 
     return phot_loss_2d
 
