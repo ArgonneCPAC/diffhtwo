@@ -234,30 +234,30 @@ def get_sdss_data(
             sdss_ur[z_sel], sdss_ri[z_sel]
         )
         col_idx = [0, 2, 3]
-        ur_ri = Ur_ri(col_idx, sig_ur_ri, bin_lo_ur_ri, bin_hi_ur_ri, N_ur_ri)
+        ur_ri = Ur_ri(col_idx, sig_ur_ri, bin_lo_ur_ri, bin_hi_ur_ri, N_ur_ri, True)
 
         # 2D (g - r, r - i)
         N_gr_ri, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri = get_N_2d(
             sdss_gr[z_sel], sdss_ri[z_sel]
         )
         col_idx = [1, 2, 3]
-        gr_ri = Gr_ri(col_idx, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri, N_gr_ri)
+        gr_ri = Gr_ri(col_idx, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri, N_gr_ri, True)
 
         # 2D (r, u - r)
         N_r_ur, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur = get_N_2d(
-            sdss_r[z_sel], sdss_ur[z_sel], dim1_is_mag=True
+            sdss_r[z_sel], sdss_ur[z_sel]
         )
         mag_idx = 2
         col_idx = [0, 2]
-        r_ur = R_ur(mag_idx, col_idx, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur, N_r_ur)
+        r_ur = R_ur(mag_idx, col_idx, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur, N_r_ur, True)
 
         # 2D (r, r - i)
         N_r_ri, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri = get_N_2d(
-            sdss_r[z_sel], sdss_ri[z_sel], dim1_is_mag=True
+            sdss_r[z_sel], sdss_ri[z_sel]
         )
         mag_idx = 2
         col_idx = [2, 3]
-        r_ri = R_ri(mag_idx, col_idx, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri, N_r_ri)
+        r_ri = R_ri(mag_idx, col_idx, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri, N_r_ri, True)
 
         colors.append(Colors(z_min, z_max, lc_data, ur_ri, gr_ri, r_ur, r_ri))
 
@@ -311,27 +311,27 @@ def get_sdss_data(
         # 1D (u)
         mag_idx_u = 0
         N_1d_u, sig_u, bin_lo_u, bin_hi_u = get_N_1d(sdss_u[z_sel])
-        u = U(mag_idx_u, sig_u, bin_lo_u, bin_hi_u, N_1d_u)
+        u = U(mag_idx_u, sig_u, bin_lo_u, bin_hi_u, N_1d_u, True)
 
         # 1D (g)
         mag_idx_g = 1
         N_1d_g, sig_g, bin_lo_g, bin_hi_g = get_N_1d(sdss_g[z_sel])
-        g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g)
+        g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g, False)
 
         # 1D (r)
         mag_idx_r = 2
         N_1d_r, sig_r, bin_lo_r, bin_hi_r = get_N_1d(sdss_r[z_sel])
-        r = R(mag_idx_r, sig_r, bin_lo_r, bin_hi_r, N_1d_r)
+        r = R(mag_idx_r, sig_r, bin_lo_r, bin_hi_r, N_1d_r, True)
 
         # 1D (i)
         mag_idx_i = 3
         N_1d_i, sig_i, bin_lo_i, bin_hi_i = get_N_1d(sdss_i[z_sel])
-        i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i)
+        i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i, False)
 
         # 1D (z)
         mag_idx_z = 4
         N_1d_z, sig_z, bin_lo_z, bin_hi_z = get_N_1d(sdss_z[z_sel])
-        z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z)
+        z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z, False)
 
         app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, g, r, i, z))
 
