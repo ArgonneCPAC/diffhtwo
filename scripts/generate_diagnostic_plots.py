@@ -321,6 +321,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_colors_mags"]:
@@ -336,6 +337,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_mags"]:
@@ -348,6 +350,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_ssperr"]:
@@ -446,9 +449,8 @@ if __name__ == "__main__":
             [
                 [0.02, 0.06],
                 [0.06, 0.1],
-                [0.1, 0.14],
-                [0.14, 0.18],
-                [0.18, 0.2],
+                [0.1, 0.15],
+                [0.15, 0.2],
             ]
         )
         if cfg["plots"]["plot_app_mag_funcs"]:
@@ -535,6 +537,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_colors_mags"]:
@@ -550,6 +553,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_mags"]:
@@ -562,6 +566,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_ssperr"]:

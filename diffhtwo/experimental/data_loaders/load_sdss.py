@@ -187,14 +187,7 @@ def get_sdss_data(
     ##############################################################################
     Colors = namedtuple(
         "Colors",
-        [
-            "z_min",
-            "z_max",
-            "lc_data",
-            "ur_ri",
-            "gr_ri",
-            "ur",
-        ],
+        ["z_min", "z_max", "lc_data", "ur_ri", "gr_ri", "ur", "ri"],
     )
     # 2D (u - r, r - i)
     Ur_ri = namedtuple("Ur_ri", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
@@ -205,7 +198,13 @@ def get_sdss_data(
     # 1D (u - r | r)
     Ur_condr = namedtuple(
         "Ur_condr",
-        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        ["col_idx", "cond_idx", "r_min", "r_max", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+
+    # 1D (r - i | r)
+    Ri_condr = namedtuple(
+        "Ri_condr",
+        ["col_idx", "cond_idx", "r_min", "r_max", "sig", "bin_lo", "bin_hi", "N_data"],
     )
 
     colors = []
@@ -269,16 +268,27 @@ def get_sdss_data(
                 )
             )
 
-        colors.append(
-            Colors(
-                z_min,
-                z_max,
-                lc_data,
-                ur_ri,
-                gr_ri,
-                ur,
+        # 1D (r - i | r)
+        col_idx = [2, 3]
+        cond_idx = 2
+        ri = []
+        for r in range(len(rbins) - 1):
+            r_sel = (sdss_r[z_sel] > rbins[r]) & (sdss_r[z_sel] <= rbins[r + 1])
+            N_1d_ri, sig_ri, bin_lo_ri, bin_hi_ri = get_N_1d(sdss_ri[z_sel][r_sel])
+            ri.append(
+                Ri_condr(
+                    col_idx,
+                    cond_idx,
+                    rbins[r],
+                    rbins[r + 1],
+                    sig_ri,
+                    bin_lo_ri,
+                    bin_hi_ri,
+                    N_1d_ri,
+                )
             )
-        )
+
+        colors.append(Colors(z_min, z_max, lc_data, ur_ri, gr_ri, ur, ri))
 
     ##############################################################################
     ##############################################################################
@@ -287,9 +297,8 @@ def get_sdss_data(
         [
             [0.02, 0.06],
             [0.06, 0.1],
-            [0.1, 0.14],
-            [0.14, 0.18],
-            [0.18, 0.2],
+            [0.1, 0.15],
+            [0.15, 0.20],
         ]
     )
     ##############################################################################
