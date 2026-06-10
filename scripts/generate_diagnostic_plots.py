@@ -29,6 +29,7 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
     plot_lgfburst_mh_z,
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
+from diffhtwo.experimental.diagnostics.plot_contour import plot_color_contours
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
     plot_halpha_insitu_exsitu,
@@ -203,7 +204,25 @@ if __name__ == "__main__":
     """
     if cfg["plot_feniks"]:
         feniks_label = "feniks"  # + cfg["model_nickname"].split("_")[0]
-        feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
+        feniks = load_feniks.get_feniks_data(
+            feniks_drn,
+            ran_key,
+            ssp_data,
+            num_halos_coarse_zbins=num_halos,
+            num_halos_fine_zbins=int(num_halos / 2),
+        )
+
+        if cfg["plots"]["plot_color_contours"]:
+            print("Generating FENIKS color contours plot...")
+            plot_color_contours(
+                ran_key,
+                param_collection_fit,
+                feniks.colors,
+                feniks.filter_info.mag_thresh,
+                feniks.frac_cat,
+                feniks_label,
+                fit_diagnostics_save_drn,
+            )
 
         if cfg["plots"]["plot_app_mag_funcs"]:
             feniks_zbins = np.array(
@@ -444,7 +463,13 @@ if __name__ == "__main__":
     """
     if cfg["plot_sdss"]:
         sdss_label = "sdss"  # + cfg["model_nickname"].split("_")[0]
-        sdss = load_sdss.get_sdss_data(sdss_drn, ran_key, ssp_data)
+        sdss = load_sdss.get_sdss_data(
+            sdss_drn,
+            ran_key,
+            ssp_data,
+            num_halos_coarse_zbins=num_halos,
+            num_halos_fine_zbins=int(num_halos / 2),
+        )
         sdss_zbins = np.array(
             [
                 [0.02, 0.06],
@@ -453,6 +478,19 @@ if __name__ == "__main__":
                 [0.15, 0.2],
             ]
         )
+
+        if cfg["plots"]["plot_color_contours"]:
+            print("Generating SDSS color contours plot...")
+            plot_color_contours(
+                ran_key,
+                param_collection_fit,
+                sdss.colors,
+                sdss.filter_info.mag_thresh,
+                sdss.frac_cat,
+                sdss_label,
+                fit_diagnostics_save_drn,
+            )
+
         if cfg["plots"]["plot_app_mag_funcs"]:
             print("Generating SDSS app mag funcs plot...")
             plot_app_mag_funcs(

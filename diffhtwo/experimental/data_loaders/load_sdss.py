@@ -322,14 +322,26 @@ def get_sdss_data(
     ##############################################################################
     AppMagFuncs = namedtuple(
         "AppMagFuncs",
-        ["z_min", "z_max", "lc_data", "u", "r"],
+        ["z_min", "z_max", "lc_data", "u", "g", "r", "i", "z"],
     )
     U = namedtuple(
         "U",
         ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
     )
+    G = namedtuple(
+        "G",
+        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
     R = namedtuple(
         "R",
+        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+    I = namedtuple(
+        "I",
+        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    )
+    Z = namedtuple(
+        "Z",
         ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
     )
 
@@ -363,12 +375,27 @@ def get_sdss_data(
         N_1d_u, sig_u, bin_lo_u, bin_hi_u = get_N_1d(sdss_u[z_sel])
         u = U(mag_idx_u, sig_u, bin_lo_u, bin_hi_u, N_1d_u)
 
+        # 1D (g)
+        mag_idx_g = 1
+        N_1d_g, sig_g, bin_lo_g, bin_hi_g = get_N_1d(sdss_g[z_sel])
+        g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g)
+
         # 1D (r)
         mag_idx_r = 2
         N_1d_r, sig_r, bin_lo_r, bin_hi_r = get_N_1d(sdss_r[z_sel])
         r = R(mag_idx_r, sig_r, bin_lo_r, bin_hi_r, N_1d_r)
 
-        app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, r))
+        # 1D (i)
+        mag_idx_i = 3
+        N_1d_i, sig_i, bin_lo_i, bin_hi_i = get_N_1d(sdss_i[z_sel])
+        i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i)
+
+        # 1D (z)
+        mag_idx_z = 4
+        N_1d_z, sig_z, bin_lo_z, bin_hi_z = get_N_1d(sdss_z[z_sel])
+        z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z)
+
+        app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, g, r, i, z))
 
     ##############################################################################
 

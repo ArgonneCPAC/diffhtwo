@@ -4,7 +4,6 @@ import jax.numpy as jnp
 import numpy as np
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
-from scipy.ndimage import gaussian_filter
 
 from ..kernels.phot_kern import get_colors_mags, mag_kern
 from ..lc_utils import zbin_volume
@@ -770,14 +769,3 @@ def plot_app_mag_funcs(
     if plt_show:
         plt.show()
     plt.close()
-
-
-def plot_density(
-    x, y, ax, bins=80, sigma=1.5, cmap="plasma", n_levels=8, **contourf_kw
-):
-    H, xe, ye = np.histogram2d(x, y, bins=bins)
-    H = gaussian_filter(H.T, sigma=sigma)
-    xc = 0.5 * (xe[:-1] + xe[1:])
-    yc = 0.5 * (ye[:-1] + ye[1:])
-    levels = np.logspace(np.log10(H[H > 0].min()), np.log10(H.max()), n_levels)
-    ax.contourf(xc, yc, H, levels=levels, cmap=cmap, **contourf_kw)
