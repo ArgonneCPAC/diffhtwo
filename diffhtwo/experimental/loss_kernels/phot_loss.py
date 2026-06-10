@@ -29,13 +29,26 @@ def get_phot_loss_2d_multiz(
         for f in range(0, len(fields)):
             space = getattr(z_data_model, fields[f])
 
-            N_model = space.N_model
-            N_data = space.N_data
+            if isinstance(space, list):
+                for s in range(0, len(space)):
+                    space_n = space[s]
 
-            N_model = N_model * (
-                data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
-            )
-            phot_loss_2d += poisson_loss(N_model, N_data)
+                    N_model = space_n.N_model
+                    N_data = space_n.N_data
+
+                    N_model = N_model * (
+                        data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
+                    )
+                    phot_loss_2d += poisson_loss(N_model, N_data)
+
+            else:
+                N_model = space.N_model
+                N_data = space.N_data
+
+                N_model = N_model * (
+                    data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
+                )
+                phot_loss_2d += poisson_loss(N_model, N_data)
 
     return phot_loss_2d
 
