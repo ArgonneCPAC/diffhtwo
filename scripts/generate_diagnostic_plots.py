@@ -213,7 +213,7 @@ if __name__ == "__main__":
         )
 
         if cfg["plots"]["plot_color_contours"]:
-            print("Generating FENIKS color contours plot...")
+            print("Generating FENIKS color contour plots...")
             plot_color_contours(
                 ran_key,
                 param_collection_fit,
@@ -480,7 +480,7 @@ if __name__ == "__main__":
         )
 
         if cfg["plots"]["plot_color_contours"]:
-            print("Generating SDSS color contours plot...")
+            print("Generating SDSS color contour plots...")
             plot_color_contours(
                 ran_key,
                 param_collection_fit,

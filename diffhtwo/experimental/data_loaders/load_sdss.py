@@ -266,6 +266,7 @@ def get_sdss_data(
 
         # 1D (u - r | r)
         rbins = np.arange(sdss_r[z_sel].min(), sdss_r[z_sel].max(), 2)
+        print(rbins)
 
         col_idx = [0, 2]
         cond_idx = 2
@@ -336,6 +337,7 @@ def get_sdss_data(
         "R",
         ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
     )
+
     I = namedtuple(
         "I",
         ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],

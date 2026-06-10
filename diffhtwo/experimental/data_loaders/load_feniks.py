@@ -917,20 +917,20 @@ def get_feniks_data(
     ##############################################################################
     AppMagFuncs = namedtuple(
         "AppMagFuncs",
-        ["z_min", "z_max", "lc_data", "u", "r", "k"],
+        ["z_min", "z_max", "lc_data", "u", "g", "r", "i", "z", "J", "H", "K"],
     )
-    U = namedtuple(
-        "U",
+    AppMagFunc = namedtuple(
+        "AppMagFunc",
         ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
     )
-    R = namedtuple(
-        "R",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
-    K = namedtuple(
-        "K",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
+    U = namedtuple("U", AppMagFunc._fields)
+    G = namedtuple("G", AppMagFunc._fields)
+    R = namedtuple("R", AppMagFunc._fields)
+    I = namedtuple("I", AppMagFunc._fields)
+    Z = namedtuple("Z", AppMagFunc._fields)
+    J = namedtuple("J", AppMagFunc._fields)
+    H = namedtuple("H", AppMagFunc._fields)
+    K = namedtuple("K", AppMagFunc._fields)
 
     app_mag_funcs = []
     for zbin in range(0, len(fine_zbins)):
@@ -963,11 +963,41 @@ def get_feniks_data(
         u = U(mag_idx_u, sig_u, bin_lo_u, bin_hi_u, N_1d_u)
         n_bins += bin_lo_u.size
 
+        # 1D (g)
+        mag_idx_g = 1
+        N_1d_g, sig_g, bin_lo_g, bin_hi_g = get_N_1d(hsc_g[z_sel])
+        g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g)
+        n_bins += bin_lo_g.size
+
         # 1D (r)
         mag_idx_r = 2
         N_1d_r, sig_r, bin_lo_r, bin_hi_r = get_N_1d(hsc_r[z_sel])
         r = R(mag_idx_r, sig_r, bin_lo_r, bin_hi_r, N_1d_r)
         n_bins += bin_lo_r.size
+
+        # 1D (i)
+        mag_idx_i = 3
+        N_1d_i, sig_i, bin_lo_i, bin_hi_i = get_N_1d(hsc_i[z_sel])
+        i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i)
+        n_bins += bin_lo_i.size
+
+        # 1D (z)
+        mag_idx_z = 4
+        N_1d_z, sig_z, bin_lo_z, bin_hi_z = get_N_1d(hsc_z[z_sel])
+        z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z)
+        n_bins += bin_lo_z.size
+
+        # 1D (J)
+        mag_idx_j = 5
+        N_1d_j, sig_j, bin_lo_j, bin_hi_j = get_N_1d(uds_J[z_sel])
+        j = J(mag_idx_j, sig_j, bin_lo_j, bin_hi_j, N_1d_j)
+        n_bins += bin_lo_j.size
+
+        # 1D (H)
+        mag_idx_h = 6
+        N_1d_h, sig_h, bin_lo_h, bin_hi_h = get_N_1d(uds_H[z_sel])
+        h = H(mag_idx_h, sig_h, bin_lo_h, bin_hi_h, N_1d_h)
+        n_bins += bin_lo_h.size
 
         # 1D (K)
         mag_idx_k = 7
@@ -975,7 +1005,7 @@ def get_feniks_data(
         k = K(mag_idx_k, sig_k, bin_lo_k, bin_hi_k, N_1d_k)
         n_bins += bin_lo_k.size
 
-        app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, r, k))
+        app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, g, r, i, z, j, h, k))
 
     ##############################################################################
 
