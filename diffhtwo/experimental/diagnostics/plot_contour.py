@@ -30,7 +30,7 @@ dusk = LinearSegmentedColormap.from_list(
 
 
 def plot_density(
-    bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap, N_model=None, sigma=0.55, n_levels=8
+    bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap, N_model=None, sigma=0.5, n_levels=10
 ):
     x_edges = np.unique(np.append(bin_lo[:, 0], bin_hi[-1, 0]))
     y_edges = np.unique(np.append(bin_lo[:, 1], bin_hi[-1, 1]))
@@ -102,6 +102,8 @@ def plot_color_contours(
     frac_cat,
     data_label,
     savedir,
+    sigma=0.5,
+    n_levels=10,
 ):
     for z in range(0, len(data)):
         z_data = data[z]
@@ -137,6 +139,8 @@ def plot_color_contours(
                     ylabel,
                     dusk,
                     N_model=space.N_model,
+                    sigma=sigma,
+                    n_levels=n_levels,
                 )
                 fig.savefig(
                     savedir
@@ -154,11 +158,10 @@ def plot_color_contours(
     plt.close()
 
 
+def parse_axis_label(s):
+    return f"${s[0]}-{s[1]}$" if len(s) == 2 else f"${s}$"
+
+
 def parse_color_labels(name):
-    # "Ur_ri" → ["u-r", "r-i"]
     x_str, y_str = name.lower().split("_")
-
-    def to_label(s):
-        return f"${s[0]} - {s[1]}$"
-
-    return to_label(x_str), to_label(y_str)
+    return parse_axis_label(x_str), parse_axis_label(y_str)

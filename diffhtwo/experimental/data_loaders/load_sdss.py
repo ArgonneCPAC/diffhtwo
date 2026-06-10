@@ -11,8 +11,11 @@ from ..defaults import (
     SDSS_MAGR_THRESH,
     SDSS_Z_MAX,
     SDSS_Z_MIN,
+    AppMagFunc,
+    ColorColor,
     Dataset,
     FilterInfo,
+    MagColor,
 )
 from ..latin_hypercube import latin_hypercube as lh
 from ..lightcone_generators import generate_lc_data
@@ -187,43 +190,19 @@ def get_sdss_data(
     ##############################################################################
     Colors = namedtuple(
         "Colors",
-        ["z_min", "z_max", "lc_data", "ur_ri", "gr_ri", "ur", "ri"],
+        ["z_min", "z_max", "lc_data", "ur_ri", "gr_ri", "R_ur", "R_ri"],
     )
     # 2D (u - r, r - i)
-    Ur_ri = namedtuple("Ur_ri", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
+    Ur_ri = namedtuple("Ur_ri", ColorColor._fields)
 
     # 2D (g - r, r - i)
-    Gr_ri = namedtuple("Gr_ri", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
+    Gr_ri = namedtuple("Gr_ri", ColorColor._fields)
 
-    # 1D (u - r | r)
-    Ur_condr = namedtuple(
-        "Ur_condr",
-        [
-            "col_idx",
-            "cond_idx",
-            "cond_min",
-            "cond_max",
-            "sig",
-            "bin_lo",
-            "bin_hi",
-            "N_data",
-        ],
-    )
+    # 2D (r, u - r)
+    R_ur = namedtuple("R_ur", MagColor._fields)
 
-    # 1D (r - i | r)
-    Ri_condr = namedtuple(
-        "Ri_condr",
-        [
-            "col_idx",
-            "cond_idx",
-            "cond_min",
-            "cond_max",
-            "sig",
-            "bin_lo",
-            "bin_hi",
-            "N_data",
-        ],
-    )
+    # 2D (r, r - i)
+    R_ri = namedtuple("R_ri", MagColor._fields)
 
     colors = []
     for zbin in range(0, len(zbins)):
@@ -264,50 +243,23 @@ def get_sdss_data(
         col_idx = [1, 2, 3]
         gr_ri = Gr_ri(col_idx, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri, N_gr_ri)
 
-        # 1D (u - r | r)
-        rbins = np.arange(sdss_r[z_sel].min(), sdss_r[z_sel].max(), 2)
-        print(rbins)
-
+        # 2D (r, u - r)
+        N_r_ur, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur = get_N_2d(
+            sdss_r[z_sel], sdss_ur[z_sel]
+        )
+        mag_idx = 2
         col_idx = [0, 2]
-        cond_idx = 2
-        ur = []
-        for r in range(len(rbins) - 1):
-            r_sel = (sdss_r[z_sel] > rbins[r]) & (sdss_r[z_sel] <= rbins[r + 1])
-            N_1d_ur, sig_ur, bin_lo_ur, bin_hi_ur = get_N_1d(sdss_ur[z_sel][r_sel])
-            ur.append(
-                Ur_condr(
-                    col_idx,
-                    cond_idx,
-                    rbins[r],
-                    rbins[r + 1],
-                    sig_ur,
-                    bin_lo_ur,
-                    bin_hi_ur,
-                    N_1d_ur,
-                )
-            )
+        r_ur = R_ur(mag_idx, col_idx, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur, N_r_ur)
 
-        # 1D (r - i | r)
+        # 2D (r, r - i)
+        N_r_ri, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri = get_N_2d(
+            sdss_r[z_sel], sdss_ri[z_sel]
+        )
+        mag_idx = 2
         col_idx = [2, 3]
-        cond_idx = 2
-        ri = []
-        for r in range(len(rbins) - 1):
-            r_sel = (sdss_r[z_sel] > rbins[r]) & (sdss_r[z_sel] <= rbins[r + 1])
-            N_1d_ri, sig_ri, bin_lo_ri, bin_hi_ri = get_N_1d(sdss_ri[z_sel][r_sel])
-            ri.append(
-                Ri_condr(
-                    col_idx,
-                    cond_idx,
-                    rbins[r],
-                    rbins[r + 1],
-                    sig_ri,
-                    bin_lo_ri,
-                    bin_hi_ri,
-                    N_1d_ri,
-                )
-            )
+        r_ri = R_ri(mag_idx, col_idx, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri, N_r_ri)
 
-        colors.append(Colors(z_min, z_max, lc_data, ur_ri, gr_ri, ur, ri))
+        colors.append(Colors(z_min, z_max, lc_data, ur_ri, gr_ri, r_ur, r_ri))
 
     ##############################################################################
     ##############################################################################

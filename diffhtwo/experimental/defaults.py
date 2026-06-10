@@ -47,3 +47,14 @@ Dataset = namedtuple(
         "data_sky_area_degsq",
     ],
 )
+
+ColorColor = namedtuple("ColorColor", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
+
+MagColor = namedtuple(
+    "MagColor", ["mag_idx", "col_idx", "sig", "bin_lo", "bin_hi", "N_data"]
+)
+
+AppMagFunc = namedtuple(
+    "AppMagFunc",
+    ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+)

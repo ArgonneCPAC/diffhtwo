@@ -65,25 +65,52 @@ def N_colors_mags(
             z_data = z_data._replace(**{fields[f]: new_list})
 
         elif "mag_idx" in space._fields:
-            mag_idx = space.mag_idx
-            obs_mag = obs_mags[:, mag_idx]
-            obs_mag = obs_mag.reshape(obs_mag.size, 1)
+            if "col_idx" in space._fields:
+                col_idx = space.col_idx
+                mag_idx = space.mag_idx
 
-            # get mag_sel weight
-            mag_sel = obs_mags[:, mag_idx] < mag_thresh[mag_idx]
-            weight = jnp.where(mag_sel, gal_weight, 0.0)
+                mag = obs_mags[:, mag_idx]
+                obs_color = obs_mags[:, col_idx[0]] - obs_mags[:, col_idx[1]]
+                obs_mag_color = jnp.vstack((mag, obs_color)).T
 
-            N_model = diffndhist_lomem.tw_ndhist_weighted(
-                obs_mag,
-                space.sig,
-                weight,
-                space.bin_lo,
-                space.bin_hi,
-            )
+                mag_sel = (
+                    (obs_mags[:, mag_idx] < mag_thresh[mag_idx])
+                    & (obs_mags[:, col_idx[0]] < mag_thresh[col_idx[0]])
+                    & (obs_mags[:, col_idx[1]] < mag_thresh[col_idx[1]])
+                )
+                weight = jnp.where(mag_sel, gal_weight, 0.0)
 
-            NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
-            new = NewTuple(*space, N_model)
-            z_data = z_data._replace(**{fields[f]: new})
+                N_model = diffndhist_lomem.tw_ndhist_weighted(
+                    obs_mag_color,
+                    space.sig,
+                    weight,
+                    space.bin_lo,
+                    space.bin_hi,
+                )
+
+                NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
+                new = NewTuple(*space, N_model)
+                z_data = z_data._replace(**{fields[f]: new})
+            else:
+                mag_idx = space.mag_idx
+                obs_mag = obs_mags[:, mag_idx]
+                obs_mag = obs_mag.reshape(obs_mag.size, 1)
+
+                # get mag_sel weight
+                mag_sel = obs_mags[:, mag_idx] < mag_thresh[mag_idx]
+                weight = jnp.where(mag_sel, gal_weight, 0.0)
+
+                N_model = diffndhist_lomem.tw_ndhist_weighted(
+                    obs_mag,
+                    space.sig,
+                    weight,
+                    space.bin_lo,
+                    space.bin_hi,
+                )
+
+                NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
+                new = NewTuple(*space, N_model)
+                z_data = z_data._replace(**{fields[f]: new})
 
         else:
             col_idx = space.col_idx
