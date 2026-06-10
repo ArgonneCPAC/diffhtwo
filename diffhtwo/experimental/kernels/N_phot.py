@@ -29,43 +29,9 @@ def N_colors_mags(
     for f in range(0, len(fields)):
         space = getattr(z_data, fields[f])
 
-        if isinstance(space, list):
-            new_list = []
-            for s in range(0, len(space)):
-                space_n = space[s]
-                col_idx = space_n.col_idx
-
-                # get cond weight
-                obs_mags_cond = obs_mags[:, space_n.cond_idx]
-                cond = (obs_mags_cond > space_n.cond_min) & (
-                    obs_mags_cond <= space_n.cond_max
-                )
-                weight = jnp.where(cond, gal_weight, 0.0)
-
-                # get mag_sel weight
-                for c in range(0, len(col_idx)):
-                    mag_sel = obs_mags[:, col_idx[c]] < mag_thresh[col_idx[c]]
-                    weight *= jnp.where(mag_sel, 1.0, 0.0)
-
-                obs_color = obs_mags[:, col_idx[0]] - obs_mags[:, col_idx[1]]
-                obs_color = obs_color.reshape(obs_color.size, 1)
-
-                N_model = diffndhist_lomem.tw_ndhist_weighted(
-                    obs_color,
-                    space_n.sig,
-                    weight,
-                    space_n.bin_lo,
-                    space_n.bin_hi,
-                )
-
-                NewTuple = namedtuple(
-                    type(space_n).__name__, [*space_n._fields, "N_model"]
-                )
-                new_list.append(NewTuple(*space_n, N_model))
-            z_data = z_data._replace(**{fields[f]: new_list})
-
-        elif "mag_idx" in space._fields:
+        if "mag_idx" in space._fields:
             if "col_idx" in space._fields:
+                # Magnitude-Color space
                 col_idx = space.col_idx
                 mag_idx = space.mag_idx
 
@@ -92,6 +58,7 @@ def N_colors_mags(
                 new = NewTuple(*space, N_model)
                 z_data = z_data._replace(**{fields[f]: new})
             else:
+                # Apparent Magnitude space
                 mag_idx = space.mag_idx
                 obs_mag = obs_mags[:, mag_idx]
                 obs_mag = obs_mag.reshape(obs_mag.size, 1)
@@ -113,6 +80,7 @@ def N_colors_mags(
                 z_data = z_data._replace(**{fields[f]: new})
 
         else:
+            # Color-Color space
             col_idx = space.col_idx
             obs_colors = []
             for c in range(0, len(col_idx) - 1):
