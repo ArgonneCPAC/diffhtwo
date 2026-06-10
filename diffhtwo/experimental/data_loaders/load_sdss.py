@@ -198,13 +198,31 @@ def get_sdss_data(
     # 1D (u - r | r)
     Ur_condr = namedtuple(
         "Ur_condr",
-        ["col_idx", "cond_idx", "r_min", "r_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
 
     # 1D (r - i | r)
     Ri_condr = namedtuple(
         "Ri_condr",
-        ["col_idx", "cond_idx", "r_min", "r_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
 
     colors = []

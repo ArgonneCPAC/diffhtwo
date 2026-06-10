@@ -416,7 +416,16 @@ def get_feniks_data(
     ug = []
     Ug_condK = namedtuple(
         "Ug_condK",
-        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
     mag_sel_ug = (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS) & (
         hsc_g[z_sel] < feniks_mag_thresh.HSC_G
@@ -446,7 +455,16 @@ def get_feniks_data(
     ri = []
     Ri_condK = namedtuple(
         "Ri_condK",
-        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
     mag_sel_ri = (hsc_r[z_sel] < feniks_mag_thresh.HSC_R) & (
         hsc_i[z_sel] < feniks_mag_thresh.HSC_I
@@ -476,7 +494,16 @@ def get_feniks_data(
     iz = []
     Iz_condK = namedtuple(
         "Iz_condK",
-        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
     mag_sel_iz = (hsc_i[z_sel] < feniks_mag_thresh.HSC_I) & (
         hsc_z[z_sel] < feniks_mag_thresh.HSC_Z
@@ -506,7 +533,16 @@ def get_feniks_data(
     jh = []
     JH_condK = namedtuple(
         "JH_condK",
-        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
     mag_sel_jh = (uds_J[z_sel] < feniks_mag_thresh.UDS_J) & (
         uds_H[z_sel] < feniks_mag_thresh.UDS_H
@@ -616,7 +652,16 @@ def get_feniks_data(
     rz = []
     Rz_condK = namedtuple(
         "Rz_condK",
-        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
     mag_sel_rz = (hsc_r[z_sel] < feniks_mag_thresh.HSC_R) & (
         hsc_z[z_sel] < feniks_mag_thresh.HSC_Z
@@ -646,7 +691,16 @@ def get_feniks_data(
     jh = []
     JH_condK = namedtuple(
         "JH_condK",
-        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
     mag_sel_jh = (uds_J[z_sel] < feniks_mag_thresh.UDS_J) & (
         uds_H[z_sel] < feniks_mag_thresh.UDS_H
@@ -771,7 +825,16 @@ def get_feniks_data(
     gr = []
     Gr_condK = namedtuple(
         "Gr_condK",
-        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
     mag_sel_gr = (hsc_g[z_sel] < feniks_mag_thresh.HSC_G) & (
         hsc_r[z_sel] < feniks_mag_thresh.HSC_R
@@ -801,7 +864,16 @@ def get_feniks_data(
     jh = []
     JH_condK = namedtuple(
         "JH_condK",
-        ["col_idx", "cond_idx", "K_min", "K_max", "sig", "bin_lo", "bin_hi", "N_data"],
+        [
+            "col_idx",
+            "cond_idx",
+            "cond_min",
+            "cond_max",
+            "sig",
+            "bin_lo",
+            "bin_hi",
+            "N_data",
+        ],
     )
     mag_sel_jh = (uds_J[z_sel] < feniks_mag_thresh.UDS_J) & (
         uds_H[z_sel] < feniks_mag_thresh.UDS_H

@@ -37,8 +37,8 @@ def N_colors_mags(
 
                 # get cond weight
                 obs_mags_cond = obs_mags[:, space_n.cond_idx]
-                cond = (obs_mags_cond > space_n.K_min) & (
-                    obs_mags_cond <= space_n.K_max
+                cond = (obs_mags_cond > space_n.cond_min) & (
+                    obs_mags_cond <= space_n.cond_max
                 )
                 weight = jnp.where(cond, gal_weight, 0.0)
 
