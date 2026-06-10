@@ -28,10 +28,14 @@ def get_N_1d(dim1, dim1_bin_edges=None, dmag=0.2, sig_scale=0.5):
     )
 
 
-def get_N_2d(dim1, dim2, sig_scale=0.5):
+def get_N_2d(dim1, dim2, sig_scale=0.5, dim1_is_mag=False):
     dataset = np.vstack((dim1, dim2)).T
 
-    dim1_bin_edges = np.linspace(dim1.min(), dim1.max(), 11)
+    if dim1_is_mag:
+        dim1_bin_edges = np.linspace(dim1.min(), dim1.max(), 4)
+    else:
+        dim1_bin_edges = np.linspace(dim1.min(), dim1.max(), 11)
+
     dim2_bin_edges = np.linspace(dim2.min(), dim2.max(), 11)
 
     dim1_lo = dim1_bin_edges[:-1]

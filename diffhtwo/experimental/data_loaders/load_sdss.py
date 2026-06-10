@@ -245,7 +245,7 @@ def get_sdss_data(
 
         # 2D (r, u - r)
         N_r_ur, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur = get_N_2d(
-            sdss_r[z_sel], sdss_ur[z_sel]
+            sdss_r[z_sel], sdss_ur[z_sel], dim1_is_mag=True
         )
         mag_idx = 2
         col_idx = [0, 2]
@@ -253,7 +253,7 @@ def get_sdss_data(
 
         # 2D (r, r - i)
         N_r_ri, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri = get_N_2d(
-            sdss_r[z_sel], sdss_ri[z_sel]
+            sdss_r[z_sel], sdss_ri[z_sel], dim1_is_mag=True
         )
         mag_idx = 2
         col_idx = [2, 3]

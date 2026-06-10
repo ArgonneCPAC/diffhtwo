@@ -283,7 +283,6 @@ def get_feniks_data(
     hsc_ri = hsc_r - hsc_i
     hsc_iz = hsc_i - hsc_z
     hsc_uds_zJ = hsc_z - uds_J
-    hsc_uds_rK = hsc_r - uds_K
     uds_JH = uds_J - uds_H
     uds_HK = uds_H - uds_K
 
@@ -403,7 +402,7 @@ def get_feniks_data(
         hsc_i[z_sel] < feniks_mag_thresh.HSC_I
     )
     N_K_ri, sig_K_ri, bin_lo_K_ri, bin_hi_K_ri = get_N_2d(
-        uds_K[z_sel][mag_sel_ri], hsc_ri[z_sel][mag_sel_ri]
+        uds_K[z_sel][mag_sel_ri], hsc_ri[z_sel][mag_sel_ri], dim1_is_mag=True
     )
     mag_idx = 7
     col_idx = [2, 3]
@@ -416,7 +415,7 @@ def get_feniks_data(
         hsc_r[z_sel] < feniks_mag_thresh.HSC_R
     )
     N_K_gr, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr = get_N_2d(
-        uds_K[z_sel][mag_sel_gr], hsc_gr[z_sel][mag_sel_gr]
+        uds_K[z_sel][mag_sel_gr], hsc_gr[z_sel][mag_sel_gr], dim1_is_mag=True
     )
     mag_idx = 7
     col_idx = [1, 2]
@@ -429,7 +428,7 @@ def get_feniks_data(
         uds_H[z_sel] < feniks_mag_thresh.UDS_H
     )
     N_K_JH, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH = get_N_2d(
-        uds_K[z_sel][mag_sel_JH], uds_JH[z_sel][mag_sel_JH]
+        uds_K[z_sel][mag_sel_JH], uds_JH[z_sel][mag_sel_JH], dim1_is_mag=True
     )
     mag_idx = 7
     col_idx = [5, 6]
@@ -493,7 +492,7 @@ def get_feniks_data(
         hsc_g[z_sel] < feniks_mag_thresh.HSC_G
     )
     N_K_ug, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug = get_N_2d(
-        uds_K[z_sel][mag_sel_ug], megacam_hsc_uSg[z_sel][mag_sel_ug]
+        uds_K[z_sel][mag_sel_ug], megacam_hsc_uSg[z_sel][mag_sel_ug], dim1_is_mag=True
     )
     mag_idx = 7
     col_idx = [0, 1]
@@ -506,7 +505,7 @@ def get_feniks_data(
         hsc_z[z_sel] < feniks_mag_thresh.HSC_Z
     )
     N_K_rz, sig_K_rz, bin_lo_K_rz, bin_hi_K_rz = get_N_2d(
-        uds_K[z_sel][mag_sel_rz], hsc_rz[z_sel][mag_sel_rz]
+        uds_K[z_sel][mag_sel_rz], hsc_rz[z_sel][mag_sel_rz], dim1_is_mag=True
     )
     mag_idx = 7
     col_idx = [2, 4]
@@ -586,7 +585,7 @@ def get_feniks_data(
         hsc_g[z_sel] < feniks_mag_thresh.HSC_G
     )
     N_K_ug, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug = get_N_2d(
-        uds_K[z_sel][mag_sel_ug], megacam_hsc_uSg[z_sel][mag_sel_ug]
+        uds_K[z_sel][mag_sel_ug], megacam_hsc_uSg[z_sel][mag_sel_ug], dim1_is_mag=True
     )
     mag_idx = 7
     col_idx = [0, 1]
@@ -599,7 +598,7 @@ def get_feniks_data(
         hsc_r[z_sel] < feniks_mag_thresh.HSC_R
     )
     N_K_gr, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr = get_N_2d(
-        uds_K[z_sel][mag_sel_gr], hsc_gr[z_sel][mag_sel_gr]
+        uds_K[z_sel][mag_sel_gr], hsc_gr[z_sel][mag_sel_gr], dim1_is_mag=True
     )
     mag_idx = 7
     col_idx = [1, 2]
@@ -612,7 +611,7 @@ def get_feniks_data(
         uds_H[z_sel] < feniks_mag_thresh.UDS_H
     )
     N_K_JH, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH = get_N_2d(
-        uds_K[z_sel][mag_sel_JH], uds_JH[z_sel][mag_sel_JH]
+        uds_K[z_sel][mag_sel_JH], uds_JH[z_sel][mag_sel_JH], dim1_is_mag=True
     )
     mag_idx = 7
     col_idx = [5, 6]

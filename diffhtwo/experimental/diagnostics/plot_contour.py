@@ -1,3 +1,5 @@
+import matplotlib.lines as mlines
+import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
@@ -30,7 +32,17 @@ dusk = LinearSegmentedColormap.from_list(
 
 
 def plot_density(
-    bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap, N_model=None, sigma=0.5, n_levels=10
+    bin_lo,
+    bin_hi,
+    N,
+    ax,
+    xlabel,
+    ylabel,
+    cmap,
+    data_label,
+    N_model=None,
+    sigma=0.5,
+    n_levels=10,
 ):
     x_edges = np.unique(np.append(bin_lo[:, 0], bin_hi[-1, 0]))
     y_edges = np.unique(np.append(bin_lo[:, 1], bin_hi[-1, 1]))
@@ -45,6 +57,9 @@ def plot_density(
     levels = np.linspace(Z.min(), Z.max(), n_levels)
     qm = ax.contourf(xc, yc, Z, levels=levels, cmap=cmap, alpha=0.5)
     ax.get_figure().colorbar(qm, ax=ax, label=r"$\log_{10}(N / N_{\rm tot})$")
+
+    legend_handles = [mpatches.Patch(color=cmap(0.7), alpha=0.5, label=data_label)]
+
     if N_model is not None:
         Z_model = np.log10(
             gaussian_filter(
@@ -64,8 +79,28 @@ def plot_density(
             alpha=0.9,
             linestyles="dashed",
         )
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+        legend_handles.append(
+            mlines.Line2D(
+                [],
+                [],
+                color=cmap(0.7),
+                linewidth=1.5,
+                linestyle="dashed",
+                alpha=0.9,
+                label="diffsky",
+            )
+        )
+
+    ax.legend(
+        handles=legend_handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.1),
+        ncol=len(legend_handles),
+        frameon=False,
+        fontsize=12,
+    )
+    ax.set_xlabel(xlabel, fontsize=14)
+    ax.set_ylabel(ylabel, fontsize=14)
 
 
 def plot_density_raw(bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap, N_model=None):
@@ -126,8 +161,9 @@ def plot_color_contours(
                 pass
 
             else:
-                fig, ax = plt.subplots(constrained_layout=True)
-                fig.suptitle(str(z_min) + " < z < " + str(z_max))
+                fig, ax = plt.subplots(figsize=(6.4, 5.2), constrained_layout=True)
+                fig.get_layout_engine().set(h_pad=0.0, hspace=0.0, rect=(0, 0, 1, 0.98))
+                fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=14)
                 name = type(space).__name__
                 xlabel, ylabel = parse_color_labels(name)
                 plot_density(
@@ -138,6 +174,7 @@ def plot_color_contours(
                     xlabel,
                     ylabel,
                     dusk,
+                    data_label,
                     N_model=space.N_model,
                     sigma=sigma,
                     n_levels=n_levels,
@@ -159,7 +196,14 @@ def plot_color_contours(
 
 
 def parse_axis_label(s):
-    return f"${s[0]}-{s[1]}$" if len(s) == 2 else f"${s}$"
+    nir_bands = {"j", "h", "k"}
+
+    def fmt(b):
+        return b.upper() if b in nir_bands else b
+
+    if len(s) == 2:
+        return f"${fmt(s[0])}-{fmt(s[1])}$"
+    return f"${fmt(s)}$"
 
 
 def parse_color_labels(name):
