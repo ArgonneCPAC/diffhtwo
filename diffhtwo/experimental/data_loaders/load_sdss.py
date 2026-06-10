@@ -277,27 +277,11 @@ def get_sdss_data(
         "AppMagFuncs",
         ["z_min", "z_max", "lc_data", "u", "g", "r", "i", "z"],
     )
-    U = namedtuple(
-        "U",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
-    G = namedtuple(
-        "G",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
-    R = namedtuple(
-        "R",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
-
-    I = namedtuple(
-        "I",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
-    Z = namedtuple(
-        "Z",
-        ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
-    )
+    U = namedtuple("U", AppMagFunc._fields)
+    G = namedtuple("G", AppMagFunc._fields)
+    R = namedtuple("R", AppMagFunc._fields)
+    I = namedtuple("I", AppMagFunc._fields)
+    Z = namedtuple("Z", AppMagFunc._fields)
 
     app_mag_funcs = []
     for zbin in range(0, len(fine_zbins)):
