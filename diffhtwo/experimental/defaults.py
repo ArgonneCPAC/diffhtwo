@@ -48,13 +48,30 @@ Dataset = namedtuple(
     ],
 )
 
-ColorColor = namedtuple("ColorColor", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data"])
+ColorColor = namedtuple(
+    "ColorColor", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data", "fit"]
+)
+
+ColorCondMag = namedtuple(
+    "ColorCondMag",
+    [
+        "col_idx",
+        "cond_idx",
+        "cond_min",
+        "cond_max",
+        "sig",
+        "bin_lo",
+        "bin_hi",
+        "N_data",
+        "fit",
+    ],
+)
 
 MagColor = namedtuple(
-    "MagColor", ["mag_idx", "col_idx", "sig", "bin_lo", "bin_hi", "N_data"]
+    "MagColor", ["mag_idx", "col_idx", "sig", "bin_lo", "bin_hi", "N_data", "fit"]
 )
 
 AppMagFunc = namedtuple(
     "AppMagFunc",
-    ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data"],
+    ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data", "fit"],
 )
