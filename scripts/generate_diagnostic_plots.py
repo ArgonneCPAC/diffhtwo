@@ -231,7 +231,7 @@ if __name__ == "__main__":
                     [0.5, 0.7],
                     [0.7, 1.0],
                     [1.0, 1.5],
-                    [1.5, 2.0],
+                    [1.5, 2.5],
                 ]
             )
             print("Generating FENIKS app mag funcs plot...")

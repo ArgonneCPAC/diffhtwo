@@ -54,7 +54,9 @@ def plot_density(
             sigma=sigma,
         ).clip(min=np.finfo(float).tiny)
     )
-    levels = np.linspace(Z.min(), Z.max(), n_levels)
+    Z_min = np.max((-10, Z.min()))
+    Z_max = Z.max()
+    levels = np.linspace(Z_min, Z_max, n_levels)
     qm = ax.contourf(xc, yc, Z, levels=levels, cmap=cmap, alpha=0.5)
     ax.get_figure().colorbar(qm, ax=ax, label=r"$\log_{10}(N / N_{\rm tot})$")
 
