@@ -988,7 +988,7 @@ def get_feniks_data(
         # 1D (g)
         mag_idx_g = 1
         N_1d_g, sig_g, bin_lo_g, bin_hi_g = get_N_1d(hsc_g[z_sel])
-        g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g, False)
+        g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g, True)
         n_bins += bin_lo_g.size
 
         # 1D (r)
@@ -1000,25 +1000,25 @@ def get_feniks_data(
         # 1D (i)
         mag_idx_i = 3
         N_1d_i, sig_i, bin_lo_i, bin_hi_i = get_N_1d(hsc_i[z_sel])
-        i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i, False)
+        i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i, True)
         n_bins += bin_lo_i.size
 
         # 1D (z)
         mag_idx_z = 4
         N_1d_z, sig_z, bin_lo_z, bin_hi_z = get_N_1d(hsc_z[z_sel])
-        z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z, False)
+        z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z, True)
         n_bins += bin_lo_z.size
 
         # 1D (J)
         mag_idx_j = 5
         N_1d_j, sig_j, bin_lo_j, bin_hi_j = get_N_1d(uds_J[z_sel])
-        j = J(mag_idx_j, sig_j, bin_lo_j, bin_hi_j, N_1d_j, False)
+        j = J(mag_idx_j, sig_j, bin_lo_j, bin_hi_j, N_1d_j, True)
         n_bins += bin_lo_j.size
 
         # 1D (H)
         mag_idx_h = 6
         N_1d_h, sig_h, bin_lo_h, bin_hi_h = get_N_1d(uds_H[z_sel])
-        h = H(mag_idx_h, sig_h, bin_lo_h, bin_hi_h, N_1d_h, False)
+        h = H(mag_idx_h, sig_h, bin_lo_h, bin_hi_h, N_1d_h, True)
         n_bins += bin_lo_h.size
 
         # 1D (K)

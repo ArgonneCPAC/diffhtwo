@@ -212,6 +212,16 @@ if __name__ == "__main__":
             num_halos_fine_zbins=int(num_halos / 2),
         )
 
+        feniks_zbins = np.array(
+            [
+                [0.2, 0.5],
+                [0.5, 0.7],
+                [0.7, 1.0],
+                [1.0, 1.5],
+                [1.5, 2.0],
+            ]
+        )
+
         if cfg["plots"]["plot_color_contours"]:
             print("Generating FENIKS color contour plots...")
             plot_color_contours(
@@ -225,15 +235,6 @@ if __name__ == "__main__":
             )
 
         if cfg["plots"]["plot_app_mag_funcs"]:
-            feniks_zbins = np.array(
-                [
-                    [0.2, 0.5],
-                    [0.5, 0.7],
-                    [0.7, 1.0],
-                    [1.0, 1.5],
-                    [1.5, 2.5],
-                ]
-            )
             print("Generating FENIKS app mag funcs plot...")
             plot_app_mag_funcs(
                 feniks,
@@ -293,17 +294,6 @@ if __name__ == "__main__":
                 num_halos=num_halos,
                 plt_show=False,
             )
-
-        feniks_zbins = np.array(
-            [
-                [0.2, 0.5],
-                [0.5, 0.7],
-                [0.7, 1.0],
-                [1.0, 1.5],
-                [1.5, 2.0],
-                [2.0, 2.5],
-            ]
-        )
 
         for zbin in range(0, len(feniks_zbins)):
             z_min = feniks_zbins[zbin][0]
@@ -470,14 +460,7 @@ if __name__ == "__main__":
             num_halos_coarse_zbins=num_halos,
             num_halos_fine_zbins=int(num_halos / 2),
         )
-        sdss_zbins = np.array(
-            [
-                [0.02, 0.06],
-                [0.06, 0.1],
-                [0.1, 0.15],
-                [0.15, 0.2],
-            ]
-        )
+        sdss_zbins = np.array([[0.02, 0.05], [0.05, 0.08], [0.08, 0.11], [0.11, 0.14]])
 
         if cfg["plots"]["plot_color_contours"]:
             print("Generating SDSS color contour plots...")
