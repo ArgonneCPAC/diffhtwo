@@ -316,7 +316,7 @@ def get_sdss_data(
         # 1D (g)
         mag_idx_g = 1
         N_1d_g, sig_g, bin_lo_g, bin_hi_g = get_N_1d(sdss_g[z_sel])
-        g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g, False)
+        g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g, True)
 
         # 1D (r)
         mag_idx_r = 2
@@ -326,12 +326,12 @@ def get_sdss_data(
         # 1D (i)
         mag_idx_i = 3
         N_1d_i, sig_i, bin_lo_i, bin_hi_i = get_N_1d(sdss_i[z_sel])
-        i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i, False)
+        i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i, True)
 
         # 1D (z)
         mag_idx_z = 4
         N_1d_z, sig_z, bin_lo_z, bin_hi_z = get_N_1d(sdss_z[z_sel])
-        z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z, False)
+        z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z, True)
 
         app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, g, r, i, z))
 

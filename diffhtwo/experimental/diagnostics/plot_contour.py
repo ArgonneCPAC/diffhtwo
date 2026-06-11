@@ -162,8 +162,9 @@ def plot_color_contours(
 
             else:
                 fig, ax = plt.subplots(figsize=(6.4, 5.2), constrained_layout=True)
-                fig.get_layout_engine().set(h_pad=0.0, hspace=0.0, rect=(0, 0, 1, 0.96))
-                fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=14)
+                fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=14, y=0.98)
+                fig.get_layout_engine().set(h_pad=0.0, hspace=0.0, rect=(0, 0, 1, 0.95))
+
                 name = type(space).__name__
                 xlabel, ylabel = parse_color_labels(name)
                 plot_density(
