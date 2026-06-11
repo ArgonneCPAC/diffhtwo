@@ -160,7 +160,7 @@ def plot_lgfburst_mh_z(
     )
 
     ax[0].set_xlabel("redshift")
-    ax[0].set_ylabel("log$_{10}$ (M$_{h, peak}$ [M\u2609])")
+    ax[0].set_ylabel(r"log$_{10}$ (M$_{h, peak}$ [M${_\odot}$])")
     ax[0].set_xlim(z_min, z_max)
     ax[0].set_ylim(10, 15)
 
