@@ -401,6 +401,7 @@ def get_sdss_data(
         mag_labels,
         colors,
         app_mag_funcs,
+        fine_zbins,
         filter_info,
         frac_cat,
         lh_centroids,

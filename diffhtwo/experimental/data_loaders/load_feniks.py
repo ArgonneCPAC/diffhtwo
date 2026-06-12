@@ -343,7 +343,7 @@ def get_feniks_data(
         [
             [0.2, 0.7],
             [0.7, 1.5],
-            [1.5, 2.0],
+            [1.5, 2.5],
         ]
     )
 
@@ -937,6 +937,7 @@ def get_feniks_data(
             [0.7, 1.0],
             [1.0, 1.5],
             [1.5, 2.0],
+            [2.0, 2.5],
         ]
     )
     ##############################################################################
@@ -1052,6 +1053,7 @@ def get_feniks_data(
         mags_labels,
         colors,
         app_mag_funcs,
+        fine_zbins,
         filter_info,
         frac_cat,
         lh_centroids,
