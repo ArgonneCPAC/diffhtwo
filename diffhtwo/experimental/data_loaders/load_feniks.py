@@ -193,13 +193,13 @@ def get_feniks_data(
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
 
     feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=24.5,
-        HSC_G=24.5,
-        HSC_R=24.5,
-        HSC_I=24.5,
-        HSC_Z=24.5,
-        UDS_J=24.0,
-        UDS_H=24.0,
+        MegaCam_uS=24.9,
+        HSC_G=25.1,
+        HSC_R=25.3,
+        HSC_I=25.1,
+        HSC_Z=24.9,
+        UDS_J=24.5,
+        UDS_H=24.3,
         UDS_K=FENIKS_MAGK_THRESH,
     )
 
