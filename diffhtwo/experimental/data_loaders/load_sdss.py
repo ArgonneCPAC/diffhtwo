@@ -13,6 +13,7 @@ from ..defaults import (
     SDSS_Z_MIN,
     AppMagFunc,
     ColorColor,
+    ColorCondMag,
     Dataset,
     FilterInfo,
     MagColor,
@@ -126,11 +127,11 @@ def get_sdss_data(
     n_z_phot_table=30,
 ):
     sdss_mag_thresh = SdssFilters(
-        sdss_u=19.0,
-        sdss_g=17.0,
-        sdss_r=17.0,
-        sdss_i=16.5,
-        sdss_z=16.5,
+        sdss_u=19.7,
+        sdss_g=18.0,
+        sdss_r=SDSS_MAGR_THRESH,
+        sdss_i=17.0,
+        sdss_z=17.0,
     )
     sdss, frac_cat = load_sdss_cuts_applied(drn, sdss_mag_thresh)
 
@@ -183,14 +184,14 @@ def get_sdss_data(
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
         [
-            [0.02, 0.08],
-            [0.08, 0.14],
+            [0.02, 0.1],
+            [0.1, 0.2],
         ]
     )
     ##############################################################################
     Colors = namedtuple(
         "Colors",
-        ["z_min", "z_max", "lc_data", "ur_ri", "gr_ri", "R_ur", "R_ri"],
+        ["z_min", "z_max", "lc_data", "ur_ri", "gr_ri", "ur", "ri", "r_ur", "r_ri"],
     )
     # 2D (u - r, r - i)
     Ur_ri = namedtuple("Ur_ri", ColorColor._fields)
@@ -203,6 +204,12 @@ def get_sdss_data(
 
     # 2D (r, r - i)
     R_ri = namedtuple("R_ri", MagColor._fields)
+
+    # 1D (u - r | r)
+    Ur_condr = namedtuple("Ug_condK", ColorCondMag._fields)
+
+    # 1D (r - i | r)
+    Ri_condr = namedtuple("Ri_condr", ColorCondMag._fields)
 
     colors = []
     for zbin in range(0, len(zbins)):
@@ -243,13 +250,58 @@ def get_sdss_data(
         col_idx = [1, 2, 3]
         gr_ri = Gr_ri(col_idx, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri, N_gr_ri, True)
 
+        # 1D (u - r | r)
+        rbins = np.arange(sdss_r[z_sel].min(), sdss_r[z_sel].max(), 2)
+        print(rbins)
+
+        col_idx = [0, 2]
+        cond_idx = 2
+        ur = []
+        for r in range(len(rbins) - 1):
+            r_sel = (sdss_r[z_sel] > rbins[r]) & (sdss_r[z_sel] <= rbins[r + 1])
+            N_1d_ur, sig_ur, bin_lo_ur, bin_hi_ur = get_N_1d(sdss_ur[z_sel][r_sel])
+            ur.append(
+                Ur_condr(
+                    col_idx,
+                    cond_idx,
+                    rbins[r],
+                    rbins[r + 1],
+                    sig_ur,
+                    bin_lo_ur,
+                    bin_hi_ur,
+                    N_1d_ur,
+                    True,
+                )
+            )
+
+        # 1D (r - i | r)
+        col_idx = [2, 3]
+        cond_idx = 2
+        ri = []
+        for r in range(len(rbins) - 1):
+            r_sel = (sdss_r[z_sel] > rbins[r]) & (sdss_r[z_sel] <= rbins[r + 1])
+            N_1d_ri, sig_ri, bin_lo_ri, bin_hi_ri = get_N_1d(sdss_ri[z_sel][r_sel])
+            ri.append(
+                Ri_condr(
+                    col_idx,
+                    cond_idx,
+                    rbins[r],
+                    rbins[r + 1],
+                    sig_ri,
+                    bin_lo_ri,
+                    bin_hi_ri,
+                    N_1d_ri,
+                    True,
+                )
+            )
+
         # 2D (r, u - r)
         N_r_ur, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur = get_N_2d(
             sdss_r[z_sel], sdss_ur[z_sel]
         )
         mag_idx = 2
         col_idx = [0, 2]
-        r_ur = R_ur(mag_idx, col_idx, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur, N_r_ur, True)
+        r_ur = R_ur(mag_idx, col_idx, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur, N_r_ur, False)
 
         # 2D (r, r - i)
         N_r_ri, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri = get_N_2d(
@@ -257,14 +309,21 @@ def get_sdss_data(
         )
         mag_idx = 2
         col_idx = [2, 3]
-        r_ri = R_ri(mag_idx, col_idx, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri, N_r_ri, True)
+        r_ri = R_ri(mag_idx, col_idx, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri, N_r_ri, False)
 
-        colors.append(Colors(z_min, z_max, lc_data, ur_ri, gr_ri, r_ur, r_ri))
+        colors.append(Colors(z_min, z_max, lc_data, ur_ri, gr_ri, ur, ri, r_ur, r_ri))
 
     ##############################################################################
     ##############################################################################
     # prepare 1D app mag funcs in finer z-bins for fitting
-    fine_zbins = np.array([[0.02, 0.05], [0.05, 0.08], [0.08, 0.11], [0.11, 0.14]])
+    fine_zbins = fine_zbins = np.array(
+        [
+            [0.02, 0.06],
+            [0.06, 0.1],
+            [0.1, 0.15],
+            [0.15, 0.20],
+        ]
+    )
     ##############################################################################
     AppMagFuncs = namedtuple(
         "AppMagFuncs",

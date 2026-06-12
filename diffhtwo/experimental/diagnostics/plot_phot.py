@@ -721,7 +721,7 @@ def plot_app_mag_funcs(
                     bin_centers, np.log10(n_diffsky), c=colors_z[zbin], alpha=alpha
                 )
 
-            axes[row, col].set_xticks(np.arange(15, 30, 2))
+            axes[row, col].set_xticks(np.arange(10, 30, 2))
             axes[row, col].minorticks_on()
             axes[row, col].tick_params(
                 which="major",

@@ -21,6 +21,7 @@ from diffhtwo.experimental.defaults import (
     SDSS_Z_MAX,
     SDSS_Z_MIN,
 )
+from diffhtwo.experimental.diagnostics import plot_sm
 from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
     make_avpop_mono_comparison_plots,
 )
@@ -37,7 +38,6 @@ from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha_sfr,
     plot_halpha_ssfr,
 )
-from diffhtwo.experimental.diagnostics.plot_insitu_sm import plot_insitu_sm
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
     plot_color_pdfs,
@@ -303,7 +303,25 @@ if __name__ == "__main__":
                 print(
                     f"Generating FENIKS in-situ sm plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
                 )
-                plot_insitu_sm(
+                plot_sm.plot_insitu_sm_obs(
+                    ran_key,
+                    param_collection_fit,
+                    z_min,
+                    z_max,
+                    feniks.dataset_dim_labels,
+                    ssp_data,
+                    feniks.filter_info.tcurves,
+                    feniks_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
+
+            if cfg["plots"]["plot_sm"]:
+                print(
+                    f"Generating FENIKS in+ex-situ sm plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+                )
+                plot_sm.plot_sm_obs(
                     ran_key,
                     param_collection_fit,
                     z_min,
@@ -531,7 +549,25 @@ if __name__ == "__main__":
                 print(
                     f"Generating SDSS in-situ sm plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
                 )
-                plot_insitu_sm(
+                plot_sm.plot_insitu_sm_obs(
+                    ran_key,
+                    param_collection_fit,
+                    z_min,
+                    z_max,
+                    sdss.dataset_dim_labels,
+                    ssp_data,
+                    sdss.filter_info.tcurves,
+                    sdss_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
+
+            if cfg["plots"]["plot_sm"]:
+                print(
+                    f"Generating SDSS in+ex-situ sm plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
+                )
+                plot_sm.plot_sm_obs(
                     ran_key,
                     param_collection_fit,
                     z_min,
