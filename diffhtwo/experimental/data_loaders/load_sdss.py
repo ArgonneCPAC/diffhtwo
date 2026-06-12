@@ -184,8 +184,8 @@ def get_sdss_data(
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
         [
-            [0.02, 0.1],
-            [0.1, 0.2],
+            [0.02, 0.08],
+            [0.08, 0.16],
         ]
     )
     ##############################################################################
@@ -252,7 +252,6 @@ def get_sdss_data(
 
         # 1D (u - r | r)
         rbins = np.arange(sdss_r[z_sel].min(), sdss_r[z_sel].max(), 2)
-        print(rbins)
 
         col_idx = [0, 2]
         cond_idx = 2
@@ -316,12 +315,11 @@ def get_sdss_data(
     ##############################################################################
     ##############################################################################
     # prepare 1D app mag funcs in finer z-bins for fitting
-    fine_zbins = fine_zbins = np.array(
+    fine_zbins = np.array(
         [
             [0.02, 0.06],
             [0.06, 0.1],
-            [0.1, 0.15],
-            [0.15, 0.20],
+            [0.1, 0.16],
         ]
     )
     ##############################################################################

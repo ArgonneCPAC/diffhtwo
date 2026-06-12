@@ -50,6 +50,7 @@ from diffhtwo.experimental.diagnostics.plot_satquench import (
     generate_sat_plots,
     plot_satquench_model,
 )
+from diffhtwo.experimental.diagnostics.plot_smhm import plot_smhm
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -221,6 +222,22 @@ if __name__ == "__main__":
                 [1.5, 2.0],
             ]
         )
+
+        if cfg["plots"]["plot_smhm"]:
+            print("Generating FENIKS SMHM plots...")
+            plot_smhm(
+                ran_key,
+                param_collection_fit,
+                feniks_zbins,
+                num_halos,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks.filter_info.mag_thresh,
+                feniks.frac_cat,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
 
         if cfg["plots"]["plot_color_contours"]:
             print("Generating FENIKS color contour plots...")
@@ -478,7 +495,29 @@ if __name__ == "__main__":
             num_halos_coarse_zbins=num_halos,
             num_halos_fine_zbins=int(num_halos / 2),
         )
-        sdss_zbins = np.array([[0.02, 0.05], [0.05, 0.08], [0.08, 0.11], [0.11, 0.14]])
+        sdss_zbins = np.array(
+            [
+                [0.02, 0.06],
+                [0.06, 0.1],
+                [0.1, 0.16],
+            ]
+        )
+
+        if cfg["plots"]["plot_smhm"]:
+            print("Generating SDSS SMHM plots...")
+            plot_smhm(
+                ran_key,
+                param_collection_fit,
+                sdss_zbins,
+                num_halos,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss.filter_info.mag_thresh,
+                sdss.frac_cat,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
 
         if cfg["plots"]["plot_color_contours"]:
             print("Generating SDSS color contour plots...")
