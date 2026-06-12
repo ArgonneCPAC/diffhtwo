@@ -9,7 +9,7 @@ plt.rc("font", family="serif", serif=["Times New Roman"])
 
 
 def get_median_logsm_obs(logmp_obs, logsm_obs):
-    logmp_bins = np.arange(11.0, logmp_obs.max() + 0.25, 0.25)
+    logmp_bins = np.arange(logmp_obs.min(), logmp_obs.max() + 0.25, 0.25)
     logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
 
     logsm_16, __, __ = binned_statistic(
@@ -31,10 +31,11 @@ def plot_smhm(
     num_halos,
     ssp_data,
     tcurves,
-    mag_thresh,
-    frac_cat,
     data_label,
     savedir,
+    mag_thresh=None,
+    frac_cat=None,
+    in_situ=False,
     plt_show=True,
 ):
     n_z_bins = len(zbins)
@@ -68,12 +69,16 @@ def plot_smhm(
             mag_thresh=mag_thresh,
             frac_cat=frac_cat,
         )
+        if in_situ:
+            logsm_obs = phot_kern_results.logsm_obs_in_situ
+        else:
+            logsm_obs = phot_kern_results.logsm_obs
         (
             logmp_bin_centers_default,
             logsm_16_default,
             logsm_50_default,
             logsm_84_default,
-        ) = get_median_logsm_obs(lc_data.logmp_obs, phot_kern_results.logsm_obs)
+        ) = get_median_logsm_obs(lc_data.logmp_obs, logsm_obs)
 
         ax[zbin].plot(
             logmp_bin_centers_default,
@@ -101,13 +106,17 @@ def plot_smhm(
             mag_thresh=mag_thresh,
             frac_cat=frac_cat,
         )
+        if in_situ:
+            logsm_obs = phot_kern_results.logsm_obs_in_situ
+        else:
+            logsm_obs = phot_kern_results.logsm_obs
 
         (
             logmp_bin_centers_fit,
             logsm_16_fit,
             logsm_50_fit,
             logsm_84_fit,
-        ) = get_median_logsm_obs(lc_data.logmp_obs, phot_kern_results.logsm_obs)
+        ) = get_median_logsm_obs(lc_data.logmp_obs, logsm_obs)
 
         ax[zbin].plot(logmp_bin_centers_fit, logsm_50_fit, label="fit", color="#61C0BF")
         ax[zbin].fill_between(
@@ -118,11 +127,18 @@ def plot_smhm(
             color="#61C0BF",
         )
 
-        ax[zbin].set_xlabel("logmp_obs", fontsize=fontsize)
+        # if in_situ:
+        #     ax[zbin].set_xlim(10, lc_data.logmp_obs.max())
+        #     ax[zbin].set_ylim(5, 13)
+        #     ax[zbin].set_xticks([10, 11, 12, 13, 14, 15])
+        #     ax[zbin].set_yticks([5, 6, 7, 8, 9, 10, 11, 12])
+        # else:
         ax[zbin].set_xlim(11, lc_data.logmp_obs.max())
         ax[zbin].set_ylim(8, 13)
         ax[zbin].set_xticks([11, 12, 13, 14, 15])
         ax[zbin].set_yticks([8, 9, 10, 11, 12])
+
+        ax[zbin].set_xlabel("logmp_obs", fontsize=fontsize)
 
         ax[zbin].minorticks_on()
         ax[zbin].tick_params(
@@ -144,13 +160,22 @@ def plot_smhm(
             labelsize=labelsize,
         )
 
-    ax[0].set_ylabel("logsm_obs", fontsize=fontsize)
+    if in_situ:
+        ax[0].set_ylabel("logsm_obs_in_situ", fontsize=fontsize)
+    else:
+        ax[0].set_ylabel("logsm_obs", fontsize=fontsize)
     ax[-1].legend(fontsize=7, loc="lower right")
 
-    fig.savefig(
-        savedir + "/" + data_label + "_smhm.png",
-        dpi=300,
-    )
+    if in_situ:
+        fig.savefig(
+            savedir + "/" + data_label + "_insitu_smhm.png",
+            dpi=300,
+        )
+    else:
+        fig.savefig(
+            savedir + "/" + data_label + "_smhm.png",
+            dpi=300,
+        )
 
     if plt_show:
         plt.show()

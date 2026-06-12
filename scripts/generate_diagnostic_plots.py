@@ -232,10 +232,20 @@ if __name__ == "__main__":
                 num_halos,
                 ssp_data,
                 feniks.filter_info.tcurves,
-                feniks.filter_info.mag_thresh,
-                feniks.frac_cat,
                 feniks_label,
                 fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+            plot_smhm(
+                ran_key,
+                param_collection_fit,
+                feniks_zbins,
+                num_halos,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                in_situ=True,
                 plt_show=False,
             )
 
@@ -500,6 +510,7 @@ if __name__ == "__main__":
                 [0.02, 0.06],
                 [0.06, 0.1],
                 [0.1, 0.16],
+                [0.16, 0.20],
             ]
         )
 
@@ -512,10 +523,20 @@ if __name__ == "__main__":
                 num_halos,
                 ssp_data,
                 sdss.filter_info.tcurves,
-                sdss.filter_info.mag_thresh,
-                sdss.frac_cat,
                 sdss_label,
                 fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+            plot_smhm(
+                ran_key,
+                param_collection_fit,
+                sdss_zbins,
+                num_halos,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                in_situ=True,
                 plt_show=False,
             )
 

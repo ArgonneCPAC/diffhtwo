@@ -592,7 +592,14 @@ def plot_app_mag_funcs(
     zbins = np.array(zbins)
     labels_z = [" z = " + str(np.round(np.median(z), 2)) for z in zbins]
 
-    if len(labels_z) == 4:
+    if len(labels_z) == 3:
+        colors_z = [
+            "#001219",
+            "#0a7a80",
+            "#c87820",
+        ]
+
+    elif len(labels_z) == 4:
         colors_z = [
             "#001219",
             "#0a7a80",
@@ -600,7 +607,7 @@ def plot_app_mag_funcs(
             "#c87820",
         ]
 
-    else:
+    elif len(labels_z) == 5:
         colors_z = [
             "#001219",
             "#0a7a80",

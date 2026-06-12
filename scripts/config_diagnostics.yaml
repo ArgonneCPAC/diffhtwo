@@ -11,8 +11,8 @@ dsps_drn: /Users/kumail/diffdir/COSMOS20/portal.nersc.gov/project/hacc/aphearin/
 ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5
 
 
-plot_sdss: True
-plot_feniks: False
+plot_sdss: False
+plot_feniks: True
 plot_hizels: False
 
 plots:
@@ -25,8 +25,6 @@ plots:
   plot_ssperr: True
   plot_massive_cen_colors: True
   plot_merging_sat_colors: True
-  plot_satquench: False
-  plot_satquench_model: True
   plot_smhm: True
   plot_insitu_smhm: True
   plot_insitu_sm: True
@@ -36,3 +34,5 @@ plots:
   plot_avpop: True
   plot_burstpop: True
   plot_fburst_mh_z: True
+  plot_satquench_model: True
+  plot_satquench: False
