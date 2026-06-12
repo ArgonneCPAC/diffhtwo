@@ -533,7 +533,7 @@ def get_feniks_data(
     )
     mag_idx = 7
     col_idx = [2, 3]
-    K_ri = K_ri(mag_idx, col_idx, sig_K_ri, bin_lo_K_ri, bin_hi_K_ri, N_K_ri, False)
+    K_ri = K_ri(mag_idx, col_idx, sig_K_ri, bin_lo_K_ri, bin_hi_K_ri, N_K_ri, True)
     n_bins += bin_lo_K_ri.size
 
     # 2D (K, g - r)
@@ -546,7 +546,7 @@ def get_feniks_data(
     )
     mag_idx = 7
     col_idx = [1, 2]
-    K_gr = K_gr(mag_idx, col_idx, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr, N_K_gr, False)
+    K_gr = K_gr(mag_idx, col_idx, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr, N_K_gr, True)
     n_bins += bin_lo_K_gr.size
 
     # 2D (K, J - H)
@@ -559,7 +559,7 @@ def get_feniks_data(
     )
     mag_idx = 7
     col_idx = [5, 6]
-    K_JH = K_JH(mag_idx, col_idx, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH, N_K_JH, False)
+    K_JH = K_JH(mag_idx, col_idx, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH, N_K_JH, True)
     n_bins += bin_lo_K_JH.size
 
     z1 = Z1(z_min, z_max, lc_data, gr_ri, ug, ri, iz, jh, K_ri, K_gr, K_JH)
@@ -707,7 +707,7 @@ def get_feniks_data(
     )
     mag_idx = 7
     col_idx = [0, 1]
-    K_ug = K_ug(mag_idx, col_idx, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug, N_K_ug, False)
+    K_ug = K_ug(mag_idx, col_idx, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug, N_K_ug, True)
     n_bins += bin_lo_K_ug.size
 
     # 2D (K, r - z)
@@ -720,7 +720,7 @@ def get_feniks_data(
     )
     mag_idx = 7
     col_idx = [2, 4]
-    K_rz = K_rz(mag_idx, col_idx, sig_K_rz, bin_lo_K_rz, bin_hi_K_rz, N_K_rz, False)
+    K_rz = K_rz(mag_idx, col_idx, sig_K_rz, bin_lo_K_rz, bin_hi_K_rz, N_K_rz, True)
     n_bins += bin_lo_K_rz.size
 
     z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz)
@@ -896,7 +896,7 @@ def get_feniks_data(
     )
     mag_idx = 7
     col_idx = [0, 1]
-    K_ug = K_ug(mag_idx, col_idx, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug, N_K_ug, False)
+    K_ug = K_ug(mag_idx, col_idx, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug, N_K_ug, True)
     n_bins += bin_lo_K_ug.size
 
     # 2D (K, g - r)
@@ -909,7 +909,7 @@ def get_feniks_data(
     )
     mag_idx = 7
     col_idx = [1, 2]
-    K_gr = K_gr(mag_idx, col_idx, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr, N_K_gr, False)
+    K_gr = K_gr(mag_idx, col_idx, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr, N_K_gr, True)
     n_bins += bin_lo_K_gr.size
 
     # 2D (K, J - H)
@@ -922,7 +922,7 @@ def get_feniks_data(
     )
     mag_idx = 7
     col_idx = [5, 6]
-    K_JH = K_JH(mag_idx, col_idx, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH, N_K_JH, False)
+    K_JH = K_JH(mag_idx, col_idx, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH, N_K_JH, True)
     n_bins += bin_lo_K_JH.size
 
     z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug_gr, ug, gr, jh, K_ug, K_gr, K_JH)
