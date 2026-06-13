@@ -240,14 +240,14 @@ def get_sdss_data(
         N_ur_ri, sig_ur_ri, bin_lo_ur_ri, bin_hi_ur_ri = get_N_2d(
             sdss_ur[z_sel], sdss_ri[z_sel]
         )
-        col_idx = [0, 2, 3]
+        col_idx = [0, 2, 2, 3]
         ur_ri = Ur_ri(col_idx, sig_ur_ri, bin_lo_ur_ri, bin_hi_ur_ri, N_ur_ri, True)
 
         # 2D (g - r, r - i)
         N_gr_ri, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri = get_N_2d(
             sdss_gr[z_sel], sdss_ri[z_sel]
         )
-        col_idx = [1, 2, 3]
+        col_idx = [1, 2, 2, 3]
         gr_ri = Gr_ri(col_idx, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri, N_gr_ri, True)
 
         # 1D (u - r | r)
