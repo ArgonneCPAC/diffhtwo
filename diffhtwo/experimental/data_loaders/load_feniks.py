@@ -535,12 +535,12 @@ def get_feniks_data(
 
     # 2D (i - NB816, g - r)
     i816_gr = N_utils.get_colorcolor_space(
-        "I816_gr", hsc_i816, hsc_gr, [3, 8, 1, 2], z_sel, fit=True
+        "I816_gr", hsc_i816, hsc_gr, [3, 8, 1, 2], z_sel, fit=False
     )
 
     # 2D (i - NB816, r - K)
     i816_rK = N_utils.get_colorcolor_space(
-        "I816_rK", hsc_i816, hsc_uds_rK, [3, 8, 2, 7], z_sel, fit=True
+        "I816_rK", hsc_i816, hsc_uds_rK, [3, 8, 2, 7], z_sel, fit=False
     )
 
     # 1D (i - NB816 | K)
@@ -552,7 +552,7 @@ def get_feniks_data(
         7,
         z_sel,
         cond_dmag=2,
-        fit=True,
+        fit=False,
     )
 
     # 1D (z - NB921 | K)
@@ -564,7 +564,7 @@ def get_feniks_data(
         7,
         z_sel,
         cond_dmag=2,
-        fit=True,
+        fit=False,
     )
 
     z2a = Z2a(
