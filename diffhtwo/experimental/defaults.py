@@ -76,3 +76,19 @@ AppMagFunc = namedtuple(
     "AppMagFunc",
     ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data", "fit"],
 )
+
+FeniksFilters = namedtuple(
+    "FeniksFilters",
+    [
+        "MegaCam_uS",
+        "HSC_G",
+        "HSC_R",
+        "HSC_I",
+        "NB0816",
+        "HSC_Z",
+        "NB0921",
+        "UDS_J",
+        "UDS_H",
+        "UDS_K",
+    ],
+)

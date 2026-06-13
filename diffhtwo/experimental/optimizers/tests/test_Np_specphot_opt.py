@@ -8,16 +8,15 @@ from jax.example_libraries import optimizers as jax_opt
 
 from ... import param_utils as pu
 from ..Np_specphot_opt import (
-    _loss_and_grad_phot_kern_multi_z,
-    _loss_and_grad_sdss_feniks_hizels,
-    fit_N_multi_z,
-    fit_sdss_feniks_hizels,
+    _loss_and_grad_emline_kern_multi_line_multi_z,
+    _loss_and_grad_phot_kern_2d_multiz,
+    fit_feniks_hizels,
+    fit_N_phot_2d,
 )
 
 
 @pytest.fixture(scope="module")
-def multistep_grads(ran_key, feniks_multi_z_data):
-    feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
+def multistep_grads(ran_key, feniks_fitting_data):
     n_steps = 10
     step_size = 0.1
 
@@ -25,14 +24,13 @@ def multistep_grads(ran_key, feniks_multi_z_data):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     other = (
         ran_key,
-        feniks_meta_data,
         feniks_fitting_data,
     )
     opt_state = opt_init(u_theta_init)
     multistep_grads = []
     for i in range(n_steps):
         u_theta = get_params(opt_state)
-        loss, grads = _loss_and_grad_phot_kern_multi_z(u_theta, *other)
+        loss, grads = _loss_and_grad_phot_kern_2d_multiz(u_theta, *other)
         multistep_grads.append(grads)
         opt_state = opt_update(i, grads, opt_state)
     return multistep_grads, n_steps
@@ -93,14 +91,11 @@ def test_all_diffsky_u_param_grads_are_nonzero(
     ), f"These {diffsky_param_names[param_idx]} have exactly zero grads: {zero_grad_params}"
 
 
-def test_phot_opt(ran_key, feniks_multi_z_data):
-    feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
-
+def test_phot_opt(ran_key, feniks_fitting_data):
     u_theta = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
-    loss, grads = _loss_and_grad_phot_kern_multi_z(
+    loss, grads = _loss_and_grad_phot_kern_2d_multiz(
         u_theta,
         ran_key,
-        feniks_meta_data,
         feniks_fitting_data,
     )
     assert np.isfinite(loss)
@@ -108,11 +103,10 @@ def test_phot_opt(ran_key, feniks_multi_z_data):
         assert np.isfinite(grads[g]).all()
 
     trainable_params = pu.get_trainable_params(fit_type="all")
-    loss_hist, u_theta_fit = fit_N_multi_z(
+    loss_hist, u_theta_fit = fit_N_phot_2d(
         u_theta,
         trainable_params,
         ran_key,
-        feniks_meta_data,
         feniks_fitting_data,
         n_steps=2,
         step_size=0.1,
@@ -126,38 +120,34 @@ def test_phot_opt(ran_key, feniks_multi_z_data):
 
 
 def test_specphot_opt(
-    ran_key, fake_subset_ssp_data, feniks_multi_z_data, hizels_fitting_data
+    ran_key, fake_subset_ssp_data, feniks_fitting_data, hizels_fitting_data
 ):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
-    feniks_meta_data, feniks_fitting_data = feniks_multi_z_data
-
-    # duplicate feniks data for sdss data
-    sdss_meta_data, sdss_fitting_data = feniks_meta_data, feniks_fitting_data
-
     u_theta = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
-    loss, grads = _loss_and_grad_sdss_feniks_hizels(
+    loss_phot, grad_phot = _loss_and_grad_phot_kern_2d_multiz(
         u_theta,
         ran_key,
-        sdss_meta_data,
-        sdss_fitting_data,
-        feniks_meta_data,
         feniks_fitting_data,
+    )
+    assert np.isfinite(loss_phot)
+    for g in range(len(grad_phot)):
+        assert np.isfinite(grad_phot[g]).all()
+
+    loss_emline, grad_emline = _loss_and_grad_emline_kern_multi_line_multi_z(
+        u_theta,
+        ran_key,
         hizels_fitting_data,
     )
-
-    assert np.isfinite(loss)
-    for g in range(len(grads)):
-        assert np.isfinite(grads[g]).all()
+    assert np.isfinite(loss_emline)
+    for g in range(len(grad_emline)):
+        assert np.isfinite(grad_emline[g]).all()
 
     trainable_params = pu.get_trainable_params(fit_type="all")
-    loss_hist, u_theta_fit = fit_sdss_feniks_hizels(
+    loss_hist, u_theta_fit = fit_feniks_hizels(
         u_theta,
         trainable_params,
         ran_key,
-        sdss_meta_data,
-        sdss_fitting_data,
-        feniks_meta_data,
         feniks_fitting_data,
         hizels_fitting_data,
         n_steps=2,

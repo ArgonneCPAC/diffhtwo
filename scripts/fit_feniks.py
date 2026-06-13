@@ -1,7 +1,6 @@
 import argparse
 import os
 import time
-from collections import namedtuple
 from datetime import datetime
 
 import jax
@@ -94,19 +93,12 @@ if __name__ == "__main__":
     for epoch in range(0, cfg["epoch"]["n_it"]):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
 
-        feniks = load_feniks.get_feniks_data(
+        feniks_fitting_data = load_feniks.get_feniks_fitting_data(
             feniks_drn,
             ran_key,
             ssp_data,
             num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
             num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
-        )
-        remove = {"dataset_dim_labels", "mags_labels"}
-        FeniksFitting = namedtuple(
-            "Feniks", [f for f in feniks._fields if f not in remove]
-        )
-        feniks_fitting_data = FeniksFitting(
-            **{f: getattr(feniks, f) for f in FeniksFitting._fields}
         )
 
         loss_hist, u_theta_fit = Np_specphot_opt.fit_N_phot_2d(

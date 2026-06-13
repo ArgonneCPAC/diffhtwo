@@ -74,6 +74,20 @@ def feniks_tcurves():
 
 
 @pytest.fixture(scope="session")
+def feniks_fitting_data(ran_key, fake_subset_ssp_data):
+    ssp_data, emline_wave_aa = fake_subset_ssp_data
+    feniks_fitting_data = load_feniks.get_feniks_fitting_data(
+        FENIKS_DRN,
+        ran_key,
+        ssp_data,
+        phot=PHOT,
+        zout=ZOUT,
+        add_random_rows_for_testing=True,
+    )
+    return feniks_fitting_data
+
+
+@pytest.fixture(scope="session")
 def feniks_single_z_data(ran_key, fake_subset_ssp_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
