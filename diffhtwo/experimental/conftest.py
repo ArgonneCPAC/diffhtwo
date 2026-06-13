@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import jax.numpy as jnp
-import numpy as np
 import pytest
 from dsps.data_loaders import load_emline_info as lemi
 from dsps.data_loaders import retrieve_fake_fsps_data
@@ -42,15 +41,13 @@ def fake_subset_ssp_data():
 def feniks(ran_key, fake_subset_ssp_data):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
-    mag_bin_edges = np.array([18, 25])
-
     feniks = load_feniks.get_feniks_data(
         FENIKS_DRN,
         ran_key,
         ssp_data,
         phot=PHOT,
         zout=ZOUT,
-        mag_bin_edges=mag_bin_edges,
+        add_random_rows_for_testing=True,
     )
     return feniks
 

@@ -20,7 +20,7 @@ from ..defaults import (
 )
 from ..latin_hypercube import latin_hypercube as lh
 from ..lightcone_generators import generate_lc_data
-from ..utils import load_feniks_tcurve
+from ..utils import add_random_rows, load_feniks_tcurve
 from . import N_utils
 
 BASE_PATH = Path(__file__).resolve().parent.parent
@@ -153,7 +153,7 @@ def get_feniks_data(
     lgmp_max=15.0,
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
-    mag_bin_edges=None,
+    add_random_rows_for_testing=False,
 ):
     # Transmission curves and filter mag thresholds
 
@@ -178,6 +178,10 @@ def get_feniks_data(
     drn_path = Path(drn)
     phot = ascii.read(drn_path / phot)
     zout = ascii.read(drn_path / zout)
+
+    if add_random_rows_for_testing:
+        phot = add_random_rows(phot, N=10000)
+        zout = add_random_rows(zout, N=10000)
 
     # get mags
     megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
@@ -406,7 +410,7 @@ def get_feniks_data(
 
     # 2D (g - r, r - i)
     gr_ri = N_utils.get_colorcolor_space(
-        "Gr_ri", hsc_gr, hsc_ri, [1, 2, 3], z_sel, fit=True
+        "Gr_ri", hsc_gr, hsc_ri, [1, 2, 2, 3], z_sel, fit=True
     )
 
     # 1D (u - g | K)
@@ -501,7 +505,7 @@ def get_feniks_data(
 
     # 2D (r - z, z - J)
     rz_zJ = N_utils.get_colorcolor_space(
-        "Rz_zJ", hsc_rz, hsc_uds_zJ, [2, 4, 5], z_sel, fit=True
+        "Rz_zJ", hsc_rz, hsc_uds_zJ, [2, 4, 4, 5], z_sel, fit=True
     )
 
     # 1D (u - g | K)
@@ -616,7 +620,7 @@ def get_feniks_data(
 
     # 2D (r - z, z - J)
     rz_zJ = N_utils.get_colorcolor_space(
-        "Rz_zJ", hsc_rz, hsc_uds_zJ, [2, 4, 5], z_sel, fit=True
+        "Rz_zJ", hsc_rz, hsc_uds_zJ, [2, 4, 4, 5], z_sel, fit=True
     )
 
     # 1D (u - g | K)
@@ -697,27 +701,27 @@ def get_feniks_data(
 
     # 2D (z - J, J - H)
     zJ_JH = N_utils.get_colorcolor_space(
-        "ZJ_JH", hsc_uds_zJ, uds_JH, [4, 5, 6], z_sel, fit=True
+        "ZJ_JH", hsc_uds_zJ, uds_JH, [4, 5, 5, 6], z_sel, fit=True
     )
 
     # 2D (u - g, g - r)
     ug_gr = N_utils.get_colorcolor_space(
-        "Ug_gr", megacam_hsc_uSg, hsc_gr, [0, 1, 2], z_sel, fit=True
+        "Ug_gr", megacam_hsc_uSg, hsc_gr, [0, 1, 1, 2], z_sel, fit=True
     )
 
     # 1D (u - g | K)
     ug = N_utils.get_color_cond_space_list(
-        "Ug_condK", megacam_hsc_uSg, uds_K, [0, 1], 7, z_sel, cond_dmag=2, fit=True
+        "Ug_condK", megacam_hsc_uSg, uds_K, [0, 1], 7, z_sel, cond_dmag=4, fit=True
     )
 
     # 1D (g - r | K)
     gr = N_utils.get_color_cond_space_list(
-        "Gr_condK", hsc_gr, uds_K, [1, 2], 7, z_sel, cond_dmag=2, fit=True
+        "Gr_condK", hsc_gr, uds_K, [1, 2], 7, z_sel, cond_dmag=4, fit=True
     )
 
     # 1D (J − H | K)
     jh = N_utils.get_color_cond_space_list(
-        "JH_condK", uds_JH, uds_K, [5, 6], 7, z_sel, cond_dmag=2, fit=True
+        "JH_condK", uds_JH, uds_K, [5, 6], 7, z_sel, cond_dmag=4, fit=True
     )
 
     # 2D (K, u - g)

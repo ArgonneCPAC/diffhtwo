@@ -55,16 +55,15 @@ def mag_kern(
         param_collection,
         lc_data,
     )
-    obs_mags = phot_kern_results.obs_mags_weighted
-
+    obs_mags_weighted = phot_kern_results.obs_mags_weighted
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     # update weights to incorporate mag thresh cuts and frac_cat
     gal_weight = compute_cat_weights(
-        gal_weight, phot_kern_results, mag_thresh, frac_cat
+        gal_weight, obs_mags_weighted, mag_thresh, frac_cat
     )
 
-    return obs_mags, gal_weight, phot_kern_results
+    return obs_mags_weighted, gal_weight, phot_kern_results
 
 
 @partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
