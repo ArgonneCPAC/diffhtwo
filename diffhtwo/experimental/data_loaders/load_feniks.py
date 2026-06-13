@@ -15,16 +15,13 @@ from ..defaults import (
     FENIKS_Z_MAX,
     FENIKS_Z_MIN,
     AppMagFunc,
-    ColorColor,
-    ColorCondMag,
     Dataset,
     FilterInfo,
-    MagColor,
 )
 from ..latin_hypercube import latin_hypercube as lh
 from ..lightcone_generators import generate_lc_data
 from ..utils import load_feniks_tcurve
-from .N_utils import get_N_1d, get_N_2d
+from . import N_utils
 
 BASE_PATH = Path(__file__).resolve().parent.parent
 FENIKS_FILTERS_PATH = BASE_PATH / "data" / "feniks_filters"
@@ -166,10 +163,11 @@ def get_feniks_data(
         HSC_R=False,
         HSC_I=False,
         HSC_Z=False,
-        # VIDEO_Y=False,
         UDS_J=False,
         UDS_H=False,
         UDS_K=True,
+        NB0816=False,
+        NB0921=False,
     )
     tcurves = []
     for feniks_filter in FeniksFilters._fields:
@@ -191,6 +189,8 @@ def get_feniks_data(
     uds_J = get_mag_ab(phot, "fcol_UDS_J")
     uds_H = get_mag_ab(phot, "fcol_UDS_H")
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
+    nb816 = get_mag_ab(phot, "fcol_NB0816")
+    nb921 = get_mag_ab(phot, "fcol_NB0921")
 
     feniks_mag_thresh = FeniksFilters(
         MegaCam_uS=24.9,
@@ -201,6 +201,8 @@ def get_feniks_data(
         UDS_J=24.5,
         UDS_H=24.3,
         UDS_K=FENIKS_MAGK_THRESH,
+        NB0816=25.3,
+        NB0921=25.3,
     )
 
     filter_info = FilterInfo(feniks_mag_thresh, feniks_in_lh, tcurves)
@@ -215,6 +217,8 @@ def get_feniks_data(
         & (uds_J < feniks_mag_thresh.UDS_J)
         & (uds_H < feniks_mag_thresh.UDS_H)
         & (uds_K < feniks_mag_thresh.UDS_K)
+        & (nb816 < feniks_mag_thresh.NB0816)
+        & (nb921 < feniks_mag_thresh.NB0921)
     )
 
     # apply mag_thresh cuts and record n_gals.
@@ -227,10 +231,11 @@ def get_feniks_data(
     hsc_r = hsc_r[mag_thresh]
     hsc_i = hsc_i[mag_thresh]
     hsc_z = hsc_z[mag_thresh]
-    # video_Y = video_Y[mag_thresh]
     uds_J = uds_J[mag_thresh]
     uds_H = uds_H[mag_thresh]
     uds_K = uds_K[mag_thresh]
+    nb816 = nb816[mag_thresh]
+    nb921 = nb921[mag_thresh]
 
     n_gals_pre_cuts = len(zout)
 
@@ -241,10 +246,11 @@ def get_feniks_data(
         & (hsc_r != -99)
         & (hsc_i != -99)
         & (hsc_z != -99)
-        # & (video_Y != -99)
         & (uds_J != -99)
         & (uds_H != -99)
         & (uds_K != -99)
+        & (nb816 != -99)
+        & (nb921 != -99)
     )
 
     phot = phot[clean]
@@ -254,10 +260,11 @@ def get_feniks_data(
     hsc_r = hsc_r[clean]
     hsc_i = hsc_i[clean]
     hsc_z = hsc_z[clean]
-    # video_Y = video_Y[clean]
     uds_J = uds_J[clean]
     uds_H = uds_H[clean]
     uds_K = uds_K[clean]
+    nb816 = nb816[clean]
+    nb921 = nb921[clean]
 
     n_gals_post_cuts = len(zout)
     frac_cat = n_gals_post_cuts / n_gals_pre_cuts
@@ -269,13 +276,27 @@ def get_feniks_data(
             hsc_r,
             hsc_i,
             hsc_z,
-            # video_Y,
             uds_J,
             uds_H,
             uds_K,
+            nb816,
+            nb921,
             zout["z_phot"],
         )
     ).T
+
+    mags_labels = [
+        r"$uS_{MegaCam}$",
+        r"$g_{HSC}$",
+        r"$r_{HSC}$",
+        r"$i_{HSC}$",
+        r"$z_{HSC}$",
+        r"$J_{UDS}$",
+        r"$H_{UDS}$",
+        r"$K_{UDS}$",
+        r"$NB816$",
+        r"$NB921$",
+    ]
 
     # derive colors from mags
     megacam_hsc_uSg = megacam_uS - hsc_g
@@ -286,6 +307,9 @@ def get_feniks_data(
     hsc_uds_zJ = hsc_z - uds_J
     uds_JH = uds_J - uds_H
     uds_HK = uds_H - uds_K
+    hsc_i816 = hsc_i - nb816
+    hsc_z921 = hsc_z - nb921
+    hsc_uds_rK = hsc_r - uds_K
 
     # stack colors_mag
     dataset = np.vstack(
@@ -299,6 +323,8 @@ def get_feniks_data(
             uds_HK,
             megacam_uS,
             uds_K,
+            hsc_i816,
+            hsc_z921,
             zout["z_phot"],
         )
     ).T
@@ -314,39 +340,22 @@ def get_feniks_data(
         r"$H_{UDS} - K_{UDS}$",
         r"$uS_{MegaCam}$",
         r"$K_{UDS}$",
+        r"$i_{HSC} - NB816_{HSC}$",
+        r"$z_{HSC} - NB921_{HSC}$",
         r"$redshift$",
     ]
 
-    mags_labels = [
-        r"$uS_{MegaCam}$",
-        r"$g_{HSC}$",
-        r"$r_{HSC}$",
-        r"$i_{HSC}$",
-        r"$z_{HSC}$",
-        # r"$Y_{VIDEO}$",
-        r"$J_{UDS}$",
-        r"$H_{UDS}$",
-        r"$K_{UDS}$",
-    ]
-
-    # mask redshift
-    # z_mask = (zout["z_phot"] > FENIKS_Z_MIN) & (zout["z_phot"] <= FENIKS_Z_MAX)
-    # dataset = dataset[z_mask]
-    # mags = mags[z_mask]
-    # zout = zout[z_mask]
-
     n_bins = 0
-
     ##############################################################################
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
         [
             [0.2, 0.7],
-            [0.7, 1.5],
+            [0.7, 1.0],
+            [1.0, 1.5],
             [1.5, 2.5],
         ]
     )
-
     ##############################################################################
     # Z1 spaces:
     # 2D (g - r, r - i)
@@ -396,184 +405,75 @@ def get_feniks_data(
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
     # 2D (g - r, r - i)
-    Gr_ri = namedtuple("Gr_ri", ColorColor._fields)
-    mag_sel_gr_ri = (
-        (hsc_g[z_sel] < feniks_mag_thresh.HSC_G)
-        & (hsc_r[z_sel] < feniks_mag_thresh.HSC_R)
-        & (hsc_i[z_sel] < feniks_mag_thresh.HSC_I)
+    gr_ri = N_utils.get_colorcolor_space(
+        "Gr_ri", hsc_gr, hsc_ri, [1, 2, 3], z_sel, fit=True
     )
-    N_gr_ri, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri = get_N_2d(
-        hsc_gr[z_sel][mag_sel_gr_ri], hsc_ri[z_sel][mag_sel_gr_ri]
-    )
-    col_idx = [1, 2, 3]
-    gr_ri = Gr_ri(col_idx, sig_gr_ri, bin_lo_gr_ri, bin_hi_gr_ri, N_gr_ri, True)
-    n_bins += bin_lo_gr_ri.size
 
     # 1D (u - g | K)
-    Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
-
-    ug = []
-    Ug_condK = namedtuple("Ug_condK", ColorCondMag._fields)
-    mag_sel_ug = (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS) & (
-        hsc_g[z_sel] < feniks_mag_thresh.HSC_G
+    ug = N_utils.get_color_cond_space_list(
+        "Ug_condK", megacam_hsc_uSg, uds_K, [0, 1], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [0, 1]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_ug, sig_ug, bin_lo_ug, bin_hi_ug = get_N_1d(
-            megacam_hsc_uSg[z_sel][mag_sel_ug & K_sel]
-        )
-        ug.append(
-            Ug_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_ug,
-                bin_lo_ug,
-                bin_hi_ug,
-                N_1d_ug,
-                True,
-            )
-        )
-        n_bins += bin_lo_ug.size
 
     # 1D (r − i | K)
-    ri = []
-    Ri_condK = namedtuple("Ri_condK", ColorCondMag._fields)
-    mag_sel_ri = (hsc_r[z_sel] < feniks_mag_thresh.HSC_R) & (
-        hsc_i[z_sel] < feniks_mag_thresh.HSC_I
+    ri = N_utils.get_color_cond_space_list(
+        "Ri_condK", hsc_ri, uds_K, [2, 3], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [2, 3]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_ri, sig_ri, bin_lo_ri, bin_hi_ri = get_N_1d(
-            hsc_ri[z_sel][mag_sel_ri & K_sel]
-        )
-        ri.append(
-            Ri_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_ri,
-                bin_lo_ri,
-                bin_hi_ri,
-                N_1d_ri,
-                True,
-            )
-        )
-        n_bins += bin_lo_ri.size
 
     # 1D (i − z | K)
-    iz = []
-    Iz_condK = namedtuple("Iz_condK", ColorCondMag._fields)
-    mag_sel_iz = (hsc_i[z_sel] < feniks_mag_thresh.HSC_I) & (
-        hsc_z[z_sel] < feniks_mag_thresh.HSC_Z
+    iz = N_utils.get_color_cond_space_list(
+        "Iz_condK", hsc_iz, uds_K, [3, 4], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [3, 4]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_iz, sig_iz, bin_lo_iz, bin_hi_iz = get_N_1d(
-            hsc_iz[z_sel][mag_sel_iz & K_sel]
-        )
-        iz.append(
-            Iz_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_iz,
-                bin_lo_iz,
-                bin_hi_iz,
-                N_1d_iz,
-                True,
-            )
-        )
-        n_bins += bin_lo_iz.size
 
     # 1D (J − H | K)
-    jh = []
-    JH_condK = namedtuple("JH_condK", ColorCondMag._fields)
-    mag_sel_jh = (uds_J[z_sel] < feniks_mag_thresh.UDS_J) & (
-        uds_H[z_sel] < feniks_mag_thresh.UDS_H
+    jh = N_utils.get_color_cond_space_list(
+        "JH_condK", uds_JH, uds_K, [5, 6], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [5, 6]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_jh, sig_jh, bin_lo_jh, bin_hi_jh = get_N_1d(
-            uds_JH[z_sel][mag_sel_jh & K_sel]
-        )
-        jh.append(
-            JH_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_jh,
-                bin_lo_jh,
-                bin_hi_jh,
-                N_1d_jh,
-                True,
-            )
-        )
-        n_bins += bin_lo_jh.size
 
     # 2D (K, r - i)
-    K_ri = namedtuple("K_ri", MagColor._fields)
-    mag_sel_ri = (hsc_r[z_sel] < feniks_mag_thresh.HSC_R) & (
-        hsc_i[z_sel] < feniks_mag_thresh.HSC_I
+    K_ri = N_utils.get_mag_color_space(
+        "K_ri", uds_K, hsc_ri, 7, [2, 3], z_sel, fit=True
     )
-    N_K_ri, sig_K_ri, bin_lo_K_ri, bin_hi_K_ri = get_N_2d(
-        uds_K[z_sel][mag_sel_ri], hsc_ri[z_sel][mag_sel_ri]
-    )
-    mag_idx = 7
-    col_idx = [2, 3]
-    K_ri = K_ri(mag_idx, col_idx, sig_K_ri, bin_lo_K_ri, bin_hi_K_ri, N_K_ri, True)
-    n_bins += bin_lo_K_ri.size
 
     # 2D (K, g - r)
-    K_gr = namedtuple("K_gr", MagColor._fields)
-    mag_sel_gr = (hsc_g[z_sel] < feniks_mag_thresh.HSC_G) & (
-        hsc_r[z_sel] < feniks_mag_thresh.HSC_R
+    K_gr = N_utils.get_mag_color_space(
+        "K_gr", uds_K, hsc_gr, 7, [1, 2], z_sel, fit=True
     )
-    N_K_gr, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr = get_N_2d(
-        uds_K[z_sel][mag_sel_gr], hsc_gr[z_sel][mag_sel_gr]
-    )
-    mag_idx = 7
-    col_idx = [1, 2]
-    K_gr = K_gr(mag_idx, col_idx, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr, N_K_gr, True)
-    n_bins += bin_lo_K_gr.size
 
     # 2D (K, J - H)
-    K_JH = namedtuple("K_JH", MagColor._fields)
-    mag_sel_JH = (uds_J[z_sel] < feniks_mag_thresh.UDS_J) & (
-        uds_H[z_sel] < feniks_mag_thresh.UDS_H
+    K_JH = N_utils.get_mag_color_space(
+        "K_JH", uds_K, uds_JH, 7, [5, 6], z_sel, fit=True
     )
-    N_K_JH, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH = get_N_2d(
-        uds_K[z_sel][mag_sel_JH], uds_JH[z_sel][mag_sel_JH]
-    )
-    mag_idx = 7
-    col_idx = [5, 6]
-    K_JH = K_JH(mag_idx, col_idx, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH, N_K_JH, True)
-    n_bins += bin_lo_K_JH.size
 
     z1 = Z1(z_min, z_max, lc_data, gr_ri, ug, ri, iz, jh, K_ri, K_gr, K_JH)
     colors.append(z1)
 
     ##############################################################################
-    # Z2 spaces:
+    # Z2a spaces:
     # 2D (r - z, z - J)
     # 2D (K, u - g)
     # 2D (K, r - z)
+    # 2D (i - NB816, g - r)   -- metallicity vs age
+    # 2D (i - NB816, r - K)   -- metallicity vs mass-to-light
+    # 1D (i - NB816 | K)      -- metallicity at fixed mass
+    # 1D (z - NB921 | K)      -- cross-check metallicity at fixed mass
 
-    Z2 = namedtuple(
-        "Z2",
-        ["z_min", "z_max", "lc_data", "rz_zJ", "ug", "rz", "jh", "K_ug", "K_rz"],
+    Z2a = namedtuple(
+        "Z2a",
+        [
+            "z_min",
+            "z_max",
+            "lc_data",
+            "rz_zJ",
+            "ug",
+            "rz",
+            "jh",
+            "K_ug",
+            "K_rz",
+            "iNB816_gr",
+            "iNB816_rK",
+            "iNB816_condK",
+            "zNB921_condK",
+        ],
     )
     zbin = 1
     z_min = zbins[zbin][0]
@@ -600,155 +500,95 @@ def get_feniks_data(
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
     # 2D (r - z, z - J)
-    Rz_zJ = namedtuple("Rz_zJ", ColorColor._fields)
-    mag_sel_rz_zJ = (
-        (hsc_r[z_sel] < feniks_mag_thresh.HSC_R)
-        & (hsc_z[z_sel] < feniks_mag_thresh.HSC_Z)
-        & (uds_J[z_sel] < feniks_mag_thresh.UDS_J)
+    rz_zJ = N_utils.get_colorcolor_space(
+        "Rz_zJ", hsc_rz, hsc_uds_zJ, [2, 4, 5], z_sel, fit=True
     )
-    N_rz_zJ, sig_rz_zJ, bin_lo_rz_zJ, bin_hi_rz_zJ = get_N_2d(
-        hsc_rz[z_sel][mag_sel_rz_zJ], hsc_uds_zJ[z_sel][mag_sel_rz_zJ]
-    )
-    col_idx = [2, 4, 5]
-    rz_zJ = Rz_zJ(col_idx, sig_rz_zJ, bin_lo_rz_zJ, bin_hi_rz_zJ, N_rz_zJ, True)
-    n_bins += bin_lo_rz_zJ.size
 
     # 1D (u - g | K)
-    Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 2)
-
-    ug = []
-    mag_sel_ug = (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS) & (
-        hsc_g[z_sel] < feniks_mag_thresh.HSC_G
+    ug = N_utils.get_color_cond_space_list(
+        "Ug_condK", megacam_hsc_uSg, uds_K, [0, 1], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [0, 1]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_ug, sig_ug, bin_lo_ug, bin_hi_ug = get_N_1d(
-            megacam_hsc_uSg[z_sel][mag_sel_ug & K_sel]
-        )
-        ug.append(
-            Ug_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_ug,
-                bin_lo_ug,
-                bin_hi_ug,
-                N_1d_ug,
-                True,
-            )
-        )
-        n_bins += bin_lo_ug.size
 
     # 1D (r - z | K)
-    rz = []
-    Rz_condK = namedtuple("Rz_condK", ColorCondMag._fields)
-    mag_sel_rz = (hsc_r[z_sel] < feniks_mag_thresh.HSC_R) & (
-        hsc_z[z_sel] < feniks_mag_thresh.HSC_Z
+    rz = N_utils.get_color_cond_space_list(
+        "Rz_condK", hsc_rz, uds_K, [2, 4], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [2, 4]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_rz, sig_rz, bin_lo_rz, bin_hi_rz = get_N_1d(
-            hsc_rz[z_sel][mag_sel_rz & K_sel]
-        )
-        rz.append(
-            Rz_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_rz,
-                bin_lo_rz,
-                bin_hi_rz,
-                N_1d_rz,
-                True,
-            )
-        )
-        n_bins += bin_lo_rz.size
 
     # 1D (J − H | K)
-    jh = []
-    mag_sel_jh = (uds_J[z_sel] < feniks_mag_thresh.UDS_J) & (
-        uds_H[z_sel] < feniks_mag_thresh.UDS_H
+    jh = N_utils.get_color_cond_space_list(
+        "JH_condK", uds_JH, uds_K, [5, 6], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [5, 6]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_jh, sig_jh, bin_lo_jh, bin_hi_jh = get_N_1d(
-            uds_JH[z_sel][mag_sel_jh & K_sel]
-        )
-        jh.append(
-            JH_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_jh,
-                bin_lo_jh,
-                bin_hi_jh,
-                N_1d_jh,
-                True,
-            )
-        )
-        n_bins += bin_lo_jh.size
 
     # 2D (K, u - g)
-    K_ug = namedtuple("K_ug", MagColor._fields)
-    mag_sel_ug = (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS) & (
-        hsc_g[z_sel] < feniks_mag_thresh.HSC_G
+    K_ug = N_utils.get_mag_color_space(
+        "K_ug", uds_K, megacam_hsc_uSg, 7, [0, 1], z_sel, fit=True
     )
-    N_K_ug, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug = get_N_2d(
-        uds_K[z_sel][mag_sel_ug], megacam_hsc_uSg[z_sel][mag_sel_ug]
-    )
-    mag_idx = 7
-    col_idx = [0, 1]
-    K_ug = K_ug(mag_idx, col_idx, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug, N_K_ug, True)
-    n_bins += bin_lo_K_ug.size
 
     # 2D (K, r - z)
-    K_rz = namedtuple("K_rz", MagColor._fields)
-    mag_sel_rz = (hsc_r[z_sel] < feniks_mag_thresh.HSC_R) & (
-        hsc_z[z_sel] < feniks_mag_thresh.HSC_Z
+    K_rz = N_utils.get_mag_color_space(
+        "K_rz", uds_K, hsc_rz, 7, [2, 4], z_sel, fit=True
     )
-    N_K_rz, sig_K_rz, bin_lo_K_rz, bin_hi_K_rz = get_N_2d(
-        uds_K[z_sel][mag_sel_rz], hsc_rz[z_sel][mag_sel_rz]
-    )
-    mag_idx = 7
-    col_idx = [2, 4]
-    K_rz = K_rz(mag_idx, col_idx, sig_K_rz, bin_lo_K_rz, bin_hi_K_rz, N_K_rz, True)
-    n_bins += bin_lo_K_rz.size
 
-    z2 = Z2(z_min, z_max, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz)
-    colors.append(z2)
+    # 2D (i - NB816, g - r)
+    i816_gr = N_utils.get_colorcolor_space(
+        "I816_gr", hsc_i816, hsc_gr, [3, 8, 1, 2], z_sel, fit=True
+    )
+
+    # 2D (i - NB816, r - K)
+    i816_rK = N_utils.get_colorcolor_space(
+        "I816_rK", hsc_i816, hsc_uds_rK, [3, 8, 2, 7], z_sel, fit=True
+    )
+
+    # 1D (i - NB816 | K)
+    i816_condK = N_utils.get_color_cond_space_list(
+        "I816_condK",
+        hsc_i816,
+        uds_K,
+        [3, 8],
+        7,
+        z_sel,
+        cond_dmag=2,
+        fit=True,
+    )
+
+    # 1D (z - NB921 | K)
+    z921_condK = N_utils.get_color_cond_space_list(
+        "Z921_condK",
+        hsc_z921,
+        uds_K,
+        [4, 9],
+        7,
+        z_sel,
+        cond_dmag=2,
+        fit=True,
+    )
+
+    z2a = Z2a(
+        z_min,
+        z_max,
+        lc_data,
+        rz_zJ,
+        ug,
+        rz,
+        jh,
+        K_ug,
+        K_rz,
+        i816_gr,
+        i816_rK,
+        i816_condK,
+        z921_condK,
+    )
+    colors.append(z2a)
 
     ##############################################################################
-    # Z3 spaces:
-    # 2D (z - J, J - H)
-    # 2D (u - g, g - r)
+    # Z2b spaces:
+    # 2D (r - z, z - J)
     # 2D (K, u - g)
-    # 2D (K, g - r)
-    # 2D (K, J − H): residual quenching scatter at fixed stellar mass
+    # 2D (K, r - z)
 
-    Z3 = namedtuple(
-        "Z3",
-        [
-            "z_min",
-            "z_max",
-            "lc_data",
-            "zJ_JH",
-            "ug_gr",
-            "ug",
-            "gr",
-            "jh",
-            "K_ug",
-            "K_gr",
-            "K_JH",
-        ],
+    Z2b = namedtuple(
+        "Z2b",
+        ["z_min", "z_max", "lc_data", "rz_zJ", "ug", "rz", "jh", "K_ug", "K_rz"],
     )
     zbin = 2
     z_min = zbins[zbin][0]
@@ -774,156 +614,126 @@ def get_feniks_data(
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
-    # 2D (z - J, J - H)
-    zJ_JH = namedtuple("zJ_JH", ColorColor._fields)
-    mag_sel_zJ_JH = (
-        (hsc_z[z_sel] < feniks_mag_thresh.HSC_Z)
-        & (uds_J[z_sel] < feniks_mag_thresh.UDS_J)
-        & (uds_H[z_sel] < feniks_mag_thresh.UDS_H)
+    # 2D (r - z, z - J)
+    rz_zJ = N_utils.get_colorcolor_space(
+        "Rz_zJ", hsc_rz, hsc_uds_zJ, [2, 4, 5], z_sel, fit=True
     )
-    N_zJ_JH, sig_zJ_JH, bin_lo_zJ_JH, bin_hi_zJ_JH = get_N_2d(
-        hsc_uds_zJ[z_sel][mag_sel_zJ_JH], uds_JH[z_sel][mag_sel_zJ_JH]
-    )
-    col_idx = [4, 5, 6]
-    zJ_JH = zJ_JH(col_idx, sig_zJ_JH, bin_lo_zJ_JH, bin_hi_zJ_JH, N_zJ_JH, True)
-    n_bins += bin_lo_zJ_JH.size
-
-    # 2D (u - g, g - r)
-    Ug_gr = namedtuple("Ug_gr", ColorColor._fields)
-    mag_sel_ugr = (
-        (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS)
-        & (hsc_g[z_sel] < feniks_mag_thresh.HSC_G)
-        & (hsc_r[z_sel] < feniks_mag_thresh.HSC_R)
-    )
-    N_ug_gr, sig_ug_gr, bin_lo_ug_gr, bin_hi_ug_gr = get_N_2d(
-        megacam_hsc_uSg[z_sel][mag_sel_ugr], hsc_gr[z_sel][mag_sel_ugr]
-    )
-    col_idx = [0, 1, 2]
-    ug_gr = Ug_gr(col_idx, sig_ug_gr, bin_lo_ug_gr, bin_hi_ug_gr, N_ug_gr, True)
-    n_bins += bin_lo_ug_gr.size
 
     # 1D (u - g | K)
-    Kbins = np.arange(uds_K[z_sel].min(), uds_K[z_sel].max(), 4)
-
-    ug = []
-    mag_sel_ug = (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS) & (
-        hsc_g[z_sel] < feniks_mag_thresh.HSC_G
+    ug = N_utils.get_color_cond_space_list(
+        "Ug_condK", megacam_hsc_uSg, uds_K, [0, 1], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [0, 1]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_ug, sig_ug, bin_lo_ug, bin_hi_ug = get_N_1d(
-            megacam_hsc_uSg[z_sel][mag_sel_ug & K_sel]
-        )
-        ug.append(
-            Ug_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_ug,
-                bin_lo_ug,
-                bin_hi_ug,
-                N_1d_ug,
-                True,
-            )
-        )
-        n_bins += bin_lo_ug.size
 
-    # 1D (g - r | K)
-    gr = []
-    Gr_condK = namedtuple("Gr_condK", ColorCondMag._fields)
-    mag_sel_gr = (hsc_g[z_sel] < feniks_mag_thresh.HSC_G) & (
-        hsc_r[z_sel] < feniks_mag_thresh.HSC_R
+    # 1D (r - z | K)
+    rz = N_utils.get_color_cond_space_list(
+        "Rz_condK", hsc_rz, uds_K, [2, 4], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [1, 2]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_gr, sig_gr, bin_lo_gr, bin_hi_gr = get_N_1d(
-            hsc_gr[z_sel][mag_sel_gr & K_sel]
-        )
-        gr.append(
-            Gr_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_gr,
-                bin_lo_gr,
-                bin_hi_gr,
-                N_1d_gr,
-                True,
-            )
-        )
-        n_bins += bin_lo_gr.size
 
     # 1D (J − H | K)
-    jh = []
-    mag_sel_jh = (uds_J[z_sel] < feniks_mag_thresh.UDS_J) & (
-        uds_H[z_sel] < feniks_mag_thresh.UDS_H
+    jh = N_utils.get_color_cond_space_list(
+        "JH_condK", uds_JH, uds_K, [5, 6], 7, z_sel, cond_dmag=2, fit=True
     )
-    col_idx = [5, 6]
-    cond_idx = 7
-    for k in range(len(Kbins) - 1):
-        K_sel = (uds_K[z_sel] > Kbins[k]) & (uds_K[z_sel] <= Kbins[k + 1])
-        N_1d_jh, sig_jh, bin_lo_jh, bin_hi_jh = get_N_1d(
-            uds_JH[z_sel][mag_sel_jh & K_sel]
-        )
-        jh.append(
-            JH_condK(
-                col_idx,
-                cond_idx,
-                Kbins[k],
-                Kbins[k + 1],
-                sig_jh,
-                bin_lo_jh,
-                bin_hi_jh,
-                N_1d_jh,
-                True,
-            )
-        )
-        n_bins += bin_lo_jh.size
 
     # 2D (K, u - g)
-    K_ug = namedtuple("K_ug", MagColor._fields)
-    mag_sel_ug = (megacam_uS[z_sel] < feniks_mag_thresh.MegaCam_uS) & (
-        hsc_g[z_sel] < feniks_mag_thresh.HSC_G
+    K_ug = N_utils.get_mag_color_space(
+        "K_ug", uds_K, megacam_hsc_uSg, 7, [0, 1], z_sel, fit=True
     )
-    N_K_ug, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug = get_N_2d(
-        uds_K[z_sel][mag_sel_ug], megacam_hsc_uSg[z_sel][mag_sel_ug]
+
+    # 2D (K, r - z)
+    K_rz = N_utils.get_mag_color_space(
+        "K_rz", uds_K, hsc_rz, 7, [2, 4], z_sel, fit=True
     )
-    mag_idx = 7
-    col_idx = [0, 1]
-    K_ug = K_ug(mag_idx, col_idx, sig_K_ug, bin_lo_K_ug, bin_hi_K_ug, N_K_ug, True)
-    n_bins += bin_lo_K_ug.size
+
+    z2b = Z2b(z_min, z_max, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz)
+    colors.append(z2b)
+
+    ##############################################################################
+    # Z3 spaces:
+    # 2D (z - J, J - H)
+    # 2D (u - g, g - r)
+    # 2D (K, u - g)
+    # 2D (K, g - r)
+    # 2D (K, J − H): residual quenching scatter at fixed stellar mass
+
+    Z3 = namedtuple(
+        "Z3",
+        [
+            "z_min",
+            "z_max",
+            "lc_data",
+            "zJ_JH",
+            "ug_gr",
+            "ug",
+            "gr",
+            "jh",
+            "K_ug",
+            "K_gr",
+            "K_JH",
+        ],
+    )
+    zbin = 3
+    z_min = zbins[zbin][0]
+    z_max = zbins[zbin][1]
+
+    z_phot_table = 10 ** jnp.linspace(
+        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+    )
+    lc_args = (
+        ran_key,
+        num_halos_coarse_zbins,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_max,
+        lc_sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
+
+    lc_data = generate_lc_data(*lc_args)
+
+    z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+
+    # 2D (z - J, J - H)
+    zJ_JH = N_utils.get_colorcolor_space(
+        "ZJ_JH", hsc_uds_zJ, uds_JH, [4, 5, 6], z_sel, fit=True
+    )
+
+    # 2D (u - g, g - r)
+    ug_gr = N_utils.get_colorcolor_space(
+        "Ug_gr", megacam_hsc_uSg, hsc_gr, [0, 1, 2], z_sel, fit=True
+    )
+
+    # 1D (u - g | K)
+    ug = N_utils.get_color_cond_space_list(
+        "Ug_condK", megacam_hsc_uSg, uds_K, [0, 1], 7, z_sel, cond_dmag=2, fit=True
+    )
+
+    # 1D (g - r | K)
+    gr = N_utils.get_color_cond_space_list(
+        "Gr_condK", hsc_gr, uds_K, [1, 2], 7, z_sel, cond_dmag=2, fit=True
+    )
+
+    # 1D (J − H | K)
+    jh = N_utils.get_color_cond_space_list(
+        "JH_condK", uds_JH, uds_K, [5, 6], 7, z_sel, cond_dmag=2, fit=True
+    )
+
+    # 2D (K, u - g)
+    K_ug = N_utils.get_mag_color_space(
+        "K_ug", uds_K, megacam_hsc_uSg, 7, [0, 1], z_sel, fit=True
+    )
 
     # 2D (K, g - r)
-    K_gr = namedtuple("K_gr", MagColor._fields)
-    mag_sel_gr = (hsc_g[z_sel] < feniks_mag_thresh.HSC_G) & (
-        hsc_r[z_sel] < feniks_mag_thresh.HSC_R
+    K_gr = N_utils.get_mag_color_space(
+        "K_gr", uds_K, hsc_gr, 7, [1, 2], z_sel, fit=True
     )
-    N_K_gr, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr = get_N_2d(
-        uds_K[z_sel][mag_sel_gr], hsc_gr[z_sel][mag_sel_gr]
-    )
-    mag_idx = 7
-    col_idx = [1, 2]
-    K_gr = K_gr(mag_idx, col_idx, sig_K_gr, bin_lo_K_gr, bin_hi_K_gr, N_K_gr, True)
-    n_bins += bin_lo_K_gr.size
 
     # 2D (K, J - H)
-    K_JH = namedtuple("K_JH", MagColor._fields)
-    mag_sel_JH = (uds_J[z_sel] < feniks_mag_thresh.UDS_J) & (
-        uds_H[z_sel] < feniks_mag_thresh.UDS_H
+    K_JH = N_utils.get_mag_color_space(
+        "K_JH", uds_K, uds_JH, 7, [5, 6], z_sel, fit=True
     )
-    N_K_JH, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH = get_N_2d(
-        uds_K[z_sel][mag_sel_JH], uds_JH[z_sel][mag_sel_JH]
-    )
-    mag_idx = 7
-    col_idx = [5, 6]
-    K_JH = K_JH(mag_idx, col_idx, sig_K_JH, bin_lo_K_JH, bin_hi_K_JH, N_K_JH, True)
-    n_bins += bin_lo_K_JH.size
 
     z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug_gr, ug, gr, jh, K_ug, K_gr, K_JH)
     colors.append(z3)
@@ -982,49 +792,49 @@ def get_feniks_data(
 
         # 1D (u)
         mag_idx_u = 0
-        N_1d_u, sig_u, bin_lo_u, bin_hi_u = get_N_1d(megacam_uS[z_sel])
+        N_1d_u, sig_u, bin_lo_u, bin_hi_u = N_utils.get_N_1d(megacam_uS[z_sel])
         u = U(mag_idx_u, sig_u, bin_lo_u, bin_hi_u, N_1d_u, True)
         n_bins += bin_lo_u.size
 
         # 1D (g)
         mag_idx_g = 1
-        N_1d_g, sig_g, bin_lo_g, bin_hi_g = get_N_1d(hsc_g[z_sel])
+        N_1d_g, sig_g, bin_lo_g, bin_hi_g = N_utils.get_N_1d(hsc_g[z_sel])
         g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g, True)
         n_bins += bin_lo_g.size
 
         # 1D (r)
         mag_idx_r = 2
-        N_1d_r, sig_r, bin_lo_r, bin_hi_r = get_N_1d(hsc_r[z_sel])
+        N_1d_r, sig_r, bin_lo_r, bin_hi_r = N_utils.get_N_1d(hsc_r[z_sel])
         r = R(mag_idx_r, sig_r, bin_lo_r, bin_hi_r, N_1d_r, True)
         n_bins += bin_lo_r.size
 
         # 1D (i)
         mag_idx_i = 3
-        N_1d_i, sig_i, bin_lo_i, bin_hi_i = get_N_1d(hsc_i[z_sel])
+        N_1d_i, sig_i, bin_lo_i, bin_hi_i = N_utils.get_N_1d(hsc_i[z_sel])
         i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i, True)
         n_bins += bin_lo_i.size
 
         # 1D (z)
         mag_idx_z = 4
-        N_1d_z, sig_z, bin_lo_z, bin_hi_z = get_N_1d(hsc_z[z_sel])
+        N_1d_z, sig_z, bin_lo_z, bin_hi_z = N_utils.get_N_1d(hsc_z[z_sel])
         z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z, True)
         n_bins += bin_lo_z.size
 
         # 1D (J)
         mag_idx_j = 5
-        N_1d_j, sig_j, bin_lo_j, bin_hi_j = get_N_1d(uds_J[z_sel])
+        N_1d_j, sig_j, bin_lo_j, bin_hi_j = N_utils.get_N_1d(uds_J[z_sel])
         j = J(mag_idx_j, sig_j, bin_lo_j, bin_hi_j, N_1d_j, True)
         n_bins += bin_lo_j.size
 
         # 1D (H)
         mag_idx_h = 6
-        N_1d_h, sig_h, bin_lo_h, bin_hi_h = get_N_1d(uds_H[z_sel])
+        N_1d_h, sig_h, bin_lo_h, bin_hi_h = N_utils.get_N_1d(uds_H[z_sel])
         h = H(mag_idx_h, sig_h, bin_lo_h, bin_hi_h, N_1d_h, True)
         n_bins += bin_lo_h.size
 
         # 1D (K)
         mag_idx_k = 7
-        N_1d_k, sig_k, bin_lo_k, bin_hi_k = get_N_1d(uds_K[z_sel])
+        N_1d_k, sig_k, bin_lo_k, bin_hi_k = N_utils.get_N_1d(uds_K[z_sel])
         k = K(mag_idx_k, sig_k, bin_lo_k, bin_hi_k, N_1d_k, True)
         n_bins += bin_lo_k.size
 
@@ -1076,5 +886,7 @@ FeniksFilters = namedtuple(
         "UDS_J",
         "UDS_H",
         "UDS_K",
+        "NB0816",
+        "NB0921",
     ],
 )

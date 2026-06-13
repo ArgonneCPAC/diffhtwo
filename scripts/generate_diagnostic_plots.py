@@ -213,15 +213,7 @@ if __name__ == "__main__":
             num_halos_fine_zbins=int(num_halos / 2),
         )
 
-        feniks_zbins = np.array(
-            [
-                [0.2, 0.5],
-                [0.5, 0.7],
-                [0.7, 1.0],
-                [1.0, 1.5],
-                [1.5, 2.0],
-            ]
-        )
+        feniks_zbins = feniks.fine_zbins
 
         if cfg["plots"]["plot_smhm"]:
             print("Generating FENIKS SMHM plots...")
@@ -505,14 +497,7 @@ if __name__ == "__main__":
             num_halos_coarse_zbins=num_halos,
             num_halos_fine_zbins=int(num_halos / 2),
         )
-        sdss_zbins = np.array(
-            [
-                [0.02, 0.06],
-                [0.06, 0.1],
-                [0.1, 0.16],
-                [0.16, 0.20],
-            ]
-        )
+        sdss_zbins = sdss.fine_zbins
 
         if cfg["plots"]["plot_smhm"]:
             print("Generating SDSS SMHM plots...")

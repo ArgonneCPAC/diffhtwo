@@ -1,6 +1,14 @@
+from collections import namedtuple
+
 import jax.numpy as jnp
 import numpy as np
 from diffsky import diffndhist_lomem
+
+from ..defaults import (
+    ColorColor,
+    ColorCondMag,
+    MagColor,
+)
 
 
 def get_N_1d(dim1, dim1_bin_edges=None, dmag=0.2, sig_scale=0.5):
@@ -57,3 +65,48 @@ def get_N_2d(dim1, dim2, sig_scale=0.5):
     )
 
     return N_2d, sig, bin_lo, bin_hi
+
+
+def get_colorcolor_space(name, color1, color2, col_idx, z_sel, fit=True):
+    ColorColorSpace = namedtuple(name, ColorColor._fields)
+
+    N_2d, sig, bin_lo, bin_hi = get_N_2d(color1[z_sel], color2[z_sel])
+
+    return ColorColorSpace(col_idx, sig, bin_lo, bin_hi, N_2d, fit)
+
+
+def get_color_cond_space_list(
+    name, color, cond_mag, col_idx, cond_idx, z_sel, cond_dmag=2, fit=True
+):
+    ColorCondSpace = namedtuple(name, ColorCondMag._fields)
+    cond_mag_bins = np.arange(cond_mag[z_sel].min(), cond_mag[z_sel].max(), cond_dmag)
+
+    color_cond_list = []
+    for b in range(len(cond_mag_bins) - 1):
+        cond_sel = (cond_mag[z_sel] > cond_mag_bins[b]) & (
+            cond_mag[z_sel] <= cond_mag_bins[b + 1]
+        )
+        N_1d, sig, bin_lo, bin_hi = get_N_1d(color[z_sel][cond_sel])
+        color_cond_list.append(
+            ColorCondSpace(
+                col_idx,
+                cond_idx,
+                cond_mag_bins[b],
+                cond_mag_bins[b + 1],
+                sig,
+                bin_lo,
+                bin_hi,
+                N_1d,
+                fit,
+            )
+        )
+
+    return color_cond_list
+
+
+def get_mag_color_space(name, mag, color, mag_idx, col_idx, z_sel, fit=True):
+    MagColorSpace = namedtuple(name, MagColor._fields)
+
+    N_2d, sig, bin_lo, bin_hi = get_N_2d(mag[z_sel], color[z_sel])
+
+    return MagColorSpace(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, fit)

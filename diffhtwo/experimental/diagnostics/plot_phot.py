@@ -615,6 +615,8 @@ def plot_app_mag_funcs(
             "#c8b44a",
             "#c87820",
         ]
+    elif len(labels_z) == 6:
+        colors_z = ["#001219", "#0a7a80", "#80cca8", "#c8b44a", "#c87820", "#9b1d20"]
 
     n_bands = dataset_mags.shape[1] - 1
     if n_bands <= 5:
