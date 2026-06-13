@@ -324,7 +324,7 @@ def get_sdss_data(
     U = namedtuple("U", AppMagFunc._fields)
     G = namedtuple("G", AppMagFunc._fields)
     R = namedtuple("R", AppMagFunc._fields)
-    I = namedtuple("I", AppMagFunc._fields)
+    I = namedtuple("I", AppMagFunc._fields)  # noqa: E741
     Z = namedtuple("Z", AppMagFunc._fields)
 
     app_mag_funcs = []
