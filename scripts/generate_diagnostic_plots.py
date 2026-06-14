@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import jax.numpy as jnp
+import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
@@ -296,6 +297,7 @@ if __name__ == "__main__":
                 + str(FENIKS_Z_MAX),
                 drn_out=fit_diagnostics_save_drn,
             )
+            plt.close()
 
         if cfg["plots"]["plot_fburst_mh_z"]:
             print("Generating FENIKS lgfburst plot...")
@@ -568,6 +570,7 @@ if __name__ == "__main__":
                 + str(SDSS_Z_MAX),
                 drn_out=fit_diagnostics_save_drn,
             )
+            plt.close()
 
         if cfg["plots"]["plot_fburst_mh_z"]:
             print("Generating SDSS lgfburst plot...")

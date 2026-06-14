@@ -14,7 +14,6 @@ from ..defaults import (
     FENIKS_MAGK_THRESH,
     FENIKS_Z_MAX,
     FENIKS_Z_MIN,
-    AppMagFunc,
     Dataset,
     FeniksFilters,
     FilterInfo,
@@ -461,17 +460,17 @@ def get_feniks_data(
 
     # 2D (K, r - i)
     K_ri = N_utils.get_mag_color_space(
-        "K_ri", uds_K, hsc_ri, "UDS_K", ["HSC_R", "HSC_I"], z_sel, fit=True
+        "K_ri", uds_K, hsc_ri, "UDS_K", ["HSC_R", "HSC_I"], z_sel, fit=False
     )
 
     # 2D (K, g - r)
     K_gr = N_utils.get_mag_color_space(
-        "K_gr", uds_K, hsc_gr, "UDS_K", ["HSC_G", "HSC_R"], z_sel, fit=True
+        "K_gr", uds_K, hsc_gr, "UDS_K", ["HSC_G", "HSC_R"], z_sel, fit=False
     )
 
     # 2D (K, J - H)
     K_JH = N_utils.get_mag_color_space(
-        "K_JH", uds_K, uds_JH, "UDS_K", ["UDS_J", "UDS_H"], z_sel, fit=True
+        "K_JH", uds_K, uds_JH, "UDS_K", ["UDS_J", "UDS_H"], z_sel, fit=False
     )
 
     z1 = Z1(z_min, z_max, lc_data, gr_ri, ug, ri, iz, jh, K_ri, K_gr, K_JH)
@@ -583,12 +582,12 @@ def get_feniks_data(
         "UDS_K",
         ["MegaCam_uS", "HSC_G"],
         z_sel,
-        fit=True,
+        fit=False,
     )
 
     # 2D (K, r - z)
     K_rz = N_utils.get_mag_color_space(
-        "K_rz", uds_K, hsc_rz, "UDS_K", ["HSC_R", "HSC_Z"], z_sel, fit=True
+        "K_rz", uds_K, hsc_rz, "UDS_K", ["HSC_R", "HSC_Z"], z_sel, fit=False
     )
 
     # 2D (i - NB816, g - r)
@@ -740,12 +739,12 @@ def get_feniks_data(
         "UDS_K",
         ["MegaCam_uS", "HSC_G"],
         z_sel,
-        fit=True,
+        fit=False,
     )
 
     # 2D (K, r - z)
     K_rz = N_utils.get_mag_color_space(
-        "K_rz", uds_K, hsc_rz, "UDS_K", ["HSC_R", "HSC_Z"], z_sel, fit=True
+        "K_rz", uds_K, hsc_rz, "UDS_K", ["HSC_R", "HSC_Z"], z_sel, fit=False
     )
 
     z2b = Z2b(z_min, z_max, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz)
@@ -863,17 +862,17 @@ def get_feniks_data(
         "UDS_K",
         ["MegaCam_uS", "HSC_G"],
         z_sel,
-        fit=True,
+        fit=False,
     )
 
     # 2D (K, g - r)
     K_gr = N_utils.get_mag_color_space(
-        "K_gr", uds_K, hsc_gr, "UDS_K", ["HSC_G", "HSC_R"], z_sel, fit=True
+        "K_gr", uds_K, hsc_gr, "UDS_K", ["HSC_G", "HSC_R"], z_sel, fit=False
     )
 
     # 2D (K, J - H)
     K_JH = N_utils.get_mag_color_space(
-        "K_JH", uds_K, uds_JH, "UDS_K", ["UDS_J", "UDS_H"], z_sel, fit=True
+        "K_JH", uds_K, uds_JH, "UDS_K", ["UDS_J", "UDS_H"], z_sel, fit=False
     )
 
     z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug_gr, ug, gr, jh, K_ug, K_gr, K_JH)
