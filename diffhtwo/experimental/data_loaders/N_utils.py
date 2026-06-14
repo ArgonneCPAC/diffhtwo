@@ -71,7 +71,7 @@ def get_mag_space(namedtuple_name, mag, filter_name, z_sel, fit=True):
     AppMagFuncSpace = namedtuple(namedtuple_name, AppMagFunc._fields)
     mag_idx = filter_name_to_idx(filter_name)
     N_1d, sig, bin_lo, bin_hi = get_N_1d(mag[z_sel])
-    return AppMagFuncSpace(mag_idx, sig, bin_lo, bin_hi, N_1d, True)
+    return AppMagFuncSpace(mag_idx, sig, bin_lo, bin_hi, N_1d, fit)
 
 
 def get_colorcolor_space(
