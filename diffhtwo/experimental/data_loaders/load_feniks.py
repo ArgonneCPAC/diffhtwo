@@ -15,6 +15,7 @@ from ..defaults import (
     FENIKS_Z_MAX,
     FENIKS_Z_MIN,
     Dataset,
+    DatasetLH,
     FeniksFilters,
     FilterInfo,
 )
@@ -31,6 +32,7 @@ PHOT = "feniks_phot_selected.cat"
 ZOUT = "feniks_zout_selected.ecsv"
 
 Feniks = namedtuple("Feniks", Dataset._fields)
+FeniksLH = namedtuple("FeniksLH", DatasetLH._fields)
 
 LH_SIG = 3.0
 LH_N_CENTROIDS = 60_000
@@ -138,6 +140,231 @@ def get_lh_centroids(dataset, lh_d_mag):
     d_centroids = d_centroids.at[:, -1].set(LH_D_Z)
 
     return lh_centroids, d_centroids
+
+
+FeniksFiltersLH = namedtuple(
+    "FeniksFiltersLH",
+    [
+        "MegaCam_uS",
+        "HSC_G",
+        "HSC_R",
+        "HSC_I",
+        "HSC_Z",
+        "UDS_J",
+        "UDS_H",
+        "UDS_K",
+    ],
+)
+
+
+def get_feniks_data_lh(
+    drn,
+    ran_key,
+    ssp_data,
+    lh_d_mag=0.6,
+    phot=PHOT,
+    zout=ZOUT,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
+    lc_sky_area_degsq=100,
+    n_z_phot_table=30,
+    add_random_rows_for_testing=False,
+):
+    # Transmission curves and filter mag thresholds
+    feniks_in_lh = FeniksFiltersLH(
+        MegaCam_uS=True,
+        HSC_G=False,
+        HSC_R=False,
+        HSC_I=False,
+        HSC_Z=False,
+        UDS_J=False,
+        UDS_H=False,
+        UDS_K=True,
+    )
+    tcurves = []
+    for feniks_filter in FeniksFiltersLH._fields:
+        tcurve_filename = FENIKS_FILTERS_PATH / f"{feniks_filter}.txt"
+        feniks_filter_wave_aa, feniks_filter_trans = load_feniks_tcurve(tcurve_filename)
+        tcurves.append(TransmissionCurve(feniks_filter_wave_aa, feniks_filter_trans))
+
+    drn_path = Path(drn)
+    phot = ascii.read(drn_path / phot)
+    zout = ascii.read(drn_path / zout)
+
+    if add_random_rows_for_testing:
+        phot = add_random_rows(phot, N=10000)
+        zout = add_random_rows(zout, N=10000)
+
+    # get mags
+    megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
+    hsc_g = get_mag_ab(phot, "fcol_HSC_G")
+    hsc_r = get_mag_ab(phot, "fcol_HSC_R")
+    hsc_i = get_mag_ab(phot, "fcol_HSC_I")
+    hsc_z = get_mag_ab(phot, "fcol_HSC_Z")
+    uds_J = get_mag_ab(phot, "fcol_UDS_J")
+    uds_H = get_mag_ab(phot, "fcol_UDS_H")
+    uds_K = get_mag_ab(phot, "fcol_UDS_K")
+
+    feniks_mag_thresh = FeniksFiltersLH(
+        MegaCam_uS=24.9,
+        HSC_G=25.1,
+        HSC_R=25.3,
+        HSC_I=25.1,
+        HSC_Z=24.9,
+        UDS_J=24.5,
+        UDS_H=24.3,
+        UDS_K=FENIKS_MAGK_THRESH,
+    )
+
+    filter_info = FilterInfo(feniks_mag_thresh, feniks_in_lh, tcurves)
+
+    # get mag thresh cuts
+    mag_thresh = (
+        (megacam_uS < feniks_mag_thresh.MegaCam_uS)
+        & (hsc_g < feniks_mag_thresh.HSC_G)
+        & (hsc_r < feniks_mag_thresh.HSC_R)
+        & (hsc_i < feniks_mag_thresh.HSC_I)
+        & (hsc_z < feniks_mag_thresh.HSC_Z)
+        & (uds_J < feniks_mag_thresh.UDS_J)
+        & (uds_H < feniks_mag_thresh.UDS_H)
+        & (uds_K < feniks_mag_thresh.UDS_K)
+    )
+
+    # apply mag_thresh cuts and record n_gals.
+    # This is the starting point from which any further cuts will
+    # lead to frac_cat (fraction of catalog thrown due to bad data) being calculated
+    phot = phot[mag_thresh]
+    zout = zout[mag_thresh]
+    megacam_uS = megacam_uS[mag_thresh]
+    hsc_g = hsc_g[mag_thresh]
+    hsc_r = hsc_r[mag_thresh]
+    hsc_i = hsc_i[mag_thresh]
+    hsc_z = hsc_z[mag_thresh]
+    uds_J = uds_J[mag_thresh]
+    uds_H = uds_H[mag_thresh]
+    uds_K = uds_K[mag_thresh]
+
+    n_gals_pre_cuts = len(zout)
+
+    # remove mags with bad data in any of the bands
+    clean = (
+        (megacam_uS != -99)
+        & (hsc_g != -99)
+        & (hsc_r != -99)
+        & (hsc_i != -99)
+        & (hsc_z != -99)
+        & (uds_J != -99)
+        & (uds_H != -99)
+        & (uds_K != -99)
+        & (zout["z_phot"] >= 0)
+    )
+
+    phot = phot[clean]
+    zout = zout[clean]
+    megacam_uS = megacam_uS[clean]
+    hsc_g = hsc_g[clean]
+    hsc_r = hsc_r[clean]
+    hsc_i = hsc_i[clean]
+    hsc_z = hsc_z[clean]
+    uds_J = uds_J[clean]
+    uds_H = uds_H[clean]
+    uds_K = uds_K[clean]
+
+    n_gals_post_cuts = len(zout)
+    frac_cat = n_gals_post_cuts / n_gals_pre_cuts
+
+    mags = np.vstack(
+        (
+            megacam_uS,
+            hsc_g,
+            hsc_r,
+            hsc_i,
+            hsc_z,
+            uds_J,
+            uds_H,
+            uds_K,
+            zout["z_phot"],
+        )
+    ).T
+
+    mags_labels = [
+        r"$uS_{MegaCam}$",
+        r"$g_{HSC}$",
+        r"$r_{HSC}$",
+        r"$i_{HSC}$",
+        r"$z_{HSC}$",
+        r"$J_{UDS}$",
+        r"$H_{UDS}$",
+        r"$K_{UDS}$",
+        r"$redshift$",
+    ]
+
+    # derive colors from mags
+    megacam_hsc_uSg = megacam_uS - hsc_g
+    hsc_gr = hsc_g - hsc_r
+    hsc_ri = hsc_r - hsc_i
+    hsc_iz = hsc_i - hsc_z
+    hsc_uds_zJ = hsc_z - uds_J
+    uds_JH = uds_J - uds_H
+    uds_HK = uds_H - uds_K
+
+    # stack colors_mag
+    dataset = np.vstack(
+        (
+            megacam_hsc_uSg,
+            hsc_gr,
+            hsc_ri,
+            hsc_iz,
+            hsc_uds_zJ,
+            uds_JH,
+            uds_HK,
+            megacam_uS,
+            uds_K,
+            zout["z_phot"],
+        )
+    ).T
+
+    dataset_dim_labels = [
+        r"$uS_{MegaCam} - g_{HSC}$",
+        r"$g_{HSC} - r_{HSC}$",
+        r"$r_{HSC} - i_{HSC}$",
+        r"$i_{HSC} - z_{HSC}$",
+        r"$z_{HSC} - J_{UDS}$",
+        r"$J_{UDS} - H_{UDS}$",
+        r"$H_{UDS} - K_{UDS}$",
+        r"$uS_{MegaCam}$",
+        r"$K_{UDS}$",
+        r"$redshift$",
+    ]
+
+    lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
+
+    # run initial diffndhist_lomem with fixed dmag
+    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
+    lh_centroids_lo = lh_centroids - (d_centroids / 2)
+    lh_centroids_hi = lh_centroids + (d_centroids / 2)
+
+    N_data_lh = diffndhist_lomem.tw_ndhist(
+        dataset,
+        dataset_sig,
+        lh_centroids_lo,
+        lh_centroids_hi,
+    )
+
+    return FeniksLH(
+        dataset,
+        dataset_dim_labels,
+        mags,
+        mags_labels,
+        filter_info,
+        frac_cat,
+        lh_centroids,
+        d_centroids,
+        N_data_lh,
+        lh_d_mag,
+        LH_D_Z,
+        FENIKS_AREA_DEG2,
+    )
 
 
 def get_feniks_data(
@@ -254,6 +481,7 @@ def get_feniks_data(
         & (uds_J != -99)
         & (uds_H != -99)
         & (uds_K != -99)
+        & (zout["z_phot"] >= 0)
     )
 
     phot = phot[clean]
@@ -321,9 +549,9 @@ def get_feniks_data(
             megacam_hsc_uSg,
             hsc_gr,
             hsc_ri,
-            hsc_i816,
+            # hsc_i816,
             hsc_iz,
-            hsc_z921,
+            # hsc_z921,
             hsc_uds_zJ,
             uds_JH,
             uds_HK,
@@ -337,9 +565,9 @@ def get_feniks_data(
         r"$uS_{MegaCam} - g_{HSC}$",
         r"$g_{HSC} - r_{HSC}$",
         r"$r_{HSC} - i_{HSC}$",
-        r"$i_{HSC} - NB816_{HSC}$",
+        # r"$i_{HSC} - NB816_{HSC}$",
         r"$i_{HSC} - z_{HSC}$",
-        r"$z_{HSC} - NB921_{HSC}$",
+        # r"$z_{HSC} - NB921_{HSC}$",
         r"$z_{HSC} - J_{UDS}$",
         r"$J_{UDS} - H_{UDS}$",
         r"$H_{UDS} - K_{UDS}$",
@@ -950,20 +1178,6 @@ def get_feniks_data(
 
     ##############################################################################
 
-    lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
-
-    # run initial diffndhist_lomem with fixed dmag
-    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
-    lh_centroids_lo = lh_centroids - (d_centroids / 2)
-    lh_centroids_hi = lh_centroids + (d_centroids / 2)
-
-    N_data_lh = diffndhist_lomem.tw_ndhist(
-        dataset,
-        dataset_sig,
-        lh_centroids_lo,
-        lh_centroids_hi,
-    )
-
     return Feniks(
         dataset,
         dataset_dim_labels,
@@ -974,11 +1188,6 @@ def get_feniks_data(
         fine_zbins,
         filter_info,
         frac_cat,
-        lh_centroids,
-        d_centroids,
-        N_data_lh,
-        lh_d_mag,
-        LH_D_Z,
         FENIKS_AREA_DEG2,
     )
 

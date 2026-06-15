@@ -142,6 +142,7 @@ def get_single_zbin_lh_lc(
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
     )
+
     lc_args = (
         ran_key,
         num_halos,

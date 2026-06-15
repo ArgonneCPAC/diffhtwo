@@ -21,7 +21,7 @@ from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks
-from diffhtwo.experimental.defaults import FENIKS_Z_MAX, FENIKS_Z_MIN
+from diffhtwo.experimental.defaults import FENIKS_Z_MIN
 from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
@@ -31,7 +31,7 @@ DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--config", default="config_feniks.yaml")
+    p.add_argument("--config", default="config_feniks_lh.yaml")
     args = p.parse_args()
 
     with open(args.config) as f:
@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     # load feniks data
     ran_key = jran.key(0)
-    FENIKS = load_feniks.get_feniks_data(
+    FENIKS = load_feniks.get_feniks_data_lh(
         feniks_drn, ran_key, ssp_data, lh_d_mag=cfg["feniks"]["lh_d_mag"]
     )
 
@@ -95,8 +95,8 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
-    feniks_z_min = [FENIKS_Z_MIN, 1]
-    feniks_z_max = [1, 2]
+    feniks_z_min = [FENIKS_Z_MIN, 1.5]
+    feniks_z_max = [1.5, 2.5]
 
     initial_pts = []
     start = time.time()

@@ -17,7 +17,6 @@ from ..loss_kernels.emline_loss import _loss_emline_kern_multi_line_multi_z
 from ..loss_kernels.phot_loss import (
     _loss_phot_kern,
     _loss_phot_kern_2d_multiz,
-    _loss_phot_kern_multiband_multiz,
 )
 
 _L_pk = (
@@ -35,10 +34,6 @@ _loss_and_grad_phot_kern_multi_z = jjit(value_and_grad(_loss_phot_kern_multi_z))
 
 _loss_and_grad_emline_kern_multi_line_multi_z = jjit(
     value_and_grad(_loss_emline_kern_multi_line_multi_z)
-)
-
-_loss_and_grad_phot_kern_multiband_multiz = jjit(
-    value_and_grad(_loss_phot_kern_multiband_multiz)
 )
 
 _loss_and_grad_phot_kern_2d_multiz = jjit(value_and_grad(_loss_phot_kern_2d_multiz))
