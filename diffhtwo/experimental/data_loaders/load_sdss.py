@@ -192,13 +192,13 @@ def get_sdss_data(
         r"$redshift$",
     ]
     mag_labels = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$"]
-    col_idx = [
+    col_idx_lh_dim = [
         [0, 1],  # u - g
         [1, 2],  # g - r
         [2, 3],  # r - i
         [3, 4],  # i - z
     ]
-    mag_idx = [2]  # r
+    mag_idx_lh_dim = [2]  # r
     ##############################################################################
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
@@ -415,8 +415,8 @@ def get_sdss_data(
 
     return Sdss(
         dataset,
-        col_idx,
-        mag_idx,
+        col_idx_lh_dim,
+        mag_idx_lh_dim,
         dataset_dim_labels,
         mags,
         mag_labels,
