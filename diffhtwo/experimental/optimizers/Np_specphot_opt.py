@@ -67,10 +67,10 @@ def fit_N_multi_z(
         )
 
         # clip gradients
-        # global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
-        # tau = 1.0
-        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        # grads = tuple(g * scale for g in grads)
+        global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
+        tau = 1.0
+        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
@@ -107,10 +107,10 @@ def fit_N_phot_2d(
         )
 
         # clip gradients
-        global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
-        tau = 1.0
-        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        grads = tuple(g * scale for g in grads)
+        # global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
+        # tau = 1.0
+        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        # grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss
