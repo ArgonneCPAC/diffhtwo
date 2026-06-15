@@ -26,7 +26,6 @@ Sdss = namedtuple("Sdss", Dataset._fields)
 
 LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
-LH_D_MAG = 0.1
 LH_D_Z = 0.05
 
 
@@ -63,8 +62,8 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
     return sdss, frac_cat
 
 
-def refresh_lh_centroids(DATASET):
-    lh_centroids, d_centroids = get_lh_centroids(DATASET.dataset)
+def refresh_lh_centroids(DATASET, lh_d_mag):
+    lh_centroids, d_centroids = get_lh_centroids(DATASET.dataset, lh_d_mag)
 
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
     lh_centroids_lo = lh_centroids - (d_centroids / 2)
@@ -83,7 +82,7 @@ def refresh_lh_centroids(DATASET):
     return DATASET
 
 
-def get_lh_centroids(dataset):
+def get_lh_centroids(dataset, lh_d_mag):
     mu = np.mean(dataset, axis=0)
 
     mu[-3] = mu[-3] - 0.5  # u
@@ -109,7 +108,7 @@ def get_lh_centroids(dataset):
     r_bright = lh_centroids[:, -2] > r_min(lh_centroids[:, -1])
     lh_centroids = lh_centroids[r_bright]
 
-    d_centroids = jnp.ones_like(lh_centroids) * LH_D_MAG
+    d_centroids = jnp.ones_like(lh_centroids) * lh_d_mag
     d_centroids = d_centroids.at[:, -1].set(LH_D_Z)
 
     return lh_centroids, d_centroids
@@ -119,6 +118,7 @@ def get_sdss_data(
     drn,
     ran_key,
     ssp_data,
+    lh_d_mag=0.1,
     num_halos_coarse_zbins=150,
     num_halos_fine_zbins=250,
     lgmp_min=10.0,
@@ -381,7 +381,7 @@ def get_sdss_data(
 
     ##############################################################################
 
-    lh_centroids, d_centroids = get_lh_centroids(dataset)
+    lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
 
     # run initial diffndhist_lomem with fixed dmag
     dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
@@ -407,7 +407,7 @@ def get_sdss_data(
         lh_centroids,
         d_centroids,
         N_data_lh,
-        LH_D_MAG,
+        lh_d_mag,
         LH_D_Z,
         SDSS_AREA_DEG2,
     )
