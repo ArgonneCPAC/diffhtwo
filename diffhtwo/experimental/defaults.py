@@ -27,11 +27,13 @@ SDSS_Z_MIN = 0.02
 SDSS_Z_MAX = 0.2
 SDSS_MAGR_THRESH = 17.6  # model mag
 
-FilterInfo = namedtuple("FilterInfo", ["mag_thresh", "in_lh", "tcurves"])
+FilterInfo = namedtuple("FilterInfo", ["mag_thresh", "tcurves"])
 DatasetLH = namedtuple(
     "DatasetLH",
     [
         "dataset",
+        "col_idx",
+        "mag_idx",
         "dataset_dim_labels",
         "mags",
         "mags_labels",
@@ -97,9 +99,9 @@ FeniksFilters = namedtuple(
         "HSC_G",
         "HSC_R",
         "HSC_I",
-        "NB0816",
+        # "NB0816",
         "HSC_Z",
-        "NB0921",
+        # "NB0921",
         "UDS_J",
         "UDS_H",
         "UDS_K",

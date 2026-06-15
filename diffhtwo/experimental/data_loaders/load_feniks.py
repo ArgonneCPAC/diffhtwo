@@ -171,16 +171,6 @@ def get_feniks_data_lh(
     add_random_rows_for_testing=False,
 ):
     # Transmission curves and filter mag thresholds
-    feniks_in_lh = FeniksFiltersLH(
-        MegaCam_uS=True,
-        HSC_G=False,
-        HSC_R=False,
-        HSC_I=False,
-        HSC_Z=False,
-        UDS_J=False,
-        UDS_H=False,
-        UDS_K=True,
-    )
     tcurves = []
     for feniks_filter in FeniksFiltersLH._fields:
         tcurve_filename = FENIKS_FILTERS_PATH / f"{feniks_filter}.txt"
@@ -216,7 +206,7 @@ def get_feniks_data_lh(
         UDS_K=FENIKS_MAGK_THRESH,
     )
 
-    filter_info = FilterInfo(feniks_mag_thresh, feniks_in_lh, tcurves)
+    filter_info = FilterInfo(feniks_mag_thresh, tcurves)
 
     # get mag thresh cuts
     mag_thresh = (
@@ -306,7 +296,7 @@ def get_feniks_data_lh(
     hsc_iz = hsc_i - hsc_z
     hsc_uds_zJ = hsc_z - uds_J
     uds_JH = uds_J - uds_H
-    uds_HK = uds_H - uds_K
+    hsc_uds_rK = hsc_r - uds_K
 
     # stack colors_mag
     dataset = np.vstack(
@@ -317,13 +307,26 @@ def get_feniks_data_lh(
             hsc_iz,
             hsc_uds_zJ,
             uds_JH,
-            uds_HK,
+            hsc_uds_rK,
             megacam_uS,
             uds_K,
             zout["z_phot"],
         )
     ).T
 
+    col_idx = [
+        [0, 1],  # u - g
+        [1, 2],  # g - r
+        [2, 3],  # r - i
+        [3, 4],  # i - z
+        [4, 5],  # z - J
+        [5, 6],  # J - H
+        [2, 7],  # r - K
+    ]
+    mag_idx = [
+        0,  # u
+        7,  # K
+    ]
     dataset_dim_labels = [
         r"$uS_{MegaCam} - g_{HSC}$",
         r"$g_{HSC} - r_{HSC}$",
@@ -331,7 +334,7 @@ def get_feniks_data_lh(
         r"$i_{HSC} - z_{HSC}$",
         r"$z_{HSC} - J_{UDS}$",
         r"$J_{UDS} - H_{UDS}$",
-        r"$H_{UDS} - K_{UDS}$",
+        r"$r_{HSC} - K_{UDS}$",
         r"$uS_{MegaCam}$",
         r"$K_{UDS}$",
         r"$redshift$",
@@ -353,6 +356,8 @@ def get_feniks_data_lh(
 
     return FeniksLH(
         dataset,
+        col_idx,
+        mag_idx,
         dataset_dim_labels,
         mags,
         mags_labels,
@@ -383,19 +388,6 @@ def get_feniks_data(
     add_random_rows_for_testing=False,
 ):
     # Transmission curves and filter mag thresholds
-
-    feniks_in_lh = FeniksFilters(
-        MegaCam_uS=True,
-        HSC_G=False,
-        HSC_R=False,
-        HSC_I=False,
-        NB0816=False,
-        HSC_Z=False,
-        NB0921=False,
-        UDS_J=False,
-        UDS_H=False,
-        UDS_K=True,
-    )
     tcurves = []
     for feniks_filter in FeniksFilters._fields:
         tcurve_filename = FENIKS_FILTERS_PATH / f"{feniks_filter}.txt"
@@ -415,9 +407,9 @@ def get_feniks_data(
     hsc_g = get_mag_ab(phot, "fcol_HSC_G")
     hsc_r = get_mag_ab(phot, "fcol_HSC_R")
     hsc_i = get_mag_ab(phot, "fcol_HSC_I")
-    nb816 = get_mag_ab(phot, "fcol_NB0816")
+    # nb816 = get_mag_ab(phot, "fcol_NB0816")
     hsc_z = get_mag_ab(phot, "fcol_HSC_Z")
-    nb921 = get_mag_ab(phot, "fcol_NB0921")
+    # nb921 = get_mag_ab(phot, "fcol_NB0921")
     uds_J = get_mag_ab(phot, "fcol_UDS_J")
     uds_H = get_mag_ab(phot, "fcol_UDS_H")
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
@@ -427,15 +419,15 @@ def get_feniks_data(
         HSC_G=25.1,
         HSC_R=25.3,
         HSC_I=25.1,
-        NB0816=25.3,
+        # NB0816=25.3,
         HSC_Z=24.9,
-        NB0921=25.3,
+        # NB0921=25.3,
         UDS_J=24.5,
         UDS_H=24.3,
         UDS_K=FENIKS_MAGK_THRESH,
     )
 
-    filter_info = FilterInfo(feniks_mag_thresh, feniks_in_lh, tcurves)
+    filter_info = FilterInfo(feniks_mag_thresh, tcurves)
 
     # get mag thresh cuts
     mag_thresh = (
@@ -443,9 +435,9 @@ def get_feniks_data(
         & (hsc_g < feniks_mag_thresh.HSC_G)
         & (hsc_r < feniks_mag_thresh.HSC_R)
         & (hsc_i < feniks_mag_thresh.HSC_I)
-        & (nb816 < feniks_mag_thresh.NB0816)
+        # & (nb816 < feniks_mag_thresh.NB0816)
         & (hsc_z < feniks_mag_thresh.HSC_Z)
-        & (nb921 < feniks_mag_thresh.NB0921)
+        # & (nb921 < feniks_mag_thresh.NB0921)
         & (uds_J < feniks_mag_thresh.UDS_J)
         & (uds_H < feniks_mag_thresh.UDS_H)
         & (uds_K < feniks_mag_thresh.UDS_K)
@@ -460,9 +452,9 @@ def get_feniks_data(
     hsc_g = hsc_g[mag_thresh]
     hsc_r = hsc_r[mag_thresh]
     hsc_i = hsc_i[mag_thresh]
-    nb816 = nb816[mag_thresh]
+    # nb816 = nb816[mag_thresh]
     hsc_z = hsc_z[mag_thresh]
-    nb921 = nb921[mag_thresh]
+    # nb921 = nb921[mag_thresh]
     uds_J = uds_J[mag_thresh]
     uds_H = uds_H[mag_thresh]
     uds_K = uds_K[mag_thresh]
@@ -475,9 +467,9 @@ def get_feniks_data(
         & (hsc_g != -99)
         & (hsc_r != -99)
         & (hsc_i != -99)
-        & (nb816 != -99)
+        # & (nb816 != -99)
         & (hsc_z != -99)
-        & (nb921 != -99)
+        # & (nb921 != -99)
         & (uds_J != -99)
         & (uds_H != -99)
         & (uds_K != -99)
@@ -490,9 +482,9 @@ def get_feniks_data(
     hsc_g = hsc_g[clean]
     hsc_r = hsc_r[clean]
     hsc_i = hsc_i[clean]
-    nb816 = nb816[clean]
+    # nb816 = nb816[clean]
     hsc_z = hsc_z[clean]
-    nb921 = nb921[clean]
+    # nb921 = nb921[clean]
     uds_J = uds_J[clean]
     uds_H = uds_H[clean]
     uds_K = uds_K[clean]
@@ -506,9 +498,9 @@ def get_feniks_data(
             hsc_g,
             hsc_r,
             hsc_i,
-            nb816,
+            # nb816,
             hsc_z,
-            nb921,
+            # nb921,
             uds_J,
             uds_H,
             uds_K,
@@ -521,9 +513,9 @@ def get_feniks_data(
         r"$g_{HSC}$",
         r"$r_{HSC}$",
         r"$i_{HSC}$",
-        r"$NB816_{HSC}$",
+        # r"$NB816_{HSC}$",
         r"$z_{HSC}$",
-        r"$NB921_{HSC}$",
+        # r"$NB921_{HSC}$",
         r"$J_{UDS}$",
         r"$H_{UDS}$",
         r"$K_{UDS}$",
@@ -535,12 +527,11 @@ def get_feniks_data(
     hsc_gr = hsc_g - hsc_r
     hsc_rz = hsc_r - hsc_z
     hsc_ri = hsc_r - hsc_i
-    hsc_i816 = hsc_i - nb816
+    # hsc_i816 = hsc_i - nb816
     hsc_iz = hsc_i - hsc_z
-    hsc_z921 = hsc_z - nb921
+    # hsc_z921 = hsc_z - nb921
     hsc_uds_zJ = hsc_z - uds_J
     uds_JH = uds_J - uds_H
-    uds_HK = uds_H - uds_K
     hsc_uds_rK = hsc_r - uds_K
 
     # stack colors_mag
@@ -549,12 +540,12 @@ def get_feniks_data(
             megacam_hsc_uSg,
             hsc_gr,
             hsc_ri,
-            hsc_i816,
+            # hsc_i816,
             hsc_iz,
-            hsc_z921,
+            # hsc_z921,
             hsc_uds_zJ,
             uds_JH,
-            uds_HK,
+            hsc_uds_rK,
             megacam_uS,
             uds_K,
             zout["z_phot"],
@@ -565,12 +556,12 @@ def get_feniks_data(
         r"$uS_{MegaCam} - g_{HSC}$",
         r"$g_{HSC} - r_{HSC}$",
         r"$r_{HSC} - i_{HSC}$",
-        r"$i_{HSC} - NB816_{HSC}$",
+        # r"$i_{HSC} - NB816_{HSC}$",
         r"$i_{HSC} - z_{HSC}$",
-        r"$z_{HSC} - NB921_{HSC}$",
+        # r"$z_{HSC} - NB921_{HSC}$",
         r"$z_{HSC} - J_{UDS}$",
         r"$J_{UDS} - H_{UDS}$",
-        r"$H_{UDS} - K_{UDS}$",
+        r"$r_{HSC} - K_{UDS}$",
         r"$uS_{MegaCam}$",
         r"$K_{UDS}$",
         r"$redshift$",
@@ -582,7 +573,6 @@ def get_feniks_data(
         [
             [0.2, 0.7],
             [0.7, 1.5],
-            # [1.0, 1.5],
             [1.5, 2.5],
         ]
     )

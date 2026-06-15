@@ -84,18 +84,18 @@ def plot_color_pdfs(
         dataset.filter_info.tcurves,
         z_phot_table,
     )
-    in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
-    in_lh_idx = jnp.where(in_lh)[0]
+
     obs_color_mag, weights, phot_kern_results = get_colors_mags(
         ran_key,
         param_collection,
         lc_data,
+        dataset.col_idx,
+        dataset.mag_idx,
         dataset.filter_info.mag_thresh,
-        in_lh_idx,
         dataset.frac_cat,
     )
 
-    n_panels = obs_color_mag.shape[1] - len(in_lh_idx)
+    n_panels = obs_color_mag.shape[1] - len(dataset.mag_idx)
 
     if data_label == "sdss":
         fig_width = 3.0 * n_panels
@@ -231,14 +231,14 @@ def plot_n_colors_mag(
         dataset.filter_info.tcurves,
         z_phot_table,
     )
-    in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
-    in_lh_idx = jnp.where(in_lh)[0]
+
     obs_color_mag, weights, phot_kern_results = get_colors_mags(
         ran_key,
         param_collection,
         lc_data,
+        dataset.col_idx,
+        dataset.mag_idx,
         dataset.filter_info.mag_thresh,
-        in_lh_idx,
         dataset.frac_cat,
     )
 
@@ -271,7 +271,7 @@ def plot_n_colors_mag(
     )
     fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=24)
     for i in range(0, n_panels):
-        if i >= n_panels - len(in_lh_idx):
+        if i >= n_panels - len(dataset.mag_idx):
             bins = np.linspace(
                 dataset_colors_mag_z[:, i].min() - 0.2,
                 dataset_colors_mag_z[:, i].max(),
@@ -608,13 +608,7 @@ def plot_app_mag_funcs(
         ]
 
     elif len(labels_z) == 5:
-        colors_z = [
-            "#001219",
-            "#0a7a80",
-            "#80cca8",
-            "#c8b44a",
-            "#c87820",
-        ]
+        colors_z = ["#001219", "#0a7a80", "#80cca8", "#c87820", "#9b1d20"]
     elif len(labels_z) == 6:
         colors_z = ["#001219", "#0a7a80", "#80cca8", "#c8b44a", "#c87820", "#9b1d20"]
 

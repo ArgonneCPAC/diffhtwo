@@ -5,7 +5,6 @@ import jax.numpy as jnp
 from diffsky import diffndhist_lomem
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
-from jax.debug import print
 
 from .phot_kern import get_colors_mags, mag_kern
 
@@ -144,8 +143,9 @@ def N_colors_mags_lh(
         ran_key,
         param_collection,
         fitting_data.lc_data,
+        meta_data.col_idx,
+        meta_data.mag_idx,
         meta_data.mag_thresh,
-        meta_data.in_lh_idx,
         meta_data.frac_cat,
     )
 

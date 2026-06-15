@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run192
-model_nickname: run192_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run192/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run193
+model_nickname: run193_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run193/diagnostic_plots/diffstarpop+spspop+merging
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
@@ -11,10 +11,10 @@ dsps_drn: /Users/kumail/diffdir/COSMOS20/portal.nersc.gov/project/hacc/aphearin/
 ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5
 
 
-plot_sdss: False
+plot_sdss: True
 
-plot_feniks: True
-feniks_fitting_space: "2D"
+plot_feniks: False
+feniks_fitting_space: "LH"
 
 plot_hizels: False
 

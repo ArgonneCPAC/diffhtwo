@@ -25,6 +25,8 @@ Sdss = namedtuple(
     "Sdss",
     [
         "dataset",
+        "col_idx",
+        "mag_idx",
         "dataset_dim_labels",
         "mags",
         "mags_labels",
@@ -154,19 +156,11 @@ def get_sdss_data(
     )
     sdss, frac_cat = load_sdss_cuts_applied(drn, sdss_mag_thresh)
 
-    sdss_in_lh = SdssFilters(
-        sdss_u=True,
-        sdss_g=False,
-        sdss_r=True,
-        sdss_i=False,
-        sdss_z=False,
-    )
-
     tcurves = []
     for bn_pat in SdssFilters._fields:
         tcurve = load_transmission_curve(bn_pat=bn_pat + "*", drn=drn + "/sdss_filters")
         tcurves.append(tcurve)
-    filter_info = FilterInfo(sdss_mag_thresh, sdss_in_lh, tcurves)
+    filter_info = FilterInfo(sdss_mag_thresh, tcurves)
 
     sdss_u = sdss["modelMag_u"].data
     sdss_g = sdss["modelMag_g"].data
@@ -198,7 +192,13 @@ def get_sdss_data(
         r"$redshift$",
     ]
     mag_labels = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$"]
-
+    col_idx = [
+        [0, 1],  # u - g
+        [1, 2],  # g - r
+        [2, 3],  # r - i
+        [3, 4],  # i - z
+    ]
+    mag_idx = [2]  # r
     ##############################################################################
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
@@ -415,6 +415,8 @@ def get_sdss_data(
 
     return Sdss(
         dataset,
+        col_idx,
+        mag_idx,
         dataset_dim_labels,
         mags,
         mag_labels,
