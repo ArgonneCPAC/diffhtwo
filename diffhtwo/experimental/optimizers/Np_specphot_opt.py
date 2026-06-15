@@ -107,50 +107,10 @@ def fit_N_phot_2d(
         )
 
         # clip gradients
-        # global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
-        # tau = 1.0
-        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        # grads = tuple(g * scale for g in grads)
-
-        opt_state = opt_update(i, grads, opt_state)
-        return opt_state, loss
-
-    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
-    u_theta_fit = get_params(opt_state)
-
-    return loss_hist, u_theta_fit
-
-
-@partial(jjit, static_argnames=["n_steps", "step_size"])
-def fit_N_phot_1d(
-    u_theta_init,
-    trainable,
-    ran_key,
-    fitting_data,
-    n_steps=2,
-    step_size=1e-2,
-):
-    opt_init, opt_update, get_params = jax_opt.adam(step_size)
-    opt_state = opt_init(u_theta_init)
-
-    other = (
-        ran_key,
-        fitting_data,
-    )
-
-    def _opt_update(opt_state, i):
-        u_theta = get_params(opt_state)
-        loss, grads = _loss_and_grad_phot_kern_multiband_multiz(u_theta, *other)
-        # set grads for untrainable params to 0.0
-        grads = tuple(
-            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
-        )
-
-        # clip gradients
-        # global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
-        # tau = 1.0
-        # scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        # grads = tuple(g * scale for g in grads)
+        global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
+        tau = 1.0
+        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+        grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
         return opt_state, loss

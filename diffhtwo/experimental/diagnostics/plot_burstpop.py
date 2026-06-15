@@ -183,7 +183,7 @@ def plot_lgfburst_mh_z(
     cbar1.ax.invert_yaxis()
 
     ax[1].set_xlabel("redshift")
-    ax[1].set_ylabel("log$_{10}$ (M$_{*}$ [M\u2609])")
+    ax[1].set_ylabel(r"log$_{10}$ (M$_{*}$ [M${_\odot}$])")
     ax[1].set_xlim(z_min, z_max)
     ax[1].set_ylim(logsm_min, log_sm_max)
 
