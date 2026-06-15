@@ -6,9 +6,9 @@ start_fit_type: "all"
 fit_runid: "runtest"
 fit_type: "all"
 
-feniks:
+sdss:
   lh_d_mag: 0.1
-  N_centroids: 3000
+  N_centroids: 2000
 
 epoch:
   n_it: 1

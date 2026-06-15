@@ -14,7 +14,6 @@ from ..defaults import (
     AppMagFunc,
     ColorColor,
     ColorCondMag,
-    Dataset,
     FilterInfo,
     MagColor,
 )
@@ -22,7 +21,27 @@ from ..latin_hypercube import latin_hypercube as lh
 from ..lightcone_generators import generate_lc_data
 from .N_utils import get_N_1d, get_N_2d
 
-Sdss = namedtuple("Sdss", Dataset._fields)
+Sdss = namedtuple(
+    "Sdss",
+    [
+        "dataset",
+        "dataset_dim_labels",
+        "mags",
+        "mags_labels",
+        "colors",
+        "app_mag_funcs",
+        "fine_zbins",
+        "filter_info",
+        "frac_cat",
+        "lh_centroids",
+        "d_centroids",
+        "N_data",
+        "lh_dmag",
+        "lh_dz",
+        "data_sky_area_degsq",
+    ],
+)
+
 
 LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
