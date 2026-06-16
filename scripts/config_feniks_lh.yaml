@@ -8,7 +8,7 @@ fit_type: "all"
 
 feniks:
   lh_d_mag: 0.4
-  N_centroids: 3000
+  N_centroids: 5000
 
 epoch:
   n_it: 1
