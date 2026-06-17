@@ -168,7 +168,7 @@ def plot_smhm(
 
     if in_situ:
         fig.savefig(
-            savedir + "/" + data_label + "_insitu_smhm.png",
+            savedir + "/" + data_label + "_smhm_insitu.png",
             dpi=300,
         )
     else:

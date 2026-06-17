@@ -1,6 +1,5 @@
 from jax import jit as jjit
 from jax import lax
-from jax.debug import print
 
 from ..kernels.N_phot import N_colors_mags, N_colors_mags_lh
 from ..param_utils import get_param_collection_from_u_theta

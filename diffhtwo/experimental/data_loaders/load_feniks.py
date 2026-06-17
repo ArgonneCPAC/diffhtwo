@@ -314,7 +314,7 @@ def get_feniks_data_lh(
         )
     ).T
 
-    col_idx = [
+    col_idx_lh_dim = [
         [0, 1],  # u - g
         [1, 2],  # g - r
         [2, 3],  # r - i
@@ -323,7 +323,7 @@ def get_feniks_data_lh(
         [5, 6],  # J - H
         [2, 7],  # r - K
     ]
-    mag_idx = [
+    mag_idx_lh_dim = [
         0,  # u
         7,  # K
     ]
@@ -356,8 +356,8 @@ def get_feniks_data_lh(
 
     return FeniksLH(
         dataset,
-        col_idx,
-        mag_idx,
+        col_idx_lh_dim,
+        mag_idx_lh_dim,
         dataset_dim_labels,
         mags,
         mags_labels,
