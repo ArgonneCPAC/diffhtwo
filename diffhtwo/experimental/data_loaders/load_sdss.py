@@ -177,12 +177,15 @@ def get_sdss_data(
     sdss_iz = sdss_i - sdss_z
 
     # stack colors_mag
-    dataset = np.vstack((sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_r, sdss_redshift)).T
+    dataset = np.vstack(
+        (sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_u, sdss_r, sdss_redshift)
+    ).T
     dataset_dim_labels = [
         r"$u - g$",
         r"$g - r$",
         r"$r - i$",
         r"$i - z$",
+        r"$u$",
         r"$r$",
         r"$redshift$",
     ]
@@ -193,7 +196,7 @@ def get_sdss_data(
         [2, 3],  # r - i
         [3, 4],  # i - z
     ]
-    mag_idx_lh_dim = [2]  # r
+    mag_idx_lh_dim = [0, 2]  # u, r
     ##############################################################################
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
