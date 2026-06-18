@@ -47,7 +47,7 @@ Sdss = namedtuple(
 
 LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
-LH_D_Z = 0.05
+LH_D_Z = 0.025
 
 
 def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
@@ -178,7 +178,18 @@ def get_sdss_data(
 
     # stack colors_mag
     dataset = np.vstack(
-        (sdss_ug, sdss_gr, sdss_ri, sdss_iz, sdss_u, sdss_r, sdss_redshift)
+        (
+            sdss_ug,
+            sdss_gr,
+            sdss_ri,
+            sdss_iz,
+            sdss_u,
+            sdss_g,
+            sdss_r,
+            sdss_i,
+            sdss_z,
+            sdss_redshift,
+        )
     ).T
     dataset_dim_labels = [
         r"$u - g$",
@@ -186,7 +197,10 @@ def get_sdss_data(
         r"$r - i$",
         r"$i - z$",
         r"$u$",
+        r"$g$",
         r"$r$",
+        r"$i$",
+        r"$z$",
         r"$redshift$",
     ]
     mag_labels = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$"]
@@ -196,7 +210,7 @@ def get_sdss_data(
         [2, 3],  # r - i
         [3, 4],  # i - z
     ]
-    mag_idx_lh_dim = [0, 2]  # u, r
+    mag_idx_lh_dim = [0, 1, 2, 3, 4]  # u, g, r, i, z
     ##############################################################################
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
