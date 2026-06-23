@@ -77,7 +77,7 @@ def plot_density(
             Z_model,
             levels=levels,
             cmap=cmap,
-            linewidths=1.5,
+            linewidths=2.5,
             alpha=0.9,
             linestyles="dashed",
         )
@@ -96,13 +96,13 @@ def plot_density(
     ax.legend(
         handles=legend_handles,
         loc="upper center",
-        bbox_to_anchor=(0.5, 1.1),
+        bbox_to_anchor=(0.5, 1.0),
         ncol=len(legend_handles),
         frameon=False,
-        fontsize=12,
+        fontsize=16,
     )
-    ax.set_xlabel(xlabel, fontsize=14)
-    ax.set_ylabel(ylabel, fontsize=14)
+    ax.set_xlabel(xlabel, fontsize=16)
+    ax.set_ylabel(ylabel, fontsize=16)
 
 
 def plot_density_raw(bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap, N_model=None):
@@ -142,6 +142,7 @@ def plot_color_contours(
     sigma=0.5,
     n_levels=10,
 ):
+    labelsize = 14
     for z in range(0, len(data)):
         z_data = data[z]
 
@@ -164,8 +165,10 @@ def plot_color_contours(
 
             else:
                 fig, ax = plt.subplots(figsize=(6.4, 5.2), constrained_layout=True)
-                fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=14, y=0.98)
-                fig.get_layout_engine().set(h_pad=0.0, hspace=0.0, rect=(0, 0, 1, 0.95))
+                fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=18, y=0.98)
+                fig.get_layout_engine().set(
+                    h_pad=0.0, hspace=0.0, rect=(0, 0, 1, 0.925)
+                )
 
                 name = type(space).__name__
                 xlabel, ylabel = parse_color_labels(name)
@@ -182,6 +185,26 @@ def plot_color_contours(
                     sigma=sigma,
                     n_levels=n_levels,
                 )
+                ax.minorticks_on()
+                ax.tick_params(
+                    which="major",
+                    direction="in",
+                    top=True,
+                    right=True,
+                    length=6,
+                    width=1,
+                    labelsize=labelsize,
+                )
+                ax.tick_params(
+                    which="minor",
+                    direction="in",
+                    top=True,
+                    right=True,
+                    length=3,
+                    width=0.8,
+                    labelsize=labelsize,
+                )
+
                 fig.savefig(
                     savedir
                     + "/"

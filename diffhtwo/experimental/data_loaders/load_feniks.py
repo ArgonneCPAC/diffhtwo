@@ -35,7 +35,7 @@ Feniks = namedtuple("Feniks", Dataset._fields)
 FeniksLH = namedtuple("FeniksLH", DatasetLH._fields)
 
 LH_SIG = 3.0
-LH_N_CENTROIDS = 75_000
+LH_N_CENTROIDS = 30_000
 
 LH_D_Z = 0.3
 

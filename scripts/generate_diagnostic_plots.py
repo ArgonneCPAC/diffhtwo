@@ -47,6 +47,7 @@ from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_n_colors_mag,
     plot_n_mags,
 )
+from diffhtwo.experimental.diagnostics.plot_phot_z import plot_colors_z
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
 from diffhtwo.experimental.diagnostics.plot_sat import plot_merging_sat_colors
 from diffhtwo.experimental.diagnostics.plot_satquench import (
@@ -247,6 +248,21 @@ if __name__ == "__main__":
             )
 
             feniks_zbins = feniks.fine_zbins
+
+        if cfg["plots"]["plot_colors_z"]:
+            print("Generating FENIKS colors v. redshift plot...")
+            plot_colors_z(
+                ran_key,
+                param_collection_fit,
+                feniks,
+                feniks_label,
+                feniks_zbins[0][0],
+                feniks_zbins[-1][-1],
+                num_halos,
+                ssp_data,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
 
         if cfg["plots"]["plot_smhm"]:
             print("Generating FENIKS SMHM plots...")
@@ -549,6 +565,21 @@ if __name__ == "__main__":
             num_halos_fine_zbins=int(num_halos / 2),
         )
         sdss_zbins = sdss.fine_zbins
+
+        if cfg["plots"]["plot_colors_z"]:
+            print("Generating SDSS colors v. redshift plot...")
+            plot_colors_z(
+                ran_key,
+                param_collection_fit,
+                sdss,
+                sdss_label,
+                sdss_zbins[0][0],
+                sdss_zbins[-1][-1],
+                num_halos,
+                ssp_data,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
 
         if cfg["plots"]["plot_smhm"]:
             print("Generating SDSS SMHM plots...")

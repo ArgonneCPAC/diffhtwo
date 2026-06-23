@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run203
-model_nickname: run203_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run203/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run208
+model_nickname: run208_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run208/diagnostic_plots/diffstarpop+spspop+merging
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
@@ -23,6 +23,7 @@ plots:
   plot_app_mag_funcs: True
   plot_color_pdfs: True
   plot_colors_mags: True
+  plot_colors_z: True
   plot_hod: True
   plot_mags: True
   plot_ssperr: True
