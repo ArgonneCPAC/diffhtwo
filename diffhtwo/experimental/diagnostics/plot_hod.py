@@ -95,7 +95,7 @@ def plot_hod_sm_thresh(
         ax.plot(
             logmp,
             tot_occ,
-            label=r"M$_{*}$ [M$_{\odot}$] > " + str(logsm_thresh[i]),
+            label=r"log$_{10}$ (M$_{*}$ [M$_{\odot}$]) > " + str(logsm_thresh[i]),
             color=colors[i],
             alpha=alpha,
         )

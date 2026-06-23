@@ -37,6 +37,7 @@ from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha_insitu_exsitu,
     plot_halpha_ms_q_burst,
     plot_halpha_sfr,
+    plot_halpha_sfr_single_z,
     plot_halpha_ssfr,
 )
 from diffhtwo.experimental.diagnostics.plot_hod import plot_hod_sm_thresh
@@ -175,6 +176,18 @@ if __name__ == "__main__":
         )
 
         print("Generating h-alpha LF sfr plot...")
+        plot_halpha_sfr_single_z(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            plt_show=False,
+        )
         plot_halpha_sfr(
             ran_key,
             hizels,
