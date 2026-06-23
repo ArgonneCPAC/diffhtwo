@@ -5,7 +5,7 @@ from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
 from ..lightcone_generators import generate_lc_data
-from .cat_weights import compute_cat_weights
+from .cat_weight import compute_cat_weight
 
 
 def multiband_lc_phot_kern(
@@ -48,7 +48,7 @@ def multiband_lc_phot_kern(
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     if mag_thresh is not None:
-        gal_weight = compute_cat_weights(
+        gal_weight = compute_cat_weight(
             gal_weight, obs_mags_weighted, mag_thresh, frac_cat
         )
 

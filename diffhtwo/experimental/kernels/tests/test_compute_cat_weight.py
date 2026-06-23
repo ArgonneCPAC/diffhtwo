@@ -3,7 +3,7 @@ import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from jax import random as jran
 
-from ..cat_weights import compute_cat_weights
+from ..cat_weight import compute_cat_weight
 from ..lc_phot_kern import mc_phot_kern_merging_wrapper
 
 
@@ -21,7 +21,7 @@ def test_compute_cat_weights(feniks, feniks_lc_data):
     assert (gal_weight >= 0).all()
 
     # apply mag_thresh cuts and frac_cat
-    gal_cat_weight = compute_cat_weights(
+    gal_cat_weight = compute_cat_weight(
         gal_weight, obs_mags_weighted, feniks.filter_info.mag_thresh, feniks.frac_cat
     )
     assert np.isfinite(gal_cat_weight).all()

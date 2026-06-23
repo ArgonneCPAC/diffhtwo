@@ -7,7 +7,7 @@ from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from .cat_weights import compute_cat_weights
+from .cat_weight import compute_cat_weight
 from .gehrels_err import get_n_data_err
 from .lc_phot_kern import mc_phot_kern_merging_wrapper
 
@@ -65,9 +65,7 @@ def mag_kern(
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     # update weights to incorporate mag thresh cuts and frac_cat
-    gal_weight = compute_cat_weights(
-        gal_weight, obs_mags_weighted, mag_thresh, frac_cat
-    )
+    gal_weight = compute_cat_weight(gal_weight, obs_mags_weighted, mag_thresh, frac_cat)
 
     return obs_mags_weighted, gal_weight, phot_kern_results
 
