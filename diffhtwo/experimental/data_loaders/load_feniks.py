@@ -399,8 +399,8 @@ def get_feniks_data(
     zout = ascii.read(drn_path / zout)
 
     if add_random_rows_for_testing:
-        phot = add_random_rows(phot, N=10000)
-        zout = add_random_rows(zout, N=10000)
+        phot = add_random_rows(phot, N=1000)
+        zout = add_random_rows(zout, N=1000)
 
     # get mags
     megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
