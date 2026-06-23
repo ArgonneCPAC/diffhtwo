@@ -39,6 +39,7 @@ from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha_sfr,
     plot_halpha_ssfr,
 )
+from diffhtwo.experimental.diagnostics.plot_hod import plot_hod_sm_thresh
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
     plot_color_pdfs,
@@ -338,6 +339,23 @@ if __name__ == "__main__":
             z_min = feniks_zbins[zbin][0]
             z_max = feniks_zbins[zbin][1]
 
+            if cfg["plots"]["plot_hod"]:
+                print(
+                    f"Generating FENIKS HOD plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+                )
+                plot_hod_sm_thresh(
+                    ran_key,
+                    param_collection_fit,
+                    ssp_data,
+                    feniks.filter_info.tcurves,
+                    z_min,
+                    z_max,
+                    feniks_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
+
             if cfg["plots"]["plot_insitu_sm"]:
                 print(
                     f"Generating FENIKS in-situ sm plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
@@ -610,6 +628,24 @@ if __name__ == "__main__":
         for zbin in range(0, len(sdss_zbins)):
             z_min = sdss_zbins[zbin][0]
             z_max = sdss_zbins[zbin][1]
+
+            if cfg["plots"]["plot_hod"]:
+                print(
+                    f"Generating SDSS HOD plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
+                )
+
+                plot_hod_sm_thresh(
+                    ran_key,
+                    param_collection_fit,
+                    ssp_data,
+                    sdss.filter_info.tcurves,
+                    z_min,
+                    z_max,
+                    sdss_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
 
             if cfg["plots"]["plot_insitu_sm"]:
                 print(

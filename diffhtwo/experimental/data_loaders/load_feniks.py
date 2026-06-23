@@ -1144,22 +1144,22 @@ def get_feniks_data(
         u = N_utils.get_mag_space("U", megacam_uS, "MegaCam_uS", z_sel, fit=True)
 
         # 1D (g)
-        g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, fit=False)
+        g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, fit=True)
 
         # 1D (r)
         r = N_utils.get_mag_space("R", hsc_r, "HSC_R", z_sel, fit=True)
 
         # 1D (i)
-        i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, fit=False)
+        i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, fit=True)
 
         # 1D (z)
-        z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, fit=False)
+        z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, fit=True)
 
         # 1D (J)
-        j = N_utils.get_mag_space("J", uds_J, "UDS_J", z_sel, fit=False)
+        j = N_utils.get_mag_space("J", uds_J, "UDS_J", z_sel, fit=True)
 
         # 1D (H)
-        h = N_utils.get_mag_space("H", uds_H, "UDS_H", z_sel, fit=False)
+        h = N_utils.get_mag_space("H", uds_H, "UDS_H", z_sel, fit=True)
 
         # 1D (K)
         k = N_utils.get_mag_space("K", uds_K, "UDS_K", z_sel, fit=True)

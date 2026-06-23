@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run185_test_sdss_plotting
-model_nickname: run185_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run185_test_sdss_plotting/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run195
+model_nickname: run195_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run195/diagnostic_plots/diffstarpop+spspop+merging
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
@@ -11,31 +11,32 @@ dsps_drn: /Users/kumail/diffdir/COSMOS20/portal.nersc.gov/project/hacc/aphearin/
 ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5
 
 
-plot_sdss: True
+plot_sdss: False
 
-plot_feniks: False
-feniks_fitting_space: "LH"
+plot_feniks: True
+feniks_fitting_space: "2D"
 
 plot_hizels: False
 
 plots:
   num_halos : 3000
-  plot_app_mag_funcs: True
-  plot_color_pdfs: True
-  plot_colors_mags: True
-  plot_mags: True
-  plot_ssperr: True
-  plot_massive_cen_colors: True
-  plot_merging_sat_colors: True
-  plot_smhm: True
-  plot_insitu_smhm: True
-  plot_insitu_sm: True
-  plot_sm: True
-  plot_uvj: True
-  plot_exsitu_frac: True
-  plot_avpop: True
-  plot_burstpop: True
-  plot_fburst_mh_z: True
-  plot_satquench_model: True
-  plot_color_contours: True
+  plot_app_mag_funcs: False
+  plot_color_pdfs: False
+  plot_colors_mags: False
+  plot_hod: True
+  plot_mags: False
+  plot_ssperr: False
+  plot_massive_cen_colors: False
+  plot_merging_sat_colors: False
+  plot_smhm: False
+  plot_insitu_smhm: False
+  plot_insitu_sm: False
+  plot_sm: False
+  plot_uvj: False
+  plot_exsitu_frac: False
+  plot_avpop: False
+  plot_burstpop: False
+  plot_fburst_mh_z: False
+  plot_satquench_model: False
+  plot_color_contours: False
   plot_satquench: False
