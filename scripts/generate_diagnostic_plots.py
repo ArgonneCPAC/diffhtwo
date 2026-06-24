@@ -220,7 +220,7 @@ if __name__ == "__main__":
     Plot FENIKS
     """
     if cfg["plot_feniks"]:
-        feniks_label = "feniks"  # + cfg["model_nickname"].split("_")[0]
+        feniks_label = "feniks"
 
         feniks = load_feniks.get_feniks_data(
             feniks_drn,

@@ -183,11 +183,7 @@ def get_sdss_data(
             sdss_gr,
             sdss_ri,
             sdss_iz,
-            sdss_u,
-            sdss_g,
             sdss_r,
-            sdss_i,
-            sdss_z,
             sdss_redshift,
         )
     ).T
@@ -196,11 +192,7 @@ def get_sdss_data(
         r"$g - r$",
         r"$r - i$",
         r"$i - z$",
-        r"$u$",
-        r"$g$",
         r"$r$",
-        r"$i$",
-        r"$z$",
         r"$redshift$",
     ]
     mag_labels = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$"]
@@ -210,7 +202,7 @@ def get_sdss_data(
         [2, 3],  # r - i
         [3, 4],  # i - z
     ]
-    mag_idx_lh_dim = [0, 1, 2, 3, 4]  # u, g, r, i, z
+    mag_idx_lh_dim = [2]  # r
     ##############################################################################
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
