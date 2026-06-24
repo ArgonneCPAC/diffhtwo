@@ -365,7 +365,7 @@ def get_feniks_data(
         [
             [0.2, 0.7],
             [0.7, 1.5],
-            [1.5, 2.0],
+            [1.5, 2.5],
         ]
     )
     ##############################################################################
@@ -488,7 +488,7 @@ def get_feniks_data(
         ["HSC_R", "HSC_I"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, g - r)
@@ -500,7 +500,7 @@ def get_feniks_data(
         ["HSC_G", "HSC_R"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, J - H)
@@ -512,7 +512,7 @@ def get_feniks_data(
         ["UDS_J", "UDS_H"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     z1 = Z1(z_min, z_max, lc_data, gr_ri, ug, ri, iz, jh, K_ri, K_gr, K_JH)
@@ -624,7 +624,7 @@ def get_feniks_data(
     #     "UDS_K",
     #     ["MegaCam_uS", "HSC_G"],
     #     z_sel,
-    #     fit=False,
+    #     fit=True,
     # )
 
     # # 2D (K, r - z)
@@ -786,7 +786,7 @@ def get_feniks_data(
         ["MegaCam_uS", "HSC_G"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, r - z)
@@ -798,7 +798,7 @@ def get_feniks_data(
         ["HSC_R", "HSC_Z"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     z2b = Z2b(z_min, z_max, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz)
@@ -922,7 +922,7 @@ def get_feniks_data(
         ["MegaCam_uS", "HSC_G"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, g - r)
@@ -934,7 +934,7 @@ def get_feniks_data(
         ["HSC_G", "HSC_R"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, J - H)
@@ -946,7 +946,7 @@ def get_feniks_data(
         ["UDS_J", "UDS_H"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug_gr, ug, gr, jh, K_ug, K_gr, K_JH)
@@ -961,6 +961,7 @@ def get_feniks_data(
             [0.7, 1.0],
             [1.0, 1.5],
             [1.5, 2.0],
+            [2.0, 2.5],
         ]
     )
     ##############################################################################
