@@ -179,6 +179,70 @@ def fit_sdss_feniks(
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_sdss_feniks_hizels(
+    u_theta_init,
+    trainable,
+    ran_key,
+    sdss_fitting_data,
+    feniks_fitting_data,
+    hizels_fitting_data,
+    n_steps=2,
+    step_size=1e-2,
+    w_sdss=1.0,
+    w_feniks=1.0,
+    w_hizels=1.0,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss_sdss, grad_sdss = _loss_and_grad_phot_kern_2d_multiz(
+            u_theta,
+            ran_key,
+            sdss_fitting_data,
+        )
+
+        loss_feniks, grad_feniks = _loss_and_grad_phot_kern_2d_multiz(
+            u_theta,
+            ran_key,
+            feniks_fitting_data,
+        )
+
+        loss_hizels, grad_hizels = _loss_and_grad_emline_kern_multi_line_multi_z(
+            u_theta,
+            ran_key,
+            hizels_fitting_data,
+        )
+
+        loss_sdss = w_sdss * loss_sdss
+        loss_feniks = w_feniks * loss_feniks
+        loss_hizels = w_hizels * loss_hizels
+        loss = loss_sdss + loss_feniks + loss_hizels
+
+        grads = tuple(
+            w_sdss * gs + w_feniks * gf + w_hizels * gh
+            for gs, gf, gh in zip(grad_sdss, grad_feniks, grad_hizels)
+        )
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, (loss, loss_sdss, loss_feniks, loss_hizels)
+
+    opt_state, (
+        loss_hist,
+        loss_sdss_hist,
+        loss_feniks_hist,
+        loss_hizels_hist,
+    ) = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+    u_theta_fit = get_params(opt_state)
+    return loss_hist, loss_sdss_hist, loss_feniks_hist, loss_hizels_hist, u_theta_fit
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_feniks_hizels(
     u_theta_init,
     trainable,
@@ -234,105 +298,105 @@ def fit_feniks_hizels(
     return loss_hist, loss_phot_hist, loss_emline_hist, u_theta_fit
 
 
-@jjit
-def _loss_sdss_feniks_hizels(
-    u_theta,
-    ran_key,
-    sdss_meta_data,
-    sdss_fitting_data,
-    feniks_meta_data,
-    feniks_fitting_data,
-    hizels_fitting_data,
-    fit_sdss=False,
-    fit_feniks=False,
-    fit_hizels=True,
-):
-    loss = 0.0
+# @jjit
+# def _loss_sdss_feniks_hizels(
+#     u_theta,
+#     ran_key,
+#     sdss_meta_data,
+#     sdss_fitting_data,
+#     feniks_meta_data,
+#     feniks_fitting_data,
+#     hizels_fitting_data,
+#     fit_sdss=False,
+#     fit_feniks=False,
+#     fit_hizels=True,
+# ):
+#     loss = 0.0
 
-    # sdss
-    if fit_sdss:
-        sdss_phot_loss = _loss_phot_kern_multi_z(
-            u_theta,
-            ran_key,
-            sdss_meta_data,
-            sdss_fitting_data,
-        )
-        loss += sdss_phot_loss
+#     # sdss
+#     if fit_sdss:
+#         sdss_phot_loss = _loss_phot_kern_multi_z(
+#             u_theta,
+#             ran_key,
+#             sdss_meta_data,
+#             sdss_fitting_data,
+#         )
+#         loss += sdss_phot_loss
 
-    # feniks
-    if fit_feniks:
-        feniks_phot_loss = _loss_phot_kern_multi_z(
-            u_theta,
-            ran_key,
-            feniks_meta_data,
-            feniks_fitting_data,
-        )
-        loss += feniks_phot_loss
+#     # feniks
+#     if fit_feniks:
+#         feniks_phot_loss = _loss_phot_kern_multi_z(
+#             u_theta,
+#             ran_key,
+#             feniks_meta_data,
+#             feniks_fitting_data,
+#         )
+#         loss += feniks_phot_loss
 
-    # hizels
-    if fit_hizels:
-        hizels_emline_multi_line_multi_z_loss_args = (
-            u_theta,
-            ran_key,
-            hizels_fitting_data,
-        )
-        hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
-            *hizels_emline_multi_line_multi_z_loss_args
-        )
-        loss += hizels_emline_loss
+#     # hizels
+#     if fit_hizels:
+#         hizels_emline_multi_line_multi_z_loss_args = (
+#             u_theta,
+#             ran_key,
+#             hizels_fitting_data,
+#         )
+#         hizels_emline_loss = _loss_emline_kern_multi_line_multi_z(
+#             *hizels_emline_multi_line_multi_z_loss_args
+#         )
+#         loss += hizels_emline_loss
 
-    return loss
-
-
-_loss_and_grad_sdss_feniks_hizels = jjit(value_and_grad(_loss_sdss_feniks_hizels))
+#     return loss
 
 
-@partial(jjit, static_argnames=["n_steps", "step_size"])
-def fit_sdss_feniks_hizels(
-    u_theta_init,
-    trainable,
-    ran_key,
-    sdss_meta_data,
-    sdss_fitting_data,
-    feniks_meta_data,
-    feniks_fitting_data,
-    hizels_fitting_data,
-    n_steps=2,
-    step_size=1e-2,
-):
-    opt_init, opt_update, get_params = jax_opt.adam(step_size)
-    opt_state = opt_init(u_theta_init)
+# _loss_and_grad_sdss_feniks_hizels = jjit(value_and_grad(_loss_sdss_feniks_hizels))
 
-    other = (
-        ran_key,
-        sdss_meta_data,
-        sdss_fitting_data,
-        feniks_meta_data,
-        feniks_fitting_data,
-        hizels_fitting_data,
-    )
 
-    def _opt_update(opt_state, i):
-        u_theta = get_params(opt_state)
-        loss, grads = _loss_and_grad_sdss_feniks_hizels(
-            u_theta,
-            *other,
-        )
-        # set grads for untrainable params to 0.0
-        grads = tuple(
-            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
-        )
+# @partial(jjit, static_argnames=["n_steps", "step_size"])
+# def fit_sdss_feniks_hizels(
+#     u_theta_init,
+#     trainable,
+#     ran_key,
+#     sdss_meta_data,
+#     sdss_fitting_data,
+#     feniks_meta_data,
+#     feniks_fitting_data,
+#     hizels_fitting_data,
+#     n_steps=2,
+#     step_size=1e-2,
+# ):
+#     opt_init, opt_update, get_params = jax_opt.adam(step_size)
+#     opt_state = opt_init(u_theta_init)
 
-        # clip gradients
-        global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
-        tau = 1.0
-        scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
-        grads = tuple(g * scale for g in grads)
+#     other = (
+#         ran_key,
+#         sdss_meta_data,
+#         sdss_fitting_data,
+#         feniks_meta_data,
+#         feniks_fitting_data,
+#         hizels_fitting_data,
+#     )
 
-        opt_state = opt_update(i, grads, opt_state)
-        return opt_state, loss
+#     def _opt_update(opt_state, i):
+#         u_theta = get_params(opt_state)
+#         loss, grads = _loss_and_grad_sdss_feniks_hizels(
+#             u_theta,
+#             *other,
+#         )
+#         # set grads for untrainable params to 0.0
+#         grads = tuple(
+#             jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+#         )
 
-    opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
-    u_theta_fit = get_params(opt_state)
+#         # clip gradients
+#         global_norm = jnp.sqrt(sum(jnp.sum(g**2) for g in grads))
+#         tau = 1.0
+#         scale = jnp.minimum(1.0, tau / (global_norm + 1e-6))
+#         grads = tuple(g * scale for g in grads)
 
-    return loss_hist, u_theta_fit
+#         opt_state = opt_update(i, grads, opt_state)
+#         return opt_state, loss
+
+#     opt_state, loss_hist = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+#     u_theta_fit = get_params(opt_state)
+
+#     return loss_hist, u_theta_fit
