@@ -36,8 +36,7 @@ def plot_colors_z(
     obs_mags = phot_data.obs_mags[mag_mask]
     z_obs = lc_data.z_obs[mag_mask]
 
-    _, n_bands = phot_data.obs_mags.shape
-    n_colors = n_bands - 1
+    n_colors = len(dataset.col_idx)
     fig, ax = plt.subplots(n_colors, 1, figsize=(5, 12.0), constrained_layout=True)
     c_raw = "k"
     c_lh = "deepskyblue"
@@ -57,15 +56,10 @@ def plot_colors_z(
         if i != n_colors - 1:
             ax[i].set_xticks([])
 
-        # ylim = (
-        #     np.percentile(dataset.dataset[:, i], 2),
-        #     np.percentile(dataset.dataset[:, i], 98),
-        # )
-
-        # ax[i].set_ylim(ylim)
         ax[i].set_xlim(z_min, z_max)
 
-        color = obs_mags[:, i] - obs_mags[:, i + 1]
+        col_idx = dataset.col_idx[i]
+        color = obs_mags[:, col_idx[0]] - obs_mags[:, col_idx[1]]
         ax[i].scatter(
             z_obs, color, s=1, alpha=0.5, c=c_lh, label="diffsky", rasterized=True
         )

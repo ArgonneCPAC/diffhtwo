@@ -51,7 +51,7 @@ if __name__ == "__main__":
 
     # load feniks data
     ran_key = jran.key(0)
-    FENIKS = load_feniks.get_feniks_data_lh(
+    FENIKS = load_feniks.get_feniks_data(
         feniks_drn, ran_key, ssp_data, lh_d_mag=cfg["feniks"]["lh_d_mag"]
     )
 

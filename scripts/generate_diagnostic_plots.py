@@ -222,32 +222,15 @@ if __name__ == "__main__":
     if cfg["plot_feniks"]:
         feniks_label = "feniks"  # + cfg["model_nickname"].split("_")[0]
 
-        if cfg["feniks_fitting_space"] == "LH":
-            feniks = load_feniks.get_feniks_data_lh(
-                feniks_drn,
-                ran_key,
-                ssp_data,
-            )
-            feniks_zbins = np.array(
-                [
-                    [0.2, 0.5],
-                    [0.5, 0.7],
-                    [0.7, 1.0],
-                    [1.0, 1.5],
-                    [1.5, 2.0],
-                    [2.0, 2.5],
-                ]
-            )
-        elif cfg["feniks_fitting_space"] == "2D":
-            feniks = load_feniks.get_feniks_data(
-                feniks_drn,
-                ran_key,
-                ssp_data,
-                num_halos_coarse_zbins=num_halos,
-                num_halos_fine_zbins=int(num_halos / 2),
-            )
+        feniks = load_feniks.get_feniks_data(
+            feniks_drn,
+            ran_key,
+            ssp_data,
+            num_halos_coarse_zbins=num_halos,
+            num_halos_fine_zbins=int(num_halos / 2),
+        )
 
-            feniks_zbins = feniks.fine_zbins
+        feniks_zbins = feniks.fine_zbins
 
         if cfg["plots"]["plot_colors_z"]:
             print("Generating FENIKS colors v. redshift plot...")
