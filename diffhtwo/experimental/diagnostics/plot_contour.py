@@ -96,10 +96,11 @@ def plot_density(
     ax.legend(
         handles=legend_handles,
         loc="upper center",
-        bbox_to_anchor=(0.5, 1.0),
+        bbox_to_anchor=(0.5, 1.1),
         ncol=len(legend_handles),
         frameon=False,
         fontsize=16,
+        borderaxespad=0.0,
     )
     ax.set_xlabel(xlabel, fontsize=16)
     ax.set_ylabel(ylabel, fontsize=16)
@@ -165,10 +166,8 @@ def plot_color_contours(
 
             else:
                 fig, ax = plt.subplots(figsize=(6.4, 5.2), constrained_layout=True)
-                fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=18, y=0.98)
-                fig.get_layout_engine().set(
-                    h_pad=0.0, hspace=0.0, rect=(0, 0, 1, 0.925)
-                )
+                fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=18, y=0.99)
+                fig.get_layout_engine().set(h_pad=0.0, hspace=0.0, rect=(0, 0, 1, 0.95))
 
                 name = type(space).__name__
                 xlabel, ylabel = parse_color_labels(name)

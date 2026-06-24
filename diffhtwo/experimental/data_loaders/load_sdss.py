@@ -203,6 +203,19 @@ def get_sdss_data(
         [3, 4],  # i - z
     ]
     mag_idx_lh_dim = [2]  # r
+
+    lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
+
+    # run initial diffndhist_lomem with fixed dmag
+    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
+    lh_centroids_lo = lh_centroids - (d_centroids / 2)
+    lh_centroids_hi = lh_centroids + (d_centroids / 2)
+    N_data_lh = diffndhist_lomem.tw_ndhist(
+        dataset,
+        dataset_sig,
+        lh_centroids_lo,
+        lh_centroids_hi,
+    )
     ##############################################################################
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
@@ -292,7 +305,7 @@ def get_sdss_data(
                     bin_lo_ur,
                     bin_hi_ur,
                     N_1d_ur,
-                    True,
+                    False,
                 )
             )
 
@@ -313,7 +326,7 @@ def get_sdss_data(
                     bin_lo_ri,
                     bin_hi_ri,
                     N_1d_ri,
-                    True,
+                    False,
                 )
             )
 
@@ -323,7 +336,7 @@ def get_sdss_data(
         )
         mag_idx = 2
         col_idx = [0, 2]
-        r_ur = R_ur(mag_idx, col_idx, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur, N_r_ur, False)
+        r_ur = R_ur(mag_idx, col_idx, sig_r_ur, bin_lo_r_ur, bin_hi_r_ur, N_r_ur, True)
 
         # 2D (r, r - i)
         N_r_ri, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri = get_N_2d(
@@ -331,7 +344,7 @@ def get_sdss_data(
         )
         mag_idx = 2
         col_idx = [2, 3]
-        r_ri = R_ri(mag_idx, col_idx, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri, N_r_ri, False)
+        r_ri = R_ri(mag_idx, col_idx, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri, N_r_ri, True)
 
         colors.append(Colors(z_min, z_max, lc_data, ur_ri, gr_ri, ur, ri, r_ur, r_ri))
 
@@ -403,19 +416,6 @@ def get_sdss_data(
         app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, g, r, i, z))
 
     ##############################################################################
-
-    lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
-
-    # run initial diffndhist_lomem with fixed dmag
-    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
-    lh_centroids_lo = lh_centroids - (d_centroids / 2)
-    lh_centroids_hi = lh_centroids + (d_centroids / 2)
-    N_data_lh = diffndhist_lomem.tw_ndhist(
-        dataset,
-        dataset_sig,
-        lh_centroids_lo,
-        lh_centroids_hi,
-    )
 
     return Sdss(
         dataset,
