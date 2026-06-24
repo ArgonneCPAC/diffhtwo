@@ -437,7 +437,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=2,
-        fit=True,
+        fit=False,
     )
 
     # 1D (r − i | K)
@@ -450,7 +450,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=2,
-        fit=True,
+        fit=False,
     )
 
     # 1D (i − z | K)
@@ -463,7 +463,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=2,
-        fit=True,
+        fit=False,
     )
 
     # 1D (J − H | K)
@@ -476,7 +476,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=2,
-        fit=True,
+        fit=False,
     )
 
     # 2D (K, r - i)
@@ -748,7 +748,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=2,
-        fit=True,
+        fit=False,
     )
 
     # 1D (r - z | K)
@@ -761,7 +761,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=2,
-        fit=True,
+        fit=False,
     )
 
     # 1D (J − H | K)
@@ -774,7 +774,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=2,
-        fit=True,
+        fit=False,
     )
 
     # 2D (K, u - g)
@@ -884,7 +884,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=4,
-        fit=True,
+        fit=False,
     )
 
     # 1D (g - r | K)
@@ -897,7 +897,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=4,
-        fit=True,
+        fit=False,
     )
 
     # 1D (J − H | K)
@@ -910,7 +910,7 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         cond_dmag=4,
-        fit=True,
+        fit=False,
     )
 
     # 2D (K, u - g)
