@@ -12,14 +12,14 @@ ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kr
 
 
 plot_sdss: True
-plot_feniks: True
+plot_feniks: False
 plot_hizels: False
 
 plots:
   num_halos : 3000
   plot_app_mag_funcs: True
   plot_color_pdfs: True
-  plot_colors_mags: True
+  plot_colors_mags: False
   plot_colors_z: False
   plot_hod: True
   plot_mags: False

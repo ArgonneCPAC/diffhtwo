@@ -230,7 +230,14 @@ if __name__ == "__main__":
             num_halos_fine_zbins=int(num_halos / 2),
         )
 
-        feniks_zbins = feniks.fine_zbins
+        feniks_zbins = np.array(
+            [
+                [0.4, 0.7],
+                [0.7, 1.0],
+                [1.0, 1.5],
+                [1.5, 2.5],
+            ]
+        )
 
         if cfg["plots"]["plot_colors_z"]:
             print("Generating FENIKS colors v. redshift plot...")
@@ -547,7 +554,14 @@ if __name__ == "__main__":
             num_halos_coarse_zbins=num_halos,
             num_halos_fine_zbins=int(num_halos / 2),
         )
-        sdss_zbins = sdss.fine_zbins
+        sdss_zbins = np.array(
+            [
+                [0.02, 0.06],
+                [0.06, 0.1],
+                [0.1, 0.15],
+                [0.15, 0.2],
+            ]
+        )
 
         if cfg["plots"]["plot_colors_z"]:
             print("Generating SDSS colors v. redshift plot...")
