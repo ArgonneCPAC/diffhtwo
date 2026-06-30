@@ -200,28 +200,36 @@ def get_feniks_data(
     uds_K = get_mag_ab(phot, "fcol_UDS_K")
 
     feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=24.9,
-        HSC_G=25.1,
-        HSC_R=25.3,
-        HSC_I=25.1,
-        HSC_Z=24.9,
-        UDS_J=24.5,
-        UDS_H=24.3,
-        UDS_K=FENIKS_MAGK_THRESH,
+        MegaCam_uS=(21.0, 24.9),
+        HSC_G=(20.0, 25.1),
+        HSC_R=(20.0, 25.3),
+        HSC_I=(19.0, 25.1),
+        HSC_Z=(19.0, 24.9),
+        UDS_J=(18.0, 24.5),
+        UDS_H=(18.0, 24.3),
+        UDS_K=(18.0, FENIKS_MAGK_THRESH),
     )
 
     filter_info = FilterInfo(feniks_mag_thresh, tcurves)
 
     # get mag thresh cuts
     mag_thresh = (
-        (megacam_uS < feniks_mag_thresh.MegaCam_uS)
-        & (hsc_g < feniks_mag_thresh.HSC_G)
-        & (hsc_r < feniks_mag_thresh.HSC_R)
-        & (hsc_i < feniks_mag_thresh.HSC_I)
-        & (hsc_z < feniks_mag_thresh.HSC_Z)
-        & (uds_J < feniks_mag_thresh.UDS_J)
-        & (uds_H < feniks_mag_thresh.UDS_H)
-        & (uds_K < feniks_mag_thresh.UDS_K)
+        (megacam_uS > feniks_mag_thresh.MegaCam_uS[0])
+        & (megacam_uS < feniks_mag_thresh.MegaCam_uS[1])
+        & (hsc_g > feniks_mag_thresh.HSC_G[0])
+        & (hsc_g < feniks_mag_thresh.HSC_G[1])
+        & (hsc_r > feniks_mag_thresh.HSC_R[0])
+        & (hsc_r < feniks_mag_thresh.HSC_R[1])
+        & (hsc_i > feniks_mag_thresh.HSC_I[0])
+        & (hsc_i < feniks_mag_thresh.HSC_I[1])
+        & (hsc_z > feniks_mag_thresh.HSC_Z[0])
+        & (hsc_z < feniks_mag_thresh.HSC_Z[1])
+        & (uds_J > feniks_mag_thresh.UDS_J[0])
+        & (uds_J < feniks_mag_thresh.UDS_J[1])
+        & (uds_H > feniks_mag_thresh.UDS_H[0])
+        & (uds_H < feniks_mag_thresh.UDS_H[1])
+        & (uds_K > feniks_mag_thresh.UDS_K[0])
+        & (uds_K < feniks_mag_thresh.UDS_K[1])
     )
 
     # apply mag_thresh cuts and record n_gals.
@@ -363,9 +371,10 @@ def get_feniks_data(
     # prepare 2D and 1D color spaces in coarse z-bins for fitting
     zbins = np.array(
         [
-            [0.2, 0.7],
-            [0.7, 1.5],
-            [1.5, 2.5],
+            [0.4, 0.8],
+            [0.8, 1.2],
+            [1.2, 1.8],
+            [1.8, 2.5],
         ]
     )
     ##############################################################################
@@ -956,12 +965,10 @@ def get_feniks_data(
     # prepare 1D app mag funcs in finer z-bins for fitting
     fine_zbins = np.array(
         [
-            [0.2, 0.5],
-            [0.5, 0.7],
-            [0.7, 1.0],
-            [1.0, 1.5],
-            [1.5, 2.0],
-            [2.0, 2.5],
+            [0.4, 0.8],
+            [0.8, 1.2],
+            [1.2, 1.8],
+            [1.8, 2.5],
         ]
     )
     ##############################################################################

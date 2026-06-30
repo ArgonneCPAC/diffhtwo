@@ -66,11 +66,16 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
 
     # implement r <= 17.6
     mag_thresh_mask = (
-        (sdss["modelMag_u"] < sdss_mag_thresh.sdss_u)
-        & (sdss["modelMag_g"] < sdss_mag_thresh.sdss_g)
-        & (sdss["modelMag_r"] < sdss_mag_thresh.sdss_r)
-        & (sdss["modelMag_i"] < sdss_mag_thresh.sdss_i)
-        & (sdss["modelMag_z"] < sdss_mag_thresh.sdss_z)
+        (sdss["modelMag_u"] > sdss_mag_thresh.sdss_u[0])
+        & (sdss["modelMag_u"] < sdss_mag_thresh.sdss_u[1])
+        & (sdss["modelMag_g"] > sdss_mag_thresh.sdss_g[0])
+        & (sdss["modelMag_g"] < sdss_mag_thresh.sdss_g[1])
+        & (sdss["modelMag_r"] > sdss_mag_thresh.sdss_r[0])
+        & (sdss["modelMag_r"] < sdss_mag_thresh.sdss_r[1])
+        & (sdss["modelMag_i"] > sdss_mag_thresh.sdss_i[0])
+        & (sdss["modelMag_i"] < sdss_mag_thresh.sdss_i[1])
+        & (sdss["modelMag_z"] > sdss_mag_thresh.sdss_z[0])
+        & (sdss["modelMag_z"] < sdss_mag_thresh.sdss_z[1])
     )
     sdss = sdss[mag_thresh_mask]
     N_obj_pre_outlier_cut = len(sdss)
@@ -146,11 +151,11 @@ def get_sdss_data(
     n_z_phot_table=30,
 ):
     sdss_mag_thresh = SdssFilters(
-        sdss_u=19.7,
-        sdss_g=18.0,
-        sdss_r=SDSS_MAGR_THRESH,
-        sdss_i=17.0,
-        sdss_z=17.0,
+        sdss_u=(15.0, 19.7),
+        sdss_g=(14.0, 18.0),
+        sdss_r=(14.0, SDSS_MAGR_THRESH),
+        sdss_i=(13.0, 17.0),
+        sdss_z=(13.0, 17.0),
     )
     sdss, frac_cat = load_sdss_cuts_applied(drn, sdss_mag_thresh)
 
@@ -351,7 +356,12 @@ def get_sdss_data(
     ##############################################################################
     ##############################################################################
     # prepare 1D app mag funcs in finer z-bins for fitting
-    fine_zbins = np.array([[0.02, 0.06], [0.06, 0.1], [0.1, 0.14], [0.14, 0.2]])
+    fine_zbins = np.array(
+        [
+            [0.02, 0.1],
+            [0.1, 0.2],
+        ]
+    )
     ##############################################################################
     AppMagFuncs = namedtuple(
         "AppMagFuncs",
