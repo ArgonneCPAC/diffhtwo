@@ -144,7 +144,7 @@ def test_specphot_opt(
         assert np.isfinite(grad_emline[g]).all()
 
     trainable_params = pu.get_trainable_params(fit_type="all")
-    loss_hist, u_theta_fit = fit_feniks_hizels(
+    loss_hist, loss_phot_hist, loss_emline_hist, u_theta_fit = fit_feniks_hizels(
         u_theta,
         trainable_params,
         ran_key,

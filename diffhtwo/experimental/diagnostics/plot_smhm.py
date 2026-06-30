@@ -1,27 +1,25 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
-from scipy.stats import binned_statistic
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 
 
-def get_median_logsm_obs(logmp_obs, logsm_obs):
+def get_logsm_obs_weighted_mean(logmp_obs, logsm_obs, gal_weight):
     logmp_bins = np.arange(logmp_obs.min(), logmp_obs.max() + 0.25, 0.25)
     logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
 
-    logsm_16, __, __ = binned_statistic(
-        logmp_obs, logsm_obs, bins=logmp_bins, statistic=lambda x: np.percentile(x, 16)
-    )
-    logsm_50, __, __ = binned_statistic(
-        logmp_obs, logsm_obs, bins=logmp_bins, statistic="median"
-    )
-    logsm_84, __, __ = binned_statistic(
-        logmp_obs, logsm_obs, bins=logmp_bins, statistic=lambda x: np.percentile(x, 84)
-    )
-    return logmp_bin_centers, logsm_16, logsm_50, logsm_84
+    logsm_obs_weighted_mean = []
+    for b in range(0, len(logmp_bins) - 1):
+        in_bin = (logmp_obs > logmp_bins[b]) & (logmp_obs < logmp_bins[b + 1])
+        logsm_obs_weighted_mean.append(
+            np.sum(logsm_obs[in_bin] * gal_weight[in_bin]) / np.sum(gal_weight[in_bin])
+        )
+    logsm_obs_weighted_mean = np.array(logsm_obs_weighted_mean)
+
+    return logmp_bin_centers, logsm_obs_weighted_mean
 
 
 def plot_smhm_z(
@@ -81,31 +79,22 @@ def plot_smhm_z(
 
         (
             logmp_bin_centers_fit,
-            logsm_16_fit,
-            logsm_50_fit,
-            logsm_84_fit,
-        ) = get_median_logsm_obs(lc_data.logmp_obs, logsm_obs)
+            logsm_obs_weighted_mean_fit,
+        ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
 
         ax.plot(
             logmp_bin_centers_fit,
-            logsm_50_fit,
+            logsm_obs_weighted_mean_fit,
             label=z_min_label + " < z < " + z_max_label,
             color=colors_z[zbin],
         )
-        # ax.fill_between(
-        #     logmp_bin_centers_fit,
-        #     logsm_16_fit,
-        #     logsm_84_fit,
-        #     alpha=alpha,
-        #     color=colors_z[zbin],
-        # )
 
     ax.set_xlim(11, 14)
     ax.set_ylim(7, 11.5)
     # ax.set_xticks([11, 12, 13, 14, 15])
     # ax.set_yticks([8, 9, 10, 11, 12])
 
-    ax.set_xlabel(r"log (M$_{halo}$ [M$_{\odot}$])", fontsize=fontsize)
+    ax.set_xlabel(r"log$_{10}$ (M$_{halo}$ [M$_{\odot}$])", fontsize=fontsize)
 
     ax.minorticks_on()
     ax.tick_params(
@@ -128,9 +117,9 @@ def plot_smhm_z(
     )
 
     if in_situ:
-        ax.set_ylabel("logsm_obs_in_situ", fontsize=fontsize)
+        ax.set_ylabel(r"log$_{10}$ (M$_{*, in-situ}$ [M$_{\odot}$])", fontsize=fontsize)
     else:
-        ax.set_ylabel(r"log (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
+        ax.set_ylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
     ax.legend(fontsize=10, loc="lower right")
 
     if in_situ:
@@ -173,7 +162,7 @@ def plot_smhm(
     labelsize = 10
     fontsize = 10
     labelsize = 10
-    alpha = 0.25
+    # alpha = 0.25
 
     for zbin in range(n_z_bins):
         z_min = zbins[zbin][0]
@@ -196,27 +185,37 @@ def plot_smhm(
         )
         if in_situ:
             logsm_obs = phot_kern_results.logsm_obs_in_situ
+            (
+                logmp_bin_centers_default,
+                logsm_obs_weighted_mean_default,
+            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
         else:
             logsm_obs = phot_kern_results.logsm_obs
-        (
-            logmp_bin_centers_default,
-            logsm_16_default,
-            logsm_50_default,
-            logsm_84_default,
-        ) = get_median_logsm_obs(lc_data.logmp_obs, logsm_obs)
+            p_merge = phot_kern_results.p_merge
+            (
+                logmp_bin_centers_default,
+                logsm_obs_weighted_mean_default,
+            ) = get_logsm_obs_weighted_mean(
+                lc_data.logmp_obs, logsm_obs, gal_weight * (1 - p_merge)
+            )
+            (
+                _,
+                logsm_obs_weighted_mean_default_wout_pmerge,
+            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            ax[zbin].plot(
+                logmp_bin_centers_default,
+                logsm_obs_weighted_mean_default_wout_pmerge,
+                label="wout p_merge weight",
+                color="#D6353D",
+                lw=2,
+            )
 
         ax[zbin].plot(
             logmp_bin_centers_default,
-            logsm_50_default,
+            logsm_obs_weighted_mean_default,
             label="default",
             color="#FFB689",
-        )
-        ax[zbin].fill_between(
-            logmp_bin_centers_default,
-            logsm_16_default,
-            logsm_84_default,
-            alpha=alpha,
-            color="#FFB689",
+            lw=2,
         )
 
         """fit"""
@@ -238,32 +237,21 @@ def plot_smhm(
 
         (
             logmp_bin_centers_fit,
-            logsm_16_fit,
-            logsm_50_fit,
-            logsm_84_fit,
-        ) = get_median_logsm_obs(lc_data.logmp_obs, logsm_obs)
+            logsm_obs_weighted_mean_fit,
+        ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
 
-        ax[zbin].plot(logmp_bin_centers_fit, logsm_50_fit, label="fit", color="#61C0BF")
-        ax[zbin].fill_between(
+        ax[zbin].plot(
             logmp_bin_centers_fit,
-            logsm_16_fit,
-            logsm_84_fit,
-            alpha=alpha,
+            logsm_obs_weighted_mean_fit,
+            label="fit",
             color="#61C0BF",
+            lw=2,
         )
 
-        # if in_situ:
-        #     ax[zbin].set_xlim(10, lc_data.logmp_obs.max())
-        #     ax[zbin].set_ylim(5, 13)
-        #     ax[zbin].set_xticks([10, 11, 12, 13, 14, 15])
-        #     ax[zbin].set_yticks([5, 6, 7, 8, 9, 10, 11, 12])
-        # else:
         ax[zbin].set_xlim(11, lc_data.logmp_obs.max())
         ax[zbin].set_ylim(8, 13)
         ax[zbin].set_xticks([11, 12, 13, 14, 15])
         ax[zbin].set_yticks([8, 9, 10, 11, 12])
-
-        ax[zbin].set_xlabel("logmp_obs", fontsize=fontsize)
 
         ax[zbin].minorticks_on()
         ax[zbin].tick_params(
@@ -285,10 +273,14 @@ def plot_smhm(
             labelsize=labelsize,
         )
 
+        ax[zbin].set_xlabel(r"log$_{10}$ (M$_{halo}$ [M$_{\odot}$])", fontsize=fontsize)
+
     if in_situ:
-        ax[0].set_ylabel("logsm_obs_in_situ", fontsize=fontsize)
+        ax[0].set_ylabel(
+            r"log$_{10}$ (M$_{*, in-situ}$ [M$_{\odot}$])", fontsize=fontsize
+        )
     else:
-        ax[0].set_ylabel("logsm_obs", fontsize=fontsize)
+        ax[0].set_ylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
     ax[-1].legend(fontsize=7, loc="lower right")
 
     if in_situ:

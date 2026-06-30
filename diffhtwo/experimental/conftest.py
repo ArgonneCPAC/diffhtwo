@@ -82,7 +82,7 @@ def feniks_fitting_data(ran_key, fake_subset_ssp_data):
         ssp_data,
         phot=PHOT,
         zout=ZOUT,
-        add_random_rows_for_testing=True,
+        add_random_rows_for_testing=False,
     )
     return feniks_fitting_data
 
