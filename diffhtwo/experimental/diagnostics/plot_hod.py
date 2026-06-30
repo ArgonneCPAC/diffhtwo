@@ -70,7 +70,7 @@ def plot_hod_sm_thresh(
     sat_weight = lc_data.sat_weight
     logsm_obs = phot_data.logsm_obs
 
-    logsm_thresh = np.array([9, 10, 11])
+    logsm_thresh = np.array([8, 9, 10, 11])
 
     fig_width = 5
     fig_height = 4
@@ -79,7 +79,7 @@ def plot_hod_sm_thresh(
     labelsize = 10
     alpha = 0.75
 
-    colors = ["#0057A8", "#FFCD00", "#DA291C"]
+    colors = ["#0057A8", "#43B02A", "#FFCD00", "#DA291C"]
 
     fig, ax = plt.subplots(1, figsize=(fig_width, fig_height), constrained_layout=True)
     for i in range(0, len(logsm_thresh)):

@@ -24,6 +24,131 @@ def get_median_logsm_obs(logmp_obs, logsm_obs):
     return logmp_bin_centers, logsm_16, logsm_50, logsm_84
 
 
+def plot_smhm_z(
+    ran_key,
+    param_collection,
+    zbins,
+    num_halos,
+    ssp_data,
+    tcurves,
+    data_label,
+    savedir,
+    mag_thresh=None,
+    frac_cat=None,
+    in_situ=False,
+    plt_show=True,
+):
+    n_z_bins = len(zbins)
+    fig_width = 4.5
+    fig_height = 4
+    fig, ax = plt.subplots(1, figsize=(fig_width, fig_height), constrained_layout=True)
+
+    labelsize = 10
+    fontsize = 14
+    alpha = 0.25
+    # colors_z = ["#001219", "#0a7a80", "#80cca8", "#c8b44a", "#c87820", "#9b1d20"]
+    colors_z = [
+        "#4B2D8F",  # 19-3748 Deep Violet
+        "#2055A4",  # 19-4150 Classic Blue
+        "#009473",  # 17-5335 Arcadia
+        "#D4A017",  # 14-0951 Saffron
+        "#E8601C",  # 16-1358 Flame
+        "#9B1B30",  # 19-1757 Chili Pepper
+    ]
+
+    for zbin in range(n_z_bins):
+        z_min = zbins[zbin][0]
+        z_max = zbins[zbin][1]
+        z_min_label = str(np.round(z_min, 2))
+        z_max_label = str(np.round(z_max, 2))
+
+        """fit"""
+        lc_data, phot_kern_results, gal_weight = multiband_lc_phot_kern(
+            ran_key,
+            param_collection,
+            z_min,
+            z_max,
+            num_halos,
+            ssp_data,
+            tcurves,
+            mag_thresh=mag_thresh,
+            frac_cat=frac_cat,
+        )
+        if in_situ:
+            logsm_obs = phot_kern_results.logsm_obs_in_situ
+        else:
+            logsm_obs = phot_kern_results.logsm_obs
+
+        (
+            logmp_bin_centers_fit,
+            logsm_16_fit,
+            logsm_50_fit,
+            logsm_84_fit,
+        ) = get_median_logsm_obs(lc_data.logmp_obs, logsm_obs)
+
+        ax.plot(
+            logmp_bin_centers_fit,
+            logsm_50_fit,
+            label=z_min_label + " < z < " + z_max_label,
+            color=colors_z[zbin],
+        )
+        # ax.fill_between(
+        #     logmp_bin_centers_fit,
+        #     logsm_16_fit,
+        #     logsm_84_fit,
+        #     alpha=alpha,
+        #     color=colors_z[zbin],
+        # )
+
+    ax.set_xlim(11, 14)
+    ax.set_ylim(7, 11.5)
+    # ax.set_xticks([11, 12, 13, 14, 15])
+    # ax.set_yticks([8, 9, 10, 11, 12])
+
+    ax.set_xlabel(r"log (M$_{halo}$ [M$_{\odot}$])", fontsize=fontsize)
+
+    ax.minorticks_on()
+    ax.tick_params(
+        which="major",
+        direction="in",
+        top=True,
+        right=True,
+        length=6,
+        width=1,
+        labelsize=labelsize,
+    )
+    ax.tick_params(
+        which="minor",
+        direction="in",
+        top=True,
+        right=True,
+        length=3,
+        width=0.8,
+        labelsize=labelsize,
+    )
+
+    if in_situ:
+        ax.set_ylabel("logsm_obs_in_situ", fontsize=fontsize)
+    else:
+        ax.set_ylabel(r"log (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
+    ax.legend(fontsize=10, loc="lower right")
+
+    if in_situ:
+        fig.savefig(
+            savedir + "/" + data_label + "_smhm_z_insitu.png",
+            dpi=300,
+        )
+    else:
+        fig.savefig(
+            savedir + "/" + data_label + "_smhm_z.png",
+            dpi=300,
+        )
+
+    if plt_show:
+        plt.show()
+    plt.close()
+
+
 def plot_smhm(
     ran_key,
     param_collection,

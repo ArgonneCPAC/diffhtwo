@@ -125,7 +125,7 @@ if __name__ == "__main__":
     if cfg["plot_hizels"]:
         feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
         hizels_drn = Path(hizels_drn)
-        hizels_label = "hizels"
+        hizels_label = "hizels_" + cfg["model_nickname"].split("_")[0]
         hizels = load_hizels.get_hizels_data(
             hizels_drn,
             ran_key,
@@ -220,7 +220,7 @@ if __name__ == "__main__":
     Plot FENIKS
     """
     if cfg["plot_feniks"]:
-        feniks_label = "feniks"
+        feniks_label = "feniks_" + cfg["model_nickname"].split("_")[0]
 
         feniks = load_feniks.get_feniks_data(
             feniks_drn,
@@ -539,7 +539,7 @@ if __name__ == "__main__":
     Plot SDSS
     """
     if cfg["plot_sdss"]:
-        sdss_label = "sdss"  # + cfg["model_nickname"].split("_")[0]
+        sdss_label = "sdss_" + cfg["model_nickname"].split("_")[0]
         sdss = load_sdss.get_sdss_data(
             sdss_drn,
             ran_key,

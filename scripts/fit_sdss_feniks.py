@@ -3,7 +3,6 @@ import os
 import time
 from collections import namedtuple
 from datetime import datetime
-from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -23,6 +22,7 @@ from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks, load_sdss
+from diffhtwo.experimental.defaults import FENIKS_AREA_DEG2, SDSS_AREA_DEG2
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
 DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
@@ -118,6 +118,9 @@ if __name__ == "__main__":
             num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
         )
 
+        w_sdss = 1 / SDSS_AREA_DEG2
+        w_feniks = 1 / FENIKS_AREA_DEG2
+
         (
             loss_hist,
             loss_sdss_hist,
@@ -131,6 +134,8 @@ if __name__ == "__main__":
             feniks_fitting_data,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
+            w_sdss=w_sdss,
+            w_feniks=w_feniks,
         )
 
         jax.clear_caches()

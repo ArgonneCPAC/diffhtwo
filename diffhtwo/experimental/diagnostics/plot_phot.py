@@ -97,7 +97,7 @@ def plot_color_pdfs(
 
     n_panels = obs_color_mag.shape[1] - len(dataset.mag_idx)
 
-    if data_label == "sdss":
+    if "sdss" in data_label:
         fig_width = 3.0 * n_panels
         fig_height = n_panels
 
@@ -105,7 +105,7 @@ def plot_color_pdfs(
         # labelsize = 3.25 * n_panels
         legend_fontsize = 3 * n_panels
 
-    if data_label == "feniks":
+    if "feniks" in data_label:
         fig_width = 2.25 * n_panels
         fig_height = n_panels / 2.5
 
@@ -244,7 +244,7 @@ def plot_n_colors_mag(
 
     n_panels = obs_color_mag.shape[1]
 
-    if data_label == "sdss":
+    if "sdss" in data_label:
         fig_width = 3.0 * n_panels
         fig_height = 1.5 * n_panels
 
@@ -252,7 +252,7 @@ def plot_n_colors_mag(
         labelsize = 3.25 * n_panels
         legend_fontsize = 3 * n_panels
 
-    if data_label == "feniks":
+    if "feniks" in data_label:
         fig_width = 2.25 * n_panels
         fig_height = n_panels / 1.5
 
@@ -435,7 +435,7 @@ def plot_n_mags(
 
     n_panels = obs_mags.shape[1]
 
-    if data_label == "sdss":
+    if "sdss" in data_label:
         fig_width = 3.0 * n_panels
         fig_height = 1.5 * n_panels
 
@@ -443,7 +443,7 @@ def plot_n_mags(
         labelsize = 3.25 * n_panels
         legend_fontsize = 3 * n_panels
 
-    if data_label == "feniks":
+    if "feniks" in data_label:
         fig_width = 2.25 * n_panels
         fig_height = n_panels / 1.5
 
@@ -651,7 +651,7 @@ def plot_app_mag_funcs(
         handleheight=0.5,
         columnspacing=0.8,
         handletextpad=0.1,
-        bbox_to_anchor=(0.5, 1.0),
+        bbox_to_anchor=(0.5, 1.02),
         fontsize=10,
     )
 

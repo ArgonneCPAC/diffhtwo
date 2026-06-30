@@ -25,7 +25,7 @@ def get_phot_loss_2d_multiz(
             mag_thresh,
             frac_cat,
         )
-        sky_rescale = data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
+        # sky_rescale = data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
         fields = z_data_model._fields[3:]
         for f in range(0, len(fields)):
             space = getattr(z_data_model, fields[f])
@@ -35,14 +35,18 @@ def get_phot_loss_2d_multiz(
                     phot_loss_2d += lax.cond(
                         space_n.fit,
                         lambda sp=space_n: poisson_loss(
-                            sp.N_model * sky_rescale, sp.N_data
+                            sp.N_model / z_data_model.lc_data.sky_area_degsq,
+                            sp.N_data / data_sky_area_degsq,
                         ),
                         lambda: 0.0,
                     )
             else:
                 phot_loss_2d += lax.cond(
                     space.fit,
-                    lambda sp=space: poisson_loss(sp.N_model * sky_rescale, sp.N_data),
+                    lambda sp=space: poisson_loss(
+                        sp.N_model / z_data_model.lc_data.sky_area_degsq,
+                        sp.N_data / data_sky_area_degsq,
+                    ),
                     lambda: 0.0,
                 )
     return phot_loss_2d
