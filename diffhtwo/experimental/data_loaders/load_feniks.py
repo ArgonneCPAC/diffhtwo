@@ -186,8 +186,8 @@ def get_feniks_data(
     zout = ascii.read(drn_path / zout)
 
     if add_random_rows_for_testing:
-        phot = add_random_rows(phot, N=1000)
-        zout = add_random_rows(zout, N=1000)
+        phot = add_random_rows(phot, N=200)
+        zout = add_random_rows(zout, N=200)
 
     # get mags
     megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
@@ -1060,6 +1060,7 @@ def get_feniks_fitting_data(
     num_halos_fine_zbins=250,
     phot=PHOT,
     zout=ZOUT,
+    add_random_rows_for_testing=False,
 ):
     feniks = get_feniks_data(
         feniks_drn,
@@ -1070,6 +1071,7 @@ def get_feniks_fitting_data(
         num_halos_fine_zbins=num_halos_fine_zbins,
         phot=phot,
         zout=zout,
+        add_random_rows_for_testing=add_random_rows_for_testing,
     )
     remove = {"dataset_dim_labels", "mags_labels"}
     FeniksFitting = namedtuple("Feniks", [f for f in feniks._fields if f not in remove])

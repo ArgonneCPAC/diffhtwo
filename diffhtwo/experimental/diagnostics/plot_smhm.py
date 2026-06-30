@@ -45,7 +45,7 @@ def plot_smhm_z(
 
     labelsize = 10
     fontsize = 14
-    alpha = 0.25
+    # alpha = 0.25
     # colors_z = ["#001219", "#0a7a80", "#80cca8", "#c8b44a", "#c87820", "#9b1d20"]
     colors_z = [
         "#4B2D8F",  # 19-3748 Deep Violet
