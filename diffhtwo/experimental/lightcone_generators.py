@@ -7,7 +7,7 @@ from diffmah import logmh_at_t_obs
 from diffmah.diffmah_kernels import _log_mah_kern
 from diffsky.experimental import lightcone_generators as lcg
 from diffsky.experimental import precompute_ssp_phot as psspp
-from diffsky.phot_utils import get_wave_eff_table
+from diffsky.utils.phot_utils import get_wave_eff_table
 from dsps.constants import T_TABLE_MIN
 from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY

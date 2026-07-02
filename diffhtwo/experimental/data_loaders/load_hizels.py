@@ -166,7 +166,7 @@ def get_hizels_halpha(drn):
     halpha_N_data_z0p4 = _lg_phi_corr_to_N_corr(
         HiZELS_halpha_z0p4["logphi_corr"], HiZELS_halpha_z0p4["vol_1e4Mpc3"]
     )
-    halpha_vol_Mpc3_z0p4 = _vol_h0p7_to_hdefault(HiZELS_halpha_z0p4["vol_1e4Mpc3"])
+    halpha_vol_Mpc3_z0p4 = _vol_h0p7_to_hdefault(HiZELS_halpha_z0p4["vol_1e4Mpc3"].data)
 
     halpha_lg_phi_data_z0p4 = jnp.vstack(
         (
@@ -183,7 +183,9 @@ def get_hizels_halpha(drn):
     halpha_N_data_z0p84 = _lg_phi_corr_to_N_corr(
         HiZELS_halpha_z0p84["logphi_corr"], HiZELS_halpha_z0p84["vol_1e4Mpc3"]
     )
-    halpha_vol_Mpc3_z0p84 = _vol_h0p7_to_hdefault(HiZELS_halpha_z0p84["vol_1e4Mpc3"])
+    halpha_vol_Mpc3_z0p84 = _vol_h0p7_to_hdefault(
+        HiZELS_halpha_z0p84["vol_1e4Mpc3"].data
+    )
 
     halpha_lg_phi_data_z0p84 = jnp.vstack(
         (
@@ -200,7 +202,9 @@ def get_hizels_halpha(drn):
     halpha_N_data_z1p47 = _lg_phi_corr_to_N_corr(
         HiZELS_halpha_z1p47["logphi_corr"], HiZELS_halpha_z1p47["vol_1e4Mpc3"]
     )
-    halpha_vol_Mpc3_z1p47 = _vol_h0p7_to_hdefault(HiZELS_halpha_z1p47["vol_1e4Mpc3"])
+    halpha_vol_Mpc3_z1p47 = _vol_h0p7_to_hdefault(
+        HiZELS_halpha_z1p47["vol_1e4Mpc3"].data
+    )
 
     halpha_lg_phi_data_z1p47 = jnp.vstack(
         (
@@ -217,7 +221,9 @@ def get_hizels_halpha(drn):
     halpha_N_data_z2p23 = _lg_phi_corr_to_N_corr(
         HiZELS_halpha_z2p23["logphi_corr"], HiZELS_halpha_z2p23["vol_1e4Mpc3"]
     )
-    halpha_vol_Mpc3_z2p23 = _vol_h0p7_to_hdefault(HiZELS_halpha_z2p23["vol_1e4Mpc3"])
+    halpha_vol_Mpc3_z2p23 = _vol_h0p7_to_hdefault(
+        HiZELS_halpha_z2p23["vol_1e4Mpc3"].data
+    )
 
     halpha_lg_phi_data_z2p23 = jnp.vstack(
         (

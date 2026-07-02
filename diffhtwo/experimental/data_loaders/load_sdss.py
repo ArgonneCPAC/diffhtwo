@@ -4,6 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 from diffsky import diffndhist_lomem
 from DisCoWebS.data_loader import sdss_loader as sdl
+from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders import load_transmission_curve
 
 from ..defaults import (
@@ -18,6 +19,7 @@ from ..defaults import (
     MagColor,
 )
 from ..latin_hypercube import latin_hypercube as lh
+from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
 from .N_utils import get_N_1d, get_N_2d
 
@@ -232,7 +234,18 @@ def get_sdss_data(
     ##############################################################################
     Colors = namedtuple(
         "Colors",
-        ["z_min", "z_max", "lc_data", "ur_ri", "gr_ri", "ur", "ri", "r_ur", "r_ri"],
+        [
+            "z_min",
+            "z_max",
+            "data_vol_mpc3,",
+            "lc_data",
+            "ur_ri",
+            "gr_ri",
+            "ur",
+            "ri",
+            "r_ur",
+            "r_ri",
+        ],
     )
     # 2D (u - r, r - i)
     Ur_ri = namedtuple("Ur_ri", ColorColor._fields)
@@ -256,6 +269,7 @@ def get_sdss_data(
     for zbin in range(0, len(zbins)):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
+        data_vol_mpc3 = zbin_volume(SDSS_AREA_DEG2, zlow=z_min, zhigh=z_max)
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -351,7 +365,11 @@ def get_sdss_data(
         col_idx = [2, 3]
         r_ri = R_ri(mag_idx, col_idx, sig_r_ri, bin_lo_r_ri, bin_hi_r_ri, N_r_ri, True)
 
-        colors.append(Colors(z_min, z_max, lc_data, ur_ri, gr_ri, ur, ri, r_ur, r_ri))
+        colors.append(
+            Colors(
+                z_min, z_max, data_vol_mpc3, lc_data, ur_ri, gr_ri, ur, ri, r_ur, r_ri
+            )
+        )
 
     ##############################################################################
     ##############################################################################
@@ -365,7 +383,7 @@ def get_sdss_data(
     ##############################################################################
     AppMagFuncs = namedtuple(
         "AppMagFuncs",
-        ["z_min", "z_max", "lc_data", "u", "g", "r", "i", "z"],
+        ["z_min", "z_max", "data_vol_mpc3,", "lc_data", "u", "g", "r", "i", "z"],
     )
     U = namedtuple("U", AppMagFunc._fields)
     G = namedtuple("G", AppMagFunc._fields)
@@ -377,6 +395,7 @@ def get_sdss_data(
     for zbin in range(0, len(fine_zbins)):
         z_min = fine_zbins[zbin][0]
         z_max = fine_zbins[zbin][1]
+        data_vol_mpc3 = zbin_volume(SDSS_AREA_DEG2, zlow=z_min, zhigh=z_max)
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -423,7 +442,9 @@ def get_sdss_data(
         N_1d_z, sig_z, bin_lo_z, bin_hi_z = get_N_1d(sdss_z[z_sel])
         z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z, True)
 
-        app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, g, r, i, z))
+        app_mag_funcs.append(
+            AppMagFuncs(z_min, z_max, data_vol_mpc3, lc_data, u, g, r, i, z)
+        )
 
     ##############################################################################
 

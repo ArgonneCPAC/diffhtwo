@@ -17,6 +17,7 @@ from ..defaults import (
     FilterInfo,
 )
 from ..latin_hypercube import latin_hypercube as lh
+from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
 from ..utils import add_random_rows, load_feniks_tcurve
 from . import N_utils
@@ -390,6 +391,7 @@ def get_feniks_data(
         [
             "z_min",
             "z_max",
+            "data_vol_mpc3",
             "lc_data",
             "gr_ri",
             "ug",
@@ -404,6 +406,7 @@ def get_feniks_data(
     zbin = 0
     z_min = zbins[zbin][0]
     z_max = zbins[zbin][1]
+    data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max)
 
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -524,7 +527,9 @@ def get_feniks_data(
         fit=True,
     )
 
-    z1 = Z1(z_min, z_max, lc_data, gr_ri, ug, ri, iz, jh, K_ri, K_gr, K_JH)
+    z1 = Z1(
+        z_min, z_max, data_vol_mpc3, lc_data, gr_ri, ug, ri, iz, jh, K_ri, K_gr, K_JH
+    )
     colors.append(z1)
 
     ##############################################################################
@@ -542,6 +547,7 @@ def get_feniks_data(
     #     [
     #         "z_min",
     #         "z_max",
+    #         "data_vol_mpc3",
     #         "lc_data",
     #         "rz_zJ",
     #         "ug",
@@ -558,6 +564,7 @@ def get_feniks_data(
     # zbin = 1
     # z_min = zbins[zbin][0]
     # z_max = zbins[zbin][1]
+    # data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max)
 
     # z_phot_table = 10 ** jnp.linspace(
     #     jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -688,6 +695,7 @@ def get_feniks_data(
     # z2a = Z2a(
     #     z_min,
     #     z_max,
+    #     data_vol_mpc3,
     #     lc_data,
     #     rz_zJ,
     #     ug,
@@ -710,11 +718,23 @@ def get_feniks_data(
 
     Z2b = namedtuple(
         "Z2b",
-        ["z_min", "z_max", "lc_data", "rz_zJ", "ug", "rz", "jh", "K_ug", "K_rz"],
+        [
+            "z_min",
+            "z_max",
+            "data_vol_mpc3",
+            "lc_data",
+            "rz_zJ",
+            "ug",
+            "rz",
+            "jh",
+            "K_ug",
+            "K_rz",
+        ],
     )
     zbin = 1
     z_min = zbins[zbin][0]
     z_max = zbins[zbin][1]
+    data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max)
 
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -810,7 +830,7 @@ def get_feniks_data(
         fit=True,
     )
 
-    z2b = Z2b(z_min, z_max, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz)
+    z2b = Z2b(z_min, z_max, data_vol_mpc3, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz)
     colors.append(z2b)
 
     ##############################################################################
@@ -826,6 +846,7 @@ def get_feniks_data(
         [
             "z_min",
             "z_max",
+            "data_vol_mpc3",
             "lc_data",
             "zJ_JH",
             "ug_gr",
@@ -840,6 +861,7 @@ def get_feniks_data(
     zbin = 2
     z_min = zbins[zbin][0]
     z_max = zbins[zbin][1]
+    data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max)
 
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -958,7 +980,9 @@ def get_feniks_data(
         fit=True,
     )
 
-    z3 = Z3(z_min, z_max, lc_data, zJ_JH, ug_gr, ug, gr, jh, K_ug, K_gr, K_JH)
+    z3 = Z3(
+        z_min, z_max, data_vol_mpc3, lc_data, zJ_JH, ug_gr, ug, gr, jh, K_ug, K_gr, K_JH
+    )
     colors.append(z3)
 
     ##############################################################################
@@ -974,13 +998,27 @@ def get_feniks_data(
     ##############################################################################
     AppMagFuncs = namedtuple(
         "AppMagFuncs",
-        ["z_min", "z_max", "lc_data", "u", "g", "r", "i", "z", "J", "H", "K"],
+        [
+            "z_min",
+            "z_max",
+            "data_vol_mpc3",
+            "lc_data",
+            "u",
+            "g",
+            "r",
+            "i",
+            "z",
+            "J",
+            "H",
+            "K",
+        ],
     )
 
     app_mag_funcs = []
     for zbin in range(0, len(fine_zbins)):
         z_min = fine_zbins[zbin][0]
         z_max = fine_zbins[zbin][1]
+        data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max)
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -1028,7 +1066,9 @@ def get_feniks_data(
         # 1D (K)
         k = N_utils.get_mag_space("K", uds_K, "UDS_K", z_sel, FeniksFilters, fit=True)
 
-        app_mag_funcs.append(AppMagFuncs(z_min, z_max, lc_data, u, g, r, i, z, j, h, k))
+        app_mag_funcs.append(
+            AppMagFuncs(z_min, z_max, data_vol_mpc3, lc_data, u, g, r, i, z, j, h, k)
+        )
 
     return Feniks(
         dataset,
