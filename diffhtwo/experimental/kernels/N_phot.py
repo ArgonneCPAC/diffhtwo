@@ -24,7 +24,7 @@ def N_colors_mags(
         mag_thresh,
         frac_cat,
     )
-    fields = z_data._fields[3:]
+    fields = z_data._fields[4:]
     mag_thresh = jnp.array(mag_thresh)
     for f in range(0, len(fields)):
         space = getattr(z_data, fields[f])

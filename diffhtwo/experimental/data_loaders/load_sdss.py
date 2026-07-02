@@ -269,7 +269,7 @@ def get_sdss_data(
     for zbin in range(0, len(zbins)):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
-        data_vol_mpc3 = zbin_volume(SDSS_AREA_DEG2, zlow=z_min, zhigh=z_max)
+        data_vol_mpc3 = zbin_volume(SDSS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -395,7 +395,7 @@ def get_sdss_data(
     for zbin in range(0, len(fine_zbins)):
         z_min = fine_zbins[zbin][0]
         z_max = fine_zbins[zbin][1]
-        data_vol_mpc3 = zbin_volume(SDSS_AREA_DEG2, zlow=z_min, zhigh=z_max)
+        data_vol_mpc3 = zbin_volume(SDSS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
