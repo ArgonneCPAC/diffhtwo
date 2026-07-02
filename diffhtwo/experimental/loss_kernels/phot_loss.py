@@ -25,7 +25,7 @@ def get_phot_loss_2d_multiz(
             frac_cat,
         )
         # sky_rescale = data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
-        fields = z_data_model._fields[3:]
+        fields = z_data_model._fields[4:]
         for f in range(0, len(fields)):
             space = getattr(z_data_model, fields[f])
             if isinstance(space, list):
