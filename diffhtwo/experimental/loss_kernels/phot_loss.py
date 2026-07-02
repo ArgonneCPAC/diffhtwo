@@ -13,7 +13,6 @@ def get_phot_loss_2d_multiz(
     data,
     mag_thresh,
     frac_cat,
-    data_vol_mpc3,
 ):
     phot_loss_2d = 0.0
     for z in range(0, len(data)):
@@ -69,7 +68,6 @@ def _loss_phot_kern_2d_multiz(
         fitting_data.colors,
         fitting_data.filter_info.mag_thresh,
         fitting_data.frac_cat,
-        fitting_data.data_vol_mpc3,
     )
     # get app mag func loss
     phot_loss_2d += get_phot_loss_2d_multiz(
@@ -78,7 +76,6 @@ def _loss_phot_kern_2d_multiz(
         fitting_data.app_mag_funcs,
         fitting_data.filter_info.mag_thresh,
         fitting_data.frac_cat,
-        fitting_data.data_vol_mpc3,
     )
 
     return phot_loss_2d
