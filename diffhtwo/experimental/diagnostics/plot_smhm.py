@@ -74,13 +74,19 @@ def plot_smhm_z(
         )
         if in_situ:
             logsm_obs = phot_kern_results.logsm_obs_in_situ
+            (
+                logmp_bin_centers_fit,
+                logsm_obs_weighted_mean_fit,
+            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
         else:
             logsm_obs = phot_kern_results.logsm_obs
-
-        (
-            logmp_bin_centers_fit,
-            logsm_obs_weighted_mean_fit,
-        ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            p_merge = phot_kern_results.p_merge
+            (
+                logmp_bin_centers_fit,
+                logsm_obs_weighted_mean_fit,
+            ) = get_logsm_obs_weighted_mean(
+                lc_data.logmp_obs, logsm_obs, gal_weight * (1 - p_merge)
+            )
 
         ax.plot(
             logmp_bin_centers_fit,
@@ -90,11 +96,9 @@ def plot_smhm_z(
         )
 
     ax.set_xlim(11, 14)
-    ax.set_ylim(7, 11.5)
-    # ax.set_xticks([11, 12, 13, 14, 15])
-    # ax.set_yticks([8, 9, 10, 11, 12])
+    ax.set_ylim(8, 12)
 
-    ax.set_xlabel(r"log$_{10}$ (M$_{halo}$ [M$_{\odot}$])", fontsize=fontsize)
+    ax.set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
 
     ax.minorticks_on()
     ax.tick_params(
@@ -117,9 +121,11 @@ def plot_smhm_z(
     )
 
     if in_situ:
-        ax.set_ylabel(r"log$_{10}$ (M$_{*, in-situ}$ [M$_{\odot}$])", fontsize=fontsize)
+        ax.set_ylabel(
+            r"<log$_{10}$ (M$_{*, in-situ}$ [M$_{\odot}$])>", fontsize=fontsize
+        )
     else:
-        ax.set_ylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
+        ax.set_ylabel(r"<log$_{10}$ (M$_{*}$ [M$_{\odot}$])>", fontsize=fontsize)
     ax.legend(fontsize=10, loc="lower right")
 
     if in_situ:
@@ -198,17 +204,6 @@ def plot_smhm(
             ) = get_logsm_obs_weighted_mean(
                 lc_data.logmp_obs, logsm_obs, gal_weight * (1 - p_merge)
             )
-            (
-                _,
-                logsm_obs_weighted_mean_default_wout_pmerge,
-            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
-            ax[zbin].plot(
-                logmp_bin_centers_default,
-                logsm_obs_weighted_mean_default_wout_pmerge,
-                label="wout p_merge weight",
-                color="#D6353D",
-                lw=2,
-            )
 
         ax[zbin].plot(
             logmp_bin_centers_default,
@@ -232,13 +227,32 @@ def plot_smhm(
         )
         if in_situ:
             logsm_obs = phot_kern_results.logsm_obs_in_situ
+            (
+                logmp_bin_centers_fit,
+                logsm_obs_weighted_mean_fit,
+            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
         else:
             logsm_obs = phot_kern_results.logsm_obs
+            p_merge = phot_kern_results.p_merge
 
-        (
-            logmp_bin_centers_fit,
-            logsm_obs_weighted_mean_fit,
-        ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            (
+                logmp_bin_centers_fit,
+                logsm_obs_weighted_mean_fit,
+            ) = get_logsm_obs_weighted_mean(
+                lc_data.logmp_obs, logsm_obs, gal_weight * (1 - p_merge)
+            )
+
+            # (
+            #     _,
+            #     logsm_obs_weighted_mean_default_wout_pmerge_fit,
+            # ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            # ax[zbin].plot(
+            #     logmp_bin_centers_default,
+            #     logsm_obs_weighted_mean_default_wout_pmerge_fit,
+            #     label="wout p_merge weight",
+            #     color="#D6353D",
+            #     lw=2,
+            # )
 
         ax[zbin].plot(
             logmp_bin_centers_fit,
@@ -273,14 +287,14 @@ def plot_smhm(
             labelsize=labelsize,
         )
 
-        ax[zbin].set_xlabel(r"log$_{10}$ (M$_{halo}$ [M$_{\odot}$])", fontsize=fontsize)
+        ax[zbin].set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
 
     if in_situ:
         ax[0].set_ylabel(
-            r"log$_{10}$ (M$_{*, in-situ}$ [M$_{\odot}$])", fontsize=fontsize
+            r"<log$_{10}$ (M$_{*, in-situ}$ [M$_{\odot}$])>", fontsize=fontsize
         )
     else:
-        ax[0].set_ylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
+        ax[0].set_ylabel(r"<log$_{10}$ (M$_{*}$ [M$_{\odot}$])>", fontsize=fontsize)
     ax[-1].legend(fontsize=7, loc="lower right")
 
     if in_situ:

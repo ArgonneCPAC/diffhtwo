@@ -1,7 +1,6 @@
 import argparse
 import os
 import time
-from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
 
@@ -50,31 +49,6 @@ if __name__ == "__main__":
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
     halpha_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
 
-    # load feniks data
-    ran_key = jran.key(0)
-    feniks = load_feniks.get_feniks_data(
-        feniks_drn,
-        ran_key,
-        ssp_data,
-        num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
-        num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
-    )
-    remove = {"dataset_dim_labels", "mags_labels"}
-    FeniksFitting = namedtuple("Feniks", [f for f in feniks._fields if f not in remove])
-    feniks_fitting_data = FeniksFitting(
-        **{f: getattr(feniks, f) for f in FeniksFitting._fields}
-    )
-
-    # load hizels data
-    hizels_fitting_data = load_hizels.get_hizels_data(
-        hizels_drn,
-        ran_key,
-        ssp_data,
-        feniks.filter_info.tcurves,
-        halpha_wave_aa,
-        num_halos=cfg["hizels"]["num_halos"],
-    )
-
     # start fit dirs
     fit_start_drn = cfg["base_path"] + "/fits/" + cfg["start_runid"] + "/"
     param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
@@ -115,10 +89,33 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
+    with open(fit_diagnostics_save_drn + "/" + args.config) as f:
+        cfg = yaml.safe_load(f)
+
     initial_pts = []
     start = time.time()
+    ran_key = jran.key(0)
     for epoch in range(0, cfg["epoch"]["n_it"]):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
+
+        # load feniks data
+        feniks_fitting_data = load_feniks.get_feniks_fitting_data(
+            feniks_drn,
+            ran_key,
+            ssp_data,
+            num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
+            num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
+        )
+
+        # load hizels data
+        hizels_fitting_data = load_hizels.get_hizels_data(
+            hizels_drn,
+            ran_key,
+            ssp_data,
+            feniks_fitting_data.filter_info.tcurves,
+            halpha_wave_aa,
+            num_halos=cfg["hizels"]["num_halos"],
+        )
 
         (
             loss_hist,
@@ -133,6 +130,8 @@ if __name__ == "__main__":
             hizels_fitting_data,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
+            w_feniks=cfg["w_feniks"],
+            w_hizels=cfg["w_hizels"],
         )
 
         jax.clear_caches()

@@ -251,31 +251,31 @@ def fit_feniks_hizels(
     hizels_fitting_data,
     n_steps=2,
     step_size=1e-2,
+    w_feniks=1.0,
+    w_hizels=1.0,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
 
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
-        loss_phot, grad_phot = _loss_and_grad_phot_kern_2d_multiz(
+        loss_feniks, grad_feniks = _loss_and_grad_phot_kern_2d_multiz(
             u_theta,
             ran_key,
             feniks_fitting_data,
         )
-        loss_emline, grad_emline = _loss_and_grad_emline_kern_multi_line_multi_z(
+        loss_hizels, grad_hizels = _loss_and_grad_emline_kern_multi_line_multi_z(
             u_theta,
             ran_key,
             hizels_fitting_data,
         )
-        w_phot = 1.0 / 5
-        w_emline = 1.0
 
-        loss_phot = w_phot * loss_phot
-        loss_emline = w_emline * loss_emline
-        loss = loss_phot + loss_emline
+        loss_feniks = w_feniks * loss_feniks
+        loss_hizels = w_hizels * loss_hizels
+        loss = loss_feniks + loss_hizels
 
         grads = tuple(
-            w_phot * gp + w_emline * ge for gp, ge in zip(grad_phot, grad_emline)
+            w_feniks * gp + w_hizels * ge for gp, ge in zip(grad_feniks, grad_hizels)
         )
         # set grads for untrainable params to 0.0
         grads = tuple(
@@ -289,10 +289,10 @@ def fit_feniks_hizels(
         # grads = tuple(g * scale for g in grads)
 
         opt_state = opt_update(i, grads, opt_state)
-        return opt_state, (loss, loss_phot, loss_emline)
+        return opt_state, (loss, loss_feniks, loss_hizels)
 
-    opt_state, (loss_hist, loss_phot_hist, loss_emline_hist) = lax.scan(
+    opt_state, (loss_hist, loss_feniks_hist, loss_hizels_hist) = lax.scan(
         _opt_update, opt_state, jnp.arange(n_steps)
     )
     u_theta_fit = get_params(opt_state)
-    return loss_hist, loss_phot_hist, loss_emline_hist, u_theta_fit
+    return loss_hist, loss_feniks_hist, loss_hizels_hist, u_theta_fit
