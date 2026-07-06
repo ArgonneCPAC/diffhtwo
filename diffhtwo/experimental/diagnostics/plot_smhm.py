@@ -7,7 +7,7 @@ from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 plt.rc("font", family="serif", serif=["Times New Roman"])
 
 
-def get_logsm_obs_weighted_mean(logmp_obs, logsm_obs, gal_weight):
+def _get_logsm_obs_weighted_mean(logmp_obs, logsm_obs, gal_weight):
     logmp_bins = np.arange(logmp_obs.min(), logmp_obs.max() + 0.25, 0.25)
     logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
 
@@ -77,14 +77,14 @@ def plot_smhm_z(
             (
                 logmp_bin_centers_fit,
                 logsm_obs_weighted_mean_fit,
-            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
         else:
             logsm_obs = phot_kern_results.logsm_obs
             p_merge = phot_kern_results.p_merge
             (
                 logmp_bin_centers_fit,
                 logsm_obs_weighted_mean_fit,
-            ) = get_logsm_obs_weighted_mean(
+            ) = _get_logsm_obs_weighted_mean(
                 lc_data.logmp_obs, logsm_obs, gal_weight * (1 - p_merge)
             )
 
@@ -194,14 +194,14 @@ def plot_smhm(
             (
                 logmp_bin_centers_default,
                 logsm_obs_weighted_mean_default,
-            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
         else:
             logsm_obs = phot_kern_results.logsm_obs
-            p_merge = phot_kern_results.p_merge
+            # p_merge = phot_kern_results.p_merge
             (
                 logmp_bin_centers_default,
                 logsm_obs_weighted_mean_default,
-            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
             # * (1 - p_merge)
             # )
 
@@ -230,15 +230,15 @@ def plot_smhm(
             (
                 logmp_bin_centers_fit,
                 logsm_obs_weighted_mean_fit,
-            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
         else:
             logsm_obs = phot_kern_results.logsm_obs
-            p_merge = phot_kern_results.p_merge
+            # p_merge = phot_kern_results.p_merge
 
             (
                 logmp_bin_centers_fit,
                 logsm_obs_weighted_mean_fit,
-            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
             # * (1 - p_merge)
             # )
 

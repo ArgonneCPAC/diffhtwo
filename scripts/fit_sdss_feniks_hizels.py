@@ -90,6 +90,9 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
+    with open(fit_diagnostics_save_drn + "/" + args.config) as f:
+        cfg = yaml.safe_load(f)
+
     initial_pts = []
     start = time.time()
     ran_key = jran.key(0)
@@ -144,6 +147,9 @@ if __name__ == "__main__":
             hizels_fitting_data,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
+            w_sdss=cfg["w_sdss"],
+            w_feniks=cfg["w_feniks"],
+            w_hizels=cfg["w_hizels"],
         )
 
         jax.clear_caches()

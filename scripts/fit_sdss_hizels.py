@@ -1,6 +1,7 @@
 import argparse
 import os
 import time
+from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
 
@@ -21,7 +22,7 @@ from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
-from diffhtwo.experimental.data_loaders import load_feniks, load_hizels
+from diffhtwo.experimental.data_loaders import load_hizels, load_sdss
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
 DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
@@ -30,14 +31,14 @@ DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--config", default="config_feniks_hizels.yaml")
+    p.add_argument("--config", default="config_sdss_hizels.yaml")
     args = p.parse_args()
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    # sdss_drn = cfg["base_path"] + "/sdss"
-    feniks_drn = cfg["base_path"] + "/feniks"
+    sdss_drn = cfg["base_path"] + "/sdss"
+    # feniks_drn = cfg["base_path"] + "/feniks"
     hizels_drn = Path(cfg["base_path"] + "/hizels")
     ssp_filename = (
         cfg["base_path"]
@@ -98,13 +99,18 @@ if __name__ == "__main__":
     for epoch in range(0, cfg["epoch"]["n_it"]):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
 
-        # load feniks data
-        feniks_fitting_data = load_feniks.get_feniks_fitting_data(
-            feniks_drn,
+        # load sdss data
+        sdss = load_sdss.get_sdss_data(
+            sdss_drn,
             ran_key,
             ssp_data,
-            num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
-            num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
+            num_halos_coarse_zbins=cfg["sdss"]["num_halos_coarse_zbins"],
+            num_halos_fine_zbins=cfg["sdss"]["num_halos_fine_zbins"],
+        )
+        remove = {"dataset_dim_labels", "mags_labels"}
+        SdssFitting = namedtuple("Sdss", [s for s in sdss._fields if s not in remove])
+        sdss_fitting_data = SdssFitting(
+            **{s: getattr(sdss, s) for s in SdssFitting._fields}
         )
 
         # load hizels data
@@ -112,7 +118,7 @@ if __name__ == "__main__":
             hizels_drn,
             ran_key,
             ssp_data,
-            feniks_fitting_data.filter_info.tcurves,
+            sdss_fitting_data.filter_info.tcurves,
             halpha_wave_aa,
             num_halos=cfg["hizels"]["num_halos"],
         )
@@ -126,11 +132,11 @@ if __name__ == "__main__":
             u_theta_fit,
             trainable_params,
             ran_key,
-            feniks_fitting_data,
+            sdss_fitting_data,
             hizels_fitting_data,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
-            w_feniks=cfg["w_feniks"],
+            w_feniks=cfg["w_sdss"],
             w_hizels=cfg["w_hizels"],
         )
 
