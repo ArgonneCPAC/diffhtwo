@@ -4,7 +4,6 @@ import jax.numpy as jnp
 import numpy as np
 from diffsky import diffndhist_lomem
 from DisCoWebS.data_loader import sdss_loader as sdl
-from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders import load_transmission_curve
 
 from ..defaults import (
@@ -237,7 +236,7 @@ def get_sdss_data(
         [
             "z_min",
             "z_max",
-            "data_vol_mpc3,",
+            "data_vol_mpc3",
             "lc_data",
             "ur_ri",
             "gr_ri",
@@ -383,7 +382,7 @@ def get_sdss_data(
     ##############################################################################
     AppMagFuncs = namedtuple(
         "AppMagFuncs",
-        ["z_min", "z_max", "data_vol_mpc3,", "lc_data", "u", "g", "r", "i", "z"],
+        ["z_min", "z_max", "data_vol_mpc3", "lc_data", "u", "g", "r", "i", "z"],
     )
     U = namedtuple("U", AppMagFunc._fields)
     G = namedtuple("G", AppMagFunc._fields)

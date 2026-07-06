@@ -201,9 +201,9 @@ def plot_smhm(
             (
                 logmp_bin_centers_default,
                 logsm_obs_weighted_mean_default,
-            ) = get_logsm_obs_weighted_mean(
-                lc_data.logmp_obs, logsm_obs, gal_weight * (1 - p_merge)
-            )
+            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            # * (1 - p_merge)
+            # )
 
         ax[zbin].plot(
             logmp_bin_centers_default,
@@ -238,9 +238,9 @@ def plot_smhm(
             (
                 logmp_bin_centers_fit,
                 logsm_obs_weighted_mean_fit,
-            ) = get_logsm_obs_weighted_mean(
-                lc_data.logmp_obs, logsm_obs, gal_weight * (1 - p_merge)
-            )
+            ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            # * (1 - p_merge)
+            # )
 
             # (
             #     _,

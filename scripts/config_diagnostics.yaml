@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run244
-model_nickname: run244_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run244/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run246
+model_nickname: run246_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run246/diagnostic_plots/diffstarpop+spspop+merging
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
@@ -23,9 +23,9 @@ plots:
   plot_smhm: True
   plot_insitu_smhm: True
   plot_exsitu_frac: True
-  plot_color_contours: True
-  plot_colors_mags: True
   
+  plot_color_contours: False
+  plot_colors_mags: False
   plot_colors_z: False
   plot_mags: False
   plot_ssperr: False

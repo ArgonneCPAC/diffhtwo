@@ -640,7 +640,9 @@ def plot_app_mag_funcs(
         for c, label in zip(colors_z, labels_z)
     ]
 
-    fig.get_layout_engine().set(rect=[0, 0, 1, 0.92])
+    top = 1 - 0.1 / nrows
+    fig.get_layout_engine().set(rect=[0, 0, 1, top])
+    bb_top = top + 0.11 if nrows == 1 else top + 0.055
 
     fig.legend(
         handles=handles,
@@ -651,7 +653,7 @@ def plot_app_mag_funcs(
         handleheight=0.5,
         columnspacing=0.8,
         handletextpad=0.1,
-        bbox_to_anchor=(0.5, 1.02),
+        bbox_to_anchor=(0.5, bb_top),
         fontsize=10,
     )
 
@@ -697,7 +699,9 @@ def plot_app_mag_funcs(
                 dmag,
             )
             if zbin == 0:
-                xlim.append([bins.min() - 0.5, bins.max() + 1])
+                xlim_left = bins.min() - 0.5
+                xlim_right = np.minimum(25.5, bins.max() + 1)
+                xlim.append([xlim_left, xlim_right])
 
             bin_centers = (bins[1:] + bins[:-1]) / 2
             axes[row, col].set_xlim(bins[0], bins[-1] + 0.2)
