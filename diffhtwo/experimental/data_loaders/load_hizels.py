@@ -31,7 +31,7 @@ def get_hizels_data(
     ssp_data,
     tcurves,
     halpha_wave_aa,
-    num_halos=250,
+    num_halos=100,
     lgmp_min=10.0,
     lgmp_max=15.0,
     lc_sky_area_degsq=100,

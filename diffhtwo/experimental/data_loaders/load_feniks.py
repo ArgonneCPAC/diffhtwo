@@ -165,8 +165,8 @@ def get_feniks_data(
     ran_key,
     ssp_data,
     lh_d_mag=0.6,
-    num_halos_coarse_zbins=150,
-    num_halos_fine_zbins=250,
+    num_halos_coarse_zbins=100,
+    num_halos_fine_zbins=100,
     phot=PHOT,
     zout=ZOUT,
     lgmp_min=10.0,
@@ -186,9 +186,9 @@ def get_feniks_data(
     phot = ascii.read(drn_path / phot)
     zout = ascii.read(drn_path / zout)
 
-    if add_random_rows_for_testing:
-        phot = add_random_rows(phot, N=200)
-        zout = add_random_rows(zout, N=200)
+    # if add_random_rows_for_testing:
+    #     phot = add_random_rows(phot, N=200)
+    #     zout = add_random_rows(zout, N=200)
 
     # get mags
     megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
@@ -1096,8 +1096,8 @@ def get_feniks_fitting_data(
     ran_key,
     ssp_data,
     lh_d_mag=0.6,
-    num_halos_coarse_zbins=150,
-    num_halos_fine_zbins=250,
+    num_halos_coarse_zbins=100,
+    num_halos_fine_zbins=100,
     phot=PHOT,
     zout=ZOUT,
     add_random_rows_for_testing=False,

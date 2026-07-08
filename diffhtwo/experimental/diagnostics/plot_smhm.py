@@ -13,7 +13,7 @@ def _get_logsm_obs_weighted_mean(logmp_obs, logsm_obs, gal_weight):
 
     logsm_obs_weighted_mean = []
     for b in range(0, len(logmp_bins) - 1):
-        in_bin = (logmp_obs > logmp_bins[b]) & (logmp_obs < logmp_bins[b + 1])
+        in_bin = (logmp_obs > logmp_bins[b]) & (logmp_obs <= logmp_bins[b + 1])
         logsm_obs_weighted_mean.append(
             np.sum(logsm_obs[in_bin] * gal_weight[in_bin]) / np.sum(gal_weight[in_bin])
         )
@@ -73,19 +73,18 @@ def plot_smhm_z(
             frac_cat=frac_cat,
         )
         if in_situ:
-            logsm_obs = phot_kern_results.logsm_obs_in_situ
-            (
-                logmp_bin_centers_fit,
-                logsm_obs_weighted_mean_fit,
-            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
-        else:
-            logsm_obs = phot_kern_results.logsm_obs
-            p_merge = phot_kern_results.p_merge
             (
                 logmp_bin_centers_fit,
                 logsm_obs_weighted_mean_fit,
             ) = _get_logsm_obs_weighted_mean(
-                lc_data.logmp_obs, logsm_obs, gal_weight * (1 - p_merge)
+                lc_data.logmp_obs, phot_kern_results.logsm_obs_in_situ, gal_weight
+            )
+        else:
+            (
+                logmp_bin_centers_fit,
+                logsm_obs_weighted_mean_fit,
+            ) = _get_logsm_obs_weighted_mean(
+                lc_data.logmp_obs, phot_kern_results.logsm_obs, gal_weight
             )
 
         ax.plot(
@@ -190,20 +189,19 @@ def plot_smhm(
             frac_cat=frac_cat,
         )
         if in_situ:
-            logsm_obs = phot_kern_results.logsm_obs_in_situ
             (
                 logmp_bin_centers_default,
                 logsm_obs_weighted_mean_default,
-            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            ) = _get_logsm_obs_weighted_mean(
+                lc_data.logmp_obs, phot_kern_results.logsm_obs_in_situ, gal_weight
+            )
         else:
-            logsm_obs = phot_kern_results.logsm_obs
-            # p_merge = phot_kern_results.p_merge
             (
                 logmp_bin_centers_default,
                 logsm_obs_weighted_mean_default,
-            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
-            # * (1 - p_merge)
-            # )
+            ) = _get_logsm_obs_weighted_mean(
+                lc_data.logmp_obs, phot_kern_results.logsm_obs, gal_weight
+            )
 
         ax[zbin].plot(
             logmp_bin_centers_default,
@@ -226,33 +224,19 @@ def plot_smhm(
             frac_cat=frac_cat,
         )
         if in_situ:
-            logsm_obs = phot_kern_results.logsm_obs_in_situ
             (
                 logmp_bin_centers_fit,
                 logsm_obs_weighted_mean_fit,
-            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
+            ) = _get_logsm_obs_weighted_mean(
+                lc_data.logmp_obs, phot_kern_results.logsm_obs_in_situ, gal_weight
+            )
         else:
-            logsm_obs = phot_kern_results.logsm_obs
-            # p_merge = phot_kern_results.p_merge
-
             (
                 logmp_bin_centers_fit,
                 logsm_obs_weighted_mean_fit,
-            ) = _get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
-            # * (1 - p_merge)
-            # )
-
-            # (
-            #     _,
-            #     logsm_obs_weighted_mean_default_wout_pmerge_fit,
-            # ) = get_logsm_obs_weighted_mean(lc_data.logmp_obs, logsm_obs, gal_weight)
-            # ax[zbin].plot(
-            #     logmp_bin_centers_default,
-            #     logsm_obs_weighted_mean_default_wout_pmerge_fit,
-            #     label="wout p_merge weight",
-            #     color="#D6353D",
-            #     lw=2,
-            # )
+            ) = _get_logsm_obs_weighted_mean(
+                lc_data.logmp_obs, phot_kern_results.logsm_obs, gal_weight
+            )
 
         ax[zbin].plot(
             logmp_bin_centers_fit,
