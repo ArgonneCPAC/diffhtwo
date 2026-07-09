@@ -1,3 +1,4 @@
+import cmocean
 import matplotlib.pyplot as plt
 import numpy as np
 from diffsky.merging.merging_kernels import compute_x_tot_from_x_in_situ
@@ -281,6 +282,45 @@ def make_thresholded_reduce_C_function(weights, threshold=1e-5):
     return _reduce
 
 
+sfms_z1 = np.array(
+    [
+        (8.408450704225352, -1.1502590673575126),
+        (9.549295774647888, -0.051813471502590414),
+        (10.19718309859155, 0.5492227979274613),
+        (11.788732394366196, 0.7772020725388602),
+    ]
+)
+
+sfms_z2 = np.array(
+    [
+        (8.44055944055944, -1.005181347150259),
+        (8.888111888111887, -0.5699481865284977),
+        (10.244755244755245, 0.7772020725388602),
+        (11.783216783216783, 1.5647668393782386),
+    ]
+)
+
+sfms_z3 = np.array(
+    [
+        (8.3943661971831, -0.9430051813471501),
+        (8.971830985915496, -0.321243523316062),
+        (10.126760563380282, 0.9015544041450778),
+        (10.43661971830986, 1.0673575129533681),
+        (11.788732394366198, 1.8963730569948185),
+    ]
+)
+
+sfms_z4 = np.array(
+    [
+        (8.375886524822693, -0.5699481865284977),
+        (9.595744680851064, 0.5077720207253891),
+        (10.5177304964539, 1.2538860103626943),
+        (11.01418439716312, 1.585492227979275),
+        (11.808510638297872, 2.1036269430051813),
+    ]
+)
+
+
 def plot_sfms_hexbin(
     ran_key,
     param_collection,
@@ -298,7 +338,7 @@ def plot_sfms_hexbin(
 ):
     n_z_bins = len(zbins)
     fig_width = 1.42 * n_z_bins
-    fig_height = 2
+    fig_height = 1.8
     fig, ax = plt.subplots(
         1, len(zbins), figsize=(fig_width, fig_height), constrained_layout=True
     )
@@ -341,7 +381,7 @@ def plot_sfms_hexbin(
             C=gal_weight,
             reduce_C_function=reduce_C_function,
             norm="log",
-            # cmap=calm_cmap,
+            cmap=cmocean.cm.dense,
             gridsize=(50, 50),
             extent=(xlim[0], xlim[1], ylim[0], ylim[1]),
             vmin=1e-5,
@@ -375,12 +415,18 @@ def plot_sfms_hexbin(
 
         ax[zbin].set_xlabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
 
+    a = 0.5
+    ax[0].plot(sfms_z1[:, 0], sfms_z1[:, 1], c="k", alpha=a)
+    ax[1].plot(sfms_z2[:, 0], sfms_z2[:, 1], c="k", alpha=a)
+    ax[2].plot(sfms_z3[:, 0], sfms_z3[:, 1], c="k", alpha=a)
+    ax[3].plot(sfms_z4[:, 0], sfms_z4[:, 1], c="k", alpha=a)
+
     ax[0].set_ylabel(r"log$_{10}$ (SFR [M$_{\odot}$ yr$^{-1}$])", fontsize=fontsize)
     fig.colorbar(hb, ax=ax[-1])
 
     fig.savefig(
         savedir + "/" + data_label + "_sfr_mass_hexbin.png",
-        dpi=300,
+        dpi=600,
     )
 
     if plt_show:

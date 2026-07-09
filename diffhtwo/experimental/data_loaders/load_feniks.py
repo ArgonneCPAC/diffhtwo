@@ -436,7 +436,7 @@ def get_feniks_data(
         ["HSC_G", "HSC_R", "HSC_R", "HSC_I"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 1D (u - g | K)
@@ -500,7 +500,7 @@ def get_feniks_data(
         ["HSC_R", "HSC_I"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, g - r)
@@ -512,7 +512,7 @@ def get_feniks_data(
         ["HSC_G", "HSC_R"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, J - H)
@@ -765,7 +765,7 @@ def get_feniks_data(
         ["HSC_R", "HSC_Z", "HSC_Z", "UDS_J"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 1D (u - g | K)
@@ -816,7 +816,7 @@ def get_feniks_data(
         ["MegaCam_uS", "HSC_G"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, r - z)
@@ -828,7 +828,7 @@ def get_feniks_data(
         ["HSC_R", "HSC_Z"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, J - H)
@@ -904,7 +904,7 @@ def get_feniks_data(
         ["HSC_Z", "UDS_J", "UDS_J", "UDS_H"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (u - g, g - r)
@@ -915,7 +915,7 @@ def get_feniks_data(
         ["MegaCam_uS", "HSC_G", "HSC_G", "HSC_R"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 1D (u - g | K)
@@ -966,7 +966,7 @@ def get_feniks_data(
         ["MegaCam_uS", "HSC_G"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, g - r)
@@ -978,7 +978,7 @@ def get_feniks_data(
         ["HSC_G", "HSC_R"],
         z_sel,
         FeniksFilters,
-        fit=False,
+        fit=True,
     )
 
     # 2D (K, J - H)
@@ -1055,20 +1055,20 @@ def get_feniks_data(
 
         # 1D (u)
         u = N_utils.get_mag_space(
-            "U", megacam_uS, "MegaCam_uS", z_sel, FeniksFilters, fit=False
+            "U", megacam_uS, "MegaCam_uS", z_sel, FeniksFilters, fit=True
         )
 
         # 1D (g)
-        g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, FeniksFilters, fit=False)
+        g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, FeniksFilters, fit=True)
 
         # 1D (r)
-        r = N_utils.get_mag_space("R", hsc_r, "HSC_R", z_sel, FeniksFilters, fit=False)
+        r = N_utils.get_mag_space("R", hsc_r, "HSC_R", z_sel, FeniksFilters, fit=True)
 
         # 1D (i)
-        i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, FeniksFilters, fit=False)
+        i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, FeniksFilters, fit=True)
 
         # 1D (z)
-        z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, FeniksFilters, fit=False)
+        z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, FeniksFilters, fit=True)
 
         # 1D (J)
         j = N_utils.get_mag_space("J", uds_J, "UDS_J", z_sel, FeniksFilters, fit=True)

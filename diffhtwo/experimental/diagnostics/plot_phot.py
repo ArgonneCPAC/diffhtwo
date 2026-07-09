@@ -592,7 +592,13 @@ def plot_app_mag_funcs(
     zbins = np.array(zbins)
     labels_z = [" z = " + str(np.round(np.median(z), 2)) for z in zbins]
 
-    if len(labels_z) == 3:
+    if len(labels_z) == 2:
+        colors_z = [
+            "#001219",
+            "#c87820",
+        ]
+
+    elif len(labels_z) == 3:
         colors_z = [
             "#001219",
             "#0a7a80",
@@ -698,12 +704,20 @@ def plot_app_mag_funcs(
                 dataset_mags_z[:, i].max() + dmag,
                 dmag,
             )
+            bin_centers = (bins[1:] + bins[:-1]) / 2
+
+            # oversampling for diffsky
+            oversample_factor = 2
+            bins_diffsky = np.linspace(
+                bins[0], bins[-1], (len(bins) - 1) * oversample_factor + 1
+            )
+            bin_diffsky_centers = (bins_diffsky[1:] + bins_diffsky[:-1]) / 2
+
             if zbin == 0:
                 xlim_left = bins.min() - 0.5
                 xlim_right = np.minimum(25.5, bins.max() + 1)
                 xlim.append([xlim_left, xlim_right])
 
-            bin_centers = (bins[1:] + bins[:-1]) / 2
             axes[row, col].set_xlim(bins[0], bins[-1] + 0.2)
 
             n_data, bin_edges = np.histogram(
@@ -720,12 +734,15 @@ def plot_app_mag_funcs(
             n_diffsky, _ = np.histogram(
                 obs_mags[:, i],
                 weights=weights * (1 / lc_data.lc_tot_vol_mpc3),
-                bins=bins,
+                bins=bins_diffsky,
             )
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
                 axes[row, col].plot(
-                    bin_centers, np.log10(n_diffsky), c=colors_z[zbin], alpha=alpha
+                    bin_diffsky_centers,
+                    np.log10(n_diffsky),
+                    c=colors_z[zbin],
+                    alpha=alpha,
                 )
 
             axes[row, col].set_xticks(np.arange(10, 30, 2))
