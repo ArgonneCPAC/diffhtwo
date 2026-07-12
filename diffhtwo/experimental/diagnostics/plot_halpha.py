@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 
+from ..kernels.sfh_rapid_q import update_logsfr_obs_with_rapid_q
 from ..kernels.spec_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
@@ -360,13 +361,22 @@ def plot_halpha_ssfr(
             lw=lw,
         )
 
+        (
+            logsfr_obs,
+            logsm_obs,
+            logsfr_obs_in_situ,
+            logsm_obs_in_situ,
+        ) = update_logsfr_obs_with_rapid_q(phot_kern_results, lc_data)
+
+        logssfr_obs = logsfr_obs - logsm_obs
+
         for s in range(0, len(ssfr_bin_edges) - 1):
             ssfr_label = "logssfr_obs: " + str(
                 np.round(np.median([ssfr_bin_edges[s], ssfr_bin_edges[s + 1]]), 1)
             )
 
-            sel = (phot_kern_results.logssfr_obs > ssfr_bin_edges[s]) & (
-                phot_kern_results.logssfr_obs <= ssfr_bin_edges[s + 1]
+            sel = (logssfr_obs > ssfr_bin_edges[s]) & (
+                logssfr_obs <= ssfr_bin_edges[s + 1]
             )
 
             lg_halpha_LF_ssfr = get_lf_from_linelum(
@@ -498,12 +508,17 @@ def plot_halpha_sfr(
             lw=lw,
         )
 
+        (
+            logsfr_obs,
+            logsm_obs,
+            logsfr_obs_in_situ,
+            logsm_obs_in_situ,
+        ) = update_logsfr_obs_with_rapid_q(phot_kern_results, lc_data)
+
         for s in range(0, len(sfr_bin_edges) - 1):
             sfr_label = "logsfr_obs: " + str(
                 np.round(np.median([sfr_bin_edges[s], sfr_bin_edges[s + 1]]), 1)
             )
-            logsfr_obs = phot_kern_results.logssfr_obs + phot_kern_results.logsm_obs
-
             sel = (logsfr_obs > sfr_bin_edges[s]) & (logsfr_obs <= sfr_bin_edges[s + 1])
 
             lg_halpha_LF_sfr = get_lf_from_linelum(
@@ -635,12 +650,17 @@ def plot_halpha_sfr_single_z(
         lw=lw,
     )
 
+    (
+        logsfr_obs,
+        logsm_obs,
+        logsfr_obs_in_situ,
+        logsm_obs_in_situ,
+    ) = update_logsfr_obs_with_rapid_q(phot_kern_results, lc_data)
+
     for s in range(0, len(sfr_bin_edges) - 1):
         sfr_label = "logsfr_obs: " + str(
             np.round(np.median([sfr_bin_edges[s], sfr_bin_edges[s + 1]]), 1)
         )
-        logsfr_obs = phot_kern_results.logssfr_obs + phot_kern_results.logsm_obs
-
         sel = (logsfr_obs > sfr_bin_edges[s]) & (logsfr_obs <= sfr_bin_edges[s + 1])
 
         lg_halpha_LF_sfr = get_lf_from_linelum(

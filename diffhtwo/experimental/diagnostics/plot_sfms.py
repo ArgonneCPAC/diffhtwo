@@ -1,12 +1,11 @@
 import cmocean
 import matplotlib.pyplot as plt
 import numpy as np
-from diffsky.merging.merging_kernels import compute_x_tot_from_x_in_situ
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
-from ..kernels.lc_phot_kern import multiband_lc_phot_kern
+from ..kernels.sfh_rapid_q import get_logsfr_obs
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 
@@ -48,47 +47,6 @@ def _get_logsfr_obs_weighted_mean(logsm_obs, logsfr_obs, gal_weight):
     return logsm_bin_centers, logsfr_obs_weighted_mean
 
 
-def get_logsfr_obs(
-    ran_key,
-    param_collection,
-    z_min,
-    z_max,
-    num_halos,
-    ssp_data,
-    tcurves,
-    mag_thresh=None,
-    frac_cat=None,
-):
-    lc_data, phot_kern_results, gal_weight = multiband_lc_phot_kern(
-        ran_key,
-        param_collection,
-        z_min,
-        z_max,
-        num_halos,
-        ssp_data,
-        tcurves,
-        mag_thresh=mag_thresh,
-        frac_cat=frac_cat,
-    )
-    logsm_obs_in_situ = phot_kern_results.logsm_obs_in_situ
-    logssfr_obs_in_situ = phot_kern_results.logssfr_obs
-
-    logsfr_obs_in_situ = logssfr_obs_in_situ + logsm_obs_in_situ
-    sfr_obs_in_situ = 10**logsfr_obs_in_situ
-
-    p_merge = phot_kern_results.p_merge
-    sat_weight = lc_data.sat_weight
-    halo_indx = lc_data.halo_indx
-
-    sfr_obs = compute_x_tot_from_x_in_situ(
-        sfr_obs_in_situ, p_merge, sat_weight, halo_indx
-    )
-    logsfr_obs = np.log10(sfr_obs)
-    logsm_obs = phot_kern_results.logsm_obs
-
-    return logsfr_obs, logsm_obs, logsfr_obs_in_situ, logsm_obs_in_situ, gal_weight
-
-
 def plot_sfms(
     ran_key,
     param_collection,
@@ -128,6 +86,7 @@ def plot_sfms(
             logsfr_obs_in_situ,
             logsm_obs_in_situ,
             gal_weight,
+            is_central,
         ) = get_logsfr_obs(
             ran_key,
             DEFAULT_PARAM_COLLECTION,
@@ -175,6 +134,7 @@ def plot_sfms(
             logsfr_obs_in_situ,
             logsm_obs_in_situ,
             gal_weight,
+            is_central,
         ) = get_logsfr_obs(
             ran_key,
             param_collection,
@@ -361,6 +321,7 @@ def plot_sfms_hexbin(
             logsfr_obs_in_situ,
             logsm_obs_in_situ,
             gal_weight,
+            is_central,
         ) = get_logsfr_obs(
             ran_key,
             param_collection,
@@ -415,11 +376,11 @@ def plot_sfms_hexbin(
 
         ax[zbin].set_xlabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
 
-    a = 0.5
-    ax[0].plot(sfms_z1[:, 0], sfms_z1[:, 1], c="k", alpha=a)
-    ax[1].plot(sfms_z2[:, 0], sfms_z2[:, 1], c="k", alpha=a)
-    ax[2].plot(sfms_z3[:, 0], sfms_z3[:, 1], c="k", alpha=a)
-    ax[3].plot(sfms_z4[:, 0], sfms_z4[:, 1], c="k", alpha=a)
+    # a = 0.5
+    # ax[0].plot(sfms_z1[:, 0], sfms_z1[:, 1], c="k", alpha=a)
+    # ax[1].plot(sfms_z2[:, 0], sfms_z2[:, 1], c="k", alpha=a)
+    # ax[2].plot(sfms_z3[:, 0], sfms_z3[:, 1], c="k", alpha=a)
+    # ax[3].plot(sfms_z4[:, 0], sfms_z4[:, 1], c="k", alpha=a)
 
     ax[0].set_ylabel(r"log$_{10}$ (SFR [M$_{\odot}$ yr$^{-1}$])", fontsize=fontsize)
     fig.colorbar(hb, ax=ax[-1])

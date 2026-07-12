@@ -4,6 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
+from matplotlib.lines import Line2D
 
 from ..kernels.phot_kern import get_colors_mags, mag_kern
 from ..lc_utils import zbin_volume
@@ -592,7 +593,12 @@ def plot_app_mag_funcs(
     zbins = np.array(zbins)
     labels_z = [" z = " + str(np.round(np.median(z), 2)) for z in zbins]
 
-    if len(labels_z) == 2:
+    if len(labels_z) == 1:
+        colors_z = [
+            "#001219",
+        ]
+
+    elif len(labels_z) == 2:
         colors_z = [
             "#001219",
             "#c87820",
@@ -650,10 +656,24 @@ def plot_app_mag_funcs(
     fig.get_layout_engine().set(rect=[0, 0, 1, top])
     bb_top = top + 0.11 if nrows == 1 else top + 0.055
 
+    solid_handle = Line2D([], [], linestyle="-", color="gray", label="diffsky")
+    handles.append(solid_handle)
+
+    scatter_handle = Line2D(
+        [],
+        [],
+        linestyle="none",
+        marker="o",
+        color="gray",
+        markersize=s / 2,
+        label=data_label,
+    )
+    handles.append(scatter_handle)
+
     fig.legend(
         handles=handles,
         loc="upper center",
-        ncol=len(zbins),
+        ncol=len(zbins) + 2,
         frameon=False,
         handlelength=3,
         handleheight=0.5,
@@ -707,7 +727,7 @@ def plot_app_mag_funcs(
             bin_centers = (bins[1:] + bins[:-1]) / 2
 
             # oversampling for diffsky
-            oversample_factor = 2
+            oversample_factor = 1
             bins_diffsky = np.linspace(
                 bins[0], bins[-1], (len(bins) - 1) * oversample_factor + 1
             )

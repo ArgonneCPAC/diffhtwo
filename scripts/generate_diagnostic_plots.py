@@ -32,6 +32,7 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_contour import plot_color_contours
+from diffhtwo.experimental.diagnostics.plot_fq import plot_f_q
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
     plot_halpha_insitu_exsitu,
@@ -54,7 +55,7 @@ from diffhtwo.experimental.diagnostics.plot_satquench import (
     generate_sat_plots,
     plot_satquench_model,
 )
-from diffhtwo.experimental.diagnostics.plot_sfms import plot_sfms
+from diffhtwo.experimental.diagnostics.plot_sfms import plot_sfms, plot_sfms_hexbin
 from diffhtwo.experimental.diagnostics.plot_smhm import plot_smhm
 
 if __name__ == "__main__":
@@ -233,9 +234,10 @@ if __name__ == "__main__":
 
         feniks_zbins = np.array(
             [
-                [0.4, 0.9],
-                [0.9, 1.5],
-                [1.5, 2.5],
+                [0.5, 1.0],
+                [1.0, 1.5],
+                [1.5, 2.0],
+                [2.0, 2.5],
             ]
         )
 
@@ -254,10 +256,36 @@ if __name__ == "__main__":
                 plt_show=False,
             )
 
+        if cfg["plots"]["plot_fq"]:
+            print("Generating FENIKS fq plots...")
+            plot_f_q(
+                ran_key,
+                param_collection_fit,
+                feniks_zbins,
+                num_halos,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
         if cfg["plots"]["plot_sfms"]:
             print("Generating FENIKS SFMS plots...")
 
             plot_sfms(
+                ran_key,
+                param_collection_fit,
+                feniks_zbins,
+                num_halos,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+            plot_sfms_hexbin(
                 ran_key,
                 param_collection_fit,
                 feniks_zbins,
@@ -590,11 +618,36 @@ if __name__ == "__main__":
                 fit_diagnostics_save_drn,
                 plt_show=False,
             )
+        if cfg["plots"]["plot_fq"]:
+            print("Generating SDSS fq plots...")
+            plot_f_q(
+                ran_key,
+                param_collection_fit,
+                sdss_zbins,
+                num_halos,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
 
         if cfg["plots"]["plot_sfms"]:
             print("Generating SDSS SFMS plots...")
 
             plot_sfms(
+                ran_key,
+                param_collection_fit,
+                sdss_zbins,
+                num_halos,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+            plot_sfms_hexbin(
                 ran_key,
                 param_collection_fit,
                 sdss_zbins,
