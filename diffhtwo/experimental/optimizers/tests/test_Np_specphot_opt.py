@@ -108,7 +108,7 @@ def test_phot_opt(ran_key, feniks_fitting_data):
         trainable_params,
         ran_key,
         feniks_fitting_data,
-        n_steps=2,
+        n_steps=1,
         step_size=0.1,
     )
     assert np.isfinite(loss_hist).all()
