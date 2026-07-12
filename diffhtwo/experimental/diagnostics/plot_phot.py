@@ -665,7 +665,7 @@ def plot_app_mag_funcs(
         linestyle="none",
         marker="o",
         color="gray",
-        markersize=s / 2,
+        markersize=s / 3,
         label=data_label,
     )
     handles.append(scatter_handle)

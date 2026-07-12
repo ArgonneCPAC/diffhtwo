@@ -174,6 +174,7 @@ def get_feniks_data(
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
     add_random_rows_for_testing=False,
+    testing=False,
 ):
     # Transmission curves and filter mag thresholds
     tcurves = []
@@ -716,287 +717,301 @@ def get_feniks_data(
     # 2D (K, u - g)
     # 2D (K, r - z)
 
-    Z2b = namedtuple(
-        "Z2b",
-        [
-            "z_min",
-            "z_max",
-            "data_vol_mpc3",
-            "lc_data",
-            "rz_zJ",
-            "ug",
-            "rz",
-            "jh",
+    if testing == False:
+        Z2b = namedtuple(
+            "Z2b",
+            [
+                "z_min",
+                "z_max",
+                "data_vol_mpc3",
+                "lc_data",
+                "rz_zJ",
+                "ug",
+                "rz",
+                "jh",
+                "K_ug",
+                "K_rz",
+                "K_JH",
+            ],
+        )
+        zbin = 1
+        z_min = zbins[zbin][0]
+        z_max = zbins[zbin][1]
+        data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+
+        z_phot_table = 10 ** jnp.linspace(
+            jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+        )
+        lc_args = (
+            ran_key,
+            num_halos_coarse_zbins,
+            z_min,
+            z_max,
+            lgmp_min,
+            lgmp_max,
+            lc_sky_area_degsq,
+            ssp_data,
+            tcurves,
+            z_phot_table,
+        )
+
+        lc_data = generate_lc_data(*lc_args)
+
+        z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+
+        # 2D (r - z, z - J)
+        rz_zJ = N_utils.get_colorcolor_space(
+            "Rz_zJ",
+            hsc_rz,
+            hsc_uds_zJ,
+            ["HSC_R", "HSC_Z", "HSC_Z", "UDS_J"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
+
+        # 1D (u - g | K)
+        ug = N_utils.get_color_cond_space_list(
+            "Ug_condK",
+            megacam_hsc_uSg,
+            uds_K,
+            ["MegaCam_uS", "HSC_G"],
+            "UDS_K",
+            z_sel,
+            FeniksFilters,
+            cond_dmag=2,
+            fit=False,
+        )
+
+        # 1D (r - z | K)
+        rz = N_utils.get_color_cond_space_list(
+            "Rz_condK",
+            hsc_rz,
+            uds_K,
+            ["HSC_R", "HSC_Z"],
+            "UDS_K",
+            z_sel,
+            FeniksFilters,
+            cond_dmag=2,
+            fit=False,
+        )
+
+        # 1D (J − H | K)
+        jh = N_utils.get_color_cond_space_list(
+            "JH_condK",
+            uds_JH,
+            uds_K,
+            ["UDS_J", "UDS_H"],
+            "UDS_K",
+            z_sel,
+            FeniksFilters,
+            cond_dmag=2,
+            fit=False,
+        )
+
+        # 2D (K, u - g)
+        K_ug = N_utils.get_mag_color_space(
             "K_ug",
+            uds_K,
+            megacam_hsc_uSg,
+            "UDS_K",
+            ["MegaCam_uS", "HSC_G"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
+
+        # 2D (K, r - z)
+        K_rz = N_utils.get_mag_color_space(
             "K_rz",
+            uds_K,
+            hsc_rz,
+            "UDS_K",
+            ["HSC_R", "HSC_Z"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
+
+        # 2D (K, J - H)
+        K_JH = N_utils.get_mag_color_space(
             "K_JH",
-        ],
-    )
-    zbin = 1
-    z_min = zbins[zbin][0]
-    z_max = zbins[zbin][1]
-    data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+            uds_K,
+            uds_JH,
+            "UDS_K",
+            ["UDS_J", "UDS_H"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
 
-    z_phot_table = 10 ** jnp.linspace(
-        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-    )
-    lc_args = (
-        ran_key,
-        num_halos_coarse_zbins,
-        z_min,
-        z_max,
-        lgmp_min,
-        lgmp_max,
-        lc_sky_area_degsq,
-        ssp_data,
-        tcurves,
-        z_phot_table,
-    )
+        z2b = Z2b(
+            z_min, z_max, data_vol_mpc3, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz, K_JH
+        )
+        colors.append(z2b)
 
-    lc_data = generate_lc_data(*lc_args)
+        ##############################################################################
+        # Z3 spaces:
+        # 2D (z - J, J - H)
+        # 2D (u - g, g - r)
+        # 2D (K, u - g)
+        # 2D (K, g - r)
+        # 2D (K, J − H): residual quenching scatter at fixed stellar mass
 
-    z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+        Z3 = namedtuple(
+            "Z3",
+            [
+                "z_min",
+                "z_max",
+                "data_vol_mpc3",
+                "lc_data",
+                "zJ_JH",
+                "ug_gr",
+                "ug",
+                "gr",
+                "jh",
+                "K_ug",
+                "K_gr",
+                "K_JH",
+            ],
+        )
+        zbin = 2
+        z_min = zbins[zbin][0]
+        z_max = zbins[zbin][1]
+        data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
 
-    # 2D (r - z, z - J)
-    rz_zJ = N_utils.get_colorcolor_space(
-        "Rz_zJ",
-        hsc_rz,
-        hsc_uds_zJ,
-        ["HSC_R", "HSC_Z", "HSC_Z", "UDS_J"],
-        z_sel,
-        FeniksFilters,
-        fit=True,
-    )
+        z_phot_table = 10 ** jnp.linspace(
+            jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+        )
+        lc_args = (
+            ran_key,
+            num_halos_coarse_zbins,
+            z_min,
+            z_max,
+            lgmp_min,
+            lgmp_max,
+            lc_sky_area_degsq,
+            ssp_data,
+            tcurves,
+            z_phot_table,
+        )
 
-    # 1D (u - g | K)
-    ug = N_utils.get_color_cond_space_list(
-        "Ug_condK",
-        megacam_hsc_uSg,
-        uds_K,
-        ["MegaCam_uS", "HSC_G"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=2,
-        fit=False,
-    )
+        lc_data = generate_lc_data(*lc_args)
 
-    # 1D (r - z | K)
-    rz = N_utils.get_color_cond_space_list(
-        "Rz_condK",
-        hsc_rz,
-        uds_K,
-        ["HSC_R", "HSC_Z"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=2,
-        fit=False,
-    )
+        z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
-    # 1D (J − H | K)
-    jh = N_utils.get_color_cond_space_list(
-        "JH_condK",
-        uds_JH,
-        uds_K,
-        ["UDS_J", "UDS_H"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=2,
-        fit=False,
-    )
+        # 2D (z - J, J - H)
+        zJ_JH = N_utils.get_colorcolor_space(
+            "ZJ_JH",
+            hsc_uds_zJ,
+            uds_JH,
+            ["HSC_Z", "UDS_J", "UDS_J", "UDS_H"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
 
-    # 2D (K, u - g)
-    K_ug = N_utils.get_mag_color_space(
-        "K_ug",
-        uds_K,
-        megacam_hsc_uSg,
-        "UDS_K",
-        ["MegaCam_uS", "HSC_G"],
-        z_sel,
-        FeniksFilters,
-        fit=True,
-    )
+        # 2D (u - g, g - r)
+        ug_gr = N_utils.get_colorcolor_space(
+            "Ug_gr",
+            megacam_hsc_uSg,
+            hsc_gr,
+            ["MegaCam_uS", "HSC_G", "HSC_G", "HSC_R"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
 
-    # 2D (K, r - z)
-    K_rz = N_utils.get_mag_color_space(
-        "K_rz",
-        uds_K,
-        hsc_rz,
-        "UDS_K",
-        ["HSC_R", "HSC_Z"],
-        z_sel,
-        FeniksFilters,
-        fit=True,
-    )
+        # 1D (u - g | K)
+        ug = N_utils.get_color_cond_space_list(
+            "Ug_condK",
+            megacam_hsc_uSg,
+            uds_K,
+            ["MegaCam_uS", "HSC_G"],
+            "UDS_K",
+            z_sel,
+            FeniksFilters,
+            cond_dmag=4,
+            fit=False,
+        )
 
-    # 2D (K, J - H)
-    K_JH = N_utils.get_mag_color_space(
-        "K_JH",
-        uds_K,
-        uds_JH,
-        "UDS_K",
-        ["UDS_J", "UDS_H"],
-        z_sel,
-        FeniksFilters,
-        fit=True,
-    )
+        # 1D (g - r | K)
+        gr = N_utils.get_color_cond_space_list(
+            "Gr_condK",
+            hsc_gr,
+            uds_K,
+            ["HSC_G", "HSC_R"],
+            "UDS_K",
+            z_sel,
+            FeniksFilters,
+            cond_dmag=4,
+            fit=False,
+        )
 
-    z2b = Z2b(z_min, z_max, data_vol_mpc3, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz, K_JH)
-    colors.append(z2b)
+        # 1D (J − H | K)
+        jh = N_utils.get_color_cond_space_list(
+            "JH_condK",
+            uds_JH,
+            uds_K,
+            ["UDS_J", "UDS_H"],
+            "UDS_K",
+            z_sel,
+            FeniksFilters,
+            cond_dmag=4,
+            fit=False,
+        )
 
-    ##############################################################################
-    # Z3 spaces:
-    # 2D (z - J, J - H)
-    # 2D (u - g, g - r)
-    # 2D (K, u - g)
-    # 2D (K, g - r)
-    # 2D (K, J − H): residual quenching scatter at fixed stellar mass
-
-    Z3 = namedtuple(
-        "Z3",
-        [
-            "z_min",
-            "z_max",
-            "data_vol_mpc3",
-            "lc_data",
-            "zJ_JH",
-            "ug_gr",
-            "ug",
-            "gr",
-            "jh",
+        # 2D (K, u - g)
+        K_ug = N_utils.get_mag_color_space(
             "K_ug",
+            uds_K,
+            megacam_hsc_uSg,
+            "UDS_K",
+            ["MegaCam_uS", "HSC_G"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
+
+        # 2D (K, g - r)
+        K_gr = N_utils.get_mag_color_space(
             "K_gr",
+            uds_K,
+            hsc_gr,
+            "UDS_K",
+            ["HSC_G", "HSC_R"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
+
+        # 2D (K, J - H)
+        K_JH = N_utils.get_mag_color_space(
             "K_JH",
-        ],
-    )
-    zbin = 2
-    z_min = zbins[zbin][0]
-    z_max = zbins[zbin][1]
-    data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+            uds_K,
+            uds_JH,
+            "UDS_K",
+            ["UDS_J", "UDS_H"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
 
-    z_phot_table = 10 ** jnp.linspace(
-        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-    )
-    lc_args = (
-        ran_key,
-        num_halos_coarse_zbins,
-        z_min,
-        z_max,
-        lgmp_min,
-        lgmp_max,
-        lc_sky_area_degsq,
-        ssp_data,
-        tcurves,
-        z_phot_table,
-    )
-
-    lc_data = generate_lc_data(*lc_args)
-
-    z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-
-    # 2D (z - J, J - H)
-    zJ_JH = N_utils.get_colorcolor_space(
-        "ZJ_JH",
-        hsc_uds_zJ,
-        uds_JH,
-        ["HSC_Z", "UDS_J", "UDS_J", "UDS_H"],
-        z_sel,
-        FeniksFilters,
-        fit=True,
-    )
-
-    # 2D (u - g, g - r)
-    ug_gr = N_utils.get_colorcolor_space(
-        "Ug_gr",
-        megacam_hsc_uSg,
-        hsc_gr,
-        ["MegaCam_uS", "HSC_G", "HSC_G", "HSC_R"],
-        z_sel,
-        FeniksFilters,
-        fit=True,
-    )
-
-    # 1D (u - g | K)
-    ug = N_utils.get_color_cond_space_list(
-        "Ug_condK",
-        megacam_hsc_uSg,
-        uds_K,
-        ["MegaCam_uS", "HSC_G"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=4,
-        fit=False,
-    )
-
-    # 1D (g - r | K)
-    gr = N_utils.get_color_cond_space_list(
-        "Gr_condK",
-        hsc_gr,
-        uds_K,
-        ["HSC_G", "HSC_R"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=4,
-        fit=False,
-    )
-
-    # 1D (J − H | K)
-    jh = N_utils.get_color_cond_space_list(
-        "JH_condK",
-        uds_JH,
-        uds_K,
-        ["UDS_J", "UDS_H"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=4,
-        fit=False,
-    )
-
-    # 2D (K, u - g)
-    K_ug = N_utils.get_mag_color_space(
-        "K_ug",
-        uds_K,
-        megacam_hsc_uSg,
-        "UDS_K",
-        ["MegaCam_uS", "HSC_G"],
-        z_sel,
-        FeniksFilters,
-        fit=True,
-    )
-
-    # 2D (K, g - r)
-    K_gr = N_utils.get_mag_color_space(
-        "K_gr",
-        uds_K,
-        hsc_gr,
-        "UDS_K",
-        ["HSC_G", "HSC_R"],
-        z_sel,
-        FeniksFilters,
-        fit=True,
-    )
-
-    # 2D (K, J - H)
-    K_JH = N_utils.get_mag_color_space(
-        "K_JH",
-        uds_K,
-        uds_JH,
-        "UDS_K",
-        ["UDS_J", "UDS_H"],
-        z_sel,
-        FeniksFilters,
-        fit=True,
-    )
-
-    z3 = Z3(
-        z_min, z_max, data_vol_mpc3, lc_data, zJ_JH, ug_gr, ug, gr, jh, K_ug, K_gr, K_JH
-    )
-    colors.append(z3)
+        z3 = Z3(
+            z_min,
+            z_max,
+            data_vol_mpc3,
+            lc_data,
+            zJ_JH,
+            ug_gr,
+            ug,
+            gr,
+            jh,
+            K_ug,
+            K_gr,
+            K_JH,
+        )
+        colors.append(z3)
 
     ##############################################################################
     # prepare 1D app mag funcs in finer z-bins for fitting
@@ -1029,6 +1044,8 @@ def get_feniks_data(
 
     app_mag_funcs = []
     for zbin in range(0, len(fine_zbins)):
+        if (zbin == 1) & (testing):
+            break
         z_min = fine_zbins[zbin][0]
         z_max = fine_zbins[zbin][1]
         data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
@@ -1114,6 +1131,7 @@ def get_feniks_fitting_data(
     phot=PHOT,
     zout=ZOUT,
     add_random_rows_for_testing=False,
+    testing=False,
 ):
     feniks = get_feniks_data(
         feniks_drn,

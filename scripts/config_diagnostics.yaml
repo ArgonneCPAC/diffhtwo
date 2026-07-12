@@ -16,8 +16,8 @@ plot_feniks: True
 plot_hizels: False
 
 plots:
-  num_halos : 10000
-  plot_app_mag_funcs: True
+  num_halos : 3000
+  plot_app_mag_funcs: False
   plot_color_pdfs: False
   plot_insitu_smhm: False
   plot_exsitu_frac: False
@@ -26,18 +26,18 @@ plots:
   plot_sfms: False
   plot_fq: False
   
-  plot_color_contours: False
+  plot_color_contours: True
   plot_colors_mags: False
   plot_colors_z: False
   plot_mags: False
-  plot_ssperr: False
-  plot_massive_cen_colors: False
-  plot_merging_sat_colors: False
-  plot_insitu_sm: False
-  plot_sm: False
-  plot_uvj: False
-  plot_avpop: False
-  plot_burstpop: False
-  plot_fburst_mh_z: False
-  plot_satquench_model: False
+  plot_ssperr: True
+  plot_massive_cen_colors: True
+  plot_merging_sat_colors: True
+  plot_insitu_sm: True
+  plot_sm: True
+  plot_uvj: True
+  plot_avpop: True
+  plot_burstpop: True
+  plot_fburst_mh_z: True
+  plot_satquench_model: True
   plot_satquench: False

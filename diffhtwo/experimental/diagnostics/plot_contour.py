@@ -154,7 +154,7 @@ def plot_color_contours(
             mag_thresh,
             frac_cat,
         )
-        fields = z_data_model._fields[3:]
+        fields = z_data_model._fields[4:]
         z_min = z_data_model.z_min
         z_max = z_data_model.z_max
 

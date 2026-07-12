@@ -335,6 +335,16 @@ if __name__ == "__main__":
                 fit_diagnostics_save_drn,
             )
 
+        feniks_zbins = np.array(
+            [
+                [0.4, 0.8],
+                [0.8, 1.2],
+                [1.2, 1.6],
+                [1.6, 2.0],
+                [2.0, 2.5],
+            ]
+        )
+
         if cfg["plots"]["plot_app_mag_funcs"]:
             print("Generating FENIKS app mag funcs plot...")
             plot_app_mag_funcs(
