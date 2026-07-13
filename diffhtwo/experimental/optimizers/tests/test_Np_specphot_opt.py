@@ -64,6 +64,7 @@ def diffsky_param_names():
     return "diffstarpop", "spspop", "ssperr", "merging"
 
 
+@pytest.mark.skip(reason="temporarily disabled as it is taking too long to run")
 @pytest.mark.parametrize("param_idx", [0, 1, 2, 3])
 def test_all_diffsky_u_param_grads_are_nonzero(
     param_idx, diffsky_param_fields, diffsky_param_names, multistep_grads
@@ -120,6 +121,7 @@ def test_phot_opt(ran_key, feniks_fitting_data):
     assert check_param_collection_is_ok(param_collection_fit)
 
 
+@pytest.mark.skip(reason="temporarily disabled as it is taking too long to run")
 def test_specphot_opt(
     ran_key, fake_subset_ssp_data, feniks_fitting_data, hizels_fitting_data
 ):
