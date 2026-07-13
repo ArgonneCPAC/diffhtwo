@@ -2,7 +2,7 @@ import jax.numpy as jnp
 from diffsky import diffndhist_lomem
 from jax import jit as jjit
 
-from .lc_spec_kern import mc_photline_kern_merging_wrapper
+from .lc_photline_kern import mc_photline_kern_merging_wrapper
 
 
 @jjit

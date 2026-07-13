@@ -2,10 +2,10 @@ import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from jax import random as jran
 
-from ..spec_kern import get_halpha_LF_q_ms_burst
+from ..line_kern import get_halpha_LF_q_ms_burst
 
 
-def test_photline_kern(fake_subset_ssp_data, hizels_fitting_data, feniks):
+def test_line_kern(fake_subset_ssp_data, hizels_fitting_data, feniks):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
     ran_key = jran.key(0)

@@ -5,7 +5,7 @@ from dsps.cosmology import DEFAULT_COSMOLOGY
 
 from .. import emline_luminosity
 from .gehrels_err import N_0, N_FLOOR
-from .lc_spec_kern import lc_spec_kern
+from .lc_photline_kern import lc_photline_kern
 
 
 def get_halpha_LF_q_ms_burst(
@@ -27,7 +27,7 @@ def get_halpha_LF_q_ms_burst(
 ):
     z_min = halpha_LF_z - (halpha_LF_delta_z / 2)
     z_max = halpha_LF_z + (halpha_LF_delta_z / 2)
-    _res = lc_spec_kern(
+    _res = lc_photline_kern(
         ran_key,
         param_collection,
         z_min,
