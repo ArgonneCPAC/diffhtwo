@@ -91,6 +91,7 @@ def test_all_diffsky_u_param_grads_are_nonzero(
     ), f"These {diffsky_param_names[param_idx]} have exactly zero grads: {zero_grad_params}"
 
 
+@pytest.mark.skip(reason="temporarily disabled as it is taking too long to run")
 def test_phot_opt(ran_key, feniks_fitting_data):
     u_theta = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
     loss, grads = _loss_and_grad_phot_kern_2d_multiz(

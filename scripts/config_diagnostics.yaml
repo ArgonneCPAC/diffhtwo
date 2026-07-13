@@ -16,8 +16,8 @@ plot_feniks: True
 plot_hizels: False
 
 plots:
-  num_halos : 1000
-  plot_app_mag_funcs: False
+  num_halos : 25000
+  plot_app_mag_funcs: True
   plot_color_pdfs: False
   plot_insitu_smhm: False
   plot_exsitu_frac: False
