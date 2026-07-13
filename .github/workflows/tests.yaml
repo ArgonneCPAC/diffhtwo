@@ -1,4 +1,4 @@
-name: Test Pull Request into main
+name: Test Pull Request into main with diffsky@v0.3.6
 
 on:
   push:
@@ -10,6 +10,7 @@ jobs:
   tests:
     name: tests
     runs-on: "ubuntu-latest"
+    timeout-minutes: 120
 
     steps:
       - uses: actions/checkout@v5
@@ -41,7 +42,7 @@ jobs:
             scipy \
             python-build
           pip uninstall diffsky --yes
-          pip install --no-deps git+https://github.com/ArgonneCPAC/diffsky.git
+          pip install --no-deps git+https://github.com/ArgonneCPAC/diffsky.git@v0.3.6
 
           python -m pip install --no-build-isolation --no-deps -e .
 

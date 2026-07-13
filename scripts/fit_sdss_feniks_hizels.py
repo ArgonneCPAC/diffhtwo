@@ -3,6 +3,7 @@ import os
 import time
 from collections import namedtuple
 from datetime import datetime
+from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -21,8 +22,7 @@ from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
-from diffhtwo.experimental.data_loaders import load_feniks, load_sdss
-from diffhtwo.experimental.defaults import FENIKS_AREA_DEG2, SDSS_AREA_DEG2
+from diffhtwo.experimental.data_loaders import load_feniks, load_hizels, load_sdss
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
 DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
@@ -31,7 +31,7 @@ DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--config", default="config_sdss_feniks.yaml")
+    p.add_argument("--config", default="config_sdss_feniks_hizels.yaml")
     args = p.parse_args()
 
     with open(args.config) as f:
@@ -39,6 +39,7 @@ if __name__ == "__main__":
 
     sdss_drn = cfg["base_path"] + "/sdss"
     feniks_drn = cfg["base_path"] + "/feniks"
+    hizels_drn = Path(cfg["base_path"] + "/hizels")
     ssp_filename = (
         cfg["base_path"]
         + "/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5"
@@ -89,6 +90,9 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
+    with open(fit_diagnostics_save_drn + "/" + args.config) as f:
+        cfg = yaml.safe_load(f)
+
     initial_pts = []
     start = time.time()
     ran_key = jran.key(0)
@@ -118,24 +122,34 @@ if __name__ == "__main__":
             num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
         )
 
-        w_sdss = 1 / SDSS_AREA_DEG2
-        w_feniks = 1 / FENIKS_AREA_DEG2
+        # load hizels data
+        hizels_fitting_data = load_hizels.get_hizels_data(
+            hizels_drn,
+            ran_key,
+            ssp_data,
+            feniks_fitting_data.filter_info.tcurves,
+            halpha_wave_aa,
+            num_halos=cfg["hizels"]["num_halos"],
+        )
 
         (
             loss_hist,
             loss_sdss_hist,
             loss_feniks_hist,
+            loss_hizels_hist,
             u_theta_fit,
-        ) = Np_specphot_opt.fit_sdss_feniks(
+        ) = Np_specphot_opt.fit_sdss_feniks_hizels(
             u_theta_fit,
             trainable_params,
             ran_key,
             sdss_fitting_data,
             feniks_fitting_data,
+            hizels_fitting_data,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
-            w_sdss=w_sdss,
-            w_feniks=w_feniks,
+            w_sdss=cfg["w_sdss"],
+            w_feniks=cfg["w_feniks"],
+            w_hizels=cfg["w_hizels"],
         )
 
         jax.clear_caches()
@@ -151,6 +165,7 @@ if __name__ == "__main__":
             LOSS_HIST = loss_hist
             LOSS_SDSS_HIST = loss_sdss_hist
             LOSS_FENIKS_HIST = loss_feniks_hist
+            LOSS_HIZELS_HIST = loss_hizels_hist
             initial_pts.append((STEPS[0], LOSS_HIST[0]))
         else:
             steps = np.arange(STEPS[-1] + 1, STEPS[-1] + cfg["epoch"]["n_steps"] + 1, 1)
@@ -159,6 +174,7 @@ if __name__ == "__main__":
             LOSS_HIST = np.concatenate((LOSS_HIST, loss_hist))
             LOSS_SDSS_HIST = np.concatenate((LOSS_SDSS_HIST, loss_sdss_hist))
             LOSS_FENIKS_HIST = np.concatenate((LOSS_FENIKS_HIST, loss_feniks_hist))
+            LOSS_HIZELS_HIST = np.concatenate((LOSS_HIZELS_HIST, loss_hizels_hist))
     end = time.time()
     elapsed = end - start
     print(
@@ -186,6 +202,14 @@ if __name__ == "__main__":
         linestyle="--",
         alpha=0.7,
         label="feniks",
+    )
+    ax_loss.plot(
+        STEPS,
+        LOSS_HIZELS_HIST,
+        c="#DA291C",
+        linestyle="--",
+        alpha=0.7,
+        label="hizels",
     )
     ax_loss.legend()
     ax_loss.set_ylabel("Poisson Negative Log-Likelihood")

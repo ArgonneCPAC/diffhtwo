@@ -7,7 +7,7 @@ from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from .cat_weights import compute_cat_weights
+from .cat_weight import compute_cat_weight
 from .gehrels_err import get_n_data_err
 from .lc_phot_kern import mc_phot_kern_merging_wrapper
 
@@ -17,8 +17,9 @@ def get_colors_mags(
     ran_key,
     param_collection,
     lc_data,
+    col_idx,
+    mag_idx,
     mag_thresh,
-    in_lh_idx,
     frac_cat,
 ):
     mags, gal_weight, phot_kern_results = mag_kern(
@@ -30,12 +31,17 @@ def get_colors_mags(
     )
     # collect colors and mags
     n_gals, n_bands = mags.shape
-    obs_color_mag = mags[:, 0 : n_bands - 1] - mags[:, 1:n_bands]
+
+    obs_color_mag = mags[:, col_idx[0][0]] - mags[:, col_idx[0][1]]
+    for c in range(1, len(col_idx)):
+        obs_color_mag_curr = mags[:, col_idx[c][0]] - mags[:, col_idx[c][1]]
+        obs_color_mag = jnp.vstack((obs_color_mag, obs_color_mag_curr))
 
     # beyond colors, additional lh dimensions holding apparent magnitudes
-    mags_in_lh = mags[:, in_lh_idx]
-    obs_color_mag = jnp.hstack((obs_color_mag, mags_in_lh))
+    for m in range(0, len(mag_idx)):
+        obs_color_mag = jnp.vstack((obs_color_mag, mags[:, mag_idx[m]]))
 
+    obs_color_mag = obs_color_mag.T
     return obs_color_mag, gal_weight, phot_kern_results
 
 
@@ -55,16 +61,13 @@ def mag_kern(
         param_collection,
         lc_data,
     )
-    obs_mags = phot_kern_results.obs_mags_weighted
-
+    obs_mags_weighted = phot_kern_results.obs_mags_weighted
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     # update weights to incorporate mag thresh cuts and frac_cat
-    gal_weight = compute_cat_weights(
-        gal_weight, phot_kern_results, mag_thresh, frac_cat
-    )
+    gal_weight = compute_cat_weight(gal_weight, obs_mags_weighted, mag_thresh, frac_cat)
 
-    return obs_mags, gal_weight, phot_kern_results
+    return obs_mags_weighted, gal_weight, phot_kern_results
 
 
 @partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])

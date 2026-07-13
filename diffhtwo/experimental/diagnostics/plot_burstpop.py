@@ -143,7 +143,7 @@ def plot_lgfburst_mh_z(
         ]
     )
     fig, ax = plt.subplots(1, 2, figsize=(10, 4), width_ratios=[1, 1.2])
-    vmin, vmax = -6, -2.5
+    vmin, vmax = -6, -1.5
 
     """Plot fburst w/ halo mass and redshift"""
     ax[0].hexbin(
@@ -160,7 +160,7 @@ def plot_lgfburst_mh_z(
     )
 
     ax[0].set_xlabel("redshift")
-    ax[0].set_ylabel("log$_{10}$ (M$_{h, peak}$ [M\u2609])")
+    ax[0].set_ylabel(r"log$_{10}$ (M$_{h, peak}$ [M${_\odot}$])")
     ax[0].set_xlim(z_min, z_max)
     ax[0].set_ylim(10, 15)
 
@@ -183,7 +183,7 @@ def plot_lgfburst_mh_z(
     cbar1.ax.invert_yaxis()
 
     ax[1].set_xlabel("redshift")
-    ax[1].set_ylabel("log$_{10}$ (M$_{*}$ [M\u2609])")
+    ax[1].set_ylabel(r"log$_{10}$ (M$_{*}$ [M${_\odot}$])")
     ax[1].set_xlim(z_min, z_max)
     ax[1].set_ylim(logsm_min, log_sm_max)
 

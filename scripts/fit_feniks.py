@@ -21,8 +21,6 @@ from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks
-from diffhtwo.experimental.defaults import FENIKS_Z_MAX, FENIKS_Z_MIN
-from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
 DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
@@ -48,12 +46,6 @@ if __name__ == "__main__":
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
     emline_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     emline_wave_table = jnp.array([emline_wave_aa])
-
-    # load feniks data
-    ran_key = jran.key(0)
-    FENIKS = load_feniks.get_feniks_data(
-        feniks_drn, ran_key, ssp_data, lh_d_mag=cfg["feniks"]["lh_d_mag"]
-    )
 
     # start fit dirs
     fit_start_drn = cfg["base_path"] + "/fits/" + cfg["start_runid"] + "/"
@@ -95,36 +87,29 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
-    feniks_z_min = [FENIKS_Z_MIN, 1]
-    feniks_z_max = [1, 2]
-
     initial_pts = []
     start = time.time()
+    ran_key = jran.key(0)
     for epoch in range(0, cfg["epoch"]["n_it"]):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
-        FENIKS = load_feniks.refresh_lh_centroids(FENIKS, cfg["feniks"]["lh_d_mag"])
 
-        # FENIKS
-        feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
+        feniks_fitting_data = load_feniks.get_feniks_fitting_data(
+            feniks_drn,
             ran_key,
-            FENIKS,
-            feniks_z_min,
-            feniks_z_max,
             ssp_data,
-            cfg["feniks"]["N_centroids"],
-            lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
-            num_halos=cfg["epoch"]["num_halos"],
+            num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
+            num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
         )
 
-        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_multi_z(
+        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_phot_2d(
             u_theta_fit,
             trainable_params,
             ran_key,
-            feniks_meta_data,
             feniks_fitting_data,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
         )
+
         jax.clear_caches()
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
