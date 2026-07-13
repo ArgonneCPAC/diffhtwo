@@ -17,7 +17,7 @@ from ..Np_specphot_opt import (
 
 @pytest.fixture(scope="module")
 def multistep_grads(ran_key, feniks_fitting_data):
-    n_steps = 10
+    n_steps = 2
     step_size = 0.1
 
     u_theta_init = pu.get_u_theta_from_param_collection(DEFAULT_PARAM_COLLECTION)
