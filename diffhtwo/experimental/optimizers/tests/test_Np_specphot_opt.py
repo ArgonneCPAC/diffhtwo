@@ -15,7 +15,7 @@ from ..Np_specphot_opt import (
 )
 
 
-@pytest.fixture(scope="module")
+@pytest.fixture(scope="function")
 def multistep_grads(ran_key, feniks_fitting_data):
     n_steps = 2
     step_size = 0.1
