@@ -3,7 +3,7 @@ from diffsky.experimental.scatter import DEFAULT_SCATTER_U_PARAMS
 from dsps.metallicity.umzr import DEFAULT_MZR_U_PARAMS
 from jax import jit as jjit
 
-from ..kernels.N_spec import N_linelum
+from ..kernels.N_line import N_linelum
 from ..param_utils import get_param_collection_from_u_theta
 from .loss_functions import poisson_loss
 

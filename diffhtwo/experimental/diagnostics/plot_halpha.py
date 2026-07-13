@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 
+from ..kernels.line_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
 from ..kernels.sfh_rapid_q import update_logsfr_obs_with_rapid_q
-from ..kernels.spec_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 
