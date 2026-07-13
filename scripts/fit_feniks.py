@@ -21,7 +21,7 @@ from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks
-from diffhtwo.experimental.optimizers import Np_specphot_opt
+from diffhtwo.experimental.optimizers import Np_photline_opt
 
 DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
     "galacticus_in_plus_ex_situ"
@@ -101,7 +101,7 @@ if __name__ == "__main__":
             num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
         )
 
-        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_phot_2d(
+        loss_hist, u_theta_fit = Np_photline_opt.fit_N_phot_2d(
             u_theta_fit,
             trainable_params,
             ran_key,

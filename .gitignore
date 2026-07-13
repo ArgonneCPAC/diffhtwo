@@ -5,6 +5,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+.DS_Store
+*/.DS_Store
+
 */_version.py
 
 # C extensions

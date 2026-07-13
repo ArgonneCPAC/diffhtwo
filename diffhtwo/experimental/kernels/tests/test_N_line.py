@@ -3,7 +3,7 @@ import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from jax import random as jran
 
-from ..N_spec import N_linelum
+from ..N_line import N_linelum
 
 
 def test_N_linelum(hizels_fitting_data):

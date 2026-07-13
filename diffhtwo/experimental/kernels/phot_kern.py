@@ -2,7 +2,7 @@ from functools import partial
 
 import jax.numpy as jnp
 from diffsky import diffndhist_lomem
-from diffsky.experimental.kernels import phot_kernels_merging as pkm
+from diffsky.experimental.kernels import phot_kernels as pk
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
@@ -164,7 +164,7 @@ def monte_carlo_phot_kern(
     fb=FB,
     mc_merge=0,
 ):
-    phot_kern_results, phot_randoms = pkm._mc_phot_kern_merging(
+    phot_kern_results, phot_randoms = pk._mc_phot_kern_merging(
         ran_key,
         lc_data.z_obs,
         lc_data.t_obs,

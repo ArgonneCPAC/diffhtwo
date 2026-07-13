@@ -2,7 +2,7 @@ import jax.numpy as jnp
 from diffsky import diffndhist_lomem
 from jax import jit as jjit
 
-from .lc_spec_kern import mc_specphot_kern_merging_wrapper
+from .lc_photline_kern import mc_photline_kern_merging_wrapper
 
 
 @jjit
@@ -16,15 +16,15 @@ def N_linelum(
     (
         phot_kern_results,
         phot_randoms,
-        spec_kern_results,
-    ) = mc_specphot_kern_merging_wrapper(
+        photline_kern_results,
+    ) = mc_photline_kern_merging_wrapper(
         ran_key,
         param_collection,
         lc_data,
         line_wave_table,
     )
 
-    lg_linelum_weighted = jnp.log10(spec_kern_results.linelum_weighted)
+    lg_linelum_weighted = jnp.log10(photline_kern_results.linelum_weighted)
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     sig = jnp.diff(lg_Lbin_edges) / 2

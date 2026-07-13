@@ -7,7 +7,7 @@ from diffsky.param_utils.diffsky_param_wrapper_merging import (
 from jax.example_libraries import optimizers as jax_opt
 
 from ... import param_utils as pu
-from ..Np_specphot_opt import (
+from ..Np_photline_opt import (
     _loss_and_grad_emline_kern_multi_line_multi_z,
     _loss_and_grad_phot_kern_2d_multiz,
     fit_feniks_hizels,
@@ -122,7 +122,7 @@ def test_phot_opt(ran_key, feniks_fitting_data):
 
 
 @pytest.mark.skip(reason="temporarily disabled as it is taking too long to run")
-def test_specphot_opt(
+def test_photline_opt(
     ran_key, fake_subset_ssp_data, feniks_fitting_data, hizels_fitting_data
 ):
     ssp_data, emline_wave_aa = fake_subset_ssp_data
