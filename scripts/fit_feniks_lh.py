@@ -23,7 +23,7 @@ from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks
 from diffhtwo.experimental.defaults import FENIKS_Z_MIN
 from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
-from diffhtwo.experimental.optimizers import Np_specphot_opt
+from diffhtwo.experimental.optimizers import Np_photline_opt
 
 DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
     "galacticus_in_plus_ex_situ"
@@ -116,7 +116,7 @@ if __name__ == "__main__":
             num_halos=cfg["epoch"]["num_halos"],
         )
 
-        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_multi_z(
+        loss_hist, u_theta_fit = Np_photline_opt.fit_N_multi_z(
             u_theta_fit,
             trainable_params,
             ran_key,

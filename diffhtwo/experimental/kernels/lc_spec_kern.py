@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from diffsky.experimental.kernels import gd_specphot_kernels_merging as gspkm
+from diffsky.experimental.kernels import photline_kernels as plk
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
@@ -7,7 +7,7 @@ from jax import jit as jjit
 from ..lightcone_generators import generate_lc_data
 
 
-def lc_spec_kern(
+def lc_photline_kern(
     ran_key,
     param_collection,
     z_min,
@@ -41,19 +41,19 @@ def lc_spec_kern(
 
     line_wave_table = jnp.array([halpha_wave_aa])
 
-    _res = mc_specphot_kern_merging_wrapper(
+    _res = mc_photline_kern_merging_wrapper(
         ran_key,
         param_collection,
         lc_data,
         line_wave_table,
     )
-    (phot_kern_results, phot_randoms, spec_kern_results) = _res
+    (phot_kern_results, phot_randoms, photline_kern_results) = _res
 
-    return phot_kern_results, phot_randoms, spec_kern_results, lc_data
+    return phot_kern_results, phot_randoms, photline_kern_results, lc_data
 
 
 @jjit
-def mc_specphot_kern_merging_wrapper(
+def mc_photline_kern_merging_wrapper(
     ran_key,
     param_collection,
     lc_data,
@@ -62,7 +62,7 @@ def mc_specphot_kern_merging_wrapper(
     fb=FB,
     mc_merge=0,
 ):
-    _res = gspkm._mc_specphot_kern_merging(
+    _res = plk._mc_photline_kern_merging(
         ran_key,
         lc_data.z_obs,
         lc_data.t_obs,
@@ -84,6 +84,6 @@ def mc_specphot_kern_merging_wrapper(
         mc_merge,
     )
 
-    (phot_kern_results, phot_randoms, spec_kern_results) = _res
+    (phot_kern_results, phot_randoms, photline_kern_results) = _res
 
-    return phot_kern_results, phot_randoms, spec_kern_results
+    return phot_kern_results, phot_randoms, photline_kern_results
