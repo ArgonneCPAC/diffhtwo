@@ -42,6 +42,8 @@ jobs:
             python-build
           pip uninstall diffsky --yes
           pip install --no-deps git+https://github.com/ArgonneCPAC/diffsky.git@main
+          pip uninstall diffhalos --yes
+          pip install --no-deps git+https://github.com/ArgonneCPAC/diffhalos.git@main
 
           python -m pip install --no-build-isolation --no-deps -e .
 
