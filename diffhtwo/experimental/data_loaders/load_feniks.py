@@ -717,7 +717,7 @@ def get_feniks_data(
     # 2D (K, u - g)
     # 2D (K, r - z)
 
-    if testing == False:
+    if testing is False:
         Z2b = namedtuple(
             "Z2b",
             [
