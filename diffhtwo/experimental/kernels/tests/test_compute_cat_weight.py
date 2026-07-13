@@ -3,41 +3,34 @@ import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from jax import random as jran
 
-from ..N_phot import N_colors_mags_lh
-from ..phot_kern import mag_kern
+from ..cat_weight import compute_cat_weight
+from ..lc_phot_kern import mc_phot_kern_merging_wrapper
 
 
-def test_N_colors_mags_lh(feniks_single_z_data):
-    feniks_meta_data, feniks_fitting_data = feniks_single_z_data
-
+def test_compute_cat_weight(feniks, feniks_lc_data):
     ran_key = jran.key(0)
 
-    N = N_colors_mags_lh(
-        ran_key,
-        feniks_meta_data,
-        feniks_fitting_data,
-        DEFAULT_PARAM_COLLECTION,
-    )
-
-    assert np.isfinite(N).all()
-    assert (N >= 0.0).all()
-
-
-def test_mag_kern(feniks):
-    ran_key = jran.key(0)
-
-    obs_mags_weighted, gal_cat_weight, phot_kern_results = mag_kern(
+    phot_kern_results = mc_phot_kern_merging_wrapper(
         ran_key,
         DEFAULT_PARAM_COLLECTION,
-        feniks.colors[0].lc_data,
-        feniks.filter_info.mag_thresh,
-        feniks.frac_cat,
+        feniks_lc_data,
     )
+    obs_mags_weighted = phot_kern_results.obs_mags_weighted
+    gal_weight = feniks_lc_data.cen_weight * feniks_lc_data.sat_weight
+    assert np.isfinite(gal_weight).all()
+    assert (gal_weight >= 0).all()
 
-    assert np.isfinite(obs_mags_weighted).all()
+    # apply mag_thresh cuts and frac_cat
+    gal_cat_weight = compute_cat_weight(
+        gal_weight, obs_mags_weighted, feniks.filter_info.mag_thresh, feniks.frac_cat
+    )
     assert np.isfinite(gal_cat_weight).all()
+    assert (gal_cat_weight >= 0).all()
 
-    # ensure that gal_weight for gals outside mag_thresh bounds is 0.0 in each band
+    # ensure that gal_cat_weight does not upweight compared to gal_weight
+    assert gal_cat_weight.sum() <= gal_weight.sum()
+
+    # ensure that gal_cat_weight for gals beyond mag_thresh bounds is low in each band
     mag_thresh = jnp.array(feniks.filter_info.mag_thresh)
     n_gals, n_bands = obs_mags_weighted.shape
     for i in range(0, n_bands):

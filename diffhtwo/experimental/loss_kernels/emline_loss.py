@@ -27,9 +27,12 @@ def get_emline_loss(
         lc_data,
         param_collection,
     )
-    N_model = N_model * (vol_Mpc3_data / lc_data.lc_tot_vol_mpc3)
 
-    emline_loss = poisson_loss(N_model, N_data)
+    # N_model = N_model * (vol_Mpc3_data / lc_data.lc_tot_vol_mpc3)
+    n_model = N_model / lc_data.lc_tot_vol_mpc3
+    n_data = N_data / vol_Mpc3_data
+
+    emline_loss = poisson_loss(n_model, n_data)
 
     return emline_loss
 

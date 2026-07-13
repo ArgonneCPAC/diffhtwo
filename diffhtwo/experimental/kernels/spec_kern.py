@@ -42,6 +42,7 @@ def get_halpha_LF_q_ms_burst(
     linelum_gal = spec_kern_results.linelum_gal
     linelum_gal_in_situ = spec_kern_results.linelum_gal_in_situ
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
+    # p_merge = phot_kern_results.p_merge
 
     # get mc_is for q, ms, and burst
     mc_is_q, mc_is_ms, mc_is_burst = get_mc_is(
@@ -60,17 +61,26 @@ def get_halpha_LF_q_ms_burst(
 
     # q
     lg_halpha_LF_q = get_lf_from_linelum(
-        linelum_gal[mc_is_q], gal_weight[mc_is_q], lg_halpha_Lbin_edges, lc_data
+        linelum_gal[mc_is_q],
+        gal_weight[mc_is_q],
+        lg_halpha_Lbin_edges,
+        lc_data,
     )
 
     # ms
     lg_halpha_LF_ms = get_lf_from_linelum(
-        linelum_gal[mc_is_ms], gal_weight[mc_is_ms], lg_halpha_Lbin_edges, lc_data
+        linelum_gal[mc_is_ms],
+        gal_weight[mc_is_ms],
+        lg_halpha_Lbin_edges,
+        lc_data,
     )
 
     # burst
     lg_halpha_LF_burst = get_lf_from_linelum(
-        linelum_gal[mc_is_burst], gal_weight[mc_is_burst], lg_halpha_Lbin_edges, lc_data
+        linelum_gal[mc_is_burst],
+        gal_weight[mc_is_burst],
+        lg_halpha_Lbin_edges,
+        lc_data,
     )
 
     lgL_bin_centers = 0.5 * (lg_halpha_Lbin_edges[1:] + lg_halpha_Lbin_edges[:-1])

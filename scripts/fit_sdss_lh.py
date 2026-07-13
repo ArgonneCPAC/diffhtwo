@@ -2,7 +2,6 @@ import argparse
 import os
 import time
 from datetime import datetime
-from pathlib import Path
 
 import jax
 import jax.numpy as jnp
@@ -21,8 +20,8 @@ from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
-from diffhtwo.experimental.data_loaders import load_feniks, load_hizels
-from diffhtwo.experimental.defaults import FENIKS_Z_MIN
+from diffhtwo.experimental.data_loaders import load_sdss
+from diffhtwo.experimental.defaults import SDSS_Z_MAX, SDSS_Z_MIN
 from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
@@ -32,15 +31,13 @@ DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--config", default="config_diffsky.yaml")
+    p.add_argument("--config", default="config_sdss_lh.yaml")
     args = p.parse_args()
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    # sdss_drn = cfg["base_path"] + "/sdss"
-    feniks_drn = cfg["base_path"] + "/feniks"
-    hizels_drn = Path(cfg["base_path"] + "/hizels")
+    sdss_drn = cfg["base_path"] + "/sdss"
     ssp_filename = (
         cfg["base_path"]
         + "/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5"
@@ -49,26 +46,13 @@ if __name__ == "__main__":
     # get ssp data
     ssp_data = load_ssp_templates(fn=ssp_filename)
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
-    halpha_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
+    emline_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
+    emline_wave_table = jnp.array([emline_wave_aa])
 
     # load sdss data
-    # ran_key = jran.key(0)
-    # SDSS = load_sdss.get_sdss_data(sdss_drn, ran_key, ssp_data)
-
-    # load feniks data
     ran_key = jran.key(0)
-    FENIKS = load_feniks.get_feniks_data(
-        feniks_drn, ran_key, ssp_data, lh_d_mag=cfg["feniks"]["lh_d_mag"]
-    )
-
-    # load hizels data
-    hizels_fitting_data = load_hizels.get_hizels_data(
-        hizels_drn,
-        ran_key,
-        ssp_data,
-        FENIKS.filter_info.tcurves,
-        halpha_wave_aa,
-        num_halos=cfg["hizels"]["num_halos"],
+    SDSS = load_sdss.get_sdss_data(
+        sdss_drn, ran_key, ssp_data, lh_d_mag=cfg["sdss"]["lh_d_mag"]
     )
 
     # start fit dirs
@@ -111,61 +95,36 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
-    # SDSS
-    # sdss_z_min = [SDSS_Z_MIN, 0.08, 0.14]
-    # sdss_z_max = [0.08, 0.14, SDSS_Z_MAX]
-
-    # FENIKS
-    feniks_z_min = [FENIKS_Z_MIN, 1]
-    feniks_z_max = [1, 2]
+    sdss_z_min = [SDSS_Z_MIN, 0.1]
+    sdss_z_max = [0.1, SDSS_Z_MAX]
 
     initial_pts = []
     start = time.time()
     for epoch in range(0, cfg["epoch"]["n_it"]):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
+        SDSS = load_sdss.refresh_lh_centroids(SDSS, cfg["sdss"]["lh_d_mag"])
 
         # SDSS
-        # sdss = load_sdss.refresh_lh_centroids(SDSS)
-        # sdss_meta_data, sdss_fitting_data = lhu.get_zbins_lh_lc(
-        #     ran_key,
-        #     SDSS,
-        #     sdss_z_min,
-        #     sdss_z_max,
-        #     ssp_data,
-        #     cfg["sdss"]["N_centroids"],
-        #     lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
-        #     num_halos=cfg["sdss"]["num_halos"],
-        # )
-
-        # FENIKS
-        FENIKS = load_feniks.refresh_lh_centroids(FENIKS, cfg["feniks"]["lh_d_mag"])
-        feniks_meta_data, feniks_fitting_data = lhu.get_zbins_lh_lc(
+        sdss_meta_data, sdss_fitting_data = lhu.get_zbins_lh_lc(
             ran_key,
-            FENIKS,
-            feniks_z_min,
-            feniks_z_max,
+            SDSS,
+            sdss_z_min,
+            sdss_z_max,
             ssp_data,
-            cfg["feniks"]["N_centroids"],
+            cfg["sdss"]["N_centroids"],
             lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
-            num_halos=cfg["feniks"]["num_halos"],
+            num_halos=cfg["epoch"]["num_halos"],
         )
 
-        (
-            loss_hist,
-            loss_phot_hist,
-            loss_emline_hist,
-            u_theta_fit,
-        ) = Np_specphot_opt.fit_feniks_hizels(
+        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_multi_z(
             u_theta_fit,
             trainable_params,
             ran_key,
-            feniks_meta_data,
-            feniks_fitting_data,
-            hizels_fitting_data,
+            sdss_meta_data,
+            sdss_fitting_data,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
         )
-
         jax.clear_caches()
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
@@ -174,50 +133,37 @@ if __name__ == "__main__":
             cfg["fit_runid"] + "_" + cfg["fit_type"],
             param_collection_fit,
         )
+
         if epoch == 0:
             STEPS = np.arange(1, cfg["epoch"]["n_steps"] + 1, 1)
+
             LOSS_HIST = loss_hist
-            LOSS_PHOT_HIST = loss_phot_hist
-            LOSS_EMLINE_HIST = loss_emline_hist
+
             initial_pts.append((STEPS[0], LOSS_HIST[0]))
         else:
             steps = np.arange(STEPS[-1] + 1, STEPS[-1] + cfg["epoch"]["n_steps"] + 1, 1)
             initial_pts.append((steps[0], loss_hist[0]))
+
             STEPS = np.concatenate((STEPS, steps))
             LOSS_HIST = np.concatenate((LOSS_HIST, loss_hist))
-            LOSS_PHOT_HIST = np.concatenate((LOSS_PHOT_HIST, loss_phot_hist))
-            LOSS_EMLINE_HIST = np.concatenate((LOSS_EMLINE_HIST, loss_emline_hist))
+
     end = time.time()
     elapsed = end - start
     print(
         f'Gradient descent took {elapsed/60:.3f} minutes for {cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]} steps.'
     )
     print(f'speed: {elapsed/(cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]):.3f} s/it')
+
     # gradient descent figure
     fig_loss, ax_loss = plt.subplots(1)
+
     start_step = [s[0] for s in initial_pts]
     start_loss = [s[1] for s in initial_pts]
-    ax_loss.scatter(start_step, start_loss, s=50, c="k")
-    ax_loss.plot(STEPS, LOSS_HIST, c="k", label="total loss")
-    ax_loss.plot(
-        STEPS,
-        LOSS_PHOT_HIST,
-        c="#0a7a80",
-        linestyle="--",
-        alpha=0.7,
-        label="phot loss",
-    )
-    ax_loss.plot(
-        STEPS,
-        LOSS_EMLINE_HIST,
-        c="#c87820",
-        linestyle="--",
-        alpha=0.7,
-        label="emline loss",
-    )
-    ax_loss.legend()
-    ax_loss.set_ylabel("Poisson Negative Log-Likelihood")
+    ax_loss.scatter(start_step, start_loss, s=50, c="deepskyblue")
+
+    ax_loss.plot(STEPS, LOSS_HIST, c="deepskyblue")
+    ax_loss.set_ylabel("Poisson Loss")
     ax_loss.set_xlabel("steps")
     ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    plt.savefig(fit_diagnostics_save_drn + "/loss/loss_" + ts + ".png")
+    plt.savefig(fit_diagnostics_save_drn + "/loss/sdss_loss_" + ts + ".png")
     plt.close()

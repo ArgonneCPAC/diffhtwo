@@ -47,6 +47,7 @@ def feniks(ran_key, fake_subset_ssp_data):
         ssp_data,
         phot=PHOT,
         zout=ZOUT,
+        add_random_rows_for_testing=True,
     )
     return feniks
 
@@ -70,6 +71,21 @@ def feniks_tcurves():
         feniks_filter_wave_aa, feniks_filter_trans = load_feniks_tcurve(tcurve_filename)
         tcurves.append(TransmissionCurve(feniks_filter_wave_aa, feniks_filter_trans))
     return tcurves
+
+
+@pytest.fixture(scope="function")
+def feniks_fitting_data(ran_key, fake_subset_ssp_data):
+    ssp_data, emline_wave_aa = fake_subset_ssp_data
+    feniks_fitting_data = load_feniks.get_feniks_fitting_data(
+        FENIKS_DRN,
+        ran_key,
+        ssp_data,
+        phot=PHOT,
+        zout=ZOUT,
+        add_random_rows_for_testing=False,
+        testing=True,
+    )
+    return feniks_fitting_data
 
 
 @pytest.fixture(scope="session")

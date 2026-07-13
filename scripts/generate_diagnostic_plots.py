@@ -3,6 +3,7 @@ import os
 from pathlib import Path
 
 import jax.numpy as jnp
+import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
@@ -21,6 +22,7 @@ from diffhtwo.experimental.defaults import (
     SDSS_Z_MAX,
     SDSS_Z_MIN,
 )
+from diffhtwo.experimental.diagnostics import plot_sm
 from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
     make_avpop_mono_comparison_plots,
 )
@@ -29,26 +31,32 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
     plot_lgfburst_mh_z,
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
+from diffhtwo.experimental.diagnostics.plot_contour import plot_color_contours
+from diffhtwo.experimental.diagnostics.plot_fq import plot_f_q
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
     plot_halpha_insitu_exsitu,
     plot_halpha_ms_q_burst,
     plot_halpha_sfr,
+    plot_halpha_sfr_single_z,
     plot_halpha_ssfr,
 )
-from diffhtwo.experimental.diagnostics.plot_insitu_sm import plot_insitu_sm
+from diffhtwo.experimental.diagnostics.plot_hod import plot_hod_sm_thresh
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
     plot_color_pdfs,
     plot_n_colors_mag,
     plot_n_mags,
 )
+from diffhtwo.experimental.diagnostics.plot_phot_z import plot_colors_z
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
 from diffhtwo.experimental.diagnostics.plot_sat import plot_merging_sat_colors
 from diffhtwo.experimental.diagnostics.plot_satquench import (
     generate_sat_plots,
     plot_satquench_model,
 )
+from diffhtwo.experimental.diagnostics.plot_sfms import plot_sfms, plot_sfms_hexbin
+from diffhtwo.experimental.diagnostics.plot_smhm import plot_smhm
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -119,7 +127,7 @@ if __name__ == "__main__":
     if cfg["plot_hizels"]:
         feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
         hizels_drn = Path(hizels_drn)
-        hizels_label = "hizels"
+        hizels_label = "hizels_" + cfg["model_nickname"].split("_")[0]
         hizels = load_hizels.get_hizels_data(
             hizels_drn,
             ran_key,
@@ -171,6 +179,18 @@ if __name__ == "__main__":
         )
 
         print("Generating h-alpha LF sfr plot...")
+        plot_halpha_sfr_single_z(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            plt_show=False,
+        )
         plot_halpha_sfr(
             ran_key,
             hizels,
@@ -202,17 +222,129 @@ if __name__ == "__main__":
     Plot FENIKS
     """
     if cfg["plot_feniks"]:
-        feniks_label = "feniks"  # + cfg["model_nickname"].split("_")[0]
-        feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
+        feniks_label = "feniks_" + cfg["model_nickname"].split("_")[0]
+
+        feniks = load_feniks.get_feniks_data(
+            feniks_drn,
+            ran_key,
+            ssp_data,
+            num_halos_coarse_zbins=num_halos,
+            num_halos_fine_zbins=int(num_halos / 2),
+        )
+
         feniks_zbins = np.array(
             [
-                [0.2, 0.5],
-                [0.5, 0.8],
+                [0.5, 1.0],
+                [1.0, 1.5],
+                [1.5, 2.0],
+                [2.0, 2.5],
+            ]
+        )
+
+        if cfg["plots"]["plot_colors_z"]:
+            print("Generating FENIKS colors v. redshift plot...")
+            plot_colors_z(
+                ran_key,
+                param_collection_fit,
+                feniks,
+                feniks_label,
+                feniks_zbins[0][0],
+                feniks_zbins[-1][-1],
+                num_halos,
+                ssp_data,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_fq"]:
+            print("Generating FENIKS fq plots...")
+            plot_f_q(
+                ran_key,
+                param_collection_fit,
+                feniks_zbins,
+                num_halos,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_sfms"]:
+            print("Generating FENIKS SFMS plots...")
+
+            plot_sfms(
+                ran_key,
+                param_collection_fit,
+                feniks_zbins,
+                num_halos,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+            plot_sfms_hexbin(
+                ran_key,
+                param_collection_fit,
+                feniks_zbins,
+                num_halos,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_smhm"]:
+            print("Generating FENIKS SMHM plots...")
+            plot_smhm(
+                ran_key,
+                param_collection_fit,
+                feniks_zbins,
+                num_halos,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+            plot_smhm(
+                ran_key,
+                param_collection_fit,
+                feniks_zbins,
+                num_halos,
+                ssp_data,
+                feniks.filter_info.tcurves,
+                feniks_label,
+                fit_diagnostics_save_drn,
+                in_situ=True,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_color_contours"]:
+            print("Generating FENIKS color contour plots...")
+            plot_color_contours(
+                ran_key,
+                param_collection_fit,
+                feniks.colors,
+                feniks.filter_info.mag_thresh,
+                feniks.frac_cat,
+                feniks_label,
+                fit_diagnostics_save_drn,
+            )
+
+        feniks_zbins = np.array(
+            [
+                [0.4, 0.8],
                 [0.8, 1.2],
                 [1.2, 1.6],
                 [1.6, 2.0],
+                [2.0, 2.5],
             ]
         )
+
         if cfg["plots"]["plot_app_mag_funcs"]:
             print("Generating FENIKS app mag funcs plot...")
             plot_app_mag_funcs(
@@ -220,6 +352,7 @@ if __name__ == "__main__":
                 feniks_label,
                 param_collection_fit,
                 ran_key,
+                feniks_zbins,
                 ssp_data,
                 fit_diagnostics_save_drn,
                 num_halos=num_halos,
@@ -255,6 +388,7 @@ if __name__ == "__main__":
                 + str(FENIKS_Z_MAX),
                 drn_out=fit_diagnostics_save_drn,
             )
+            plt.close()
 
         if cfg["plots"]["plot_fburst_mh_z"]:
             print("Generating FENIKS lgfburst plot...")
@@ -277,11 +411,46 @@ if __name__ == "__main__":
             z_min = feniks_zbins[zbin][0]
             z_max = feniks_zbins[zbin][1]
 
+            if cfg["plots"]["plot_hod"]:
+                print(
+                    f"Generating FENIKS HOD plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+                )
+                plot_hod_sm_thresh(
+                    ran_key,
+                    param_collection_fit,
+                    ssp_data,
+                    feniks.filter_info.tcurves,
+                    z_min,
+                    z_max,
+                    feniks_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
+
             if cfg["plots"]["plot_insitu_sm"]:
                 print(
                     f"Generating FENIKS in-situ sm plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
                 )
-                plot_insitu_sm(
+                plot_sm.plot_insitu_sm_obs(
+                    ran_key,
+                    param_collection_fit,
+                    z_min,
+                    z_max,
+                    feniks.dataset_dim_labels,
+                    ssp_data,
+                    feniks.filter_info.tcurves,
+                    feniks_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
+
+            if cfg["plots"]["plot_sm"]:
+                print(
+                    f"Generating FENIKS in+ex-situ sm plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
+                )
+                plot_sm.plot_sm_obs(
                     ran_key,
                     param_collection_fit,
                     z_min,
@@ -308,6 +477,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_colors_mags"]:
@@ -323,6 +493,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_mags"]:
@@ -335,6 +506,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_ssperr"]:
@@ -427,17 +599,127 @@ if __name__ == "__main__":
     Plot SDSS
     """
     if cfg["plot_sdss"]:
-        sdss_label = "sdss"  # + cfg["model_nickname"].split("_")[0]
-        sdss = load_sdss.get_sdss_data(sdss_drn, ran_key, ssp_data)
+        sdss_label = "sdss_" + cfg["model_nickname"].split("_")[0]
+        sdss = load_sdss.get_sdss_data(
+            sdss_drn,
+            ran_key,
+            ssp_data,
+            num_halos_coarse_zbins=num_halos,
+            num_halos_fine_zbins=int(num_halos / 2),
+        )
         sdss_zbins = np.array(
             [
-                [0.02, 0.06],
-                [0.06, 0.1],
-                [0.1, 0.14],
-                [0.14, 0.18],
-                [0.18, 0.2],
+                [0.02, 0.1],
+                [0.1, 0.2],
             ]
         )
+
+        if cfg["plots"]["plot_colors_z"]:
+            print("Generating SDSS colors v. redshift plot...")
+            plot_colors_z(
+                ran_key,
+                param_collection_fit,
+                sdss,
+                sdss_label,
+                sdss_zbins[0][0],
+                sdss_zbins[-1][-1],
+                num_halos,
+                ssp_data,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+        if cfg["plots"]["plot_fq"]:
+            print("Generating SDSS fq plots...")
+            plot_f_q(
+                ran_key,
+                param_collection_fit,
+                sdss_zbins,
+                num_halos,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_sfms"]:
+            print("Generating SDSS SFMS plots...")
+
+            plot_sfms(
+                ran_key,
+                param_collection_fit,
+                sdss_zbins,
+                num_halos,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+            plot_sfms_hexbin(
+                ran_key,
+                param_collection_fit,
+                sdss_zbins,
+                num_halos,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_smhm"]:
+            print("Generating SDSS SMHM plots...")
+            plot_smhm(
+                ran_key,
+                param_collection_fit,
+                sdss_zbins,
+                num_halos,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+            plot_smhm(
+                ran_key,
+                param_collection_fit,
+                sdss_zbins,
+                num_halos,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                sdss_label,
+                fit_diagnostics_save_drn,
+                in_situ=True,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_color_contours"]:
+            print("Generating SDSS color contour plots...")
+            plot_color_contours(
+                ran_key,
+                param_collection_fit,
+                sdss.colors,
+                sdss.filter_info.mag_thresh,
+                sdss.frac_cat,
+                sdss_label,
+                fit_diagnostics_save_drn,
+            )
+
+        if cfg["plots"]["plot_app_mag_funcs"]:
+            print("Generating SDSS app mag funcs plot...")
+            plot_app_mag_funcs(
+                sdss,
+                sdss_label,
+                param_collection_fit,
+                ran_key,
+                sdss_zbins,
+                ssp_data,
+                fit_diagnostics_save_drn,
+                num_halos=num_halos,
+                plt_show=False,
+            )
 
         if cfg["plots"]["plot_exsitu_frac"]:
             print("Generating SDSS ex-situ frac plot...")
@@ -456,6 +738,7 @@ if __name__ == "__main__":
                 + str(SDSS_Z_MAX),
                 drn_out=fit_diagnostics_save_drn,
             )
+            plt.close()
 
         if cfg["plots"]["plot_fburst_mh_z"]:
             print("Generating SDSS lgfburst plot...")
@@ -478,11 +761,47 @@ if __name__ == "__main__":
             z_min = sdss_zbins[zbin][0]
             z_max = sdss_zbins[zbin][1]
 
+            if cfg["plots"]["plot_hod"]:
+                print(
+                    f"Generating SDSS HOD plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
+                )
+
+                plot_hod_sm_thresh(
+                    ran_key,
+                    param_collection_fit,
+                    ssp_data,
+                    sdss.filter_info.tcurves,
+                    z_min,
+                    z_max,
+                    sdss_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
+
             if cfg["plots"]["plot_insitu_sm"]:
                 print(
                     f"Generating SDSS in-situ sm plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
                 )
-                plot_insitu_sm(
+                plot_sm.plot_insitu_sm_obs(
+                    ran_key,
+                    param_collection_fit,
+                    z_min,
+                    z_max,
+                    sdss.dataset_dim_labels,
+                    ssp_data,
+                    sdss.filter_info.tcurves,
+                    sdss_label,
+                    fit_diagnostics_save_drn,
+                    num_halos=num_halos,
+                    plt_show=False,
+                )
+
+            if cfg["plots"]["plot_sm"]:
+                print(
+                    f"Generating SDSS in+ex-situ sm plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
+                )
+                plot_sm.plot_sm_obs(
                     ran_key,
                     param_collection_fit,
                     z_min,
@@ -509,6 +828,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_colors_mags"]:
@@ -524,6 +844,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_mags"]:
@@ -536,6 +857,7 @@ if __name__ == "__main__":
                     z_max,
                     ssp_data,
                     fit_diagnostics_save_drn,
+                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_ssperr"]:

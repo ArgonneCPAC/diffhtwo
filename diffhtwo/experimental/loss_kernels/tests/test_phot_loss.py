@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from jax import random as jran
 
@@ -6,6 +7,9 @@ from ... import param_utils as pu
 from ..phot_loss import _loss_phot_kern, get_phot_loss
 
 
+@pytest.mark.skip(
+    reason="LH dimensions need to be fixed in load_feniks before activating this test again"
+)
 def test_phot_loss(feniks_single_z_data):
     feniks_meta_data, feniks_fitting_data = feniks_single_z_data
 

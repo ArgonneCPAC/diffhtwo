@@ -23,11 +23,10 @@ def get_zbins_lh_lc(
     lgmp_max=15.0,
     n_z_phot_table=15,
 ):
-    in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
-    in_lh_idx = jnp.where(in_lh)[0]
     meta_data = MetaData(
         dataset.filter_info.mag_thresh,
-        in_lh_idx,
+        dataset.col_idx,
+        dataset.mag_idx,
         dataset.frac_cat,
         dataset.data_sky_area_degsq,
     )
@@ -108,12 +107,10 @@ def get_single_zbin_lh_lc(
     lgmp_max=15.0,
     n_z_phot_table=15,
 ):
-    in_lh = jnp.array(list(dataset.filter_info.in_lh._asdict().values()))
-    in_lh_idx = jnp.where(in_lh)[0]
-
     meta_data = MetaData(
         dataset.filter_info.mag_thresh,
-        in_lh_idx,
+        dataset.col_idx,
+        dataset.mag_idx,
         dataset.frac_cat,
         dataset.data_sky_area_degsq,
     )
@@ -142,6 +139,7 @@ def get_single_zbin_lh_lc(
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
     )
+
     lc_args = (
         ran_key,
         num_halos,
@@ -234,7 +232,8 @@ MetaData = namedtuple(
     "MetaData",
     [
         "mag_thresh",
-        "in_lh_idx",
+        "col_idx",
+        "mag_idx",
         "frac_cat",
         "data_sky_area_degsq",
     ],

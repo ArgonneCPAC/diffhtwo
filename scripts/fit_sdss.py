@@ -1,6 +1,7 @@
 import argparse
 import os
 import time
+from collections import namedtuple
 from datetime import datetime
 
 import jax
@@ -21,8 +22,6 @@ from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_sdss
-from diffhtwo.experimental.defaults import SDSS_Z_MAX, SDSS_Z_MIN
-from diffhtwo.experimental.latin_hypercube import lh_utils as lhu
 from diffhtwo.experimental.optimizers import Np_specphot_opt
 
 DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
@@ -48,10 +47,6 @@ if __name__ == "__main__":
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
     emline_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     emline_wave_table = jnp.array([emline_wave_aa])
-
-    # load sdss data
-    ran_key = jran.key(0)
-    SDSS = load_sdss.get_sdss_data(sdss_drn, ran_key, ssp_data)
 
     # start fit dirs
     fit_start_drn = cfg["base_path"] + "/fits/" + cfg["start_runid"] + "/"
@@ -93,32 +88,29 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
-    sdss_z_min = [SDSS_Z_MIN, 0.08, 0.14]
-    sdss_z_max = [0.08, 0.14, SDSS_Z_MAX]
-
+    ran_key = jran.key(0)
     initial_pts = []
     start = time.time()
     for epoch in range(0, cfg["epoch"]["n_it"]):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
-        sdss = load_sdss.refresh_lh_centroids(SDSS)
 
-        # SDSS
-        sdss_meta_data, sdss_fitting_data = lhu.get_zbins_lh_lc(
+        sdss = load_sdss.get_sdss_data(
+            sdss_drn,
             ran_key,
-            SDSS,
-            sdss_z_min,
-            sdss_z_max,
             ssp_data,
-            cfg["epoch"]["N_centroids"],
-            lh_N_z_savedir=fit_diagnostics_save_drn + "/lh_N_z",
-            num_halos=cfg["epoch"]["num_halos"],
+            num_halos_coarse_zbins=cfg["sdss"]["num_halos_coarse_zbins"],
+            num_halos_fine_zbins=cfg["sdss"]["num_halos_fine_zbins"],
+        )
+        remove = {"dataset_dim_labels", "mags_labels"}
+        SdssFitting = namedtuple("Sdss", [s for s in sdss._fields if s not in remove])
+        sdss_fitting_data = SdssFitting(
+            **{s: getattr(sdss, s) for s in SdssFitting._fields}
         )
 
-        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_multi_z(
+        loss_hist, u_theta_fit = Np_specphot_opt.fit_N_phot_2d(
             u_theta_fit,
             trainable_params,
             ran_key,
-            sdss_meta_data,
             sdss_fitting_data,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],

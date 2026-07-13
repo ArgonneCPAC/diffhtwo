@@ -2,6 +2,7 @@ from difflib import get_close_matches
 
 import jax.numpy as jnp
 import numpy as np
+from astropy.table import Table, vstack
 from jax import jit as jjit
 from jax.tree_util import tree_flatten_with_path
 
@@ -73,3 +74,37 @@ def get_param_names(params):
     paths, leaves = tree_flatten_with_path(params)
     names = [p[0][0].name for p in paths]  # each p is (GetAttrKey(...),)
     return names
+
+
+def add_random_rows(tab, N):
+    new_rows = {}
+    for col in tab.colnames:
+        data = tab[col]
+        dtype = data.dtype
+
+        if dtype.kind in ("f", "i") and data.ndim == 1:
+            valid = data[(data != -99) & np.isfinite(data)]
+            if len(valid) > 0:
+                lo, hi = valid.min(), valid.max()
+                new_rows[col] = np.random.uniform(lo, hi, N)
+                if dtype.kind == "i":
+                    new_rows[col] = new_rows[col].astype(dtype)
+            else:
+                new_rows[col] = np.full(N, -99, dtype=dtype)
+        elif dtype.kind == "f" and data.ndim == 2:
+            ncols = data.shape[1]
+            new_col = np.empty((N, ncols), dtype=dtype)
+            for j in range(ncols):
+                sub = data[:, j]
+                valid = sub[(sub != -99) & np.isfinite(sub)]
+                if len(valid) > 0:
+                    lo, hi = valid.min(), valid.max()
+                    new_col[:, j] = np.random.uniform(lo, hi, N)
+                else:
+                    new_col[:, j] = -99
+            new_rows[col] = new_col
+        else:
+            new_rows[col] = data[:N]  # fallback for non-numeric columns
+
+    new_tab = Table(new_rows)
+    return vstack([tab, new_tab])
