@@ -8,7 +8,13 @@ from scipy.ndimage import gaussian_filter
 from ..kernels.N_phot import N_colors_mags
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
-
+plt.rc(
+    "mathtext",
+    fontset="custom",
+    rm="Times New Roman",
+    it="Times New Roman:italic",
+    bf="Times New Roman:bold",
+)
 # Pantone: Dress Blues → Classic Blue → Aqua Sky → Minty Green → Illuminating
 density_cmap = LinearSegmentedColormap.from_list(
     "pantone_density",
@@ -40,6 +46,7 @@ def plot_density(
     ylabel,
     cmap,
     data_label,
+    fontsize=18,
     N_model=None,
     sigma=0.5,
     n_levels=10,
@@ -56,11 +63,12 @@ def plot_density(
     )
     Z_min = np.max((-10, Z.min()))
     Z_max = Z.max()
+    # Z_min = -7
+    # Z_max = -1
     levels = np.linspace(Z_min, Z_max, n_levels)
-    qm = ax.contourf(xc, yc, Z, levels=levels, cmap=cmap, alpha=0.5)
-    ax.get_figure().colorbar(qm, ax=ax, label=r"$\log_{10}(N / N_{\rm tot})$")
-
-    legend_handles = [mpatches.Patch(color=cmap(0.7), alpha=0.5, label=data_label)]
+    qm = ax.contourf(
+        xc, yc, Z, levels=levels, cmap=cmap, alpha=0.5, vmin=Z_min, vmax=Z_max
+    )
 
     if N_model is not None:
         Z_model = np.log10(
@@ -77,33 +85,16 @@ def plot_density(
             Z_model,
             levels=levels,
             cmap=cmap,
-            linewidths=2.5,
-            alpha=0.9,
+            linewidths=0.6,
+            alpha=1,
             linestyles="dashed",
-        )
-        legend_handles.append(
-            mlines.Line2D(
-                [],
-                [],
-                color=cmap(0.7),
-                linewidth=1.5,
-                linestyle="dashed",
-                alpha=0.9,
-                label="diffsky",
-            )
+            vmin=Z_min,
+            vmax=Z_max,
         )
 
-    ax.legend(
-        handles=legend_handles,
-        loc="upper center",
-        bbox_to_anchor=(0.5, 1.1),
-        ncol=len(legend_handles),
-        frameon=False,
-        fontsize=16,
-        borderaxespad=0.0,
-    )
-    ax.set_xlabel(xlabel, fontsize=16)
-    ax.set_ylabel(ylabel, fontsize=16)
+    ax.set_xlabel(xlabel, fontsize=fontsize)
+    ax.set_ylabel(ylabel, fontsize=fontsize)
+    return qm
 
 
 def plot_density_raw(bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap, N_model=None):
@@ -128,8 +119,128 @@ def plot_density_raw(bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap, N_model=None):
         )
         levels = np.linspace(Z.min(), Z.max(), 8)
         ax.contour(xc, yc, Z_model, levels=levels, cmap=cmap, linewidths=0.8, alpha=0.9)
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel, labelpad=0.8)
+    ax.set_ylabel(ylabel, labelpad=0.8)
+
+
+def plot_color_contour_grid(
+    ran_key,
+    param_collection,
+    data,
+    mag_thresh,
+    frac_cat,
+    data_label,
+    savedir,
+    fields,
+    sigma=0.5,
+    n_levels=10,
+):
+    labelsize = 9
+    fontsize = 10
+    fig, ax = plt.subplots(2, 4, figsize=(7.1, 3.8), constrained_layout=True)
+    fig.get_layout_engine().set(
+        h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.925)
+    )
+    for z in range(0, len(data)):
+        z_data = data[z]
+
+        z_data_model = N_colors_mags(
+            ran_key,
+            param_collection,
+            z_data,
+            mag_thresh,
+            frac_cat,
+        )
+        # fields = z_data_model._fields[4:]
+        fields_at_z = fields[z]
+        z_min = z_data_model.z_min
+        z_max = z_data_model.z_max
+        ax[0][z].set_title(
+            str(z_min) + " < z < " + str(z_max), fontsize=fontsize, y=0.99
+        )
+
+        for f in range(0, len(fields_at_z)):
+            space = getattr(z_data_model, fields_at_z[f])
+
+            name = type(space).__name__
+            xlabel, ylabel = parse_color_labels(name)
+            qm = plot_density(
+                space.bin_lo,
+                space.bin_hi,
+                space.N_data,
+                ax[f][z],
+                xlabel,
+                ylabel,
+                dusk,
+                data_label,
+                fontsize=fontsize,
+                N_model=space.N_model,
+                sigma=sigma,
+                n_levels=n_levels,
+            )
+            ax[f][z].minorticks_on()
+            ax[f][z].tick_params(
+                which="major",
+                direction="in",
+                top=True,
+                right=True,
+                length=6,
+                width=1,
+                labelsize=labelsize,
+            )
+            ax[f][z].tick_params(
+                which="minor",
+                direction="in",
+                top=True,
+                right=True,
+                length=3,
+                width=0.8,
+                labelsize=labelsize,
+            )
+
+    cbar = fig.colorbar(
+        qm,
+        ax=ax.ravel().tolist(),
+        location="right",
+        shrink=1,
+        aspect=40,
+        pad=0.01,
+    )
+    cbar.ax.tick_params(
+        labelsize=labelsize, labelleft=False, labelright=False, direction="in", length=5
+    )
+    cbar.set_label(
+        r"$\log_{10}(N / N_{\rm tot})$ [arbitrary levels]", fontsize=labelsize
+    )
+
+    legend_handles = [mpatches.Patch(color=dusk(0.7), alpha=0.5, label=data_label)]
+    legend_handles.append(
+        mlines.Line2D(
+            [],
+            [],
+            color=dusk(0.7),
+            linewidth=1.5,
+            linestyle="dashed",
+            alpha=0.9,
+            label="diffsky",
+        )
+    )
+
+    fig.legend(
+        handles=legend_handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.0),
+        ncol=len(legend_handles),
+        frameon=False,
+        fontsize=fontsize,
+        borderaxespad=0.0,
+    )
+
+    fig.savefig(
+        savedir + "/cc_cm_grid.png",
+        dpi=600,
+    )
+    plt.close()
 
 
 def plot_color_contours(
@@ -171,7 +282,7 @@ def plot_color_contours(
 
                 name = type(space).__name__
                 xlabel, ylabel = parse_color_labels(name)
-                plot_density(
+                qm = plot_density(
                     space.bin_lo,
                     space.bin_hi,
                     space.N_data,
@@ -202,6 +313,31 @@ def plot_color_contours(
                     length=3,
                     width=0.8,
                     labelsize=labelsize,
+                )
+
+                legend_handles = [
+                    mpatches.Patch(color=dusk(0.7), alpha=0.5, label=data_label)
+                ]
+                legend_handles.append(
+                    mlines.Line2D(
+                        [],
+                        [],
+                        color=dusk(0.7),
+                        linewidth=1.5,
+                        linestyle="dashed",
+                        alpha=0.9,
+                        label="diffsky",
+                    )
+                )
+
+                fig.legend(
+                    handles=legend_handles,
+                    loc="upper center",
+                    bbox_to_anchor=(0.5, 1.1),
+                    ncol=len(legend_handles),
+                    frameon=False,
+                    fontsize=16,
+                    borderaxespad=0.0,
                 )
 
                 fig.savefig(

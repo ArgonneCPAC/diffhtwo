@@ -379,14 +379,10 @@ def get_feniks_data(
             [1.5, 2.5],
         ]
     )
+    colors = []
     ##############################################################################
     # Z1 spaces:
-    # 2D (g - r, r - i)
-    # 2D (K, g - r)
-    # 2D (K, r - i)
-    # 2D (K, J - H)
 
-    colors = []
     Z1 = namedtuple(
         "Z1",
         [
@@ -534,190 +530,140 @@ def get_feniks_data(
     colors.append(z1)
 
     ##############################################################################
-    # Z2a spaces:
-    # 2D (r - z, z - J)
-    # 2D (K, u - g)
-    # 2D (K, r - z)
-    # 2D (i - NB816, g - r)   -- metallicity vs age
-    # 2D (i - NB816, r - K)   -- metallicity vs mass-to-light
-    # 1D (i - NB816 | K)      -- metallicity at fixed mass
-    # 1D (z - NB921 | K)      -- cross-check metallicity at fixed mass
-
-    # Z2a = namedtuple(
-    #     "Z2a",
-    #     [
-    #         "z_min",
-    #         "z_max",
-    #         "data_vol_mpc3",
-    #         "lc_data",
-    #         "rz_zJ",
-    #         "ug",
-    #         "rz",
-    #         "jh",
-    #         "K_ug",
-    #         "K_rz",
-    #         "iNB816_gr",
-    #         "iNB816_rK",
-    #         "iNB816_condK",
-    #         "zNB921_condK",
-    #     ],
-    # )
-    # zbin = 1
-    # z_min = zbins[zbin][0]
-    # z_max = zbins[zbin][1]
-    # data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
-
-    # z_phot_table = 10 ** jnp.linspace(
-    #     jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-    # )
-    # lc_args = (
-    #     ran_key,
-    #     num_halos_coarse_zbins,
-    #     z_min,
-    #     z_max,
-    #     lgmp_min,
-    #     lgmp_max,
-    #     lc_sky_area_degsq,
-    #     ssp_data,
-    #     tcurves,
-    #     z_phot_table,
-    # )
-
-    # lc_data = generate_lc_data(*lc_args)
-
-    # z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-
-    # # 2D (r - z, z - J)
-    # rz_zJ = N_utils.get_colorcolor_space(
-    #     "Rz_zJ",
-    #     hsc_rz,
-    #     hsc_uds_zJ,
-    #     ["HSC_R", "HSC_Z", "HSC_Z", "UDS_J"],
-    #     z_sel,
-    #     fit=True,
-    # )
-
-    # # 1D (u - g | K)
-    # ug = N_utils.get_color_cond_space_list(
-    #     "Ug_condK",
-    #     megacam_hsc_uSg,
-    #     uds_K,
-    #     ["MegaCam_uS", "HSC_G"],
-    #     "UDS_K",
-    #     z_sel,
-    #     cond_dmag=2,
-    #     fit=True,
-    # )
-
-    # # 1D (r - z | K)
-    # rz = N_utils.get_color_cond_space_list(
-    #     "Rz_condK",
-    #     hsc_rz,
-    #     uds_K,
-    #     ["HSC_R", "HSC_Z"],
-    #     "UDS_K",
-    #     z_sel,
-    #     cond_dmag=2,
-    #     fit=True,
-    # )
-
-    # # 1D (J − H | K)
-    # jh = N_utils.get_color_cond_space_list(
-    #     "JH_condK",
-    #     uds_JH,
-    #     uds_K,
-    #     ["UDS_J", "UDS_H"],
-    #     "UDS_K",
-    #     z_sel,
-    #     cond_dmag=2,
-    #     fit=True,
-    # )
-
-    # # 2D (K, u - g)
-    # K_ug = N_utils.get_mag_color_space(
-    #     "K_ug",
-    #     uds_K,
-    #     megacam_hsc_uSg,
-    #     "UDS_K",
-    #     ["MegaCam_uS", "HSC_G"],
-    #     z_sel,
-    #     fit=True,
-    # )
-
-    # # 2D (K, r - z)
-    # K_rz = N_utils.get_mag_color_space(
-    #     "K_rz", uds_K, hsc_rz, "UDS_K", ["HSC_R", "HSC_Z"], z_sel, fit=False
-    # )
-
-    # # 2D (i - NB816, g - r)
-    # i816_gr = N_utils.get_colorcolor_space(
-    #     "I816_gr",
-    #     hsc_i816,
-    #     hsc_gr,
-    #     ["HSC_I", "NB0816", "HSC_G", "HSC_R"],
-    #     z_sel,
-    #     fit=False,
-    # )
-
-    # # 2D (i - NB816, r - K)
-    # i816_rK = N_utils.get_colorcolor_space(
-    #     "I816_rK",
-    #     hsc_i816,
-    #     hsc_uds_rK,
-    #     ["HSC_I", "NB0816", "HSC_R", "UDS_K"],
-    #     z_sel,
-    #     fit=False,
-    # )
-
-    # # 1D (i - NB816 | K)
-    # i816_condK = N_utils.get_color_cond_space_list(
-    #     "I816_condK",
-    #     hsc_i816,
-    #     uds_K,
-    #     ["HSC_I", "NB0816"],
-    #     "UDS_K",
-    #     z_sel,
-    #     cond_dmag=2,
-    #     fit=False,
-    # )
-
-    # # 1D (z - NB921 | K)
-    # z921_condK = N_utils.get_color_cond_space_list(
-    #     "Z921_condK",
-    #     hsc_z921,
-    #     uds_K,
-    #     ["HSC_Z", "NB0921"],
-    #     "UDS_K",
-    #     z_sel,
-    #     cond_dmag=2,
-    #     fit=False,
-    # )
-
-    # z2a = Z2a(
-    #     z_min,
-    #     z_max,
-    #     data_vol_mpc3,
-    #     lc_data,
-    #     rz_zJ,
-    #     ug,
-    #     rz,
-    #     jh,
-    #     K_ug,
-    #     K_rz,
-    #     i816_gr,
-    #     i816_rK,
-    #     i816_condK,
-    #     z921_condK,
-    # )
-    # colors.append(z2a)
-
-    ##############################################################################
-    # Z2b spaces:
-    # 2D (r - z, z - J)
-    # 2D (K, u - g)
-    # 2D (K, r - z)
-
     if testing is False:
+        Z2a = namedtuple(
+            "Z2a",
+            [
+                "z_min",
+                "z_max",
+                "data_vol_mpc3",
+                "lc_data",
+                "rz_zJ",
+                "ug",
+                "rz",
+                "jh",
+                "K_ug",
+                "K_rz",
+                "K_JH",
+            ],
+        )
+        zbin = 1
+        z_min = zbins[zbin][0]
+        z_max = zbins[zbin][1]
+        data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+
+        z_phot_table = 10 ** jnp.linspace(
+            jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+        )
+        lc_args = (
+            ran_key,
+            num_halos_coarse_zbins,
+            z_min,
+            z_max,
+            lgmp_min,
+            lgmp_max,
+            lc_sky_area_degsq,
+            ssp_data,
+            tcurves,
+            z_phot_table,
+        )
+
+        lc_data = generate_lc_data(*lc_args)
+
+        z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+
+        # 2D (r - z, z - J)
+        rz_zJ = N_utils.get_colorcolor_space(
+            "Rz_zJ",
+            hsc_rz,
+            hsc_uds_zJ,
+            ["HSC_R", "HSC_Z", "HSC_Z", "UDS_J"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
+
+        # 1D (u - g | K)
+        ug = N_utils.get_color_cond_space_list(
+            "Ug_condK",
+            megacam_hsc_uSg,
+            uds_K,
+            ["MegaCam_uS", "HSC_G"],
+            "UDS_K",
+            z_sel,
+            FeniksFilters,
+            cond_dmag=2,
+            fit=False,
+        )
+
+        # 1D (r - z | K)
+        rz = N_utils.get_color_cond_space_list(
+            "Rz_condK",
+            hsc_rz,
+            uds_K,
+            ["HSC_R", "HSC_Z"],
+            "UDS_K",
+            z_sel,
+            FeniksFilters,
+            cond_dmag=2,
+            fit=False,
+        )
+
+        # 1D (J − H | K)
+        jh = N_utils.get_color_cond_space_list(
+            "JH_condK",
+            uds_JH,
+            uds_K,
+            ["UDS_J", "UDS_H"],
+            "UDS_K",
+            z_sel,
+            FeniksFilters,
+            cond_dmag=2,
+            fit=False,
+        )
+
+        # 2D (K, u - g)
+        K_ug = N_utils.get_mag_color_space(
+            "K_ug",
+            uds_K,
+            megacam_hsc_uSg,
+            "UDS_K",
+            ["MegaCam_uS", "HSC_G"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
+
+        # 2D (K, r - z)
+        K_rz = N_utils.get_mag_color_space(
+            "K_rz",
+            uds_K,
+            hsc_rz,
+            "UDS_K",
+            ["HSC_R", "HSC_Z"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
+
+        # 2D (K, J - H)
+        K_JH = N_utils.get_mag_color_space(
+            "K_JH",
+            uds_K,
+            uds_JH,
+            "UDS_K",
+            ["UDS_J", "UDS_H"],
+            z_sel,
+            FeniksFilters,
+            fit=True,
+        )
+
+        z2a = Z2a(
+            z_min, z_max, data_vol_mpc3, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz, K_JH
+        )
+        colors.append(z2a)
+
+        ##############################################################################
         Z2b = namedtuple(
             "Z2b",
             [
@@ -734,7 +680,7 @@ def get_feniks_data(
                 "K_JH",
             ],
         )
-        zbin = 1
+        zbin = 2
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
         data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
@@ -875,7 +821,7 @@ def get_feniks_data(
                 "K_JH",
             ],
         )
-        zbin = 2
+        zbin = 3
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
         data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value

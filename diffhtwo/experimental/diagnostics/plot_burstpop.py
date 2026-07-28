@@ -105,7 +105,7 @@ def plot_lgfburst_mh_z(
     mag_thresh=None,
     frac_cat=None,
     num_halos=10000,
-    gridsize=25,
+    gridsize=40,
     mincnt=1,
     plot="cen+sat",
     plt_show=True,
@@ -142,8 +142,29 @@ def plot_lgfburst_mh_z(
             gal_weight[sel],
         ]
     )
-    fig, ax = plt.subplots(1, 2, figsize=(10, 4), width_ratios=[1, 1.2])
+    fig_width = 7.1
+    fig_height = 3.05
+    fig, ax = plt.subplots(
+        1,
+        2,
+        figsize=(fig_width, fig_height),
+        constrained_layout=True,
+        gridspec_kw={"wspace": 0, "hspace": 0},
+    )
+    labelsize = 10
+    fontsize = 10
+    labelsize = 9
     vmin, vmax = -6, -1.5
+    xticks = [0.02, 0.5, 1.0, 1.5, 2.0, 2.5]
+    xticklabels = ["0.02", "0.5", "1.0", "1.5", "2.0", "2.5"]
+
+    sm_yticks = [8, 9, 10, 11, 12]
+    sm_yticklabels = ["8", "9", "10", "11", "12"]
+    sm_limits = (8, 12)
+
+    hm_yticks = [10, 11, 12, 13, 14, 15]
+    hm_yticklabels = ["10", "11", "12", "13", "14", "15"]
+    hm_limits = (10, 15)
 
     """Plot fburst w/ halo mass and redshift"""
     ax[0].hexbin(
@@ -155,17 +176,17 @@ def plot_lgfburst_mh_z(
         vmin=vmin,
         vmax=vmax,
         mincnt=mincnt,
+        extent=(z_min, z_max, hm_limits[0], hm_limits[1]),
         gridsize=gridsize,
         rasterized=True,
     )
 
-    ax[0].set_xlabel("redshift")
-    ax[0].set_ylabel(r"log$_{10}$ (M$_{h, peak}$ [M${_\odot}$])")
-    ax[0].set_xlim(z_min, z_max)
-    ax[0].set_ylim(10, 15)
+    ax[0].set_ylabel(r"log$_{10}$ (M$_{h}$ [M${_\odot}$])", fontsize=fontsize)
+    ax[0].set_ylim(hm_limits)
+    ax[0].set_yticks(hm_yticks)
+    ax[0].set_yticklabels(hm_yticklabels)
 
     """Plot fburst w/ stellar mass and redshift"""
-    logsm_min, log_sm_max = 8, 12
     hb1 = ax[1].hexbin(
         lc_data.z_obs[sel],
         phot_kern_results.logsm_obs[sel],
@@ -175,17 +196,43 @@ def plot_lgfburst_mh_z(
         vmin=vmin,
         vmax=vmax,
         mincnt=mincnt,
-        extent=(z_min, z_max, logsm_min, log_sm_max),
+        extent=(z_min, z_max, sm_limits[0], sm_limits[1]),
         gridsize=gridsize,
         rasterized=True,
     )
-    cbar1 = plt.colorbar(hb1, ax=ax[1], label="log$_{10}$ ($\U0001D453_{burst}$)")
-    cbar1.ax.invert_yaxis()
 
-    ax[1].set_xlabel("redshift")
-    ax[1].set_ylabel(r"log$_{10}$ (M$_{*}$ [M${_\odot}$])")
-    ax[1].set_xlim(z_min, z_max)
-    ax[1].set_ylim(logsm_min, log_sm_max)
+    cbar = fig.colorbar(hb1, ax=ax[1], label="log$_{10}$ (burst fraction)")
+    cbar.ax.tick_params(labelsize=labelsize, direction="in")
+
+    ax[1].set_ylabel(r"log$_{10}$ (M$_{*}$ [M${_\odot}$])", fontsize=fontsize)
+    ax[1].set_ylim(sm_limits)
+    ax[1].set_yticks(sm_yticks)
+    ax[1].set_yticklabels(sm_yticklabels)
+
+    for i in range(0, 2):
+        ax[i].minorticks_on()
+        ax[i].tick_params(
+            which="major",
+            direction="in",
+            top=True,
+            right=True,
+            length=6,
+            width=1,
+            labelsize=labelsize,
+        )
+        ax[i].tick_params(
+            which="minor",
+            direction="in",
+            top=True,
+            right=True,
+            length=3,
+            width=0.8,
+            labelsize=labelsize,
+        )
+        ax[i].set_xticks(xticks)
+        ax[i].set_xticklabels(xticklabels)
+        ax[i].set_xlim(z_min, z_max)
+        ax[i].set_xlabel("redshift", fontsize=fontsize)
 
     z_min_label = str(np.round(z_min, 2))
     z_max_label = str(np.round(z_max, 2))
