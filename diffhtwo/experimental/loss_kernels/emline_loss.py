@@ -28,7 +28,6 @@ def get_emline_loss(
         param_collection,
     )
 
-    # N_model = N_model * (vol_Mpc3_data / lc_data.lc_tot_vol_mpc3)
     n_model = N_model / lc_data.lc_tot_vol_mpc3
     n_data = N_data / vol_Mpc3_data
 

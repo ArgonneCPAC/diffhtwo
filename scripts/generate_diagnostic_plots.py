@@ -47,7 +47,6 @@ from diffhtwo.experimental.diagnostics.plot_halpha import (
 from diffhtwo.experimental.diagnostics.plot_hod import plot_hod_sm_thresh
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
-    plot_app_mag_funcs2,
     plot_color_pdfs,
     plot_n_colors_mag,
     plot_n_mags,
@@ -63,7 +62,9 @@ from diffhtwo.experimental.diagnostics.plot_sfms import plot_sfms_hexbin
 from diffhtwo.experimental.diagnostics.plot_smhm import (
     plot_smhm,
     plot_smhm_cen_sat,
+    plot_smhm_hexbin,
     plot_smhm_q_sf,
+    plot_smhm_ratio_cen_sat,
 )
 
 if __name__ == "__main__":
@@ -92,6 +93,7 @@ if __name__ == "__main__":
     )
 
     num_halos = cfg["plots"]["num_halos"]
+    run_label = cfg["model_nickname"].split("_")[0]
 
     # get ssp data
     ssp_data = load_ssp_templates(fn=ssp_filename)
@@ -165,10 +167,11 @@ if __name__ == "__main__":
             num_halos,
             ssp_data,
             feniks.filter_info.tcurves,
-            "diffsky",
+            run_label,
             fit_diagnostics_save_drn,
             plt_show=False,
         )
+
         plot_smhm_cen_sat(
             ran_key,
             param_collection_fit,
@@ -176,7 +179,20 @@ if __name__ == "__main__":
             num_halos,
             ssp_data,
             feniks.filter_info.tcurves,
-            "diffsky",
+            run_label,
+            fit_diagnostics_save_drn,
+            um_drn,
+            plt_show=False,
+        )
+
+        plot_smhm_ratio_cen_sat(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
             fit_diagnostics_save_drn,
             um_drn,
             plt_show=False,
@@ -189,9 +205,21 @@ if __name__ == "__main__":
             num_halos,
             ssp_data,
             feniks.filter_info.tcurves,
-            "diffsky",
+            run_label,
             fit_diagnostics_save_drn,
             um_drn,
+            plt_show=False,
+        )
+
+        plot_smhm_hexbin(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
             plt_show=False,
         )
 
@@ -258,16 +286,17 @@ if __name__ == "__main__":
         zbins = np.array(
             [
                 [0.02, 0.2],
-                [0.5, 1.0],
+                [0.4, 0.7],
+                [0.7, 1.0],
                 [1.0, 1.5],
-                [1.5, 2.0],
+                [1.5, 2.5],
             ]
         )
 
-        plot_app_mag_funcs2(
+        plot_app_mag_funcs(
             sdss,
             feniks,
-            "test",
+            run_label,
             param_collection_fit,
             ran_key,
             zbins,
@@ -283,7 +312,7 @@ if __name__ == "__main__":
     if cfg["plot_hizels"]:
         feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
         hizels_drn = Path(hizels_drn)
-        hizels_label = "hizels_" + cfg["model_nickname"].split("_")[0]
+        hizels_label = "hizels_" + run_label
         hizels = load_hizels.get_hizels_data(
             hizels_drn,
             ran_key,
@@ -709,17 +738,17 @@ if __name__ == "__main__":
                 plt_show=False,
             )
 
-        if cfg["plots"]["plot_color_contours"]:
-            print("Generating SDSS color contour plots...")
-            plot_color_contours(
-                ran_key,
-                param_collection_fit,
-                sdss.colors,
-                sdss.filter_info.mag_thresh,
-                sdss.frac_cat,
-                sdss_label,
-                fit_diagnostics_save_drn,
-            )
+        # if cfg["plots"]["plot_color_contours"]:
+        #     print("Generating SDSS color contour plots...")
+        #     plot_color_contours(
+        #         ran_key,
+        #         param_collection_fit,
+        #         sdss.colors,
+        #         sdss.filter_info.mag_thresh,
+        #         sdss.frac_cat,
+        #         sdss_label,
+        #         fit_diagnostics_save_drn,
+        #     )
 
         # if cfg["plots"]["plot_app_mag_funcs"]:
         #     print("Generating SDSS app mag funcs plot...")
