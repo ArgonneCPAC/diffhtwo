@@ -15,7 +15,7 @@ def lc_photline_kern(
     num_halos,
     ssp_data,
     tcurves,
-    halpha_wave_aa,
+    line_wave_table,
     lgmp_min=10,
     lgmp_max=15,
     lc_sky_area_degsq=1000,
@@ -39,7 +39,7 @@ def lc_photline_kern(
     )
     lc_data = generate_lc_data(*lc_args)
 
-    line_wave_table = jnp.array([halpha_wave_aa])
+    # line_wave_table = jnp.array([halpha_wave_aa])
 
     _res = mc_photline_kern_merging_wrapper(
         ran_key,

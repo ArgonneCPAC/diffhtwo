@@ -7,6 +7,14 @@ from jax import jit as jjit
 from jax.tree_util import tree_flatten_with_path
 
 
+def weighted_median(values, weights):
+    sorter = np.argsort(values)
+    values, weights = values[sorter], weights[sorter]
+    cum_weights = np.cumsum(weights)
+    cutoff = cum_weights[-1] / 2.0
+    return values[np.searchsorted(cum_weights, cutoff)]
+
+
 @jjit
 def lupton_log10(t, log10_clip, t0=0.0, M0=0.0, alpha=1 / jnp.log(10.0)):
     """Clipped base-10 log function taken from
