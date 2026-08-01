@@ -1,7 +1,5 @@
 import jax.numpy as jnp
 from diffsky.burstpop import freqburst_mono
-from diffstar.defaults import FB
-from dsps.cosmology import DEFAULT_COSMOLOGY
 
 from .. import emline_luminosity
 from .gehrels_err import N_0, N_FLOOR
@@ -22,8 +20,6 @@ def get_halpha_LF_q_ms_burst(
     num_halos=100,
     sky_area_degsq=10000,
     n_z_phot_table=15,
-    cosmo_params=DEFAULT_COSMOLOGY,
-    fb=FB,
 ):
     z_min = halpha_LF_z - (halpha_LF_delta_z / 2)
     z_max = halpha_LF_z + (halpha_LF_delta_z / 2)
