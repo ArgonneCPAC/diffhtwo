@@ -35,6 +35,7 @@ from diffhtwo.experimental.diagnostics.plot_contour import (
     plot_color_contour_grid,
     plot_color_contours,
 )
+from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
 from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
@@ -90,6 +91,7 @@ if __name__ == "__main__":
     hizels_drn = Path(cfg["hizels_drn"])
 
     um_drn = cfg["um_drn"]
+    frac_ex_situ_lit_drn = cfg["frac_ex_situ_lit_drn"]
 
     ssp_filename = cfg["ssp_file"]
     fit_diagnostics_save_drn = cfg["fit_diagnostics_save_drn"]
@@ -168,6 +170,19 @@ if __name__ == "__main__":
             label1="fit",
         )
 
+    if cfg["plots"]["plot_exsitu_frac_z0"]:
+        print("Generating ex_situ_frac_z0 plot...")
+        plot_ex_situ_frac_z0(
+            ran_key,
+            param_collection_fit,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            frac_ex_situ_lit_drn,
+            plt_show=False,
+        )
     if cfg["plots"]["plot_smhm"]:
         print("Generating SMHM plots...")
         plot_smhm(

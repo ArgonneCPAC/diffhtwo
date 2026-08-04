@@ -19,7 +19,7 @@ def _get_logsm_obs_weighted_mean(logmp_bins, logmp_obs, logsm_obs, gal_weight):
     return logsm_obs_weighted_mean
 
 
-def get_ex_situ_frac_median(
+def get_ex_situ_frac_median_v_hm(
     logmp_bins, logmp_obs, logsm_obs, logsm_obs_in_situ, gal_weight, is_central
 ):
     sm_obs_ex_situ = 10**logsm_obs - 10**logsm_obs_in_situ
@@ -31,6 +31,29 @@ def get_ex_situ_frac_median(
         cen_in_bin = (
             (logmp_obs > logmp_bins[b])
             & (logmp_obs <= logmp_bins[b + 1])
+            & (is_central == 1)
+        )
+
+        ex_situ_frac_median.append(
+            weighted_median(ex_situ_frac[cen_in_bin], gal_weight[cen_in_bin])
+        )
+    ex_situ_frac_median = np.array(ex_situ_frac_median)
+
+    return ex_situ_frac_median
+
+
+def get_ex_situ_frac_median_v_sm(
+    logsm_bins, logsm_obs, logsm_obs_in_situ, gal_weight, is_central
+):
+    sm_obs_ex_situ = 10**logsm_obs - 10**logsm_obs_in_situ
+    sm_obs = 10**logsm_obs
+    ex_situ_frac = sm_obs_ex_situ / sm_obs
+
+    ex_situ_frac_median = []
+    for b in range(0, len(logsm_bins) - 1):
+        cen_in_bin = (
+            (logsm_obs > logsm_bins[b])
+            & (logsm_obs <= logsm_bins[b + 1])
             & (is_central == 1)
         )
 
@@ -125,7 +148,7 @@ def median_smhm_and_exsitu_frac(
         gal_weight[lc_data.is_central != 1],
     )
 
-    ex_situ_frac_median = get_ex_situ_frac_median(
+    ex_situ_frac_median = get_ex_situ_frac_median_v_hm(
         logmp_bins,
         lc_data.logmp_obs,
         phot_data.logsm_obs,
