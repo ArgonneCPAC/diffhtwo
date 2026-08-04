@@ -282,7 +282,7 @@ def plot_color_contours(
 
                 name = type(space).__name__
                 xlabel, ylabel = parse_color_labels(name)
-                qm = plot_density(
+                plot_density(
                     space.bin_lo,
                     space.bin_hi,
                     space.N_data,

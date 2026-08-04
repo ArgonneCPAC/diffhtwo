@@ -28,7 +28,10 @@ def _lab_to_srgb(lab):
     fy = (L + 16) / 116
     fx, fz = fy + a / 500, fy - b / 200
     d = 6 / 29
-    finv = lambda t: np.where(t > d, t**3, 3 * d**2 * (t - 4 / 29))
+
+    def finv(t):
+        return np.where(t > d, t**3, 3 * d**2 * (t - 4 / 29))
+
     xyz = np.stack([finv(fx), finv(fy), finv(fz)], -1) * np.array(
         [0.95047, 1.0, 1.08883]
     )

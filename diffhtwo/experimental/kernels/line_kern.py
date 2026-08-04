@@ -23,6 +23,7 @@ def get_halpha_LF_q_ms_burst(
 ):
     z_min = halpha_LF_z - (halpha_LF_delta_z / 2)
     z_max = halpha_LF_z + (halpha_LF_delta_z / 2)
+    line_wave_table = jnp.array([halpha_wave_aa])
     _res = lc_photline_kern(
         ran_key,
         param_collection,
@@ -31,7 +32,7 @@ def get_halpha_LF_q_ms_burst(
         num_halos,
         ssp_data,
         tcurves,
-        halpha_wave_aa,
+        line_wave_table,
     )
     phot_kern_results, phot_randoms, spec_kern_results, lc_data = _res
 
