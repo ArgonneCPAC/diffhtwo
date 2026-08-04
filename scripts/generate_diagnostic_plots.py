@@ -44,6 +44,10 @@ from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha_sfr_single_z,
     plot_halpha_ssfr,
 )
+from diffhtwo.experimental.diagnostics.plot_halpha_uv_ratio import (
+    plot_halpha_uv_ratio,
+    plot_halpha_uv_ratio_mass_z,
+)
 from diffhtwo.experimental.diagnostics.plot_hod import plot_hod_sm_thresh
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
@@ -65,7 +69,9 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
     plot_smhm_hexbin,
     plot_smhm_q_sf,
     plot_smhm_ratio_cen_sat,
+    plot_smhm_ratio_q_sf,
 )
+from diffhtwo.experimental.uv_luminosity import append_uv_luminosity_to_ssp_data
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -97,7 +103,11 @@ if __name__ == "__main__":
 
     # get ssp data
     ssp_data = load_ssp_templates(fn=ssp_filename)
-    ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
+
+    ssp_data = append_uv_luminosity_to_ssp_data(ssp_data)
+    ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563", "UV"])
+    line_wave_table = jnp.array(ssp_data.ssp_emline_wave)
+
     halpha_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     ran_key = jran.key(0)
 
@@ -211,6 +221,19 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
+        plot_smhm_ratio_q_sf(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            um_drn,
+            plt_show=False,
+        )
+
         plot_smhm_hexbin(
             ran_key,
             param_collection_fit,
@@ -274,8 +297,34 @@ if __name__ == "__main__":
             feniks.filter_info.tcurves,
             "sdss_feniks",
             fit_diagnostics_save_drn,
-            # mag_thresh=feniks.filter_info.mag_thresh,
-            # frac_cat=feniks.frac_cat,
+            num_halos=num_halos,
+            plt_show=False,
+        )
+
+    if cfg["plots"]["plot_halpha_uv_ratio"]:
+        print("Generating H-alpha-to-UV ratio plot...")
+        plot_halpha_uv_ratio(
+            ran_key,
+            zbins,
+            param_collection_fit,
+            line_wave_table,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            plt_show=False,
+        )
+        plot_halpha_uv_ratio_mass_z(
+            ran_key,
+            0.02,
+            3,
+            param_collection_fit,
+            line_wave_table,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
             num_halos=num_halos,
             plt_show=False,
         )

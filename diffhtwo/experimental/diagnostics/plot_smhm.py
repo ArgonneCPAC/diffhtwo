@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import ascii
-from matplotlib.colors import LogNorm
 from matplotlib.lines import Line2D
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
@@ -11,15 +10,14 @@ from ..kernels.smhm import (
     median_smhm_q_sf,
 )
 from ..tab_blue_orange_cmap import make_cmap
+from .plot_utils import make_thresholded_reduce_C_function, percentile_norm
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 cmap = make_cmap()
 ex_situ_frac_color = "#3E7CB1"
 
-LOGMP_OBS_MIN = 10.5
-LOGMP_OBS_MAX = 14.5
-LOGSM_OBS_MIN = 7.0
-LOGSM_OBS_MAX = 12.5
+LOGMP_OBS_MIN, LOGMP_OBS_MAX = 10.5, 14.5
+LOGSM_OBS_MIN, LOGSM_OBS_MAX = 7.0, 12.5
 
 COLORS_Z = ["#2d0b52", "#0491a1", "#a1d661", "#ee6920", "#8a0f17"]
 
@@ -223,22 +221,6 @@ def plot_smhm(
     plt.close()
 
 
-def _make_thresholded_reduce_C_function(weights, threshold=1e-5):
-    total = np.nansum(weights)
-
-    def _reduce(C_bin):
-        frac = np.nansum(C_bin) / total
-        return frac if frac >= threshold else np.nan
-
-    return _reduce
-
-
-def _percentile_norm(all_c, lo=1, hi=98):
-    concat = np.concatenate([np.asarray(c).ravel() for c in all_c])
-    pos = concat[concat > 0]
-    return LogNorm(vmin=np.percentile(pos, lo), vmax=np.percentile(pos, hi))
-
-
 def plot_smhm_hexbin(
     ran_key,
     param_collection,
@@ -289,7 +271,7 @@ def plot_smhm_hexbin(
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
 
-        reduce_C_function = _make_thresholded_reduce_C_function(gal_weight)
+        reduce_C_function = make_thresholded_reduce_C_function(gal_weight)
 
         hb = ax[zbin].hexbin(
             logmp_obs,
@@ -344,7 +326,7 @@ def plot_smhm_hexbin(
     ax[0].set_ylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
 
     # second pass: shared norm from ALL panels' data, applied to every panel
-    norm = _percentile_norm(all_counts)
+    norm = percentile_norm(all_counts)
     for hb in hbs:
         hb.set_norm(norm)
 
@@ -497,7 +479,6 @@ def plot_smhm_cen_sat(
         ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
         ax[i].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
         ax[i].set_xticks([11, 12, 13, 14, 15])
-        # ax[i].set_yticks([8, 9, 10, 11, 12])
 
         ax[i].tick_params(
             which="major",
@@ -702,7 +683,6 @@ def plot_smhm_ratio_cen_sat(
         ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
         ax[i].set_ylim(-3.2, -1.2)
         ax[i].set_xticks([11, 12, 13, 14, 15])
-        # ax[i].set_yticks([8, 9, 10, 11, 12])
 
         ax[i].tick_params(
             which="major",
@@ -839,8 +819,209 @@ def plot_smhm_q_sf(
             num_halos,
             ssp_data,
             tcurves,
-            logmp_obs_min=10.0,
-            logmp_obs_max=15.0,
+            logmp_obs_min=LOGMP_OBS_MIN,
+            logmp_obs_max=LOGMP_OBS_MAX,
+            mag_thresh=None,
+            frac_cat=None,
+        )
+
+        # all
+        ax[0].plot(
+            logmp_bin_centers,
+            logsm_obs_weighted_median,
+            label=r"$z = $" + z_med,
+            color=COLORS_Z[zbin],
+            lw=1.5,
+            alpha=alpha,
+        )
+        um_smhm = ascii.read(um_drn + "/" + um_smhm_zname[zbin])
+        ax[0].plot(
+            um_smhm["Log10(Mpeak/Msun)"],
+            um_smhm["Log10(Median_SM/Msun)"],
+            color=COLORS_Z[zbin],
+            lw=1,
+            ls="--",
+            alpha=alpha,
+        )
+
+        # SF
+        ax[1].plot(
+            logmp_bin_centers,
+            logsm_obs_weighted_median_sf,
+            color=COLORS_Z[zbin],
+            lw=1.5,
+            alpha=alpha,
+        )
+        um_smhm_sf = ascii.read(um_drn + "/" + um_smhm_sf_zname[zbin])
+        ax[1].plot(
+            um_smhm_sf["Log10(Mpeak/Msun)"],
+            um_smhm_sf["Log10(Median_SM/Msun)"],
+            color=COLORS_Z[zbin],
+            lw=1.0,
+            ls="--",
+            alpha=alpha,
+        )
+
+        # quiescent
+        ax[2].plot(
+            logmp_bin_centers,
+            logsm_obs_weighted_median_q,
+            color=COLORS_Z[zbin],
+            lw=1.5,
+            alpha=alpha,
+        )
+        um_smhm_q = ascii.read(um_drn + "/" + um_smhm_q_zname[zbin])
+        ax[2].plot(
+            um_smhm_q["Log10(Mpeak/Msun)"],
+            um_smhm_q["Log10(Median_SM/Msun)"],
+            color=COLORS_Z[zbin],
+            lw=1.0,
+            ls="--",
+            alpha=alpha,
+        )
+
+    for i in range(0, 3):
+        ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[i].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
+        ax[i].set_xticks([11, 12, 13, 14, 15])
+
+        ax[i].tick_params(
+            which="major",
+            direction="in",
+            top=True,
+            right=True,
+            length=6,
+            width=1,
+            labelsize=labelsize,
+        )
+
+        ax[i].minorticks_on()
+        ax[i].tick_params(
+            which="minor",
+            direction="in",
+            top=True,
+            right=True,
+            length=3,
+            width=0.8,
+            labelsize=labelsize,
+        )
+
+        ax[i].set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
+
+    ax[0].set_ylabel(r"log$_{10}$ (M$_{*}$)", fontsize=fontsize)
+
+    fig.get_layout_engine().set(rect=[0, 0, 1, 0.94])
+    handles, labels = ax[0].get_legend_handles_labels()
+    diffsky_handle = Line2D([], [], linestyle="solid", color="gray", label="all")
+    um_handle = Line2D([], [], linestyle="--", color="gray", label="UMachine-DR1")
+
+    leg1 = fig.legend(
+        handles,
+        labels,
+        loc="outside upper center",
+        ncol=len(labels),
+        fontsize=labelsize,
+        frameon=False,
+        handlelength=1.5,
+        handletextpad=0.4,
+        columnspacing=1.0,
+    )
+    fig.add_artist(leg1)
+
+    fig.legend(
+        [diffsky_handle, um_handle],
+        ["diffsky", "UMachine-DR1"],
+        loc="outside upper center",
+        bbox_to_anchor=(0.5, 0.94),
+        ncol=2,
+        fontsize=labelsize,
+        frameon=False,
+        handlelength=1.5,
+        handletextpad=0.4,
+        columnspacing=1.0,
+    )
+
+    fig.savefig(
+        savedir + "/" + run_label + "_smhm_med_q_sf.png",
+        dpi=400,
+    )
+
+    if plt_show:
+        plt.show()
+    plt.close()
+
+
+def plot_smhm_ratio_q_sf(
+    ran_key,
+    param_collection,
+    zbins,
+    num_halos,
+    ssp_data,
+    tcurves,
+    run_label,
+    savedir,
+    um_drn,
+    mag_thresh=None,
+    frac_cat=None,
+    plt_show=True,
+):
+    um_smhm_zname = [
+        "smhm_med_z0.1.txt",
+        "smhm_med_z0.35.txt",
+        "smhm_med_z0.75.txt",
+        "smhm_med_z1.25.txt",
+        "smhm_med_z2.0.txt",
+    ]
+    um_smhm_sf_zname = [
+        "smhm_med_sf_z0.1.txt",
+        "smhm_med_sf_z0.35.txt",
+        "smhm_med_sf_z0.75.txt",
+        "smhm_med_sf_z1.25.txt",
+        "smhm_med_sf_z2.0.txt",
+    ]
+    um_smhm_q_zname = [
+        "smhm_med_q_z0.1.txt",
+        "smhm_med_q_z0.35.txt",
+        "smhm_med_q_z0.75.txt",
+        "smhm_med_q_z1.25.txt",
+        "smhm_med_q_z2.0.txt",
+    ]
+
+    n_z_bins = len(zbins)
+    fig_width = 7.1
+    fig_height = 3.2
+    fig, ax = plt.subplots(
+        1,
+        3,
+        figsize=(fig_width, fig_height),
+        constrained_layout=True,
+        gridspec_kw={"wspace": 0},
+    )
+
+    ax[0].set_title("all")
+    ax[1].set_title("Star-forming")
+    ax[2].set_title("Quiescent")
+
+    for zbin in range(n_z_bins):
+        z_min = zbins[zbin][0]
+        z_max = zbins[zbin][1]
+        z_med = str(np.median(zbins[zbin]))
+
+        (
+            logmp_bin_centers,
+            logsm_obs_weighted_median,
+            logsm_obs_weighted_median_sf,
+            logsm_obs_weighted_median_q,
+        ) = median_smhm_q_sf(
+            ran_key,
+            param_collection,
+            z_min,
+            z_max,
+            num_halos,
+            ssp_data,
+            tcurves,
+            logmp_obs_min=LOGMP_OBS_MIN,
+            logmp_obs_max=LOGMP_OBS_MAX,
             mag_thresh=None,
             frac_cat=None,
         )
@@ -901,10 +1082,9 @@ def plot_smhm_q_sf(
         )
 
     for i in range(0, 3):
-        ax[i].set_xlim(11, 15)
+        ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
         ax[i].set_ylim(-3.2, -1.2)
         ax[i].set_xticks([11, 12, 13, 14, 15])
-        # ax[i].set_yticks([8, 9, 10, 11, 12])
 
         ax[i].tick_params(
             which="major",
@@ -963,140 +1143,7 @@ def plot_smhm_q_sf(
     )
 
     fig.savefig(
-        savedir + "/" + run_label + "_smhm_med_q_sf.png",
-        dpi=400,
-    )
-
-    if plt_show:
-        plt.show()
-    plt.close()
-
-
-def plot_smhm_ratio(
-    ran_key,
-    param_collection,
-    zbins,
-    num_halos,
-    ssp_data,
-    tcurves,
-    run_label,
-    savedir,
-    um_drn,
-    mag_thresh=None,
-    frac_cat=None,
-    plt_show=True,
-):
-    um_smhm_zname = [
-        "smhm_med_z0.1.txt",
-        "smhm_med_z0.35.txt",
-        "smhm_med_z0.75.txt",
-        "smhm_med_z1.25.txt",
-        "smhm_med_z2.0.txt",
-    ]
-
-    n_z_bins = len(zbins)
-    fig_width = 7.1
-    fig_height = 7.1
-    fig, ax = plt.subplots(
-        1,
-        1,
-        figsize=(fig_width, fig_height),
-        constrained_layout=True,
-    )
-
-    for zbin in range(n_z_bins):
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
-        z_min_label = str(np.round(z_min, 2))
-        z_max_label = str(np.round(z_max, 2))
-
-        (
-            logmp_bin_centers,
-            logsm_obs_weighted_median,
-            logsm_obs_weighted_median_cen_in_situ,
-            logsm_obs_weighted_median_cen,
-            logsm_obs_weighted_median_sat_in_situ,
-            logsm_obs_weighted_median_sat,
-            ex_situ_frac_median,
-        ) = median_smhm_and_exsitu_frac(
-            ran_key,
-            param_collection,
-            z_min,
-            z_max,
-            num_halos,
-            ssp_data,
-            tcurves,
-            logmp_obs_min=10.0,
-            logmp_obs_max=15.0,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
-        )
-
-        # cen+sat
-        smhm_ratio = 10 ** (logsm_obs_weighted_median - logmp_bin_centers)
-        ax.plot(
-            10**logmp_bin_centers,
-            smhm_ratio,
-            label=z_min_label + " < z < " + z_max_label,
-            color=COLORS_Z[zbin],
-            lw=2,
-            alpha=alpha,
-        )
-
-        um_smhm = ascii.read(um_drn + "/" + um_smhm_zname[zbin])
-        ax.plot(
-            10 ** um_smhm["Log10(Mpeak/Msun)"],
-            10 ** um_smhm["Log10(Median_SM/Mpeak)"],
-            color=COLORS_Z[zbin],
-            lw=1.5,
-            ls="--",
-            alpha=alpha,
-        )
-
-    ax.set_xscale("log")
-    ax.set_xlim(1e10, 1e15)
-
-    ax.set_yscale("log")
-    ax.set_ylim(3e-4, 1e-1)
-
-    ax.tick_params(
-        which="major",
-        direction="in",
-        top=True,
-        right=True,
-        length=6,
-        width=1,
-        labelsize=labelsize,
-    )
-
-    ax.minorticks_on()
-    ax.tick_params(
-        which="minor",
-        direction="in",
-        top=True,
-        right=True,
-        length=3,
-        width=0.8,
-        labelsize=labelsize,
-    )
-
-    ax.set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
-    ax.set_ylabel("smhm ratio", fontsize=fontsize)
-    handles, labels = ax.get_legend_handles_labels()
-    fig.legend(
-        handles,
-        labels,
-        loc="outside upper center",
-        ncol=len(labels),
-        fontsize=labelsize,
-        frameon=False,
-        handlelength=1.5,
-        handletextpad=0.4,
-        columnspacing=1.0,
-    )
-
-    fig.savefig(
-        savedir + "/" + run_label + "_smhm_med_ratio.png",
+        savedir + "/" + run_label + "_smhm_med_q_sf_ratio.png",
         dpi=400,
     )
 
