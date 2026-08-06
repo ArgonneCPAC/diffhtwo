@@ -107,12 +107,9 @@ if __name__ == "__main__":
 
     # get ssp data
     ssp_data = load_ssp_templates(fn=ssp_filename)
+    ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
+    halpha_wave_aa = ssp_data.ssp_emline_wave[0]
 
-    ssp_data = append_uv_luminosity_to_ssp_data(ssp_data)
-    ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563", "UV"])
-    line_wave_table = jnp.array(ssp_data.ssp_emline_wave)
-
-    halpha_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
     ran_key = jran.key(0)
 
     feniks = load_feniks.get_feniks_data(
@@ -342,6 +339,10 @@ if __name__ == "__main__":
 
     if cfg["plots"]["plot_halpha_uv_ratio"]:
         print("Generating H-alpha-to-UV ratio plot...")
+        ssp_data = load_ssp_templates(fn=ssp_filename)
+        ssp_data = append_uv_luminosity_to_ssp_data(ssp_data)
+        ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563", "UV"])
+        line_wave_table = jnp.array(ssp_data.ssp_emline_wave)
         plot_halpha_uv_ratio(
             ran_key,
             zbins,

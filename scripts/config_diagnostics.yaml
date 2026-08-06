@@ -16,25 +16,25 @@ um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 
 
-plot_sdss: True
-plot_feniks: True
+plot_sdss: False
+plot_feniks: False
 plot_hizels: True
 
 plots:
-  num_halos : 15000
-  plot_app_mag_funcs: True
+  num_halos : 1000
+  plot_app_mag_funcs: False
   
-  plot_exsitu_frac_z0: True
+  plot_exsitu_frac_z0: False
   plot_exsitu_frac: False
 
-  plot_smhm: True
-  plot_sfms: True
-  plot_fq: True
+  plot_smhm: False
+  plot_sfms: False
+  plot_fq: False
 
-  plot_halpha_uv_ratio: True
+  plot_halpha_uv_ratio: False
 
-  plot_color_pdfs: True
-  plot_color_contours: True
+  plot_color_pdfs: False
+  plot_color_contours: False
   plot_colors_mags: False
   plot_colors_z: False
 
