@@ -20,12 +20,18 @@ def compute_logsfr_tau(ssp_weights, lg_age_gyr, logsm_obs, tau_gyr=0.1):
     """
     Input:
         ssp_weights:
-            SSP age-metallicity weights array of shape (n_gal, n_met, n_age)
+            SSP age-metallicity weights
+            array of shape (n_gal, n_met, n_age)
         lg_age_gyr:
-            SSP stellar age array of shape (n_age, )
-        tau_gyr: Timescale to compute SFR. Default:100Myr
+            SSP stellar age
+            array of shape (n_age,)
+        logsm_obs:
+            stellar mass formed at the time of observation
+            array of shape (n_gal,)
+        tau_gyr: Timescale to compute SFR. Default: 100 Myr
     Returns:
         log(SFR) in a given timescale tau
+            array of shape (n_gal,)
     """
     frac_sm_obs = frac_stellar_mass_tau(ssp_weights, lg_age_gyr, tau_gyr)
 
