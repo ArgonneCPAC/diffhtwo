@@ -2,7 +2,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
+from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 from ..kernels.sfh_rapid_q import get_logsfr_obs
+from ..kernels.sfr_tau import compute_logsfr_tau
 from ..tab_blue_orange_cmap import make_cmap
 from ..utils import weighted_median
 from .plot_utils import make_thresholded_reduce_C_function, percentile_norm
@@ -74,179 +76,6 @@ def _get_logsfr_obs_weighted_median(logm_obs, logsfr_obs, gal_weight, t_obs, t_q
     return logm_bin_centers, logsfr_obs_weighted_median
 
 
-# def plot_sfms(
-#     ran_key,
-#     param_collection,
-#     zbins,
-#     num_halos,
-#     ssp_data,
-#     tcurves,
-#     data_label,
-#     savedir,
-#     mag_thresh=None,
-#     frac_cat=None,
-#     plt_show=True,
-# ):
-#     n_z_bins = len(zbins)
-#     fig_width = 1.42 * n_z_bins
-#     fig_height = 2
-#     fig, ax = plt.subplots(
-#         1, len(zbins), figsize=(fig_width, fig_height), constrained_layout=True
-#     )
-
-#     labelsize = 10
-#     fontsize = 10
-#     labelsize = 10
-#     # alpha = 0.25
-
-#     for zbin in range(n_z_bins):
-#         z_min = zbins[zbin][0]
-#         z_max = zbins[zbin][1]
-#         z_min_label = str(np.round(z_min, 2))
-#         z_max_label = str(np.round(z_max, 2))
-#         ax[zbin].set_title(z_min_label + " < z < " + z_max_label)
-
-#         """default"""
-#         (
-#             logsfr_obs,
-#             logsm_obs,
-#             logsfr_obs_in_situ,
-#             logsm_obs_in_situ,
-#             gal_weight,
-#             is_central,
-#             _,
-#         ) = get_logsfr_obs(
-#             ran_key,
-#             DEFAULT_PARAM_COLLECTION,
-#             z_min,
-#             z_max,
-#             num_halos,
-#             ssp_data,
-#             tcurves,
-#             mag_thresh=mag_thresh,
-#             frac_cat=frac_cat,
-#         )
-
-#         (
-#             logsm_bin_centers_default,
-#             logsfr_obs_weighted_mean_default,
-#         ) = _get_logsfr_obs_weighted_mean(logsm_obs, logsfr_obs, gal_weight)
-
-#         ax[zbin].plot(
-#             logsm_bin_centers_default,
-#             logsfr_obs_weighted_mean_default,
-#             label="default",
-#             color="#FFB689",
-#             lw=2,
-#         )
-
-#         (
-#             logsm_bin_centers_in_situ_default,
-#             logsfr_obs_weighted_mean_in_situ_default,
-#         ) = _get_logsfr_obs_weighted_mean(
-#             logsm_obs_in_situ, logsfr_obs_in_situ, gal_weight
-#         )
-
-#         ax[zbin].plot(
-#             logsm_bin_centers_in_situ_default,
-#             logsfr_obs_weighted_mean_in_situ_default,
-#             color="#FFB689",
-#             lw=1,
-#             ls="--",
-#         )
-
-#         """fit"""
-#         (
-#             logsfr_obs,
-#             logsm_obs,
-#             logsfr_obs_in_situ,
-#             logsm_obs_in_situ,
-#             gal_weight,
-#             is_central,
-#             _,
-#         ) = get_logsfr_obs(
-#             ran_key,
-#             param_collection,
-#             z_min,
-#             z_max,
-#             num_halos,
-#             ssp_data,
-#             tcurves,
-#             mag_thresh=mag_thresh,
-#             frac_cat=frac_cat,
-#         )
-
-#         (
-#             logsm_bin_centers_fit,
-#             logsfr_obs_weighted_mean_fit,
-#         ) = _get_logsfr_obs_weighted_mean(logsm_obs, logsfr_obs, gal_weight)
-
-#         ax[zbin].plot(
-#             logsm_bin_centers_fit,
-#             logsfr_obs_weighted_mean_fit,
-#             label="fit",
-#             color="#61C0BF",
-#             lw=2,
-#         )
-
-#         (
-#             logsm_bin_centers_in_situ_fit,
-#             logsfr_obs_weighted_mean_in_situ_fit,
-#         ) = _get_logsfr_obs_weighted_mean(
-#             logsm_obs_in_situ, logsfr_obs_in_situ, gal_weight
-#         )
-
-#         ax[zbin].plot(
-#             logsm_bin_centers_in_situ_fit,
-#             logsfr_obs_weighted_mean_in_situ_fit,
-#             color="#61C0BF",
-#             lw=1,
-#             ls="--",
-#         )
-
-#         ax[zbin].set_xlim(8, 12)
-#         ax[zbin].set_ylim(-3, 2)
-#         # ax[zbin].set_xticks([11, 12, 13, 14, 15])
-#         # ax[zbin].set_yticks([8, 9, 10, 11, 12])
-
-#         ax[zbin].minorticks_on()
-#         ax[zbin].tick_params(
-#             which="major",
-#             direction="in",
-#             top=True,
-#             right=True,
-#             length=6,
-#             width=1,
-#             labelsize=labelsize,
-#         )
-#         ax[zbin].tick_params(
-#             which="minor",
-#             direction="in",
-#             top=True,
-#             right=True,
-#             length=3,
-#             width=0.8,
-#             labelsize=labelsize,
-#         )
-
-#         ax[zbin].set_xlabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
-
-#     ax[0].set_ylabel(r"<log$_{10}$ (SFR [M$_{\odot}$ yr$^{-1}$])>", fontsize=fontsize)
-#     dashed_handle = Line2D([], [], linestyle="--", color="gray", label="in-situ only")
-#     handles, labels = ax[-1].get_legend_handles_labels()
-#     handles.append(dashed_handle)
-#     ax[-1].legend(handles=handles, fontsize=7, loc="lower right")
-
-#     fig.savefig(
-#         savedir + "/" + data_label + "_sfr_mass.png",
-#         dpi=300,
-#     )
-
-#     if plt_show:
-#         plt.show()
-#     plt.close()
-
-
 def plot_sfms_hexbin(
     ran_key,
     param_collection,
@@ -264,42 +93,24 @@ def plot_sfms_hexbin(
     plt_show=True,
 ):
     n_z_bins = len(zbins)
-    fig_width = 7.1
-    fig_height = 4.1
     fig, ax = plt.subplots(
         2,
         n_z_bins,
-        figsize=(fig_width, fig_height),
+        figsize=(7.1, 4.1),
         constrained_layout=True,
         gridspec_kw={"wspace": 0, "hspace": 0},
     )
 
-    labelsize = 10
-    fontsize = 10
     labelsize = 9
-
+    fontsize = 10
     logsm_arr = np.arange(8, 12, 0.1)
     gridsize = (70, 60)
 
-    # --- pass 1: bin each panel (invisibly) to get real per-bin densities,
-    # cached separately per row so each row gets its own optimized norm,
-    # and cache the obs arrays so get_logsfr_obs isn't called twice ---
-    tmp_fig, tmp_ax = plt.subplots()
-    all_c_sm = []
-    all_c_halo = []
-    cached = []
+    hb_sm_row, hb_halo_row = [], []
+
     for zbin in range(n_z_bins):
         z_min, z_max = zbins[zbin][0], zbins[zbin][1]
-        (
-            logsfr_obs,
-            logsm_obs,
-            logsfr_obs_in_situ,
-            logsm_obs_in_situ,
-            t_q,
-            lc_data,
-            phot_data,
-            gal_weight,
-        ) = get_logsfr_obs(
+        lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
             ran_key,
             param_collection,
             z_min,
@@ -307,94 +118,49 @@ def plot_sfms_hexbin(
             num_halos,
             ssp_data,
             tcurves,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
+
         logmp_obs = lc_data.logmp_obs
-        t_obs = lc_data.t_obs
+        logsm_obs = phot_data.logsm_obs
+        # t_obs = lc_data.t_obs
+
+        logsfr_100Myr = compute_logsfr_tau(
+            phot_data.ssp_weights,
+            ssp_data.ssp_lg_age_gyr,
+            logsm_obs,
+            tau_gyr=0.1,
+        )
 
         reduce_C_function = make_thresholded_reduce_C_function(gal_weight)
 
-        hb_tmp_sm = tmp_ax.hexbin(
-            logsm_obs,
-            logsfr_obs,
-            C=gal_weight,
-            reduce_C_function=reduce_C_function,
-            gridsize=gridsize,
-            extent=(xlim[0], xlim[1], ylim[0], ylim[1]),
-        )
-        hb_tmp_halo = tmp_ax.hexbin(
-            logmp_obs,
-            logsfr_obs,
-            C=gal_weight,
-            reduce_C_function=reduce_C_function,
-            gridsize=gridsize,
-            extent=(xlim_halo[0], xlim_halo[1], ylim[0], ylim[1]),
-        )
-
-        all_c_sm.append(hb_tmp_sm.get_array())
-        all_c_halo.append(hb_tmp_halo.get_array())
-        cached.append(
-            (
-                logsm_obs,
-                logsfr_obs,
-                gal_weight,
-                logmp_obs,
-                t_obs,
-                t_q,
-                reduce_C_function,
-            )
-        )
-    plt.close(tmp_fig)
-
-    norm_sm = percentile_norm(all_c_sm)
-    norm_halo = percentile_norm(all_c_halo)
-
-    # --- pass 2: real plotting, shared (but row-specific) norm across panels ---
-    for zbin in range(n_z_bins):
         z_med = np.median(zbins[zbin])
         logsfms_leja22 = get_leja22_sfms_at_z(z_med, logsm_arr)
-
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
-        z_med = str(np.median(zbins[zbin]))
-        ax[0, zbin].set_title(r"$z = $" + z_med)
-
-        (
-            logsm_obs,
-            logsfr_obs,
-            gal_weight,
-            logmp_obs,
-            t_obs,
-            t_q,
-            reduce_C_function,
-        ) = cached[zbin]
+        ax[0, zbin].set_title(r"$z = $" + str(z_med))
 
         # -- row 0: SFR vs stellar mass --
         hb_sm = ax[0, zbin].hexbin(
             logsm_obs,
-            logsfr_obs,
+            logsfr_100Myr,
             C=gal_weight,
             reduce_C_function=reduce_C_function,
-            norm=norm_sm,
             cmap=cmap,
             gridsize=gridsize,
             extent=(xlim[0], xlim[1], ylim[0], ylim[1]),
         )
+        hb_sm_row.append(hb_sm)
 
-        # SF main-sequence
-        logsm_bin_centers, logsfr_obs_weighted_median = _get_logsfr_obs_weighted_median(
-            logsm_obs, logsfr_obs, gal_weight, t_obs, t_q
-        )
-        ax[0, zbin].scatter(
-            logsm_bin_centers,
-            logsfr_obs_weighted_median,
-            linewidths=1.0,
-            s=10,
-            facecolors="none",
-            edgecolors="k",
-            label="median star-forming",
-        )
+        # logsm_bin_centers, logsfr_weighted_median = _get_logsfr_obs_weighted_median(
+        #     logsm_obs, logsfr_100Myr, gal_weight, t_obs, t_q
+        # )
+        # ax[0, zbin].scatter(
+        #     logsm_bin_centers,
+        #     logsfr_weighted_median,
+        #     linewidths=1.0,
+        #     s=10,
+        #     facecolors="none",
+        #     edgecolors="k",
+        #     label="median star-forming",
+        # )
         ax[0, zbin].plot(
             logsm_arr,
             logsfms_leja22,
@@ -422,26 +188,26 @@ def plot_sfms_hexbin(
         # -- row 1: SFR vs halo mass --
         hb_halo = ax[1, zbin].hexbin(
             logmp_obs,
-            logsfr_obs,
+            logsfr_100Myr,
             C=gal_weight,
             reduce_C_function=reduce_C_function,
-            norm=norm_halo,
             cmap=cmap,
             gridsize=gridsize,
             extent=(xlim_halo[0], xlim_halo[1], ylim[0], ylim[1]),
         )
-        logmp_bin_centers, logsfr_obs_weighted_median = _get_logsfr_obs_weighted_median(
-            logmp_obs, logsfr_obs, gal_weight, t_obs, t_q
-        )
-        ax[1, zbin].scatter(
-            logmp_bin_centers,
-            logsfr_obs_weighted_median,
-            linewidths=1.0,
-            s=10,
-            facecolors="none",
-            edgecolors="k",
-        )
+        hb_halo_row.append(hb_halo)
 
+        # logmp_bin_centers, logsfr_weighted_median = _get_logsfr_obs_weighted_median(
+        #     logmp_obs, logsfr_100Myr, gal_weight, t_obs, t_q
+        # )
+        # ax[1, zbin].scatter(
+        #     logmp_bin_centers,
+        #     logsfr_weighted_median,
+        #     linewidths=1.0,
+        #     s=10,
+        #     facecolors="none",
+        #     edgecolors="k",
+        # )
         ax[1, zbin].set_ylim(ylim)
         ax[1, zbin].set_xticks(np.arange(xlim_halo[0], xlim_halo[1] + 1, 1))
         ax[1, zbin].set_xlim(xlim_halo)
@@ -469,6 +235,14 @@ def plot_sfms_hexbin(
                 labelsize=labelsize,
             )
 
+    # compute shared per-row norm from the already-plotted data, then apply in place
+    norm_sm = percentile_norm([h.get_array() for h in hb_sm_row])
+    norm_halo = percentile_norm([h.get_array() for h in hb_halo_row])
+    for h in hb_sm_row:
+        h.set_norm(norm_sm)
+    for h in hb_halo_row:
+        h.set_norm(norm_halo)
+
     handles, labels = ax[0, -1].get_legend_handles_labels()
     fig.legend(
         handles,
@@ -484,13 +258,10 @@ def plot_sfms_hexbin(
     ax[0, 0].set_ylabel(r"log$_{10}$ (SFR [M$_{\odot}$ yr$^{-1}$])", fontsize=fontsize)
     ax[1, 0].set_ylabel(r"log$_{10}$ (SFR [M$_{\odot}$ yr$^{-1}$])", fontsize=fontsize)
 
-    fig.colorbar(hb_sm, ax=ax[0, -1])
-    fig.colorbar(hb_halo, ax=ax[1, -1])
+    fig.colorbar(hb_sm_row[-1], ax=ax[0, -1])
+    fig.colorbar(hb_halo_row[-1], ax=ax[1, -1])
 
-    fig.savefig(
-        savedir + "/" + run_label + "_sfr_mass_hexbin.png",
-        dpi=600,
-    )
+    fig.savefig(savedir + "/" + run_label + "_sfr_mass_hexbin.png", dpi=600)
 
     if plt_show:
         plt.show()
