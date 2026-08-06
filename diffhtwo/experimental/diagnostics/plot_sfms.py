@@ -254,7 +254,7 @@ def plot_sfms_hexbin(
     num_halos,
     ssp_data,
     tcurves,
-    data_label,
+    run_label,
     savedir,
     mag_thresh=None,
     frac_cat=None,
@@ -357,9 +357,8 @@ def plot_sfms_hexbin(
 
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
-        z_min_label = str(np.round(z_min, 2))
-        z_max_label = str(np.round(z_max, 2))
-        ax[0, zbin].set_title(z_min_label + " < z < " + z_max_label)
+        z_med = str(np.median(zbins[zbin]))
+        ax[0, zbin].set_title(r"$z = $" + z_med)
 
         (
             logsm_obs,
@@ -489,7 +488,7 @@ def plot_sfms_hexbin(
     fig.colorbar(hb_halo, ax=ax[1, -1])
 
     fig.savefig(
-        savedir + "/" + data_label + "_sfr_mass_hexbin.png",
+        savedir + "/" + run_label + "_sfr_mass_hexbin.png",
         dpi=600,
     )
 

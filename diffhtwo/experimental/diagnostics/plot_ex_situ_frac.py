@@ -73,16 +73,46 @@ def plot_ex_situ_frac_z0(
     legendsize = 8
     alpha = 0.75
 
-    ax.plot(logsm_bin_centers, ex_situ_frac_median_sm, c="k", label="diffsky")
+    ax.plot(
+        logsm_bin_centers, ex_situ_frac_median_sm, c="k", label="This paper (Diffsky)"
+    )
 
     """Literature"""
+    Behroozi2019 = np.genfromtxt(
+        lit_drn + "/Behroozi2019_ex_situ_a1.002310.dat",
+        comments="#",
+        names=[
+            "Log10_SM",
+            "F_ex_situ",
+            "Err_plus",
+            "Err_minus",
+            "SM_Left_Edge",
+            "SM_Right_Edge",
+            "Bestfit_Galaxy_Counts",
+        ],
+    )
+    ax.plot(
+        Behroozi2019["Log10_SM"][:-5],
+        Behroozi2019["F_ex_situ"][:-5],
+        c="tab:red",
+        alpha=alpha,
+        label="Behroozi+19 (UMachine-DR1)",
+    )
+    ax.fill_between(
+        Behroozi2019["Log10_SM"][:-5],
+        Behroozi2019["F_ex_situ"][:-5] - Behroozi2019["Err_minus"][:-5],
+        Behroozi2019["F_ex_situ"][:-5] + Behroozi2019["Err_plus"][:-5],
+        alpha=0.2,
+        color="tab:red",
+    )
+
     davison2020 = np.loadtxt(lit_drn + "/Davison2020.csv", delimiter=",")
     ax.plot(
         np.log10(davison2020[:, 0]),
         davison2020[:, 1],
         c="tab:orange",
         alpha=alpha,
-        label="Davison+2020 (EAGLE)",
+        label="Davison+20 (EAGLE)",
     )
 
     davison2020_lo = np.loadtxt(lit_drn + "/Davison2020_lo.csv", delimiter=",")
@@ -112,7 +142,7 @@ def plot_ex_situ_frac_z0(
         tachella2019[:, 1],
         c="deepskyblue",
         alpha=alpha,
-        label="Tachella+2019 (IllustrisTNG)",
+        label="Tachella+19 (IllustrisTNG)",
     )
 
     rodriguez2016 = np.loadtxt(lit_drn + "/Rodriguez2016.csv", delimiter=",")
@@ -121,7 +151,7 @@ def plot_ex_situ_frac_z0(
         rodriguez2016[:, 1],
         c="tab:green",
         alpha=alpha,
-        label="Rodriguez+2016 (Illustris-1)",
+        label="Rodriguez+16 (Illustris-1)",
     )
 
     rodriguez2016_lo = np.loadtxt(lit_drn + "/Rodriguez2016_lo.csv", delimiter=",")

@@ -36,7 +36,7 @@ from diffhtwo.experimental.diagnostics.plot_contour import (
     plot_color_contours,
 )
 from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
-from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
+from diffhtwo.experimental.diagnostics.plot_fq import plot_fq, plot_fq_lit, plot_fq_um
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
     plot_halpha_insitu_exsitu,
@@ -92,6 +92,8 @@ if __name__ == "__main__":
 
     um_drn = cfg["um_drn"]
     frac_ex_situ_lit_drn = cfg["frac_ex_situ_lit_drn"]
+    fq_drn = cfg["fq_drn"]
+    um_fq_drn = cfg["um_fq_drn"]
 
     ssp_filename = cfg["ssp_file"]
     fit_diagnostics_save_drn = cfg["fit_diagnostics_save_drn"]
@@ -270,8 +272,30 @@ if __name__ == "__main__":
             num_halos,
             ssp_data,
             feniks.filter_info.tcurves,
-            "diffsky",
+            run_label,
             fit_diagnostics_save_drn,
+            plt_show=False,
+        )
+        plot_fq_um(
+            ran_key,
+            param_collection_fit,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            um_fq_drn,
+            plt_show=False,
+        )
+        plot_fq_lit(
+            ran_key,
+            param_collection_fit,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            fq_drn,
             plt_show=False,
         )
 
@@ -297,7 +321,7 @@ if __name__ == "__main__":
             num_halos,
             ssp_data,
             feniks.filter_info.tcurves,
-            "diffsky",
+            run_label,
             fit_diagnostics_save_drn,
             plt_show=False,
         )
