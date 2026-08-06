@@ -39,8 +39,6 @@ def lc_photline_kern(
     )
     lc_data = generate_lc_data(*lc_args)
 
-    # line_wave_table = jnp.array([halpha_wave_aa])
-
     _res = mc_photline_kern_merging_wrapper(
         ran_key,
         param_collection,

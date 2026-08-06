@@ -35,7 +35,8 @@ from diffhtwo.experimental.diagnostics.plot_contour import (
     plot_color_contour_grid,
     plot_color_contours,
 )
-from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
+from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
+from diffhtwo.experimental.diagnostics.plot_fq import plot_fq, plot_fq_lit, plot_fq_um
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
     plot_halpha_insitu_exsitu,
@@ -43,6 +44,10 @@ from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha_sfr,
     plot_halpha_sfr_single_z,
     plot_halpha_ssfr,
+)
+from diffhtwo.experimental.diagnostics.plot_halpha_uv_ratio import (
+    plot_halpha_uv_ratio,
+    plot_halpha_uv_ratio_mass_z,
 )
 from diffhtwo.experimental.diagnostics.plot_hod import plot_hod_sm_thresh
 from diffhtwo.experimental.diagnostics.plot_phot import (
@@ -65,7 +70,9 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
     plot_smhm_hexbin,
     plot_smhm_q_sf,
     plot_smhm_ratio_cen_sat,
+    plot_smhm_ratio_q_sf,
 )
+from diffhtwo.experimental.uv_luminosity import append_uv_luminosity_to_ssp_data
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -84,6 +91,9 @@ if __name__ == "__main__":
     hizels_drn = Path(cfg["hizels_drn"])
 
     um_drn = cfg["um_drn"]
+    frac_ex_situ_lit_drn = cfg["frac_ex_situ_lit_drn"]
+    fq_drn = cfg["fq_drn"]
+    um_fq_drn = cfg["um_fq_drn"]
 
     ssp_filename = cfg["ssp_file"]
     fit_diagnostics_save_drn = cfg["fit_diagnostics_save_drn"]
@@ -98,7 +108,8 @@ if __name__ == "__main__":
     # get ssp data
     ssp_data = load_ssp_templates(fn=ssp_filename)
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
-    halpha_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
+    halpha_wave_aa = ssp_data.ssp_emline_wave[0]
+
     ran_key = jran.key(0)
 
     feniks = load_feniks.get_feniks_data(
@@ -158,6 +169,19 @@ if __name__ == "__main__":
             label1="fit",
         )
 
+    if cfg["plots"]["plot_exsitu_frac_z0"]:
+        print("Generating ex_situ_frac_z0 plot...")
+        plot_ex_situ_frac_z0(
+            ran_key,
+            param_collection_fit,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            frac_ex_situ_lit_drn,
+            plt_show=False,
+        )
     if cfg["plots"]["plot_smhm"]:
         print("Generating SMHM plots...")
         plot_smhm(
@@ -211,6 +235,19 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
+        plot_smhm_ratio_q_sf(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            um_drn,
+            plt_show=False,
+        )
+
         plot_smhm_hexbin(
             ran_key,
             param_collection_fit,
@@ -232,8 +269,30 @@ if __name__ == "__main__":
             num_halos,
             ssp_data,
             feniks.filter_info.tcurves,
-            "diffsky",
+            run_label,
             fit_diagnostics_save_drn,
+            plt_show=False,
+        )
+        plot_fq_um(
+            ran_key,
+            param_collection_fit,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            um_fq_drn,
+            plt_show=False,
+        )
+        plot_fq_lit(
+            ran_key,
+            param_collection_fit,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            fq_drn,
             plt_show=False,
         )
 
@@ -259,7 +318,7 @@ if __name__ == "__main__":
             num_halos,
             ssp_data,
             feniks.filter_info.tcurves,
-            "diffsky",
+            run_label,
             fit_diagnostics_save_drn,
             plt_show=False,
         )
@@ -274,8 +333,38 @@ if __name__ == "__main__":
             feniks.filter_info.tcurves,
             "sdss_feniks",
             fit_diagnostics_save_drn,
-            # mag_thresh=feniks.filter_info.mag_thresh,
-            # frac_cat=feniks.frac_cat,
+            num_halos=num_halos,
+            plt_show=False,
+        )
+
+    if cfg["plots"]["plot_halpha_uv_ratio"]:
+        print("Generating H-alpha-to-UV ratio plot...")
+        ssp_data = load_ssp_templates(fn=ssp_filename)
+        ssp_data = append_uv_luminosity_to_ssp_data(ssp_data)
+        ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563", "UV"])
+        line_wave_table = jnp.array(ssp_data.ssp_emline_wave)
+        plot_halpha_uv_ratio(
+            ran_key,
+            zbins,
+            param_collection_fit,
+            line_wave_table,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            plt_show=False,
+        )
+        plot_halpha_uv_ratio_mass_z(
+            ran_key,
+            0.02,
+            3,
+            param_collection_fit,
+            line_wave_table,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
             num_halos=num_halos,
             plt_show=False,
         )

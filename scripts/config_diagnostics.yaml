@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run216
-model_nickname: run216_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run216/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run262
+model_nickname: run262_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run262/diagnostic_plots/diffstarpop+spspop+merging
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
@@ -10,30 +10,40 @@ cosmos20_drn: /Users/kumail/diffdir/COSMOS20
 dsps_drn: /Users/kumail/diffdir/COSMOS20/portal.nersc.gov/project/hacc/aphearin/DSPS_data
 ssp_file: /Users/kumail/diffdir/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5
 um_drn: /Users/kumail/diffdir/umachine-dr1-smhm
+frac_ex_situ_lit_drn: /Users/kumail/diffdir/ex_situ_frac_lit
+fq_drn: /Users/kumail/diffdir/fq_lit
+um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 
-plot_sdss: True
-plot_feniks: True
-plot_hizels: False
+
+plot_sdss: False
+plot_feniks: False
+plot_hizels: True
 
 plots:
-  num_halos : 5000
+  num_halos : 1000
   plot_app_mag_funcs: False
-  plot_color_pdfs: False
-  plot_insitu_smhm: False
+  
+  plot_exsitu_frac_z0: False
   plot_exsitu_frac: False
-  plot_hod: False
-  plot_smhm: True
+
+  plot_smhm: False
   plot_sfms: False
   plot_fq: False
-  
-  plot_color_contours: True
+
+  plot_halpha_uv_ratio: False
+
+  plot_color_pdfs: False
+  plot_color_contours: False
   plot_colors_mags: False
   plot_colors_z: False
+
+  plot_hod: False
   plot_mags: False
   plot_ssperr: False
   plot_massive_cen_colors: False
   plot_merging_sat_colors: False
+  plot_insitu_smhm: False
   plot_insitu_sm: False
   plot_sm: False
   plot_uvj: False

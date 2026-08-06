@@ -589,14 +589,14 @@ def plot_app_mag_funcs(
     plt_show=True,
 ):
     band_colors = [
-        "#2d0b52",  # violet
-        "#0f4c9c",  # navy blue
-        "#00a8a3",  # teal
-        "#4ddb8f",  # green
-        "#f5d033",  # gold
-        "#f2811d",  # orange
-        "#e0212a",  # red
-        "#8a0f17",  # deep red
+        "#001219",
+        "#064D54",
+        "#1B8686",
+        "#5EB59D",
+        "#95B481",
+        "#BE8433",
+        "#B55120",
+        "#9B1D20",
     ]
     bands = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$", r"$J$", r"$H$", r"$K$"]
 
@@ -606,7 +606,7 @@ def plot_app_mag_funcs(
     fontsize = 10
     labelsize = 10
     legendsize = 8
-    alpha = 0.75
+    alpha = 0.95
     lw = 0.75
     s = 2.5
 
@@ -617,8 +617,8 @@ def plot_app_mag_funcs(
     )
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.9))
 
-    xlim = [(13.0, 19.5), (19, 25.5), (19.0, 25.5), (20.0, 25), (20.0, 25)]
-    ylim = [(-6.2, -2.8), (-5.2, -1.1), (-6.2, -1.5), (-6.9, -1.8), (-6.9, -2.6)]
+    xlim = [(13.0, 19.5), (18.5, 25.5), (19.0, 25.5), (19.5, 25.5), (20.0, 25.5)]
+    ylim = [(-6.2, -2.0), (-5.2, -1.1), (-6.2, -1.5), (-6.9, -1.8), (-6.9, -2.6)]
     for zbin in range(len(zbins)):
         if zbin == 0:
             dataset = sdss_dataset
@@ -664,7 +664,7 @@ def plot_app_mag_funcs(
 
         shift_dex = 0.0
         if zbin == 0:
-            d_shift_dex = 0.05
+            d_shift_dex = 0.2
         else:
             d_shift_dex = 0.2
         for i in range(n_bands):

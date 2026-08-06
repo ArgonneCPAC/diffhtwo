@@ -1,14 +1,17 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import LinearSegmentedColormap, LogNorm
+from matplotlib.colors import LinearSegmentedColormap
 
 from ..kernels.sfh_rapid_q import get_logsfr_obs
 from ..tab_blue_orange_cmap import make_cmap
 from ..utils import weighted_median
+from .plot_utils import make_thresholded_reduce_C_function, percentile_norm
 
 cmap = make_cmap()
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
+
+LOGMP_OBS_MIN, LOGMP_OBS_MAX = 10.5, 14.5
 
 
 pantone_colors = [
@@ -244,22 +247,6 @@ def _get_logsfr_obs_weighted_median(logm_obs, logsfr_obs, gal_weight, t_obs, t_q
 #     plt.close()
 
 
-def make_thresholded_reduce_C_function(weights, threshold=1e-5):
-    total = np.nansum(weights)
-
-    def _reduce(C_bin):
-        frac = np.nansum(C_bin) / total
-        return frac if frac >= threshold else np.nan
-
-    return _reduce
-
-
-def _percentile_norm(all_c, lo=1, hi=98):
-    concat = np.concatenate([np.asarray(c).ravel() for c in all_c])
-    pos = concat[concat > 0]
-    return LogNorm(vmin=np.percentile(pos, lo), vmax=np.percentile(pos, hi))
-
-
 def plot_sfms_hexbin(
     ran_key,
     param_collection,
@@ -267,7 +254,7 @@ def plot_sfms_hexbin(
     num_halos,
     ssp_data,
     tcurves,
-    data_label,
+    run_label,
     savedir,
     mag_thresh=None,
     frac_cat=None,
@@ -360,8 +347,8 @@ def plot_sfms_hexbin(
         )
     plt.close(tmp_fig)
 
-    norm_sm = _percentile_norm(all_c_sm)
-    norm_halo = _percentile_norm(all_c_halo)
+    norm_sm = percentile_norm(all_c_sm)
+    norm_halo = percentile_norm(all_c_halo)
 
     # --- pass 2: real plotting, shared (but row-specific) norm across panels ---
     for zbin in range(n_z_bins):
@@ -370,9 +357,8 @@ def plot_sfms_hexbin(
 
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
-        z_min_label = str(np.round(z_min, 2))
-        z_max_label = str(np.round(z_max, 2))
-        ax[0, zbin].set_title(z_min_label + " < z < " + z_max_label)
+        z_med = str(np.median(zbins[zbin]))
+        ax[0, zbin].set_title(r"$z = $" + z_med)
 
         (
             logsm_obs,
@@ -502,7 +488,7 @@ def plot_sfms_hexbin(
     fig.colorbar(hb_halo, ax=ax[1, -1])
 
     fig.savefig(
-        savedir + "/" + data_label + "_sfr_mass_hexbin.png",
+        savedir + "/" + run_label + "_sfr_mass_hexbin.png",
         dpi=600,
     )
 

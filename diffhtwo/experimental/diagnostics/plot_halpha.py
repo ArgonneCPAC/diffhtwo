@@ -366,6 +366,7 @@ def plot_halpha_ssfr(
             logsm_obs,
             logsfr_obs_in_situ,
             logsm_obs_in_situ,
+            t_q,
         ) = update_logsfr_obs_with_rapid_q(phot_kern_results, lc_data)
 
         logssfr_obs = logsfr_obs - logsm_obs
@@ -513,6 +514,7 @@ def plot_halpha_sfr(
             logsm_obs,
             logsfr_obs_in_situ,
             logsm_obs_in_situ,
+            t_q,
         ) = update_logsfr_obs_with_rapid_q(phot_kern_results, lc_data)
 
         for s in range(0, len(sfr_bin_edges) - 1):
@@ -655,6 +657,7 @@ def plot_halpha_sfr_single_z(
         logsm_obs,
         logsfr_obs_in_situ,
         logsm_obs_in_situ,
+        t_q,
     ) = update_logsfr_obs_with_rapid_q(phot_kern_results, lc_data)
 
     for s in range(0, len(sfr_bin_edges) - 1):
