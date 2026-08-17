@@ -112,7 +112,7 @@ def plot_color_z(
             cmap="YlGnBu",
             mincnt=1,
             vmin=9,
-            vmax=12,
+            vmax=11.5,
             edgecolors="none",
         )
         hb2 = ax[f][3].hexbin(

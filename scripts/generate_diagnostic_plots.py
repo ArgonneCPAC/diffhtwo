@@ -551,7 +551,7 @@ if __name__ == "__main__":
                 ssp_data,
                 run_label,
                 fit_diagnostics_save_drn,
-                sky_area_degsq=0.1,
+                sky_area_degsq=0.5,
                 plt_show=False,
             )
 
