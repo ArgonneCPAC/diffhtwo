@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run260
-model_nickname: run260_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run260/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run261
+model_nickname: run261_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run261/diagnostic_plots/diffstarpop+spspop+merging
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
@@ -21,7 +21,7 @@ plot_feniks: True
 plot_hizels: False
 
 plots:
-  num_halos : 1000
+  num_halos : 10000
   plot_app_mag_funcs: False
   
   plot_exsitu_frac_z0: False
@@ -34,9 +34,9 @@ plots:
   plot_halpha_uv_ratio: False
 
   plot_color_pdfs: False
-  plot_color_contours: False
+  plot_color_contours: True
   plot_colors_mags: False
-  plot_color_z: True
+  plot_color_z: False
 
   plot_hod: False
   plot_mags: False

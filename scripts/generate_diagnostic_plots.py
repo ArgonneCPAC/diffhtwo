@@ -577,7 +577,7 @@ if __name__ == "__main__":
                 sdss_fields,
                 sdss.filter_info.mag_thresh,
                 sdss.frac_cat,
-                "SDSS or FENIKS",
+                run_label,
                 fit_diagnostics_save_drn,
                 plt_show=False,
             )

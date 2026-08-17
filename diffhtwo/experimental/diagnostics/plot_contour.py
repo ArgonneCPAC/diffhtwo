@@ -149,7 +149,7 @@ def plot_color_contour_grid(
     sdss_fields,
     sdss_mag_thresh,
     sdss_frac_cat,
-    data_label,
+    run_label,
     savedir,
     sigma=0.5,
     plt_show=True,
@@ -186,7 +186,7 @@ def plot_color_contour_grid(
             xlabel,
             ylabel,
             dusk,
-            data_label,
+            "SDSS or FENIKS",
             fontsize=fontsize,
             N_model=space.N_model,
             sigma=sigma,
@@ -240,7 +240,7 @@ def plot_color_contour_grid(
                 xlabel,
                 ylabel,
                 dusk,
-                data_label,
+                "SDSS or FENIKS",
                 fontsize=fontsize,
                 N_model=space.N_model,
                 sigma=sigma,
@@ -283,7 +283,9 @@ def plot_color_contour_grid(
         labelsize=labelsize, labelleft=False, labelright=True, direction="in", length=0
     )
 
-    legend_handles = [mpatches.Patch(color=dusk(0.7), alpha=0.5, label=data_label)]
+    legend_handles = [
+        mpatches.Patch(color=dusk(0.7), alpha=0.5, label="SDSS or FENIKS")
+    ]
     legend_handles.append(
         mlines.Line2D(
             [],
@@ -305,7 +307,7 @@ def plot_color_contour_grid(
         borderaxespad=0.0,
     )
     fig.savefig(
-        savedir + "/cc_cm_grid.png",
+        savedir + "/" + run_label + "_cc_cm_grid.png",
         dpi=600,
     )
     if plt_show:

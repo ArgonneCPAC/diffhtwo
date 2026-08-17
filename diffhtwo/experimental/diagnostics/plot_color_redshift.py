@@ -58,6 +58,7 @@ def plot_color_z(
         sed_key, lc_data, mc_merge, param_collection=param_collection
     )
     z_obs = lc_data.z_obs
+    logmp_obs = lc_data.logmp_obs
     logsm_obs = phot_info.logsm_obs
     logsfr_100Myr = get_logsfr_100Myr(phot_info, lc_data, ssp_data)
     sel = np.ones(len(phot_info.obs_mags), dtype=bool)
@@ -71,14 +72,14 @@ def plot_color_z(
     n_colors = len(tcurves) - 1
     fig, ax = plt.subplots(
         n_colors,
-        4,
+        5,
         figsize=(fig_width, fig_height),
         gridspec_kw={"wspace": 0},
     )
     fig.subplots_adjust(wspace=0, hspace=0, bottom=0.075, left=0.1, right=0.99, top=1)
     labelsize = 12
     fontsize = 10
-    hbd_list, hb0_list, hb1_list, hb2_list = [], [], [], []
+    hbd_list, hb0_list, hb1_list, hb2_list, hb3_list = [], [], [], [], []
     for f in range(0, n_colors):
         ax[f][0].set_ylabel(dim_labels[f], fontsize=labelsize)
         color = phot_info.obs_mags[:, f] - phot_info.obs_mags[:, f + 1]
@@ -93,6 +94,7 @@ def plot_color_z(
             mincnt=1,
             norm=colors.LogNorm(),
             edgecolors="none",
+            rasterized=True,
         )
         hb0 = ax[f][1].hexbin(
             z_obs[sel],
@@ -102,6 +104,7 @@ def plot_color_z(
             mincnt=1,
             norm=colors.LogNorm(),
             edgecolors="none",
+            rasterized=True,
         )
         hb1 = ax[f][2].hexbin(
             z_obs[sel],
@@ -114,8 +117,22 @@ def plot_color_z(
             vmin=9,
             vmax=11.5,
             edgecolors="none",
+            rasterized=True,
         )
         hb2 = ax[f][3].hexbin(
+            z_obs[sel],
+            color[sel],
+            C=logmp_obs[sel],
+            reduce_C_function=np.median,
+            gridsize=gridsize,
+            cmap="YlGnBu",
+            mincnt=1,
+            vmin=11,
+            vmax=13,
+            edgecolors="none",
+            rasterized=True,
+        )
+        hb3 = ax[f][4].hexbin(
             z_obs[sel],
             color[sel],
             C=logsfr_100Myr[sel],
@@ -126,12 +143,14 @@ def plot_color_z(
             vmin=-2.0,
             vmax=1,
             edgecolors="none",
+            rasterized=True,
         )
         hbd_list.append(hbd)
         hb0_list.append(hb0)
         hb1_list.append(hb1)
         hb2_list.append(hb2)
-        for i in range(0, 4):
+        hb3_list.append(hb3)
+        for i in range(0, 5):
             ax[f][i].minorticks_on()
             ax[f][i].tick_params(
                 which="major",
@@ -175,7 +194,6 @@ def plot_color_z(
         shrink=0.85,
         pad=0.01,
     )
-    # cbd.ax.xaxis.labelpad = 2
     cb0 = fig.colorbar(
         hb0_list[0],
         ax=ax[:, 1],
@@ -184,7 +202,6 @@ def plot_color_z(
         shrink=0.85,
         pad=0.01,
     )
-    # cb0.ax.xaxis.labelpad = 2
     cb1 = fig.colorbar(
         hb1_list[0],
         ax=ax[:, 2],
@@ -193,16 +210,22 @@ def plot_color_z(
         shrink=0.85,
         pad=0.01,
     )
-    # cb1.ax.xaxis.labelpad = 2
     cb2 = fig.colorbar(
         hb2_list[0],
         ax=ax[:, 3],
+        location="top",
+        label="median\n" + r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])",
+        shrink=0.85,
+        pad=0.01,
+    )
+    cb3 = fig.colorbar(
+        hb3_list[0],
+        ax=ax[:, 4],
         location="top",
         label="median\n" + r"log$_{10}$ (SFR$_{100Myr}$ [M$_{\odot}$yr$^{-1}$])",
         shrink=0.85,
         pad=0.01,
     )
-    # cb2.ax.xaxis.labelpad = 2
 
     fig.supxlabel("redshift", fontsize=labelsize)
     fig.savefig(savedir + "/" + run_label + "_color_redshift.png", dpi=600)
