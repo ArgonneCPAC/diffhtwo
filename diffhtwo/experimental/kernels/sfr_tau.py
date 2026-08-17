@@ -1,3 +1,4 @@
+from diffsky.merging.merging_kernels import get_in_plus_ex_situ_ssp_weights
 from jax import jit as jjit
 from jax import numpy as jnp
 from jax import vmap
@@ -39,3 +40,25 @@ def compute_logsfr_tau(ssp_weights, lg_age_gyr, logsm_obs, tau_gyr=0.1):
     tau_yr = tau_gyr * 1e9
     sfr = (frac_sm_obs * sm_obs) / tau_yr
     return jnp.log10(sfr)
+
+
+def get_logsfr_100Myr(phot_data, lc_data, ssp_data):
+    mstar_in_situ = 10**phot_data.logsm_obs_in_situ
+    ssp_weights_in_situ = phot_data.ssp_weights
+
+    ssp_weights_in_plus_ex_situ = get_in_plus_ex_situ_ssp_weights(
+        mstar_in_situ,
+        ssp_weights_in_situ,
+        phot_data.p_merge,
+        lc_data.sat_weight,
+        lc_data.halo_indx,
+    )
+    logsm_obs = phot_data.logsm_obs
+
+    logsfr_100Myr = compute_logsfr_tau(
+        ssp_weights_in_plus_ex_situ,
+        ssp_data.ssp_lg_age_gyr,
+        logsm_obs,
+        tau_gyr=0.1,
+    )
+    return logsfr_100Myr

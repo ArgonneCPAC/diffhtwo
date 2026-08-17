@@ -7,12 +7,12 @@ from jax import jit as jjit
 from jax.tree_util import tree_flatten_with_path
 
 
-def weighted_median(values, weights):
+def weighted_percentiles(values, weights, percentiles=(16, 50, 84)):
     sorter = np.argsort(values)
     values, weights = values[sorter], weights[sorter]
     cum_weights = np.cumsum(weights)
-    cutoff = cum_weights[-1] / 2.0
-    return values[np.searchsorted(cum_weights, cutoff)]
+    cutoffs = np.array(percentiles) / 100.0 * cum_weights[-1]
+    return values[np.searchsorted(cum_weights, cutoffs)]
 
 
 @jjit

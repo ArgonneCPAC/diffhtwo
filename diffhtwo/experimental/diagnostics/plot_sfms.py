@@ -3,10 +3,9 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
-from ..kernels.sfh_rapid_q import get_logsfr_obs
-from ..kernels.sfr_tau import compute_logsfr_tau
+from ..kernels.sfr_tau import get_logsfr_100Myr
 from ..tab_blue_orange_cmap import make_cmap
-from ..utils import weighted_median
+from ..utils import weighted_percentiles
 from .plot_utils import make_thresholded_reduce_C_function, percentile_norm
 
 cmap = make_cmap()
@@ -65,9 +64,8 @@ def _get_logsfr_obs_weighted_median(logm_obs, logsfr_obs, gal_weight, t_obs, t_q
         sel = in_bin & sf
 
         if sel.sum() > 0:
-            logsfr_obs_weighted_median.append(
-                weighted_median(logsfr_obs[sel], gal_weight[sel])
-            )
+            l16, median, u84 = weighted_percentiles(logsfr_obs[sel], gal_weight[sel])
+            logsfr_obs_weighted_median.append(median)
         else:
             logsfr_obs_weighted_median.append(np.nan)
 
@@ -118,18 +116,12 @@ def plot_sfms_hexbin(
             num_halos,
             ssp_data,
             tcurves,
+            mc_merge=0,
         )
 
-        logmp_obs = lc_data.logmp_obs
+        logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)
         logsm_obs = phot_data.logsm_obs
-        # t_obs = lc_data.t_obs
-
-        logsfr_100Myr = compute_logsfr_tau(
-            phot_data.ssp_weights,
-            ssp_data.ssp_lg_age_gyr,
-            logsm_obs,
-            tau_gyr=0.1,
-        )
+        logmp_obs = phot_data.logmp_obs
 
         reduce_C_function = make_thresholded_reduce_C_function(gal_weight)
 
@@ -255,8 +247,12 @@ def plot_sfms_hexbin(
         handletextpad=0.4,
         columnspacing=1.0,
     )
-    ax[0, 0].set_ylabel(r"log$_{10}$ (SFR [M$_{\odot}$ yr$^{-1}$])", fontsize=fontsize)
-    ax[1, 0].set_ylabel(r"log$_{10}$ (SFR [M$_{\odot}$ yr$^{-1}$])", fontsize=fontsize)
+    ax[0, 0].set_ylabel(
+        r"log$_{10}$ (SFR$_{100Myr}$ [M$_{\odot}$ yr$^{-1}$])", fontsize=fontsize
+    )
+    ax[1, 0].set_ylabel(
+        r"log$_{10}$ (SFR$_{100Myr}$ [M$_{\odot}$ yr$^{-1}$])", fontsize=fontsize
+    )
 
     fig.colorbar(hb_sm_row[-1], ax=ax[0, -1])
     fig.colorbar(hb_halo_row[-1], ax=ax[1, -1])

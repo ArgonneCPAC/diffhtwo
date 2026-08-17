@@ -109,22 +109,22 @@ def plot_smhm(
         )
 
         # sat
-        ax[zbin].plot(
-            logmp_bin_centers,
-            logsm_obs_weighted_median_sat_in_situ,
-            label="sat pre-merging",
-            color="#61C0BF",
-            lw=1.5,
-            ls=":",
-        )
-        ax[zbin].plot(
-            logmp_bin_centers,
-            logsm_obs_weighted_median_sat,
-            label="sat post-merging",
-            color="#61C0BF",
-            lw=1.5,
-            alpha=0.7,
-        )
+        # ax[zbin].plot(
+        #     logmp_bin_centers,
+        #     logsm_obs_weighted_median_sat_in_situ,
+        #     label="sat pre-merging",
+        #     color="#61C0BF",
+        #     lw=1.5,
+        #     ls=":",
+        # )
+        # ax[zbin].plot(
+        #     logmp_bin_centers,
+        #     logsm_obs_weighted_median_sat,
+        #     label="sat post-merging",
+        #     color="#61C0BF",
+        #     lw=1.5,
+        #     alpha=0.7,
+        # )
 
         # ex-situ frac
         ax_ex_situ_frac = ax[zbin].twinx()
@@ -216,6 +216,122 @@ def plot_smhm(
         dpi=400,
     )
 
+    if plt_show:
+        plt.show()
+    plt.close()
+
+
+def plot_smhm_median(
+    ran_key,
+    param_collection,
+    zbins,
+    num_halos,
+    ssp_data,
+    tcurves,
+    run_label,
+    savedir,
+    d_mh=0.15,
+    mag_thresh=None,
+    frac_cat=None,
+    plt_show=True,
+):
+    n_z_bins = len(zbins)
+    fig_width = 3.5
+    fig_height = 3.5
+    fig, ax = plt.subplots(
+        1,
+        figsize=(fig_width, fig_height),
+        constrained_layout=True,
+        gridspec_kw={"wspace": 0, "hspace": 0},
+    )
+    colors_z = [
+        "#001219",  # near-black teal
+        "#0A6F73",  # deep teal
+        "#5EB59D",  # sage green
+        "#C48A2E",  # amber
+        "#9B1D20",  # brick red
+    ]
+    fontsize = 12
+    legendsize = 12
+    labelsize = 11
+
+    for zbin in range(n_z_bins):
+        z_min = zbins[zbin][0]
+        z_max = zbins[zbin][1]
+        z_med = str(np.median(zbins[zbin]))
+
+        lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+            ran_key,
+            param_collection,
+            z_min,
+            z_max,
+            num_halos,
+            ssp_data,
+            tcurves,
+            mag_thresh=mag_thresh,
+            frac_cat=frac_cat,
+        )
+        logmp_obs = lc_data.logmp_obs
+        logsm_obs = phot_data.logsm_obs
+
+        logmp_bins = np.arange(LOGMP_OBS_MIN, LOGMP_OBS_MAX + d_mh, d_mh)
+        logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
+
+        (
+            logsm_obs_weighted_l16,
+            logsm_obs_weighted_median,
+            logsm_obs_weighted_u84,
+        ) = _get_logsm_obs_weighted_median(logmp_bins, logmp_obs, logsm_obs, gal_weight)
+
+        ax.plot(
+            logmp_bin_centers,
+            logsm_obs_weighted_median,
+            label=r"$z = $" + z_med,
+            color=colors_z[zbin],
+            lw=2,
+            alpha=0.6,
+        )
+        ax.fill_between(
+            logmp_bin_centers,
+            logsm_obs_weighted_l16,
+            logsm_obs_weighted_u84,
+            alpha=0.2,
+            color=colors_z[zbin],
+        )
+
+    ax.tick_params(
+        which="major",
+        direction="in",
+        top=True,
+        right=False,
+        length=6,
+        width=1,
+        labelsize=labelsize,
+    )
+    ax.minorticks_on()
+    ax.tick_params(
+        which="minor",
+        direction="in",
+        top=True,
+        length=3,
+        width=0.8,
+        labelsize=labelsize,
+    )
+
+    ax.set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+    ax.set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
+    ax.set_xticks([11, 12, 13, 14])
+    ax.set_yticks([7, 8, 9, 10, 11, 12])
+
+    fig.supylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
+    fig.supxlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
+
+    ax.legend(fontsize=legendsize)
+
+    fig.savefig(
+        savedir + "/" + run_label + "_smhm_med_l16_u84.png",
+        dpi=600,
+    )
     if plt_show:
         plt.show()
     plt.close()
