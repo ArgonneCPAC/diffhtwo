@@ -128,7 +128,7 @@ def plot_color_z(
             cmap="YlGnBu",
             mincnt=1,
             vmin=11,
-            vmax=13,
+            vmax=12.5,
             edgecolors="none",
             rasterized=True,
         )
