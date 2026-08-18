@@ -190,17 +190,17 @@ if __name__ == "__main__":
         )
     if cfg["plots"]["plot_smhm"]:
         print("Generating SMHM plots...")
-        plot_smhm(
-            ran_key,
-            param_collection_fit,
-            zbins,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            plt_show=False,
-        )
+        # plot_smhm(
+        #     ran_key,
+        #     param_collection_fit,
+        #     zbins,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     plt_show=False,
+        # )
 
         # plot_smhm_cen_sat(
         #     ran_key,
@@ -266,17 +266,17 @@ if __name__ == "__main__":
         #     plt_show=False,
         # )
 
-        # plot_smhm_median(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     plt_show=False,
-        # )
+        plot_smhm_median(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            plt_show=False,
+        )
 
     if cfg["plots"]["plot_fq"]:
         print("Generating fq plots...")

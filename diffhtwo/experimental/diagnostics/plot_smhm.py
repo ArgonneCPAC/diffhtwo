@@ -254,12 +254,11 @@ def plot_smhm_median(
     fontsize = 12
     legendsize = 12
     labelsize = 11
-
+    x_offset_step = 0.02
     for zbin in range(n_z_bins):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
         z_med = str(np.median(zbins[zbin]))
-
         lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
             ran_key,
             param_collection,
@@ -273,16 +272,20 @@ def plot_smhm_median(
         )
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
-
         logmp_bins = np.arange(LOGMP_OBS_MIN, LOGMP_OBS_MAX + d_mh, d_mh)
         logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
-
         (
             logsm_obs_weighted_l16,
             logsm_obs_weighted_median,
             logsm_obs_weighted_u84,
         ) = _get_logsm_obs_weighted_median(logmp_bins, logmp_obs, logsm_obs, gal_weight)
-
+        yerr = np.vstack(
+            [
+                logsm_obs_weighted_median - logsm_obs_weighted_l16,
+                logsm_obs_weighted_u84 - logsm_obs_weighted_median,
+            ]
+        )
+        x_offset = (zbin - (n_z_bins - 1) / 2) * x_offset_step
         ax.plot(
             logmp_bin_centers,
             logsm_obs_weighted_median,
@@ -291,14 +294,16 @@ def plot_smhm_median(
             lw=2,
             alpha=0.6,
         )
-        ax.fill_between(
-            logmp_bin_centers,
-            logsm_obs_weighted_l16,
-            logsm_obs_weighted_u84,
-            alpha=0.2,
-            color=colors_z[zbin],
+        ax.errorbar(
+            logmp_bin_centers + x_offset,
+            logsm_obs_weighted_median,
+            yerr=yerr,
+            fmt="none",
+            ecolor=colors_z[zbin],
+            elinewidth=1.0,
+            alpha=0.5,
+            capsize=1.5,
         )
-
     ax.tick_params(
         which="major",
         direction="in",
@@ -317,17 +322,13 @@ def plot_smhm_median(
         width=0.8,
         labelsize=labelsize,
     )
-
     ax.set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
     ax.set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
     ax.set_xticks([11, 12, 13, 14])
     ax.set_yticks([7, 8, 9, 10, 11, 12])
-
     fig.supylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
     fig.supxlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
-
     ax.legend(fontsize=legendsize)
-
     fig.savefig(
         savedir + "/" + run_label + "_smhm_med_l16_u84.png",
         dpi=600,

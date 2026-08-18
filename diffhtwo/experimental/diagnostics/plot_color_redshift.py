@@ -140,7 +140,7 @@ def plot_color_z(
             gridsize=gridsize,
             cmap="coolwarm_r",
             mincnt=1,
-            vmin=-2.0,
+            vmin=-1.5,
             vmax=1,
             edgecolors="none",
             rasterized=True,
