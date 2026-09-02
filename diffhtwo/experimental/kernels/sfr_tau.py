@@ -3,6 +3,8 @@ from jax import jit as jjit
 from jax import numpy as jnp
 from jax import vmap
 
+from ..utils import safe_log10
+
 vmap_interp = jjit(vmap(jnp.interp, in_axes=(None, None, 0)))
 
 
@@ -39,7 +41,7 @@ def compute_logsfr_tau(ssp_weights, lg_age_gyr, logsm_obs, tau_gyr=0.1):
     sm_obs = 10**logsm_obs
     tau_yr = tau_gyr * 1e9
     sfr = (frac_sm_obs * sm_obs) / tau_yr
-    return jnp.log10(sfr)
+    return safe_log10(sfr)
 
 
 def get_logsfr_100Myr(phot_data, lc_data, ssp_data):

@@ -121,7 +121,7 @@ def plot_sfms_hexbin(
 
         logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)
         logsm_obs = phot_data.logsm_obs
-        logmp_obs = phot_data.logmp_obs
+        logmp_obs = lc_data.logmp_obs
 
         reduce_C_function = make_thresholded_reduce_C_function(gal_weight)
 

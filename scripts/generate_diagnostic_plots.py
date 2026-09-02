@@ -190,81 +190,81 @@ if __name__ == "__main__":
         )
     if cfg["plots"]["plot_smhm"]:
         print("Generating SMHM plots...")
-        # plot_smhm(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     plt_show=False,
-        # )
+        plot_smhm(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            plt_show=False,
+        )
 
-        # plot_smhm_cen_sat(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     um_drn,
-        #     plt_show=False,
-        # )
+        plot_smhm_cen_sat(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            um_drn,
+            plt_show=False,
+        )
 
-        # plot_smhm_ratio_cen_sat(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     um_drn,
-        #     plt_show=False,
-        # )
+        plot_smhm_ratio_cen_sat(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            um_drn,
+            plt_show=False,
+        )
 
-        # plot_smhm_q_sf(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     um_drn,
-        #     plt_show=False,
-        # )
+        plot_smhm_q_sf(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            um_drn,
+            plt_show=False,
+        )
 
-        # plot_smhm_ratio_q_sf(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     um_drn,
-        #     plt_show=False,
-        # )
+        plot_smhm_ratio_q_sf(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            um_drn,
+            plt_show=False,
+        )
 
-        # plot_smhm_hexbin(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     plt_show=False,
-        # )
+        plot_smhm_hexbin(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            plt_show=False,
+        )
 
         plot_smhm_median(
             ran_key,
@@ -854,20 +854,20 @@ if __name__ == "__main__":
             ]
         )
 
-        if cfg["plots"]["plot_colors_z"]:
-            print("Generating SDSS colors v. redshift plot...")
-            plot_colors_z(
-                ran_key,
-                param_collection_fit,
-                sdss,
-                sdss_label,
-                sdss_zbins[0][0],
-                sdss_zbins[-1][-1],
-                num_halos,
-                ssp_data,
-                fit_diagnostics_save_drn,
-                plt_show=False,
-            )
+        # if cfg["plots"]["plot_colors_z"]:
+        #     print("Generating SDSS colors v. redshift plot...")
+        #     plot_colors_z(
+        #         ran_key,
+        #         param_collection_fit,
+        #         sdss,
+        #         sdss_label,
+        #         sdss_zbins[0][0],
+        #         sdss_zbins[-1][-1],
+        #         num_halos,
+        #         ssp_data,
+        #         fit_diagnostics_save_drn,
+        #         plt_show=False,
+        #     )
 
         # if cfg["plots"]["plot_color_contours"]:
         #     print("Generating SDSS color contour plots...")
