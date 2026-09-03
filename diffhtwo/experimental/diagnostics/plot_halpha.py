@@ -19,6 +19,8 @@ def plot_halpha(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     alpha = 0.75
@@ -49,6 +51,8 @@ def plot_halpha(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,
@@ -157,6 +161,8 @@ def plot_halpha_ms_q_burst(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     alpha = 1
@@ -185,6 +191,8 @@ def plot_halpha_ms_q_burst(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,
@@ -294,6 +302,8 @@ def plot_halpha_ssfr(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     xlims = []
@@ -326,6 +336,8 @@ def plot_halpha_ssfr(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,
@@ -442,6 +454,8 @@ def plot_halpha_sfr(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     xlims = []
@@ -474,6 +488,8 @@ def plot_halpha_sfr(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,
@@ -585,6 +601,8 @@ def plot_halpha_sfr_single_z(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     xlims = []
@@ -617,6 +635,8 @@ def plot_halpha_sfr_single_z(
         ssp_data,
         tcurves,
         num_halos=num_halos,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
     )
     (
         lgL_bin_centers,
@@ -728,6 +748,8 @@ def plot_halpha_insitu_exsitu(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     xlims = []
@@ -752,6 +774,8 @@ def plot_halpha_insitu_exsitu(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,

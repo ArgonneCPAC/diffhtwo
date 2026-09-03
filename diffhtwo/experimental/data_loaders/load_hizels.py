@@ -159,7 +159,7 @@ def _lg_phi_corr_to_N_corr(lg_phi_corr, vol_1e4Mpc3):
 
 def get_hizels_halpha(drn):
     """z0p4"""
-    HiZELS_halpha_z0p4 = ascii.read(drn / "halpha_LF_z0p4.dat")
+    HiZELS_halpha_z0p4 = ascii.read(drn / "halpha_LF_z0p4_truncated.dat")
     lg_halpha_Lbin_edges_z0p4 = _get_lgL_bin_edges(
         HiZELS_halpha_z0p4, "logLHa", "logLHa_binw_full"
     )
@@ -176,7 +176,7 @@ def get_hizels_halpha(drn):
     )
 
     """z0p84"""
-    HiZELS_halpha_z0p84 = ascii.read(drn / "halpha_LF_z0p84.dat")
+    HiZELS_halpha_z0p84 = ascii.read(drn / "halpha_LF_z0p84_truncated.dat")
     lg_halpha_Lbin_edges_z0p84 = _get_lgL_bin_edges(
         HiZELS_halpha_z0p84, "logLHa", "logLHa_binw_full"
     )
@@ -195,7 +195,7 @@ def get_hizels_halpha(drn):
     )
 
     """z1p47"""
-    HiZELS_halpha_z1p47 = ascii.read(drn / "halpha_LF_z1p47.dat")
+    HiZELS_halpha_z1p47 = ascii.read(drn / "halpha_LF_z1p47_truncated.dat")
     lg_halpha_Lbin_edges_z1p47 = _get_lgL_bin_edges(
         HiZELS_halpha_z1p47, "logLHa", "logLHa_binw_full"
     )
@@ -214,7 +214,7 @@ def get_hizels_halpha(drn):
     )
 
     """z2p23"""
-    HiZELS_halpha_z2p23 = ascii.read(drn / "halpha_LF_z2p23.dat")
+    HiZELS_halpha_z2p23 = ascii.read(drn / "halpha_LF_z2p23_truncated.dat")
     lg_halpha_Lbin_edges_z2p23 = _get_lgL_bin_edges(
         HiZELS_halpha_z2p23, "logLHa", "logLHa_binw_full"
     )
