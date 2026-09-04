@@ -117,6 +117,8 @@ if __name__ == "__main__":
             ssp_data,
             num_halos_coarse_zbins=cfg["sdss"]["num_halos_coarse_zbins"],
             num_halos_fine_zbins=cfg["sdss"]["num_halos_fine_zbins"],
+            lgmp_min=cfg["lgmp_min"],
+            lgmp_max=cfg["lgmp_max"],
         )
         remove = {"dataset_dim_labels", "mags_labels"}
         SdssFitting = namedtuple("Sdss", [s for s in sdss._fields if s not in remove])
@@ -131,6 +133,8 @@ if __name__ == "__main__":
             ssp_data,
             num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
             num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
+            lgmp_min=cfg["lgmp_min"],
+            lgmp_max=cfg["lgmp_max"],
         )
 
         # load hizels data
@@ -140,7 +144,10 @@ if __name__ == "__main__":
             ssp_data,
             feniks_fitting_data.filter_info.tcurves,
             halpha_wave_aa,
+            postfix=cfg["hizels"]["postfix"],
             num_halos=cfg["hizels"]["num_halos"],
+            lgmp_min=cfg["lgmp_min"],
+            lgmp_max=cfg["lgmp_max"],
         )
 
         (

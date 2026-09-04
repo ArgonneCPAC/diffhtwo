@@ -445,7 +445,7 @@ if __name__ == "__main__":
         print("Generating h-alpha LF plot...")
         plot_halpha(
             ran_key,
-            hizels,
+            hizels_drn,
             param_collection_fit,
             ssp_data,
             feniks.filter_info.tcurves,

@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 
+from ..data_loaders import load_hizels
 from ..kernels.line_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
 from ..kernels.sfh_rapid_q import update_logsfr_obs_with_rapid_q
 
@@ -11,7 +12,7 @@ plt.rc("font", family="serif", serif=["Times New Roman"])
 
 def plot_halpha(
     ran_key,
-    hizels,
+    hizels_drn,
     param_collection,
     ssp_data,
     tcurves,
@@ -23,6 +24,12 @@ def plot_halpha(
     lgmp_max=15.0,
     plt_show=True,
 ):
+    hizels = load_hizels.get_hizels_data(
+        hizels_drn, ran_key, ssp_data, tcurves, halpha_wave_aa, postfix=""
+    )
+    hizels_truncated = load_hizels.get_hizels_data(
+        hizels_drn, ran_key, ssp_data, tcurves, halpha_wave_aa, postfix="_truncated"
+    )
     alpha = 0.75
     lw = 2
 
@@ -67,15 +74,29 @@ def plot_halpha(
             lc_data,
         ) = _res
 
-        ax.errorbar(
-            lgL_bin_centers,
-            hizels.lg_phi_data[0][i][0] + offsets_z[i],
-            hizels.lg_phi_data[0][i][1],
-            color=colors_z[i],
-            fmt="s",
-            markersize=5,
-            alpha=alpha,
+        lgL_bin_centers_truncated = 0.5 * (
+            hizels_truncated.lg_Lbin_edges[0][i][1:]
+            + hizels_truncated.lg_Lbin_edges[0][i][:-1]
         )
+
+        mfc = [
+            colors_z[i] if b in lgL_bin_centers_truncated else "none"
+            for b in lgL_bin_centers
+        ]
+
+        for b in range(0, len(mfc)):
+            ax.errorbar(
+                lgL_bin_centers[b],
+                hizels.lg_phi_data[0][i][0][b] + offsets_z[i],
+                hizels.lg_phi_data[0][i][1][b],
+                mec=colors_z[i],
+                mew=1.2,
+                ecolor=colors_z[i],
+                fmt="s",
+                mfc=mfc[b],
+                markersize=5,
+                alpha=alpha,
+            )
 
         ax.plot(
             lgL_bin_centers,
@@ -121,7 +142,20 @@ def plot_halpha(
             markersize=6,
             linestyle="none",
             lw=lw,
-            label="Sobral+13 (HiZELS)",
+            label="Sobral+13 (fitted)",
+        ),
+        ax.errorbar(
+            [],
+            [],
+            yerr=[[0.2], [0.2]],  # vertical error bar
+            fmt="s",
+            mfc="none",
+            mec="k",
+            ecolor="k",
+            markersize=6,
+            linestyle="none",
+            lw=lw,
+            label="Sobral+13 (not fitted)",
         ),
     ]
     handles = handles_z + handles

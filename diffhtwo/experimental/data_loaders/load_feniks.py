@@ -1080,6 +1080,8 @@ def get_feniks_fitting_data(
     num_halos_fine_zbins=100,
     phot=PHOT,
     zout=ZOUT,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
     add_random_rows_for_testing=False,
     testing=False,
 ):
@@ -1092,6 +1094,8 @@ def get_feniks_fitting_data(
         num_halos_fine_zbins=num_halos_fine_zbins,
         phot=phot,
         zout=zout,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
         add_random_rows_for_testing=add_random_rows_for_testing,
     )
     remove = {"dataset_dim_labels", "mags_labels"}

@@ -31,6 +31,7 @@ def get_hizels_data(
     ssp_data,
     tcurves,
     halpha_wave_aa,
+    postfix="",
     num_halos=100,
     lgmp_min=9.0,
     lgmp_max=15.0,
@@ -46,7 +47,7 @@ def get_hizels_data(
         hizels_halpha_delta_z_data,
         hizels_halpha_n_bins,
         hizels_halpha_n_gals,
-    ) = get_hizels_halpha(drn)
+    ) = get_hizels_halpha(drn, postfix)
 
     line_wave_aa = [halpha_wave_aa]
     lg_Lbin_edges = [hizels_lg_halpha_Lbin_edges_data]
@@ -157,9 +158,9 @@ def _lg_phi_corr_to_N_corr(lg_phi_corr, vol_1e4Mpc3):
     return N_corr
 
 
-def get_hizels_halpha(drn):
+def get_hizels_halpha(drn, postfix):
     """z0p4"""
-    HiZELS_halpha_z0p4 = ascii.read(drn / "halpha_LF_z0p4_truncated.dat")
+    HiZELS_halpha_z0p4 = ascii.read(drn / f"halpha_LF_z0p4{postfix}.dat")
     lg_halpha_Lbin_edges_z0p4 = _get_lgL_bin_edges(
         HiZELS_halpha_z0p4, "logLHa", "logLHa_binw_full"
     )
@@ -176,7 +177,7 @@ def get_hizels_halpha(drn):
     )
 
     """z0p84"""
-    HiZELS_halpha_z0p84 = ascii.read(drn / "halpha_LF_z0p84_truncated.dat")
+    HiZELS_halpha_z0p84 = ascii.read(drn / f"halpha_LF_z0p84{postfix}.dat")
     lg_halpha_Lbin_edges_z0p84 = _get_lgL_bin_edges(
         HiZELS_halpha_z0p84, "logLHa", "logLHa_binw_full"
     )
@@ -195,7 +196,7 @@ def get_hizels_halpha(drn):
     )
 
     """z1p47"""
-    HiZELS_halpha_z1p47 = ascii.read(drn / "halpha_LF_z1p47_truncated.dat")
+    HiZELS_halpha_z1p47 = ascii.read(drn / f"halpha_LF_z1p47{postfix}.dat")
     lg_halpha_Lbin_edges_z1p47 = _get_lgL_bin_edges(
         HiZELS_halpha_z1p47, "logLHa", "logLHa_binw_full"
     )
@@ -214,7 +215,7 @@ def get_hizels_halpha(drn):
     )
 
     """z2p23"""
-    HiZELS_halpha_z2p23 = ascii.read(drn / "halpha_LF_z2p23_truncated.dat")
+    HiZELS_halpha_z2p23 = ascii.read(drn / f"halpha_LF_z2p23{postfix}.dat")
     lg_halpha_Lbin_edges_z2p23 = _get_lgL_bin_edges(
         HiZELS_halpha_z2p23, "logLHa", "logLHa_binw_full"
     )
