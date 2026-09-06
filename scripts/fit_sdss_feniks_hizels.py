@@ -98,6 +98,10 @@ if __name__ == "__main__":
     cfg_d["model_drn"] = fit_save_drn
     cfg_d["model_nickname"] = cfg["fit_runid"] + "_" + cfg["fit_type"]
     cfg_d["fit_diagnostics_save_drn"] = fit_diagnostics_save_drn
+    cfg_d["lgmp_min"] = cfg["lgmp_min"]
+    cfg_d["lgmp_max"] = cfg["lgmp_max"]
+    cfg_d["logHa_flux_limit"] = cfg["hizels"]["logHa_flux_limit"]
+
     new_config_diag_path = os.path.join(
         fit_diagnostics_save_drn, "config_diagnostics.yaml"
     )
@@ -144,7 +148,7 @@ if __name__ == "__main__":
             ssp_data,
             feniks_fitting_data.filter_info.tcurves,
             halpha_wave_aa,
-            postfix=cfg["hizels"]["postfix"],
+            logflux_limit=cfg["hizels"]["logHa_flux_limit"],
             num_halos=cfg["hizels"]["num_halos"],
             lgmp_min=cfg["lgmp_min"],
             lgmp_max=cfg["lgmp_max"],

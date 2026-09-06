@@ -126,6 +126,7 @@ if __name__ == "__main__":
     lgmp_min = cfg["lgmp_min"]
     lgmp_max = cfg["lgmp_max"]
     logHa_flux_limit = cfg["logHa_flux_limit"]
+
     run_label = cfg["model_nickname"].split("_")[0]
 
     # get ssp data
@@ -499,7 +500,7 @@ if __name__ == "__main__":
             num_halos=num_halos,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            logflux_limit_fit=logHa_flux_limit,
+            logHa_flux_limit_fit=logHa_flux_limit,
             plt_show=False,
         )
 

@@ -4,13 +4,11 @@ import numpy as np
 from matplotlib.lines import Line2D
 
 from ..data_loaders import load_hizels
+from ..data_loaders.load_hizels import LOGHA_FLUX_LIMIT_NONE
 from ..kernels.line_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
 from ..kernels.sfh_rapid_q import update_logsfr_obs_with_rapid_q
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
-
-# placeholder for no flux limit as hizels data doesn't as faint as -20.0
-LOGFLUX_LIMIT_NONE = -20.0
 
 
 def plot_halpha(
@@ -25,7 +23,7 @@ def plot_halpha(
     num_halos=100,
     lgmp_min=9.0,
     lgmp_max=15.0,
-    logflux_limit_fit=LOGFLUX_LIMIT_NONE,
+    logHa_flux_limit_fit=LOGHA_FLUX_LIMIT_NONE,
     plt_show=True,
 ):
     hizels = load_hizels.get_hizels_data(
@@ -34,15 +32,15 @@ def plot_halpha(
         ssp_data,
         tcurves,
         halpha_wave_aa,
-        logflux_limit=LOGFLUX_LIMIT_NONE,
+        logflux_limit=LOGHA_FLUX_LIMIT_NONE,
     )
-    hizels_truncated = load_hizels.get_hizels_data(
+    hizels_flux_limited = load_hizels.get_hizels_data(
         hizels_drn,
         ran_key,
         ssp_data,
         tcurves,
         halpha_wave_aa,
-        logflux_limit=logflux_limit_fit,
+        logflux_limit=logHa_flux_limit_fit,
     )
     alpha = 0.75
     lw = 2
@@ -88,13 +86,13 @@ def plot_halpha(
             lc_data,
         ) = _res
 
-        lgL_bin_centers_truncated = 0.5 * (
-            hizels_truncated.lg_Lbin_edges[0][i][1:]
-            + hizels_truncated.lg_Lbin_edges[0][i][:-1]
+        lgL_bin_centers_flux_limited = 0.5 * (
+            hizels_flux_limited.lg_Lbin_edges[0][i][1:]
+            + hizels_flux_limited.lg_Lbin_edges[0][i][:-1]
         )
 
         mfc = [
-            colors_z[i] if b in lgL_bin_centers_truncated else "none"
+            colors_z[i] if b in lgL_bin_centers_flux_limited else "none"
             for b in lgL_bin_centers
         ]
 

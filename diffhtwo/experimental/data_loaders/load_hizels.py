@@ -26,6 +26,9 @@ Hizels = namedtuple(
 )
 DELTA_L_HALPHA = -0.4  # uncorrect HiZELS h-alpha L for dust (A_halpha = 1 mag)
 
+# placeholder for no Ha flux limit as hizels data doesn't go as faint as -20.0
+LOGHA_FLUX_LIMIT_NONE = -20.0
+
 
 def get_hizels_data(
     drn,
@@ -33,7 +36,7 @@ def get_hizels_data(
     ssp_data,
     tcurves,
     halpha_wave_aa,
-    logflux_limit=-15.5,
+    logflux_limit=LOGHA_FLUX_LIMIT_NONE,
     num_halos=100,
     lgmp_min=9.0,
     lgmp_max=15.0,
