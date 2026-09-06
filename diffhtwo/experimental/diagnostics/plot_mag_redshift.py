@@ -112,6 +112,7 @@ def compare_models_in_mag_z(
 
     sel1 &= p_merge1 < 0.9
     sel2 &= p_merge2 < 0.9
+
     fig_width = 7.1
     fig_height = 6.6
     n_bands = len(tcurves)
@@ -317,6 +318,7 @@ def compare_models_in_mag_z2(
 
     sel1 &= p_merge1 < 0.9
     sel2 &= p_merge2 < 0.9
+
     fig_width = 7.1
     fig_height = 6.6
     n_bands = len(tcurves)

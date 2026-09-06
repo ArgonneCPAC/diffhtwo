@@ -56,6 +56,11 @@ from diffhtwo.experimental.diagnostics.plot_halpha_uv_ratio import (
     plot_halpha_uv_ratio_mass_z,
 )
 from diffhtwo.experimental.diagnostics.plot_hod import plot_hod_sm_thresh
+from diffhtwo.experimental.diagnostics.plot_mag_redshift import (
+    compare_models_in_mag_z,
+    compare_models_in_mag_z2,
+    compare_models_in_mag_z_sfr,
+)
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
     plot_color_pdfs,
@@ -108,7 +113,19 @@ if __name__ == "__main__":
         cfg["model_nickname"],
     )
 
-    num_halos = cfg["plots"]["num_halos"]
+    run_label2 = "run261"
+    run_type2 = "diffstarpop+spspop+merging"
+    param_collection2 = lc_mock.load_diffsky_param_collection_merging(
+        "/Users/kumail/diffdir/fits/" + run_label2 + "/",
+        run_label2 + "_" + run_type2,
+    )
+
+    sky_area_degsq = cfg["sky_area_degsq"]
+
+    num_halos = cfg["num_halos"]
+    lgmp_min = cfg["lgmp_min"]
+    lgmp_max = cfg["lgmp_max"]
+    logHa_flux_limit = cfg["logHa_flux_limit"]
     run_label = cfg["model_nickname"].split("_")[0]
 
     # get ssp data
@@ -410,7 +427,7 @@ if __name__ == "__main__":
                 [0.4, 0.7],
                 [0.7, 1.0],
                 [1.0, 1.5],
-                [1.5, 2.5],
+                [1.5, 2.0],
             ]
         )
 
@@ -424,6 +441,33 @@ if __name__ == "__main__":
             ssp_data,
             fit_diagnostics_save_drn,
             num_halos=num_halos,
+            plt_show=False,
+        )
+
+    if cfg["plots"]["plot_color_contours"]:
+        sdss_fields = [
+            ["gr_ri", "r_ri"],
+        ]
+        feniks_fields = [
+            ["gr_ri", "K_gr"],
+            ["rz_zJ", "K_rz"],
+            ["rz_zJ", "K_rz"],
+            ["zJ_JH", "K_gr"],
+        ]
+        print("Generating FENIKS color contour plots...")
+        plot_color_contour_grid(
+            ran_key,
+            param_collection_fit,
+            feniks.colors,
+            feniks_fields,
+            feniks.filter_info.mag_thresh,
+            feniks.frac_cat,
+            sdss.colors,
+            sdss_fields,
+            sdss.filter_info.mag_thresh,
+            sdss.frac_cat,
+            run_label,
+            fit_diagnostics_save_drn,
             plt_show=False,
         )
 
@@ -453,6 +497,9 @@ if __name__ == "__main__":
             hizels_label,
             fit_diagnostics_save_drn,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            logflux_limit_fit=logHa_flux_limit,
             plt_show=False,
         )
 
@@ -551,34 +598,7 @@ if __name__ == "__main__":
                 ssp_data,
                 run_label,
                 fit_diagnostics_save_drn,
-                sky_area_degsq=0.5,
-                plt_show=False,
-            )
-
-        if cfg["plots"]["plot_color_contours"]:
-            sdss_fields = [
-                ["gr_ri", "r_ri"],
-            ]
-            feniks_fields = [
-                ["gr_ri", "K_gr"],
-                ["rz_zJ", "K_rz"],
-                ["rz_zJ", "K_rz"],
-                ["zJ_JH", "K_gr"],
-            ]
-            print("Generating FENIKS color contour plots...")
-            plot_color_contour_grid(
-                ran_key,
-                param_collection_fit,
-                feniks.colors,
-                feniks_fields,
-                feniks.filter_info.mag_thresh,
-                feniks.frac_cat,
-                sdss.colors,
-                sdss_fields,
-                sdss.filter_info.mag_thresh,
-                sdss.frac_cat,
-                run_label,
-                fit_diagnostics_save_drn,
+                sky_area_degsq=sky_area_degsq,
                 plt_show=False,
             )
 
@@ -853,6 +873,54 @@ if __name__ == "__main__":
                 [0.1, 0.2],
             ]
         )
+        if cfg["plots"]["plot_mag_z"]:
+            print("Generating mag vs. redshift plot...")
+            compare_models_in_mag_z2(
+                ran_key,
+                param_collection_fit,
+                param_collection2,
+                0.05,
+                0.3,
+                sdss,
+                ssp_data,
+                run_label,
+                run_label2,
+                fit_diagnostics_save_drn,
+                sky_area_degsq=sky_area_degsq,
+                plt_show=False,
+            )
+
+            print("Generating mag vs. redshift plot color-coded with ms/q/burst...")
+            compare_models_in_mag_z(
+                ran_key,
+                param_collection_fit,
+                param_collection2,
+                0.05,
+                0.3,
+                sdss,
+                ssp_data,
+                run_label,
+                run_label2,
+                fit_diagnostics_save_drn,
+                sky_area_degsq=sky_area_degsq,
+                plt_show=False,
+            )
+
+            print("Generating mag vs. redshift plot color-coded with SFR...")
+            compare_models_in_mag_z_sfr(
+                ran_key,
+                param_collection_fit,
+                param_collection2,
+                0.05,
+                0.3,
+                sdss,
+                ssp_data,
+                run_label,
+                run_label2,
+                fit_diagnostics_save_drn,
+                sky_area_degsq=sky_area_degsq,
+                plt_show=False,
+            )
 
         # if cfg["plots"]["plot_colors_z"]:
         #     print("Generating SDSS colors v. redshift plot...")

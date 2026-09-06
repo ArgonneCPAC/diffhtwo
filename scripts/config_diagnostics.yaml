@@ -15,13 +15,19 @@ fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 
-
 plot_sdss: False
 plot_feniks: False
 plot_hizels: True
 
+num_halos : 5000
+sky_area_degsq: 15
+
+lgmp_min: 9.0
+lgmp_max: 15.0
+
+logHa_flux_limit: -15.9
+
 plots:
-  num_halos : 3000
   plot_app_mag_funcs: False
   
   plot_exsitu_frac_z0: False
@@ -31,13 +37,15 @@ plots:
   plot_sfms: False
   plot_fq: False
 
-  plot_halpha_uv_ratio: False
+  plot_color_z: False
+  plot_mag_z: False
+  plot_color_contours: False
 
   plot_color_pdfs: False
-  plot_color_contours: False
   plot_colors_mags: False
-  plot_color_z: False
 
+  plot_halpha_uv_ratio: False
+  
   plot_hod: False
   plot_mags: False
   plot_ssperr: False

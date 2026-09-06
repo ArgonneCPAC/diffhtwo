@@ -9,6 +9,9 @@ from ..kernels.sfh_rapid_q import update_logsfr_obs_with_rapid_q
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 
+# placeholder for no flux limit as hizels data doesn't as faint as -20.0
+LOGFLUX_LIMIT_NONE = -20.0
+
 
 def plot_halpha(
     ran_key,
@@ -22,13 +25,24 @@ def plot_halpha(
     num_halos=100,
     lgmp_min=9.0,
     lgmp_max=15.0,
+    logflux_limit_fit=LOGFLUX_LIMIT_NONE,
     plt_show=True,
 ):
     hizels = load_hizels.get_hizels_data(
-        hizels_drn, ran_key, ssp_data, tcurves, halpha_wave_aa, postfix=""
+        hizels_drn,
+        ran_key,
+        ssp_data,
+        tcurves,
+        halpha_wave_aa,
+        logflux_limit=LOGFLUX_LIMIT_NONE,
     )
     hizels_truncated = load_hizels.get_hizels_data(
-        hizels_drn, ran_key, ssp_data, tcurves, halpha_wave_aa, postfix="_truncated"
+        hizels_drn,
+        ran_key,
+        ssp_data,
+        tcurves,
+        halpha_wave_aa,
+        logflux_limit=logflux_limit_fit,
     )
     alpha = 0.75
     lw = 2
