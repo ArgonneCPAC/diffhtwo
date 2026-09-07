@@ -2,6 +2,7 @@ import argparse
 import os
 from pathlib import Path
 
+import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -211,6 +212,7 @@ if __name__ == "__main__":
             frac_ex_situ_lit_drn,
             plt_show=False,
         )
+        jax.clear_caches()
     if cfg["plots"]["plot_smhm"]:
         print("Generating SMHM plots...")
         plot_smhm(
@@ -224,6 +226,7 @@ if __name__ == "__main__":
             fit_diagnostics_save_drn,
             plt_show=False,
         )
+        jax.clear_caches()
 
         plot_smhm_cen_sat(
             ran_key,
@@ -237,6 +240,7 @@ if __name__ == "__main__":
             um_drn,
             plt_show=False,
         )
+        jax.clear_caches()
 
         plot_smhm_ratio_cen_sat(
             ran_key,
@@ -250,6 +254,7 @@ if __name__ == "__main__":
             um_drn,
             plt_show=False,
         )
+        jax.clear_caches()
 
         # plot_smhm_q_sf(
         #     ran_key,
@@ -288,6 +293,7 @@ if __name__ == "__main__":
             fit_diagnostics_save_drn,
             plt_show=False,
         )
+        jax.clear_caches()
 
         plot_smhm_median(
             ran_key,
@@ -300,6 +306,7 @@ if __name__ == "__main__":
             fit_diagnostics_save_drn,
             plt_show=False,
         )
+        jax.clear_caches()
 
     if cfg["plots"]["plot_fq"]:
         print("Generating fq plots...")
@@ -316,6 +323,7 @@ if __name__ == "__main__":
             fit_diagnostics_save_drn,
             plt_show=False,
         )
+        jax.clear_caches()
         # plot_fq_um(
         #     ran_key,
         #     param_collection_fit,
@@ -377,6 +385,7 @@ if __name__ == "__main__":
             fit_diagnostics_save_drn,
             plt_show=False,
         )
+        jax.clear_caches()
     if cfg["plots"]["plot_fburst_mh_z"]:
         print("Generating lgfburst plot...")
         plot_lgfburst_mh_z(
@@ -391,6 +400,7 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
+        jax.clear_caches()
 
     if cfg["plots"]["plot_halpha_uv_ratio"]:
         print("Generating H-alpha-to-UV ratio plot...")
@@ -449,6 +459,7 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
+        jax.clear_caches()
 
     if cfg["plots"]["plot_color_contours"]:
         sdss_fields = [
@@ -476,6 +487,7 @@ if __name__ == "__main__":
             fit_diagnostics_save_drn,
             plt_show=False,
         )
+        jax.clear_caches()
 
     """
     Plot HiZELS
@@ -508,6 +520,7 @@ if __name__ == "__main__":
             logHa_flux_limit_fit=logHa_flux_limit,
             plt_show=False,
         )
+        jax.clear_caches()
 
         print("Generating h-alpha LF ms/q/burst plot...")
         plot_halpha_ms_q_burst(
@@ -522,6 +535,7 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
+        jax.clear_caches()
 
         print("Generating h-alpha LF ssfr plot...")
         plot_halpha_ssfr(
@@ -536,6 +550,7 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
+        jax.clear_caches()
 
         print("Generating h-alpha LF sfr plot...")
         plot_halpha_sfr_single_z(
@@ -550,6 +565,7 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
+        jax.clear_caches()
         plot_halpha_sfr(
             ran_key,
             hizels,
@@ -562,6 +578,7 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
+        jax.clear_caches()
 
         print("Generating h-alpha LF in-situ/ex-situ plot...")
         plot_halpha_insitu_exsitu(
@@ -576,6 +593,7 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
+        jax.clear_caches()
 
     """
     Plot FENIKS
@@ -609,6 +627,7 @@ if __name__ == "__main__":
                 lgmp_sub_min=lgmp_min,
                 plt_show=False,
             )
+            jax.clear_caches()
 
             # plot_color_contours(
             #     ran_key,
