@@ -61,14 +61,18 @@ def plot_color_z(
     logmp_obs = lc_data.logmp_obs
     logsm_obs = phot_info.logsm_obs
     logsfr_100Myr = get_logsfr_100Myr(phot_info, lc_data, ssp_data)
+    logssfr_100Myr = logsfr_100Myr - logsm_obs
+
     sel = np.ones(len(phot_info.obs_mags), dtype=bool)
     for band in range(len(mag_thresh)):
         thresh = mag_thresh[band]
         sel &= (phot_info.obs_mags[:, band] > thresh[0]) & (
             phot_info.obs_mags[:, band] < thresh[1]
         )
+
     fig_width = 7.1
     fig_height = 6.4
+    labelsize = 12
     n_colors = len(tcurves) - 1
     fig, ax = plt.subplots(
         n_colors,
@@ -77,8 +81,7 @@ def plot_color_z(
         gridspec_kw={"wspace": 0},
     )
     fig.subplots_adjust(wspace=0, hspace=0, bottom=0.075, left=0.1, right=0.99, top=1)
-    labelsize = 12
-    fontsize = 10
+
     hbd_list, hb0_list, hb1_list, hb2_list, hb3_list = [], [], [], [], []
     for f in range(0, n_colors):
         ax[f][0].set_ylabel(dim_labels[f], fontsize=labelsize)
@@ -135,13 +138,13 @@ def plot_color_z(
         hb3 = ax[f][4].hexbin(
             z_obs[sel],
             color[sel],
-            C=logsfr_100Myr[sel],
+            C=logssfr_100Myr[sel],
             reduce_C_function=np.median,
             gridsize=gridsize,
             cmap="coolwarm_r",
             mincnt=1,
-            vmin=-1.5,
-            vmax=1,
+            vmin=-11,
+            vmax=-9,
             edgecolors="none",
             rasterized=True,
         )
@@ -222,7 +225,7 @@ def plot_color_z(
         hb3_list[0],
         ax=ax[:, 4],
         location="top",
-        label="median\n" + r"log$_{10}$ (SFR$_{100Myr}$ [M$_{\odot}$yr$^{-1}$])",
+        label="median\n" + r"log$_{10}$ (sSFR$_{100Myr}$ [yr$^{-1}$])",
         shrink=0.85,
         pad=0.01,
     )

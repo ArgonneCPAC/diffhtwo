@@ -113,10 +113,15 @@ if __name__ == "__main__":
         cfg["model_nickname"],
     )
 
+    os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
+
+    with open(fit_diagnostics_save_drn + "/" + args.config) as f:
+        cfg = yaml.safe_load(f)
+
     run_label2 = "run261"
     run_type2 = "diffstarpop+spspop+merging"
     param_collection2 = lc_mock.load_diffsky_param_collection_merging(
-        "/Users/kumail/diffdir/fits/" + run_label2 + "/",
+        "/".join(cfg["model_drn"].split("/")[:-1]) + "/" + run_label2 + "/",
         run_label2 + "_" + run_type2,
     )
 
@@ -246,31 +251,31 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-        plot_smhm_q_sf(
-            ran_key,
-            param_collection_fit,
-            zbins,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            um_drn,
-            plt_show=False,
-        )
+        # plot_smhm_q_sf(
+        #     ran_key,
+        #     param_collection_fit,
+        #     zbins,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     um_drn,
+        #     plt_show=False,
+        # )
 
-        plot_smhm_ratio_q_sf(
-            ran_key,
-            param_collection_fit,
-            zbins,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            um_drn,
-            plt_show=False,
-        )
+        # plot_smhm_ratio_q_sf(
+        #     ran_key,
+        #     param_collection_fit,
+        #     zbins,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     um_drn,
+        #     plt_show=False,
+        # )
 
         plot_smhm_hexbin(
             ran_key,
@@ -593,13 +598,15 @@ if __name__ == "__main__":
             plot_color_z(
                 ran_key,
                 param_collection_fit,
-                0.01,
+                0.2,
                 2.0,
                 feniks,
                 ssp_data,
                 run_label,
                 fit_diagnostics_save_drn,
                 sky_area_degsq=sky_area_degsq,
+                lgmp_min=lgmp_min,
+                lgmp_sub_min=lgmp_min,
                 plt_show=False,
             )
 

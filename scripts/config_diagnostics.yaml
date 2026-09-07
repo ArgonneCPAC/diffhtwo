@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run266
-model_nickname: run266_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run266/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run267
+model_nickname: run267_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run267/diagnostic_plots/diffstarpop+spspop+merging
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
@@ -17,12 +17,12 @@ um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 plot_sdss: False
 plot_feniks: False
-plot_hizels: True
+plot_hizels: False
 
-num_halos : 5000
-sky_area_degsq: 15
+num_halos : 1000
+sky_area_degsq: 0.1
 
-lgmp_min: 9.0
+lgmp_min: 11.0
 lgmp_max: 15.0
 
 logHa_flux_limit: -15.9
@@ -35,7 +35,7 @@ plots:
 
   plot_smhm: False
   plot_sfms: False
-  plot_fq: False
+  plot_fq: True
 
   plot_color_z: False
   plot_mag_z: False

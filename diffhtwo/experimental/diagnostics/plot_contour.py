@@ -102,7 +102,7 @@ def plot_density(
             Z_model,
             levels=model_levels,
             colors=cmap.colors,
-            linewidths=1.0,
+            linewidths=1.5,
             alpha=1,
             linestyles="dashed",
         )

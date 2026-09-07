@@ -404,7 +404,7 @@ def plot_smhm_hexbin(
 
         logmp_bins = np.arange(LOGMP_OBS_MIN, LOGMP_OBS_MAX + d_mh, d_mh)
         logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
-        logsm_obs_weighted_median = _get_logsm_obs_weighted_median(
+        _, logsm_obs_weighted_median, _ = _get_logsm_obs_weighted_median(
             logmp_bins, logmp_obs, logsm_obs, gal_weight
         )
         ax[zbin].plot(
