@@ -17,9 +17,9 @@ um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 plot_sdss: False
 plot_feniks: False
-plot_hizels: False
+plot_hizels: True
 
-num_halos : 1000
+num_halos : 100
 sky_area_degsq: 0.1
 
 lgmp_min: 11.0
@@ -35,7 +35,7 @@ plots:
 
   plot_smhm: False
   plot_sfms: False
-  plot_fq: True
+  plot_fq: False
 
   plot_color_z: False
   plot_mag_z: False
