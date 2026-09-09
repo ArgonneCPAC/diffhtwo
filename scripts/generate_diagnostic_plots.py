@@ -622,7 +622,7 @@ if __name__ == "__main__":
                 ssp_data,
                 run_label,
                 fit_diagnostics_save_drn,
-                sky_area_degsq=sky_area_degsq,
+                sky_area_degsq=1.0,
                 lgmp_min=lgmp_min,
                 lgmp_sub_min=lgmp_min,
                 plt_show=False,

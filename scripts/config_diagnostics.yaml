@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run267
-model_nickname: run267_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run267/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run256
+model_nickname: run256_ssperrpop
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run256/diagnostic_plots/ssperrpop
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
@@ -19,10 +19,10 @@ plot_sdss: False
 plot_feniks: False
 plot_hizels: True
 
-num_halos : 100
-sky_area_degsq: 0.1
+num_halos : 5000
+sky_area_degsq: 10
 
-lgmp_min: 11.0
+lgmp_min: 10.0
 lgmp_max: 15.0
 
 logHa_flux_limit: -15.9
