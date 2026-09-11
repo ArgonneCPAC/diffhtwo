@@ -116,13 +116,13 @@ if __name__ == "__main__":
 
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
-    with open(fit_diagnostics_save_drn + "/" + args.config) as f:
+    with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
     run_label2 = "run261"
     run_type2 = "diffstarpop+spspop+merging"
     param_collection2 = lc_mock.load_diffsky_param_collection_merging(
-        "/".join(cfg["model_drn"].split("/")[:-1]) + "/" + run_label2 + "/",
+        "/".join(cfg["model_drn"].split("/")[:-2]) + "/" + run_label2 + "/",
         run_label2 + "_" + run_type2,
     )
 

@@ -204,7 +204,7 @@ def plot_ex_situ_frac_z0(
     )
     ax.legend(fontsize=legendsize)
     ax.set_title("z = 0", fontsize=titlesize)
-    ax.set_xlim(logsm_obs_min, logsm_obs_max)
+    ax.set_xlim(lgsm_min, lgsm_max)
     ax.set_ylim(0, 0.95)
 
     fig.savefig(
