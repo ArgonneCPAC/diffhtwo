@@ -210,6 +210,8 @@ if __name__ == "__main__":
             run_label,
             fit_diagnostics_save_drn,
             frac_ex_situ_lit_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
         jax.clear_caches()
@@ -456,6 +458,8 @@ if __name__ == "__main__":
             zbins,
             ssp_data,
             fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             num_halos=num_halos,
             plt_show=False,
         )
@@ -487,7 +491,6 @@ if __name__ == "__main__":
             fit_diagnostics_save_drn,
             plt_show=False,
         )
-        jax.clear_caches()
 
     """
     Plot HiZELS
@@ -505,52 +508,52 @@ if __name__ == "__main__":
         )
 
         print("Generating h-alpha LF plot...")
-        plot_halpha(
-            ran_key,
-            hizels_drn,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            logHa_flux_limit_fit=logHa_flux_limit,
-            plt_show=False,
-        )
-        jax.clear_caches()
+        # plot_halpha(
+        #     ran_key,
+        #     hizels_drn,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     logHa_flux_limit_fit=logHa_flux_limit,
+        #     plt_show=False,
+        # )
+        # jax.clear_caches()
 
-        print("Generating h-alpha LF ms/q/burst plot...")
-        plot_halpha_ms_q_burst(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            plt_show=False,
-        )
-        jax.clear_caches()
+        # print("Generating h-alpha LF ms/q/burst plot...")
+        # plot_halpha_ms_q_burst(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     plt_show=False,
+        # )
+        # jax.clear_caches()
 
-        print("Generating h-alpha LF ssfr plot...")
-        plot_halpha_ssfr(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            plt_show=False,
-        )
-        jax.clear_caches()
+        # print("Generating h-alpha LF ssfr plot...")
+        # plot_halpha_ssfr(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     plt_show=False,
+        # )
+        # jax.clear_caches()
 
         print("Generating h-alpha LF sfr plot...")
         plot_halpha_sfr_single_z(
@@ -565,20 +568,19 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
-        jax.clear_caches()
-        plot_halpha_sfr(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            plt_show=False,
-        )
-        jax.clear_caches()
+
+        # plot_halpha_sfr(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     plt_show=False,
+        # )
 
         print("Generating h-alpha LF in-situ/ex-situ plot...")
         plot_halpha_insitu_exsitu(
@@ -593,7 +595,6 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
-        jax.clear_caches()
 
     """
     Plot FENIKS
@@ -616,7 +617,7 @@ if __name__ == "__main__":
             plot_color_z(
                 ran_key,
                 param_collection_fit,
-                0.2,
+                0.02,
                 2.0,
                 feniks,
                 ssp_data,
@@ -914,6 +915,8 @@ if __name__ == "__main__":
                 run_label2,
                 fit_diagnostics_save_drn,
                 sky_area_degsq=sky_area_degsq,
+                lgmp_min=lgmp_min,
+                lgmp_sub_min=lgmp_min,
                 plt_show=False,
             )
 
@@ -930,6 +933,8 @@ if __name__ == "__main__":
                 run_label2,
                 fit_diagnostics_save_drn,
                 sky_area_degsq=sky_area_degsq,
+                lgmp_min=lgmp_min,
+                lgmp_sub_min=lgmp_min,
                 plt_show=False,
             )
 
@@ -946,6 +951,8 @@ if __name__ == "__main__":
                 run_label2,
                 fit_diagnostics_save_drn,
                 sky_area_degsq=sky_area_degsq,
+                lgmp_min=lgmp_min,
+                lgmp_sub_min=lgmp_min,
                 plt_show=False,
             )
 

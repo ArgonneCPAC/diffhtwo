@@ -670,7 +670,7 @@ def plot_halpha_sfr_single_z(
         sm, ax=ax, label=r"log$_{10}$ (SFR$_{10}$ [M$_{\odot}$$yr^{-1}$])", pad=0.01
     )
 
-    i = 3
+    i = 0
     _res = get_halpha_LF_q_ms_burst(
         ran_key,
         param_collection,
@@ -705,7 +705,7 @@ def plot_halpha_sfr_single_z(
         color=colors_z[i],
         fmt="s",
         markersize=5,
-        alpha=0.5,
+        alpha=1.0,
         label="HiZELS",
     )
 
@@ -713,7 +713,7 @@ def plot_halpha_sfr_single_z(
         lgL_bin_centers,
         lg_halpha_LF,
         color=colors_z[i],
-        alpha=alpha,
+        alpha=1.0,
         label="diffsky (total)",
         lw=lw,
     )

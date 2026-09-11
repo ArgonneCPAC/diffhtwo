@@ -20,6 +20,8 @@ plt.rc(
     bf="Times New Roman:bold",
 )
 
+y_min, y_max = 15, 30
+
 
 def _get_mc_is(param_collection, phot_randoms, logsm_obs, logssfr_obs):
     p_burst = freqburst_mono.get_freqburst_from_freqburst_params(
@@ -133,7 +135,6 @@ def compare_models_in_mag_z(
         mag_diffsky2 = phot_info2.obs_mags[:, f]
         # combined = np.concatenate([mag_diffsky, mag_data])
         # y_min, y_max = np.percentile(combined, [1, 99])
-        y_min, y_max = 15, 30
 
         # mc_is_burst
         ax[f][0].scatter(
@@ -337,7 +338,6 @@ def compare_models_in_mag_z2(
     for f in range(0, n_bands):
         mag_diffsky1 = phot_info1.obs_mags[:, f]
         mag_diffsky2 = phot_info2.obs_mags[:, f]
-        y_min, y_max = 15, 30
 
         ax[f][0].scatter(
             z_obs[sel1],
@@ -502,7 +502,6 @@ def compare_models_in_mag_z_sfr(
         mag_diffsky2 = phot_info2.obs_mags[:, f]
         # combined = np.concatenate([mag_diffsky, mag_data])
         # y_min, y_max = np.percentile(combined, [1, 99])
-        y_min, y_max = 15, 30
 
         # sc = ax[f][0].scatter(
         #     z_obs[sel1],
