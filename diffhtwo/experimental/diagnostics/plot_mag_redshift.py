@@ -20,7 +20,8 @@ plt.rc(
     bf="Times New Roman:bold",
 )
 
-y_min, y_max = 15, 30
+y_min, y_max = 15, 36
+s = 0.01
 
 
 def _get_mc_is(param_collection, phot_randoms, logsm_obs, logssfr_obs):
@@ -140,7 +141,7 @@ def compare_models_in_mag_z(
         ax[f][0].scatter(
             z_obs[sel1 & mc_is_burst1],
             mag_diffsky1[sel1 & mc_is_burst1],
-            s=1,
+            s=s,
             alpha=0.5,
             c="tab:orange",
             label="mc_is_bursty",
@@ -149,7 +150,7 @@ def compare_models_in_mag_z(
         ax[f][1].scatter(
             z_obs[sel2 & mc_is_burst2],
             mag_diffsky2[sel2 & mc_is_burst2],
-            s=1,
+            s=s,
             alpha=0.5,
             c="tab:orange",
             rasterized=True,
@@ -159,7 +160,7 @@ def compare_models_in_mag_z(
         ax[f][0].scatter(
             z_obs[sel1 & mc_is_ms1],
             mag_diffsky1[sel1 & mc_is_ms1],
-            s=0.005,
+            s=s,
             alpha=0.5,
             c="deepskyblue",
             label="mc_is_ms",
@@ -168,7 +169,7 @@ def compare_models_in_mag_z(
         ax[f][1].scatter(
             z_obs[sel2 & mc_is_ms2],
             mag_diffsky2[sel2 & mc_is_ms2],
-            s=0.005,
+            s=s,
             alpha=0.5,
             c="deepskyblue",
             rasterized=True,
@@ -178,7 +179,7 @@ def compare_models_in_mag_z(
         ax[f][0].scatter(
             z_obs[sel1 & mc_is_q1],
             mag_diffsky1[sel1 & mc_is_q1],
-            s=0.005,
+            s=s,
             alpha=0.5,
             c="darkred",
             label="mc_is_q",
@@ -187,7 +188,7 @@ def compare_models_in_mag_z(
         ax[f][1].scatter(
             z_obs[sel2 & mc_is_q2],
             mag_diffsky2[sel2 & mc_is_q2],
-            s=0.005,
+            s=s,
             alpha=0.5,
             c="darkred",
             rasterized=True,
@@ -342,7 +343,7 @@ def compare_models_in_mag_z2(
         ax[f][0].scatter(
             z_obs[sel1],
             mag_diffsky1[sel1],
-            s=0.05,
+            s=s,
             alpha=0.5,
             c="k",
             rasterized=True,
@@ -350,7 +351,7 @@ def compare_models_in_mag_z2(
         ax[f][1].scatter(
             z_obs[sel2],
             mag_diffsky2[sel2],
-            s=0.05,
+            s=s,
             alpha=0.5,
             c="k",
             rasterized=True,
