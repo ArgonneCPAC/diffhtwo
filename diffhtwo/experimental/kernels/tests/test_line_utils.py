@@ -3,9 +3,9 @@ from astropy import units as u
 from astropy.cosmology import FlatLambdaCDM
 from dsps.data_loaders import retrieve_fake_fsps_data
 
-from .. import line_phot_kern
-from ..data_loaders import retrieve_tcurves
-from ..defaults import C_ANGSTROMS, HALPHA_CENTER_AA
+from ...data_loaders import retrieve_tcurves
+from ...defaults import C_ANGSTROMS, HALPHA_CENTER_AA
+from .. import line_utils
 
 ssp_data = retrieve_fake_fsps_data.load_fake_ssp_data()
 
@@ -34,26 +34,26 @@ def test_line_phot_kern(BB_tcurve=HSC_Z_tcurve, NB_tcurve=HSC_NB921_tcurve):
     NB_tcurve_wave_aa = NB_tcurve[:, 0]
     NB_tcurve_trans = NB_tcurve[:, 1]
 
-    halpha_flux_app_cgs = line_phot_kern._flux_app_from_luminosity(
+    halpha_flux_app_cgs = line_utils._flux_app_from_luminosity(
         HALPHA_LUMINOSITY_CGS, REDSHIFT, D_L
     )
     assert np.isfinite(halpha_flux_app_cgs)
     assert halpha_flux_app_cgs < HALPHA_LUMINOSITY_CGS
 
     # BB equivalent_width
-    BB_equivalent_width_aa = line_phot_kern._tcurve_equivalent_width(
+    BB_equivalent_width_aa = line_utils._tcurve_equivalent_width(
         BB_tcurve_wave_aa, BB_tcurve_trans
     )
     assert np.isfinite(BB_equivalent_width_aa)
 
     # NB equivalent_width
-    NB_equivalent_width_aa = line_phot_kern._tcurve_equivalent_width(
+    NB_equivalent_width_aa = line_utils._tcurve_equivalent_width(
         NB_tcurve_wave_aa, NB_tcurve_trans
     )
     assert np.isfinite(NB_equivalent_width_aa)
 
     # BB flux_density_aa
-    BB_flux_density_filter_aa = line_phot_kern.flux_density_filter_aa(
+    BB_flux_density_filter_aa = line_utils.flux_density_filter_aa(
         HALPHA_OBS_AA,
         halpha_flux_app_cgs,
         BB_tcurve_wave_aa,
@@ -63,7 +63,7 @@ def test_line_phot_kern(BB_tcurve=HSC_Z_tcurve, NB_tcurve=HSC_NB921_tcurve):
     assert np.isfinite(BB_flux_density_filter_aa)
 
     # NB flux_density_aa
-    NB_flux_density_filter_aa = line_phot_kern.flux_density_filter_aa(
+    NB_flux_density_filter_aa = line_utils.flux_density_filter_aa(
         HALPHA_OBS_AA,
         halpha_flux_app_cgs,
         NB_tcurve_wave_aa,
@@ -73,23 +73,23 @@ def test_line_phot_kern(BB_tcurve=HSC_Z_tcurve, NB_tcurve=HSC_NB921_tcurve):
     assert np.isfinite(NB_flux_density_filter_aa)
 
     # BB flux_density_hz
-    BB_flux_density_filter_hz = line_phot_kern._flux_density_aa_to_hz(
+    BB_flux_density_filter_hz = line_utils._flux_density_aa_to_hz(
         BB_flux_density_filter_aa, HALPHA_OBS_AA
     )
     assert np.isfinite(BB_flux_density_filter_hz)
 
     # NB flux_density_hz
-    NB_flux_density_filter_hz = line_phot_kern._flux_density_aa_to_hz(
+    NB_flux_density_filter_hz = line_utils._flux_density_aa_to_hz(
         NB_flux_density_filter_aa, HALPHA_OBS_AA
     )
     assert np.isfinite(NB_flux_density_filter_hz)
 
     # BB mag_ab
-    BB_mag_ab = line_phot_kern._flux_density_hz_to_mag_ab(BB_flux_density_filter_hz)
+    BB_mag_ab = line_utils._flux_density_hz_to_mag_ab(BB_flux_density_filter_hz)
     assert BB_mag_ab > 15
 
     # NB mag_ab
-    NB_mag_ab = line_phot_kern._flux_density_hz_to_mag_ab(NB_flux_density_filter_hz)
+    NB_mag_ab = line_utils._flux_density_hz_to_mag_ab(NB_flux_density_filter_hz)
     assert NB_mag_ab > 15
 
     # mag should be brighter in narrow-band vs. broad-band because

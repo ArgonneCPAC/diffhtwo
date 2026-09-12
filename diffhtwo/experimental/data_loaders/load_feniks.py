@@ -123,16 +123,8 @@ def get_lh_centroids(dataset, lh_d_mag):
     mu = np.mean(dataset, axis=0)
 
     mu[0] = mu[0] + 0.4  # u - g
-    # mu[1] = mu[1] + 0.0  # g - r
-    # mu[2] = mu[2] + 0.0  # r - i
-    # mu[3] = mu[3] + 0.1  # z - Y
-    # mu[4] = mu[4] + 0.15  # z - Y
-    # mu[5] = mu[5] + 0.0  # Y - J
-    # mu[6] = mu[6] + 0.0  # J - H
     mu[-3] = mu[-3] - 1.0  # u
-
     mu[-2] = mu[-2] - 1.0  # K
-    # mu[-1] = mu[-1] + 0.5  # redshift
 
     cov = np.cov(dataset.T)
 
@@ -311,7 +303,7 @@ def get_feniks_data(
     hsc_rz = hsc_r - hsc_z
     hsc_uds_zJ = hsc_z - uds_J
     uds_JH = uds_J - uds_H
-    hsc_uds_rK = hsc_r - uds_K
+    uds_HK = uds_H - uds_K
 
     # stack colors_mag
     dataset = np.vstack(
@@ -322,7 +314,7 @@ def get_feniks_data(
             hsc_iz,
             hsc_uds_zJ,
             uds_JH,
-            hsc_uds_rK,
+            uds_HK,
             megacam_uS,
             uds_K,
             zout["z_phot"],
@@ -336,22 +328,34 @@ def get_feniks_data(
         [3, 4],  # i - z
         [4, 5],  # z - J
         [5, 6],  # J - H
-        [2, 7],  # r - K
+        [6, 7],  # H - K
     ]
     mag_idx_lh_dim = [
         0,  # u
         7,  # K
     ]
+    # dataset_dim_labels = [
+    #     r"$uS_{MegaCam} - g_{HSC}$",
+    #     r"$g_{HSC} - r_{HSC}$",
+    #     r"$r_{HSC} - i_{HSC}$",
+    #     r"$i_{HSC} - z_{HSC}$",
+    #     r"$z_{HSC} - J_{UDS}$",
+    #     r"$J_{UDS} - H_{UDS}$",
+    #     r"$H_{UDS} - K_{UDS}$",
+    #     r"$uS_{MegaCam}$",
+    #     r"$K_{UDS}$",
+    #     r"$redshift$",
+    # ]
     dataset_dim_labels = [
-        r"$uS_{MegaCam} - g_{HSC}$",
-        r"$g_{HSC} - r_{HSC}$",
-        r"$r_{HSC} - i_{HSC}$",
-        r"$i_{HSC} - z_{HSC}$",
-        r"$z_{HSC} - J_{UDS}$",
-        r"$J_{UDS} - H_{UDS}$",
-        r"$r_{HSC} - K_{UDS}$",
-        r"$uS_{MegaCam}$",
-        r"$K_{UDS}$",
+        r"$u - g$",
+        r"$g - r$",
+        r"$r - i$",
+        r"$i - z$",
+        r"$z - J$",
+        r"$J - H$",
+        r"$H - K$",
+        r"$uS$",
+        r"$K$",
         r"$redshift$",
     ]
 
@@ -1076,6 +1080,8 @@ def get_feniks_fitting_data(
     num_halos_fine_zbins=100,
     phot=PHOT,
     zout=ZOUT,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
     add_random_rows_for_testing=False,
     testing=False,
 ):
@@ -1088,6 +1094,8 @@ def get_feniks_fitting_data(
         num_halos_fine_zbins=num_halos_fine_zbins,
         phot=phot,
         zout=zout,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
         add_random_rows_for_testing=add_random_rows_for_testing,
     )
     remove = {"dataset_dim_labels", "mags_labels"}

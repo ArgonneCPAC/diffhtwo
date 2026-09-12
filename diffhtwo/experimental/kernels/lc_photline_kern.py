@@ -16,8 +16,8 @@ def lc_photline_kern(
     ssp_data,
     tcurves,
     line_wave_table,
-    lgmp_min=10,
-    lgmp_max=15,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
     lc_sky_area_degsq=1000,
     n_z_phot_table=15,
 ):

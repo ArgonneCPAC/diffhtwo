@@ -2,6 +2,7 @@ import argparse
 import os
 from pathlib import Path
 
+import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -31,12 +32,18 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
     plot_lgfburst_mh_z,
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
+from diffhtwo.experimental.diagnostics.plot_color_redshift import plot_color_z
 from diffhtwo.experimental.diagnostics.plot_contour import (
     plot_color_contour_grid,
     plot_color_contours,
 )
 from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
-from diffhtwo.experimental.diagnostics.plot_fq import plot_fq, plot_fq_lit, plot_fq_um
+from diffhtwo.experimental.diagnostics.plot_fq import (
+    plot_fq,
+    plot_fq_lit,
+    plot_fq_lit_sims,
+    plot_fq_um,
+)
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
     plot_halpha_insitu_exsitu,
@@ -50,13 +57,17 @@ from diffhtwo.experimental.diagnostics.plot_halpha_uv_ratio import (
     plot_halpha_uv_ratio_mass_z,
 )
 from diffhtwo.experimental.diagnostics.plot_hod import plot_hod_sm_thresh
+from diffhtwo.experimental.diagnostics.plot_mag_redshift import (
+    compare_models_in_mag_z,
+    compare_models_in_mag_z2,
+    compare_models_in_mag_z_sfr,
+)
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
     plot_color_pdfs,
     plot_n_colors_mag,
     plot_n_mags,
 )
-from diffhtwo.experimental.diagnostics.plot_phot_z import plot_colors_z
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
 from diffhtwo.experimental.diagnostics.plot_sat import plot_merging_sat_colors
 from diffhtwo.experimental.diagnostics.plot_satquench import (
@@ -68,6 +79,7 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
     plot_smhm,
     plot_smhm_cen_sat,
     plot_smhm_hexbin,
+    plot_smhm_median,
     plot_smhm_q_sf,
     plot_smhm_ratio_cen_sat,
     plot_smhm_ratio_q_sf,
@@ -102,7 +114,25 @@ if __name__ == "__main__":
         cfg["model_nickname"],
     )
 
-    num_halos = cfg["plots"]["num_halos"]
+    os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
+
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
+
+    run_label2 = "run261"
+    run_type2 = "diffstarpop+spspop+merging"
+    param_collection2 = lc_mock.load_diffsky_param_collection_merging(
+        "/".join(cfg["model_drn"].split("/")[:-2]) + "/" + run_label2 + "/",
+        run_label2 + "_" + run_type2,
+    )
+
+    sky_area_degsq = cfg["sky_area_degsq"]
+
+    num_halos = cfg["num_halos"]
+    lgmp_min = cfg["lgmp_min"]
+    lgmp_max = cfg["lgmp_max"]
+    logHa_flux_limit = cfg["logHa_flux_limit"]
+
     run_label = cfg["model_nickname"].split("_")[0]
 
     # get ssp data
@@ -180,8 +210,11 @@ if __name__ == "__main__":
             run_label,
             fit_diagnostics_save_drn,
             frac_ex_situ_lit_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
+        jax.clear_caches()
     if cfg["plots"]["plot_smhm"]:
         print("Generating SMHM plots...")
         plot_smhm(
@@ -222,31 +255,31 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-        plot_smhm_q_sf(
-            ran_key,
-            param_collection_fit,
-            zbins,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            um_drn,
-            plt_show=False,
-        )
+        # plot_smhm_q_sf(
+        #     ran_key,
+        #     param_collection_fit,
+        #     zbins,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     um_drn,
+        #     plt_show=False,
+        # )
 
-        plot_smhm_ratio_q_sf(
-            ran_key,
-            param_collection_fit,
-            zbins,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            um_drn,
-            plt_show=False,
-        )
+        # plot_smhm_ratio_q_sf(
+        #     ran_key,
+        #     param_collection_fit,
+        #     zbins,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     um_drn,
+        #     plt_show=False,
+        # )
 
         plot_smhm_hexbin(
             ran_key,
@@ -259,6 +292,20 @@ if __name__ == "__main__":
             fit_diagnostics_save_drn,
             plt_show=False,
         )
+        jax.clear_caches()
+
+        plot_smhm_median(
+            ran_key,
+            param_collection_fit,
+            zbins,
+            num_halos,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            plt_show=False,
+        )
+        jax.clear_caches()
 
     if cfg["plots"]["plot_fq"]:
         print("Generating fq plots...")
@@ -270,31 +317,46 @@ if __name__ == "__main__":
             ssp_data,
             feniks.filter_info.tcurves,
             run_label,
-            fit_diagnostics_save_drn,
-            plt_show=False,
-        )
-        plot_fq_um(
-            ran_key,
-            param_collection_fit,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            um_fq_drn,
-            plt_show=False,
-        )
-        plot_fq_lit(
-            ran_key,
-            param_collection_fit,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
             fq_drn,
+            um_fq_drn,
+            fit_diagnostics_save_drn,
             plt_show=False,
         )
+        jax.clear_caches()
+        # plot_fq_um(
+        #     ran_key,
+        #     param_collection_fit,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     um_fq_drn,
+        #     plt_show=False,
+        # )
+        # plot_fq_lit(
+        #     ran_key,
+        #     param_collection_fit,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     fq_drn,
+        #     plt_show=False,
+        # )
+
+        # plot_fq_lit_sims(
+        #     ran_key,
+        #     param_collection_fit,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     fq_drn,
+        #     plt_show=False,
+        # )
 
     if cfg["plots"]["plot_sfms"]:
         print("Generating SFMS plots...")
@@ -322,6 +384,7 @@ if __name__ == "__main__":
             fit_diagnostics_save_drn,
             plt_show=False,
         )
+        jax.clear_caches()
     if cfg["plots"]["plot_fburst_mh_z"]:
         print("Generating lgfburst plot...")
         plot_lgfburst_mh_z(
@@ -336,6 +399,7 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
+        jax.clear_caches()
 
     if cfg["plots"]["plot_halpha_uv_ratio"]:
         print("Generating H-alpha-to-UV ratio plot...")
@@ -378,7 +442,7 @@ if __name__ == "__main__":
                 [0.4, 0.7],
                 [0.7, 1.0],
                 [1.0, 1.5],
-                [1.5, 2.5],
+                [1.5, 2.0],
             ]
         )
 
@@ -391,7 +455,36 @@ if __name__ == "__main__":
             zbins,
             ssp_data,
             fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             num_halos=num_halos,
+            plt_show=False,
+        )
+
+    if cfg["plots"]["plot_color_contours"]:
+        sdss_fields = [
+            ["gr_ri", "r_ri"],
+        ]
+        feniks_fields = [
+            ["gr_ri", "K_gr"],
+            ["rz_zJ", "K_rz"],
+            ["rz_zJ", "K_rz"],
+            ["zJ_JH", "K_gr"],
+        ]
+        print("Generating FENIKS color contour plots...")
+        plot_color_contour_grid(
+            ran_key,
+            param_collection_fit,
+            feniks.colors,
+            feniks_fields,
+            feniks.filter_info.mag_thresh,
+            feniks.frac_cat,
+            sdss.colors,
+            sdss_fields,
+            sdss.filter_info.mag_thresh,
+            sdss.frac_cat,
+            run_label,
+            fit_diagnostics_save_drn,
             plt_show=False,
         )
 
@@ -413,7 +506,7 @@ if __name__ == "__main__":
         print("Generating h-alpha LF plot...")
         plot_halpha(
             ran_key,
-            hizels,
+            hizels_drn,
             param_collection_fit,
             ssp_data,
             feniks.filter_info.tcurves,
@@ -421,76 +514,80 @@ if __name__ == "__main__":
             hizels_label,
             fit_diagnostics_save_drn,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            logHa_flux_limit_fit=logHa_flux_limit,
             plt_show=False,
         )
 
-        print("Generating h-alpha LF ms/q/burst plot...")
-        plot_halpha_ms_q_burst(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            plt_show=False,
-        )
+        # print("Generating h-alpha LF ms/q/burst plot...")
+        # plot_halpha_ms_q_burst(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     plt_show=False,
+        # )
 
-        print("Generating h-alpha LF ssfr plot...")
-        plot_halpha_ssfr(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            plt_show=False,
-        )
+        # print("Generating h-alpha LF ssfr plot...")
+        # plot_halpha_ssfr(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     plt_show=False,
+        # )
 
-        print("Generating h-alpha LF sfr plot...")
-        plot_halpha_sfr_single_z(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            plt_show=False,
-        )
-        plot_halpha_sfr(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            plt_show=False,
-        )
+        # print("Generating h-alpha LF sfr plot...")
+        # plot_halpha_sfr_single_z(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     plt_show=False,
+        # )
 
-        print("Generating h-alpha LF in-situ/ex-situ plot...")
-        plot_halpha_insitu_exsitu(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            plt_show=False,
-        )
+        # plot_halpha_sfr(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     plt_show=False,
+        # )
+
+        # print("Generating h-alpha LF in-situ/ex-situ plot...")
+        # plot_halpha_insitu_exsitu(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     plt_show=False,
+        # )
 
     """
     Plot FENIKS
@@ -507,39 +604,25 @@ if __name__ == "__main__":
             ]
         )
 
-        if cfg["plots"]["plot_colors_z"]:
-            print("Generating FENIKS colors v. redshift plot...")
-            plot_colors_z(
+        if cfg["plots"]["plot_color_z"]:
+            print("Generating FENIKS color v. redshift plot...")
+
+            plot_color_z(
                 ran_key,
                 param_collection_fit,
+                0.02,
+                2.0,
                 feniks,
-                feniks_label,
-                feniks_zbins[0][0],
-                feniks_zbins[-1][-1],
-                num_halos,
                 ssp_data,
+                run_label,
                 fit_diagnostics_save_drn,
+                sky_area_degsq=1.0,
+                lgmp_min=lgmp_min,
+                lgmp_sub_min=lgmp_min,
                 plt_show=False,
             )
+            jax.clear_caches()
 
-        if cfg["plots"]["plot_color_contours"]:
-            fields = [
-                ["gr_ri", "K_gr"],
-                ["rz_zJ", "K_rz"],
-                ["rz_zJ", "K_rz"],
-                ["zJ_JH", "K_gr"],
-            ]
-            print("Generating FENIKS color contour plots...")
-            plot_color_contour_grid(
-                ran_key,
-                param_collection_fit,
-                feniks.colors,
-                feniks.filter_info.mag_thresh,
-                feniks.frac_cat,
-                "SDSS or FENIKS",
-                fit_diagnostics_save_drn,
-                fields,
-            )
             # plot_color_contours(
             #     ran_key,
             #     param_collection_fit,
@@ -811,21 +894,75 @@ if __name__ == "__main__":
                 [0.1, 0.2],
             ]
         )
-
-        if cfg["plots"]["plot_colors_z"]:
-            print("Generating SDSS colors v. redshift plot...")
-            plot_colors_z(
+        if cfg["plots"]["plot_mag_z"]:
+            print("Generating mag vs. redshift plot...")
+            compare_models_in_mag_z2(
                 ran_key,
                 param_collection_fit,
+                param_collection2,
+                0.05,
+                0.3,
                 sdss,
-                sdss_label,
-                sdss_zbins[0][0],
-                sdss_zbins[-1][-1],
-                num_halos,
                 ssp_data,
+                run_label,
+                run_label2,
                 fit_diagnostics_save_drn,
+                sky_area_degsq=sky_area_degsq,
+                lgmp_min=lgmp_min,
+                lgmp_sub_min=lgmp_min,
                 plt_show=False,
             )
+
+            print("Generating mag vs. redshift plot color-coded with ms/q/burst...")
+            compare_models_in_mag_z(
+                ran_key,
+                param_collection_fit,
+                param_collection2,
+                0.05,
+                0.3,
+                sdss,
+                ssp_data,
+                run_label,
+                run_label2,
+                fit_diagnostics_save_drn,
+                sky_area_degsq=sky_area_degsq,
+                lgmp_min=lgmp_min,
+                lgmp_sub_min=lgmp_min,
+                plt_show=False,
+            )
+
+            print("Generating mag vs. redshift plot color-coded with SFR...")
+            compare_models_in_mag_z_sfr(
+                ran_key,
+                param_collection_fit,
+                param_collection2,
+                0.05,
+                0.3,
+                sdss,
+                ssp_data,
+                run_label,
+                run_label2,
+                fit_diagnostics_save_drn,
+                sky_area_degsq=sky_area_degsq,
+                lgmp_min=lgmp_min,
+                lgmp_sub_min=lgmp_min,
+                plt_show=False,
+            )
+
+        # if cfg["plots"]["plot_colors_z"]:
+        #     print("Generating SDSS colors v. redshift plot...")
+        #     plot_colors_z(
+        #         ran_key,
+        #         param_collection_fit,
+        #         sdss,
+        #         sdss_label,
+        #         sdss_zbins[0][0],
+        #         sdss_zbins[-1][-1],
+        #         num_halos,
+        #         ssp_data,
+        #         fit_diagnostics_save_drn,
+        #         plt_show=False,
+        #     )
 
         # if cfg["plots"]["plot_color_contours"]:
         #     print("Generating SDSS color contour plots...")

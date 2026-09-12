@@ -4,13 +4,13 @@ import numpy as np
 def get_fq_sm(
     logsm_obs,
     logsfr_obs,
-    t_q,
+    # t_q,
     lc_data,
     phot_data,
     gal_weight,
     logsfms_func_at_z=None,
     type="all",
-    quench_thresh="t_q",
+    quench_thresh=-11,
     d_sm=0.15,
 ):
     if type == "all":
@@ -22,17 +22,16 @@ def get_fq_sm(
 
     logsm_obs = logsm_obs[sel]
     logsfr_obs = logsfr_obs[sel]
-    t_obs = lc_data.t_obs[sel]
-    t_q = t_q[sel]
+    # t_q = t_q[sel]
     gal_weight = gal_weight[sel]
 
     logssfr_obs = logsfr_obs - logsm_obs
 
-    if quench_thresh == "t_q":
-        quenched = t_q < t_obs
+    # if quench_thresh == "t_q":
+    #     quenched = t_q < t_obs
 
-    elif quench_thresh == "lgssfr":
-        quenched = logssfr_obs < -11
+    if isinstance(quench_thresh, (int, float)):
+        quenched = logssfr_obs < quench_thresh
 
     elif quench_thresh == "MS-1dex":
         sfms = logsfms_func_at_z(logsm_obs)
@@ -58,13 +57,13 @@ def get_fq_sm(
 def get_fq_hm(
     logsm_obs,
     logsfr_obs,
-    t_q,
+    # t_q,
     lc_data,
     phot_data,
     gal_weight,
     logsfms_func_at_z,
     type="all",
-    quench_thresh="t_q",
+    quench_thresh=-11,
     d_hm=0.15,
 ):
     if type == "all":
@@ -77,17 +76,17 @@ def get_fq_hm(
     logmp_obs = lc_data.logmp_obs[sel]
     logsm_obs = logsm_obs[sel]
     logsfr_obs = logsfr_obs[sel]
-    t_obs = lc_data.t_obs[sel]
-    t_q = t_q[sel]
+    # t_obs = lc_data.t_obs[sel]
+    # t_q = t_q[sel]
     gal_weight = gal_weight[sel]
 
     logssfr_obs = logsfr_obs - logsm_obs
 
-    if quench_thresh == "t_q":
-        quenched = t_q < t_obs
+    # if quench_thresh == "t_q":
+    #     quenched = t_q < t_obs
 
-    elif quench_thresh == "lgssfr":
-        quenched = logssfr_obs < -11
+    if isinstance(quench_thresh, (int, float)):
+        quenched = logssfr_obs < quench_thresh
 
     elif quench_thresh == "MS-1dex":
         sfms = logsfms_func_at_z(logsm_obs)

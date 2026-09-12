@@ -16,11 +16,11 @@ def plot_ex_situ_frac_z0(
     run_label,
     savedir,
     lit_drn,
-    logmp_obs_min=10.0,
-    logmp_obs_max=15.0,
-    logsm_obs_min=8.5,
-    logsm_obs_max=12.5,
-    d_dex=0.15,
+    lgmp_min=10,
+    lgmp_max=15,
+    lgsm_min=8.5,
+    lgsm_max=12.5,
+    d_dex=0.2,
     plt_show=True,
 ):
     z_min, z_max = 0.02, 0.05
@@ -33,6 +33,8 @@ def plot_ex_situ_frac_z0(
         num_halos,
         ssp_data,
         tcurves,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
     )
 
     """ex-situ frac (halo mass)"""
@@ -48,7 +50,7 @@ def plot_ex_situ_frac_z0(
     # )
 
     """ex-situ frac (stellar mass)"""
-    logsm_bins = np.arange(logsm_obs_min, logsm_obs_max + d_dex, d_dex)
+    logsm_bins = np.arange(lgsm_min, lgsm_max + d_dex, d_dex)
     logsm_bin_centers = (logsm_bins[:-1] + logsm_bins[1:]) / 2
 
     ex_situ_frac_median_sm = get_ex_situ_frac_median_v_sm(
@@ -202,7 +204,7 @@ def plot_ex_situ_frac_z0(
     )
     ax.legend(fontsize=legendsize)
     ax.set_title("z = 0", fontsize=titlesize)
-    ax.set_xlim(logsm_obs_min, logsm_obs_max)
+    ax.set_xlim(lgsm_min, lgsm_max)
     ax.set_ylim(0, 0.95)
 
     fig.savefig(
