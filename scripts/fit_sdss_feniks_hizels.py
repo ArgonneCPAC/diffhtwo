@@ -98,6 +98,10 @@ if __name__ == "__main__":
     cfg_d["model_drn"] = fit_save_drn
     cfg_d["model_nickname"] = cfg["fit_runid"] + "_" + cfg["fit_type"]
     cfg_d["fit_diagnostics_save_drn"] = fit_diagnostics_save_drn
+    cfg_d["lgmp_min"] = cfg["lgmp_min"]
+    cfg_d["lgmp_max"] = cfg["lgmp_max"]
+    cfg_d["logHa_flux_limit"] = cfg["hizels"]["logHa_flux_limit"]
+
     new_config_diag_path = os.path.join(
         fit_diagnostics_save_drn, "config_diagnostics.yaml"
     )
@@ -117,6 +121,8 @@ if __name__ == "__main__":
             ssp_data,
             num_halos_coarse_zbins=cfg["sdss"]["num_halos_coarse_zbins"],
             num_halos_fine_zbins=cfg["sdss"]["num_halos_fine_zbins"],
+            lgmp_min=cfg["lgmp_min"],
+            lgmp_max=cfg["lgmp_max"],
         )
         remove = {"dataset_dim_labels", "mags_labels"}
         SdssFitting = namedtuple("Sdss", [s for s in sdss._fields if s not in remove])
@@ -131,6 +137,8 @@ if __name__ == "__main__":
             ssp_data,
             num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
             num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
+            lgmp_min=cfg["lgmp_min"],
+            lgmp_max=cfg["lgmp_max"],
         )
 
         # load hizels data
@@ -140,7 +148,10 @@ if __name__ == "__main__":
             ssp_data,
             feniks_fitting_data.filter_info.tcurves,
             halpha_wave_aa,
+            logflux_limit=cfg["hizels"]["logHa_flux_limit"],
             num_halos=cfg["hizels"]["num_halos"],
+            lgmp_min=cfg["lgmp_min"],
+            lgmp_max=cfg["lgmp_max"],
         )
 
         (

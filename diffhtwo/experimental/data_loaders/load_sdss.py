@@ -201,7 +201,14 @@ def get_sdss_data(
         r"$r$",
         r"$redshift$",
     ]
-    mag_labels = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$"]
+    mag_labels = [
+        r"$u$",
+        r"$g$",
+        r"$r$",
+        r"$i$",
+        r"$z$",
+        r"$redshift$",
+    ]
     col_idx_lh_dim = [
         [0, 1],  # u - g
         [1, 2],  # g - r

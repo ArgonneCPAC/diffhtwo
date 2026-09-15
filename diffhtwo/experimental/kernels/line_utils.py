@@ -5,7 +5,47 @@ from diffsky import diffndhist
 from jax import jit as jjit
 from jax import vmap
 
-from .defaults import C_ANGSTROMS
+from ..defaults import C_ANGSTROMS
+
+
+def flux_app_from_luminosity(luminosity_cgs, redshift, cosmo):
+    """
+    Parameters
+    ----------
+    luminosity_cgs : array-like
+        Luminosity in erg/s.
+    redshift : array-like
+        Redshift.
+    cosmo : object
+        Cosmology object with .luminosity_distance(z) -> astropy Quantity.
+
+    Returns
+    -------
+    flux_app_cgs : array-like
+        Apparent flux in erg/s/cm^2.
+    """
+    d_L_cm = cosmo.luminosity_distance(redshift).to("cm").value  # Mpc to cm
+    return luminosity_cgs / (4 * jnp.pi * d_L_cm * d_L_cm)
+
+
+def luminosity_from_flux_app(flux_app_cgs, redshift, cosmo):
+    """
+    Parameters
+    ----------
+    flux_app_cgs : array-like
+        Apparent flux in erg/s/cm^2.
+    redshift : array-like
+        Redshift.
+    cosmo : object
+        Cosmology object with .luminosity_distance(z) -> astropy Quantity.
+
+    Returns
+    -------
+    luminosity_cgs : array-like
+        Luminosity in erg/s.
+    """
+    d_L_cm = cosmo.luminosity_distance(redshift).to("cm").value  # Mpc to cm
+    return flux_app_cgs * (4 * jnp.pi * d_L_cm * d_L_cm)
 
 
 @jjit

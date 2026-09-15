@@ -1,6 +1,6 @@
 import numpy as np
 
-from ..utils import weighted_median
+from ..utils import weighted_percentiles
 from .lc_phot_kern import multiband_lc_phot_kern
 from .sfh_rapid_q import get_logsfr_obs
 
@@ -34,9 +34,11 @@ def get_ex_situ_frac_median_v_hm(
             & (is_central == 1)
         )
 
-        ex_situ_frac_median.append(
-            weighted_median(ex_situ_frac[cen_in_bin], gal_weight[cen_in_bin])
+        l16, median, u84 = weighted_percentiles(
+            ex_situ_frac[cen_in_bin], gal_weight[cen_in_bin]
         )
+        ex_situ_frac_median.append(median)
+
     ex_situ_frac_median = np.array(ex_situ_frac_median)
 
     return ex_situ_frac_median
@@ -57,29 +59,41 @@ def get_ex_situ_frac_median_v_sm(
             & (is_central == 1)
         )
 
-        ex_situ_frac_median.append(
-            weighted_median(ex_situ_frac[cen_in_bin], gal_weight[cen_in_bin])
+        l16, median, u84 = weighted_percentiles(
+            ex_situ_frac[cen_in_bin], gal_weight[cen_in_bin]
         )
+        ex_situ_frac_median.append(median)
+
     ex_situ_frac_median = np.array(ex_situ_frac_median)
 
     return ex_situ_frac_median
 
 
 def _get_logsm_obs_weighted_median(logmp_bins, logmp_obs, logsm_obs, gal_weight):
+    logsm_obs_weighted_l16 = []
     logsm_obs_weighted_median = []
+    logsm_obs_weighted_u84 = []
     for b in range(0, len(logmp_bins) - 1):
         in_bin = (logmp_obs > logmp_bins[b]) & (logmp_obs <= logmp_bins[b + 1])
 
         if in_bin.sum() > 0:
-            logsm_obs_weighted_median.append(
-                weighted_median(logsm_obs[in_bin], gal_weight[in_bin])
+            l16, median, u84 = weighted_percentiles(
+                logsm_obs[in_bin], gal_weight[in_bin]
             )
+            logsm_obs_weighted_l16.append(l16)
+            logsm_obs_weighted_median.append(median)
+            logsm_obs_weighted_u84.append(u84)
+
         else:
+            logsm_obs_weighted_l16.append(np.nan)
             logsm_obs_weighted_median.append(np.nan)
+            logsm_obs_weighted_u84.append(np.nan)
 
+    logsm_obs_weighted_l16 = np.array(logsm_obs_weighted_l16)
     logsm_obs_weighted_median = np.array(logsm_obs_weighted_median)
+    logsm_obs_weighted_u84 = np.array(logsm_obs_weighted_u84)
 
-    return logsm_obs_weighted_median
+    return logsm_obs_weighted_l16, logsm_obs_weighted_median, logsm_obs_weighted_u84
 
 
 def median_smhm_and_exsitu_frac(
@@ -112,12 +126,12 @@ def median_smhm_and_exsitu_frac(
     logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
 
     # cen+sat in+ex-situ
-    logsm_obs_weighted_median = _get_logsm_obs_weighted_median(
+    _, logsm_obs_weighted_median, _ = _get_logsm_obs_weighted_median(
         logmp_bins, lc_data.logmp_obs, phot_data.logsm_obs, gal_weight
     )
 
     # cen in-situ
-    logsm_obs_weighted_median_cen_in_situ = _get_logsm_obs_weighted_median(
+    _, logsm_obs_weighted_median_cen_in_situ, _ = _get_logsm_obs_weighted_median(
         logmp_bins,
         lc_data.logmp_obs[lc_data.is_central == 1],
         phot_data.logsm_obs_in_situ[lc_data.is_central == 1],
@@ -125,7 +139,7 @@ def median_smhm_and_exsitu_frac(
     )
 
     # cen in+ex-situ
-    logsm_obs_weighted_median_cen = _get_logsm_obs_weighted_median(
+    _, logsm_obs_weighted_median_cen, _ = _get_logsm_obs_weighted_median(
         logmp_bins,
         lc_data.logmp_obs[lc_data.is_central == 1],
         phot_data.logsm_obs[lc_data.is_central == 1],
@@ -133,7 +147,7 @@ def median_smhm_and_exsitu_frac(
     )
 
     # sat in-situ
-    logsm_obs_weighted_median_sat_in_situ = _get_logsm_obs_weighted_median(
+    _, logsm_obs_weighted_median_sat_in_situ, _ = _get_logsm_obs_weighted_median(
         logmp_bins,
         lc_data.logmp_obs[lc_data.is_central != 1],
         phot_data.logsm_obs_in_situ[lc_data.is_central != 1],
@@ -141,7 +155,7 @@ def median_smhm_and_exsitu_frac(
     )
 
     # sat post-merging (as sats don't accrete but only lose stellar mass, so no ex-situ)
-    logsm_obs_weighted_median_sat = _get_logsm_obs_weighted_median(
+    _, logsm_obs_weighted_median_sat, _ = _get_logsm_obs_weighted_median(
         logmp_bins,
         lc_data.logmp_obs[lc_data.is_central != 1],
         phot_data.logsm_obs[lc_data.is_central != 1],

@@ -22,6 +22,7 @@ def multiband_lc_phot_kern(
     lgmp_max=15,
     lc_sky_area_degsq=1000,
     n_z_phot_table=15,
+    mc_merge=0,
 ):
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -40,9 +41,7 @@ def multiband_lc_phot_kern(
     )
 
     phot_kern_results = mc_phot_kern_merging_wrapper(
-        ran_key,
-        param_collection,
-        lc_data,
+        ran_key, param_collection, lc_data, mc_merge=mc_merge
     )
     obs_mags_weighted = phot_kern_results.obs_mags_weighted
     gal_weight = lc_data.cen_weight * lc_data.sat_weight

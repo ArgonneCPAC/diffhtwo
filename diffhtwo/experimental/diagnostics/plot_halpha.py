@@ -3,15 +3,26 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib.lines import Line2D
 
+from ..data_loaders import load_hizels
+from ..data_loaders.load_hizels import LOGHA_FLUX_LIMIT_NONE
 from ..kernels.line_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
-from ..kernels.sfh_rapid_q import update_logsfr_obs_with_rapid_q
+from ..kernels.sfr_tau import get_logsfr_100Myr
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
+plt.rcParams["mathtext.fontset"] = "stix"
+
+colors_z = [
+    # "#001219",  # deep navy
+    "#0a7a80",  # teal
+    "#80cca8",  # mint
+    "#c8b44a",  # warm gold
+    "#c87820",  # amber
+]
 
 
 def plot_halpha(
     ran_key,
-    hizels,
+    hizels_drn,
     param_collection,
     ssp_data,
     tcurves,
@@ -19,21 +30,33 @@ def plot_halpha(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
+    logHa_flux_limit_fit=LOGHA_FLUX_LIMIT_NONE,
     plt_show=True,
 ):
+    hizels = load_hizels.get_hizels_data(
+        hizels_drn,
+        ran_key,
+        ssp_data,
+        tcurves,
+        halpha_wave_aa,
+        logflux_limit=LOGHA_FLUX_LIMIT_NONE,
+    )
+    hizels_flux_limited = load_hizels.get_hizels_data(
+        hizels_drn,
+        ran_key,
+        ssp_data,
+        tcurves,
+        halpha_wave_aa,
+        logflux_limit=logHa_flux_limit_fit,
+    )
     alpha = 0.75
     lw = 2
 
     ylim = (-5.0, -1.0)
     xlim = (39.8, 43.5)
 
-    colors_z = [
-        # "#001219",  # deep navy
-        "#0a7a80",  # teal
-        "#80cca8",  # mint
-        "#c8b44a",  # warm gold
-        "#c87820",  # amber
-    ]
     offsets_z = np.array([0, 0.2, 0.5, 0.8])
 
     fig, ax = plt.subplots(1, figsize=(4.3, 4), constrained_layout=True)
@@ -49,6 +72,8 @@ def plot_halpha(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,
@@ -63,15 +88,29 @@ def plot_halpha(
             lc_data,
         ) = _res
 
-        ax.errorbar(
-            lgL_bin_centers,
-            hizels.lg_phi_data[0][i][0] + offsets_z[i],
-            hizels.lg_phi_data[0][i][1],
-            color=colors_z[i],
-            fmt="s",
-            markersize=5,
-            alpha=alpha,
+        lgL_bin_centers_flux_limited = 0.5 * (
+            hizels_flux_limited.lg_Lbin_edges[0][i][1:]
+            + hizels_flux_limited.lg_Lbin_edges[0][i][:-1]
         )
+
+        mfc = [
+            colors_z[i] if b in lgL_bin_centers_flux_limited else "none"
+            for b in lgL_bin_centers
+        ]
+
+        for b in range(0, len(mfc)):
+            ax.errorbar(
+                lgL_bin_centers[b],
+                hizels.lg_phi_data[0][i][0][b] + offsets_z[i],
+                hizels.lg_phi_data[0][i][1][b],
+                mec=colors_z[i],
+                mew=1.2,
+                ecolor=colors_z[i],
+                fmt="s",
+                mfc=mfc[b],
+                markersize=5,
+                alpha=alpha,
+            )
 
         ax.plot(
             lgL_bin_centers,
@@ -117,7 +156,20 @@ def plot_halpha(
             markersize=6,
             linestyle="none",
             lw=lw,
-            label="Sobral+13 (HiZELS)",
+            label="Sobral+13 (fitted)",
+        ),
+        ax.errorbar(
+            [],
+            [],
+            yerr=[[0.2], [0.2]],  # vertical error bar
+            fmt="s",
+            mfc="none",
+            mec="k",
+            ecolor="k",
+            markersize=6,
+            linestyle="none",
+            lw=lw,
+            label="Sobral+13 (not fitted)",
         ),
     ]
     handles = handles_z + handles
@@ -157,6 +209,8 @@ def plot_halpha_ms_q_burst(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     alpha = 1
@@ -185,6 +239,8 @@ def plot_halpha_ms_q_burst(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,
@@ -294,6 +350,8 @@ def plot_halpha_ssfr(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     xlims = []
@@ -313,7 +371,7 @@ def plot_halpha_ssfr(
     cmap = mcolors.ListedColormap(colors)
     norm = mcolors.BoundaryNorm(ssfr_bin_edges, len(colors))
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    fig.colorbar(sm, ax=ax, label=r"log$_{10}$ (sSFR [yr$^{-1}$])", pad=0.01)
+    fig.colorbar(sm, ax=ax, label=r"log$_{10}$ (sSFR$_{10}$ [yr$^{-1}$])", pad=0.01)
 
     for i in range(0, 4):
         _res = get_halpha_LF_q_ms_burst(
@@ -326,6 +384,8 @@ def plot_halpha_ssfr(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,
@@ -360,19 +420,15 @@ def plot_halpha_ssfr(
             label="diffsky (total)",
             lw=lw,
         )
+        logsm_obs = phot_kern_results.logsm_obs
+        logsfr_10Myr = get_logsfr_100Myr(
+            phot_kern_results, lc_data, ssp_data, tau_gyr=0.01
+        )
 
-        (
-            logsfr_obs,
-            logsm_obs,
-            logsfr_obs_in_situ,
-            logsm_obs_in_situ,
-            t_q,
-        ) = update_logsfr_obs_with_rapid_q(phot_kern_results, lc_data)
-
-        logssfr_obs = logsfr_obs - logsm_obs
+        logssfr_obs = logsfr_10Myr - logsm_obs
 
         for s in range(0, len(ssfr_bin_edges) - 1):
-            ssfr_label = "logssfr_obs: " + str(
+            ssfr_label = "logssfr_10: " + str(
                 np.round(np.median([ssfr_bin_edges[s], ssfr_bin_edges[s + 1]]), 1)
             )
 
@@ -424,7 +480,7 @@ def plot_halpha_ssfr(
     fig.supylabel("log$_{10}($\u03d5 [Mpc$^{-3}$])", fontsize=fontsize)
 
     fig.savefig(
-        savedir + "/" + model_nickname + "_halpha_LF_ssfr" + ".png",
+        savedir + "/" + model_nickname + "_halpha_LF_ssfr10" + ".png",
         dpi=300,
     )
     if plt_show:
@@ -442,6 +498,8 @@ def plot_halpha_sfr(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     xlims = []
@@ -461,7 +519,9 @@ def plot_halpha_sfr(
     cmap = mcolors.ListedColormap(colors)
     norm = mcolors.BoundaryNorm(sfr_bin_edges, len(colors))
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    fig.colorbar(sm, ax=ax, label=r"log$_{10}$ (SFR [M$_{\odot}$$yr^{-1}$])", pad=0.01)
+    fig.colorbar(
+        sm, ax=ax, label=r"log$_{10}$ (SFR$_{10}$ [M$_{\odot}$$yr^{-1}$])", pad=0.01
+    )
 
     for i in range(0, 4):
         _res = get_halpha_LF_q_ms_burst(
@@ -474,6 +534,8 @@ def plot_halpha_sfr(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,
@@ -509,19 +571,17 @@ def plot_halpha_sfr(
             lw=lw,
         )
 
-        (
-            logsfr_obs,
-            logsm_obs,
-            logsfr_obs_in_situ,
-            logsm_obs_in_situ,
-            t_q,
-        ) = update_logsfr_obs_with_rapid_q(phot_kern_results, lc_data)
+        logsfr_10Myr = get_logsfr_100Myr(
+            phot_kern_results, lc_data, ssp_data, tau_gyr=0.01
+        )
 
         for s in range(0, len(sfr_bin_edges) - 1):
-            sfr_label = "logsfr_obs: " + str(
+            sfr_label = "logsfr_10: " + str(
                 np.round(np.median([sfr_bin_edges[s], sfr_bin_edges[s + 1]]), 1)
             )
-            sel = (logsfr_obs > sfr_bin_edges[s]) & (logsfr_obs <= sfr_bin_edges[s + 1])
+            sel = (logsfr_10Myr > sfr_bin_edges[s]) & (
+                logsfr_10Myr <= sfr_bin_edges[s + 1]
+            )
 
             lg_halpha_LF_sfr = get_lf_from_linelum(
                 spec_kern_results.linelum_gal[sel],
@@ -567,7 +627,7 @@ def plot_halpha_sfr(
     fig.supylabel("log$_{10}($\u03d5 [Mpc$^{-3}$])", fontsize=fontsize)
 
     fig.savefig(
-        savedir + "/" + model_nickname + "_halpha_LF_sfr" + ".png",
+        savedir + "/" + model_nickname + "_halpha_LF_sfr10" + ".png",
         dpi=300,
     )
     if plt_show:
@@ -585,6 +645,8 @@ def plot_halpha_sfr_single_z(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     xlims = []
@@ -604,9 +666,11 @@ def plot_halpha_sfr_single_z(
     cmap = mcolors.ListedColormap(colors)
     norm = mcolors.BoundaryNorm(sfr_bin_edges, len(colors))
     sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-    fig.colorbar(sm, ax=ax, label=r"log$_{10}$ (SFR [M$_{\odot}$$yr^{-1}$])", pad=0.01)
+    fig.colorbar(
+        sm, ax=ax, label=r"log$_{10}$ (SFR$_{10}$ [M$_{\odot}$$yr^{-1}$])", pad=0.01
+    )
 
-    i = 3
+    i = 0
     _res = get_halpha_LF_q_ms_burst(
         ran_key,
         param_collection,
@@ -617,6 +681,8 @@ def plot_halpha_sfr_single_z(
         ssp_data,
         tcurves,
         num_halos=num_halos,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
     )
     (
         lgL_bin_centers,
@@ -636,35 +702,29 @@ def plot_halpha_sfr_single_z(
         lgL_bin_centers,
         hizels.lg_phi_data[0][i][0],
         hizels.lg_phi_data[0][i][1],
-        color="k",
+        color=colors_z[i],
         fmt="s",
         markersize=5,
-        alpha=0.5,
+        alpha=1.0,
         label="HiZELS",
     )
 
     ax.plot(
         lgL_bin_centers,
         lg_halpha_LF,
-        color="k",
-        alpha=alpha,
+        color=colors_z[i],
+        alpha=1.0,
         label="diffsky (total)",
         lw=lw,
     )
 
-    (
-        logsfr_obs,
-        logsm_obs,
-        logsfr_obs_in_situ,
-        logsm_obs_in_situ,
-        t_q,
-    ) = update_logsfr_obs_with_rapid_q(phot_kern_results, lc_data)
+    logsfr_10Myr = get_logsfr_100Myr(phot_kern_results, lc_data, ssp_data, tau_gyr=0.01)
 
     for s in range(0, len(sfr_bin_edges) - 1):
         sfr_label = "logsfr_obs: " + str(
             np.round(np.median([sfr_bin_edges[s], sfr_bin_edges[s + 1]]), 1)
         )
-        sel = (logsfr_obs > sfr_bin_edges[s]) & (logsfr_obs <= sfr_bin_edges[s + 1])
+        sel = (logsfr_10Myr > sfr_bin_edges[s]) & (logsfr_10Myr <= sfr_bin_edges[s + 1])
 
         lg_halpha_LF_sfr = get_lf_from_linelum(
             spec_kern_results.linelum_gal[sel],
@@ -710,7 +770,7 @@ def plot_halpha_sfr_single_z(
     fig.supylabel("log$_{10}($\u03d5 [Mpc$^{-3}$])", fontsize=fontsize)
 
     fig.savefig(
-        savedir + "/" + model_nickname + "_halpha_LF_sfr_single_z" + ".png",
+        savedir + "/" + model_nickname + "_halpha_LF_sfr10_single_z" + ".png",
         dpi=300,
     )
     if plt_show:
@@ -728,6 +788,8 @@ def plot_halpha_insitu_exsitu(
     model_nickname,
     savedir,
     num_halos=100,
+    lgmp_min=9.0,
+    lgmp_max=15.0,
     plt_show=True,
 ):
     xlims = []
@@ -752,6 +814,8 @@ def plot_halpha_insitu_exsitu(
             ssp_data,
             tcurves,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
         (
             lgL_bin_centers,

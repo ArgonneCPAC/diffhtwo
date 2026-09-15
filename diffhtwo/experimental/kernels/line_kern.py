@@ -15,7 +15,7 @@ def get_halpha_LF_q_ms_burst(
     halpha_LF_delta_z,
     ssp_data,
     tcurves,
-    lgmp_min=10.0,
+    lgmp_min=9.0,
     lgmp_max=15.0,
     num_halos=100,
     sky_area_degsq=10000,
@@ -35,6 +35,8 @@ def get_halpha_LF_q_ms_burst(
         ssp_data,
         tcurves,
         line_wave_table,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
     )
     phot_kern_results, phot_randoms, spec_kern_results, lc_data = _res
 
