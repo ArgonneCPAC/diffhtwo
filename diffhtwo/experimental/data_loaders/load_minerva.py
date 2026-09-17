@@ -48,7 +48,11 @@ MinervaPhot = namedtuple(
 
 
 def _get_mag_ab(phot_table, col_name, ZP=28.9):
-    return -2.5 * np.log10(phot_table[col_name].data.data) + ZP
+    with np.errstate(invalid="ignore"):
+        flux = phot_table[col_name].data.data
+        mag_ab = -2.5 * np.log10(flux) + ZP
+
+    return mag_ab
 
 
 def _get_tcurve(filter_number, filter_info_filename, tcurves_filename):
@@ -105,13 +109,13 @@ def get_minerva_phot(
     drn,
     ran_key,
     ssp_data,
-    phot_cat=PHOT_CAT,
-    eazy_cat=EAZY_CAT,
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
+    phot_cat=PHOT_CAT,
+    eazy_cat=EAZY_CAT,
 ):
     drn = Path(drn)
     phot = Table.read(drn / phot_cat)
@@ -247,6 +251,27 @@ def get_minerva_phot(
     )
 
 
+def get_minerva_phot_fitting_data(
+    drn,
+    ran_key,
+    ssp_data,
+    num_halos=150,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
+):
+    minerva_phot = get_minerva_phot(
+        drn,
+        ran_key,
+        ssp_data,
+        num_halos=num_halos,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
+    )
+    fields = [f for f in minerva_phot._fields if f != "mags_labels"]
+    MinervaPhotFit = namedtuple("MinervaPhotFit", fields)
+    return MinervaPhotFit(*(getattr(minerva_phot, f) for f in fields))
+
+
 def get_minerva_halpha(
     halpha_drn,
     drn,
@@ -320,24 +345,24 @@ def get_minerva_halpha(
     return lfs
 
 
-# PhotFilters = namedtuple(
-#     "PhotFilters",
-#     [
-#         "f435w",
-#         "f606w",
-#         "f814w",
-#         "f125w",
-#         "f140w",
-#         "f160w",
-#         "f090w",
-#         "f115w",
-#         "f150w",
-#         "f200w",
-#         "f277w",
-#         "f356w",
-#         "f444w",
-#     ],
-# )
+PhotFilters = namedtuple(
+    "PhotFilters",
+    [
+        "f435w",
+        "f606w",
+        "f814w",
+        "f125w",
+        "f140w",
+        "f160w",
+        "f090w",
+        "f115w",
+        "f150w",
+        "f200w",
+        "f277w",
+        "f356w",
+        "f444w",
+    ],
+)
 
 HalphaFilters = namedtuple(
     "HalphaFilters",
@@ -354,36 +379,36 @@ HalphaFilters = namedtuple(
 )
 
 
-PhotFilters = namedtuple(
-    "PhotFilters",
-    [
-        "f435w",
-        "f606w",
-        "f775w",
-        "f814w",
-        "f098m",
-        "f105w",
-        "f125w",
-        "f140w",
-        "f160w",
-        "f090w",
-        "f115w",
-        "f140m",
-        "f150w",
-        "f162m",
-        "f182m",
-        "f200w",
-        "f210m",
-        "f250m",
-        "f277w",
-        "f300m",
-        "f335m",
-        "f356w",
-        "f360m",
-        "f410m",
-        "f430m",
-        "f444w",
-        "f460m",
-        "f480m",
-    ],
-)
+# PhotFilters = namedtuple(
+#     "PhotFilters",
+#     [
+#         "f435w",
+#         "f606w",
+#         "f775w",
+#         "f814w",
+#         "f098m",
+#         "f105w",
+#         "f125w",
+#         "f140w",
+#         "f160w",
+#         "f090w",
+#         "f115w",
+#         "f140m",
+#         "f150w",
+#         "f162m",
+#         "f182m",
+#         "f200w",
+#         "f210m",
+#         "f250m",
+#         "f277w",
+#         "f300m",
+#         "f335m",
+#         "f356w",
+#         "f360m",
+#         "f410m",
+#         "f430m",
+#         "f444w",
+#         "f460m",
+#         "f480m",
+#     ],
+# )

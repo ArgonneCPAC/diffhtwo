@@ -16,11 +16,18 @@ from jax.example_libraries import optimizers as jax_opt
 from ..loss_kernels.emline_loss import _loss_emline_kern_multiz
 from ..loss_kernels.phot_loss import _loss_phot_kern_2d_multiz
 
-_loss_and_grad_phot_kern_2d_multiz = jjit(value_and_grad(_loss_phot_kern_2d_multiz))
+# _loss_and_grad_phot_kern_2d_multiz = jjit(value_and_grad(_loss_phot_kern_2d_multiz))
+
+
+_loss_and_grad_phot_kern_2d_multiz = jjit(
+    value_and_grad(_loss_phot_kern_2d_multiz),
+    static_argnames=("use_colors",),
+)
+
 _loss_and_grad_emline_kern_multiz = jjit(value_and_grad(_loss_emline_kern_multiz))
 
 
-@partial(jjit, static_argnames=["n_steps", "step_size"])
+@partial(jjit, static_argnames=["n_steps", "step_size", "use_colors"])
 def fit_minerva(
     u_theta_init,
     trainable,
@@ -32,6 +39,7 @@ def fit_minerva(
     step_size=0.1,
     w_phot=1.0,
     w_halpha=1.0,
+    use_colors=False,
 ):
     opt_init, opt_update, get_params = jax_opt.adam(step_size)
     opt_state = opt_init(u_theta_init)
@@ -39,9 +47,7 @@ def fit_minerva(
     def _opt_update(opt_state, i):
         u_theta = get_params(opt_state)
         loss_phot, grad_phot = _loss_and_grad_phot_kern_2d_multiz(
-            u_theta,
-            ran_key,
-            minerva_phot,
+            u_theta, ran_key, minerva_phot, use_colors=use_colors
         )
 
         loss_halpha, grad_halpha = _loss_and_grad_emline_kern_multiz(
