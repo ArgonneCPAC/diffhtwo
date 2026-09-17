@@ -1,3 +1,4 @@
+import jax.numpy as jnp
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
@@ -5,7 +6,9 @@ from matplotlib.lines import Line2D
 
 from ..data_loaders import load_hizels
 from ..data_loaders.load_hizels import LOGHA_FLUX_LIMIT_NONE
+from ..data_loaders.load_minerva import get_minerva_halpha
 from ..kernels.line_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
+from ..kernels.N_line import N_linelum2
 from ..kernels.sfr_tau import get_logsfr_100Myr
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
@@ -18,6 +21,127 @@ colors_z = [
     "#c8b44a",  # warm gold
     "#c87820",  # amber
 ]
+
+minerva_halpha_colors = [
+    "#7C93D6",
+    "#8CBEDB",
+    "#8FDBC4",
+    "#BEDC9E",
+    "#D3DCAE",
+    "#EAD3A3",
+    "#E8B79A",
+    "#D99B9B",
+]
+
+
+def plot_halpha_minerva(
+    ran_key,
+    halpha_drn,
+    drn,
+    param_collection,
+    ssp_data,
+    halpha_wave_aa,
+    run_label,
+    savedir,
+    num_halos=150,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
+    plt_show=True,
+):
+    line_wave_table = jnp.array([halpha_wave_aa])
+    minerva_halpha = get_minerva_halpha(
+        halpha_drn,
+        drn,
+        ran_key,
+        ssp_data,
+        num_halos=num_halos,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
+    )
+    n_z_bins = len(minerva_halpha)
+
+    fig, ax = plt.subplots(1, figsize=(4.3, 5.0), constrained_layout=True)
+    fig.get_layout_engine().set(rect=(0, 0, 1, 1.0))
+    legendsize = 8
+    labelsize = 14
+    alpha = 1
+
+    for z in range(n_z_bins):
+        z_data = minerva_halpha[z]
+        z_min = np.round(z_data.z_min, 2)
+        z_max = np.round(z_data.z_max, 2)
+        z_label = str(z_min) + " < z < " + str(z_max)
+
+        filter_name = type(z_data.lf_data).__name__
+
+        label = filter_name + ": " + z_label
+
+        N_model = N_linelum2(
+            ran_key,
+            line_wave_table,
+            z_data,
+            param_collection,
+        )
+        n_model = N_model / z_data.lc_data.lc_tot_vol_mpc3
+        n_data = z_data.lf_data.N_data / z_data.data_vol_mpc3
+        bin_centers = (z_data.lf_data.bin_lo + z_data.lf_data.bin_hi) / 2
+        bin_centers = bin_centers.squeeze()
+
+        ax.scatter(
+            bin_centers,
+            np.log10(n_data),
+            c=minerva_halpha_colors[z],
+            marker="s",
+            s=8,
+            alpha=alpha,
+        )
+        ax.plot(
+            bin_centers,
+            np.log10(n_model),
+            c=minerva_halpha_colors[z],
+            lw=1.5,
+            alpha=alpha,
+            label=label,
+        )
+    ax.minorticks_on()
+    ax.tick_params(
+        which="major",
+        direction="in",
+        top=True,
+        right=True,
+        length=6,
+        width=1,
+        labelsize=10,
+    )
+    ax.tick_params(
+        which="minor",
+        direction="in",
+        top=True,
+        right=True,
+        length=3,
+        width=0.8,
+        labelsize=10,
+    )
+    ax.legend(
+        loc="lower center",
+        bbox_to_anchor=(0.5, 1.01),
+        frameon=False,
+        ncol=2,
+        fontsize=legendsize,
+    )
+    ax.set_ylim(-7, -2)
+    ax.set_xlim(38.1, 44.1)
+
+    ax.set_xlabel("log$_{10}$ (L$_{H\u03b1}$ [erg/s])", fontsize=labelsize)
+    ax.set_ylabel("log$_{10}($\u03d5 [Mpc$^{-3}$])", fontsize=labelsize)
+
+    fig.savefig(
+        savedir + "/" + run_label + "_halpha_LF_minerva" + ".png",
+        dpi=400,
+    )
+    if plt_show:
+        plt.show()
+    plt.close()
 
 
 def plot_halpha(

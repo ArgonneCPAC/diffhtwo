@@ -1,11 +1,53 @@
 import jax.numpy as jnp
-from diffsky.experimental.scatter import DEFAULT_SCATTER_U_PARAMS
-from dsps.metallicity.umzr import DEFAULT_MZR_U_PARAMS
 from jax import jit as jjit
 
-from ..kernels.N_line import N_linelum
+from ..kernels.N_line import N_linelum, N_linelum2
 from ..param_utils import get_param_collection_from_u_theta
 from .loss_functions import poisson_loss
+
+
+@jjit
+def get_emline_loss_multiz(
+    ran_key,
+    line_wave_aa,
+    data,
+    param_collection,
+):
+    line_wave_table = jnp.array([line_wave_aa])
+    emline_loss = 0.0
+    for z in range(len(data)):
+        z_data = data[z]
+
+        N_model = N_linelum2(
+            ran_key,
+            line_wave_table,
+            z_data,
+            param_collection,
+        )
+
+        n_model = N_model / z_data.lc_data.lc_tot_vol_mpc3
+        n_data = z_data.lf_data.N_data / z_data.data_vol_mpc3
+
+        emline_loss += poisson_loss(n_model, n_data)
+
+    return emline_loss
+
+
+def _loss_emline_kern_multiz(
+    u_theta,
+    ran_key,
+    line_wave_aa,
+    data,
+):
+    param_collection = get_param_collection_from_u_theta(u_theta)
+    emline_loss_args = (
+        ran_key,
+        line_wave_aa,
+        data,
+        param_collection,
+    )
+    emline_loss = get_emline_loss_multiz(*emline_loss_args)
+    return emline_loss
 
 
 @jjit
@@ -44,8 +86,6 @@ def _loss_emline_kern(
     N_data,
     vol_Mpc3_data,
     lc_data,
-    u_mzr_params=DEFAULT_MZR_U_PARAMS,
-    u_scatter_params=DEFAULT_SCATTER_U_PARAMS,
 ):
     param_collection = get_param_collection_from_u_theta(u_theta)
     emline_loss_args = (

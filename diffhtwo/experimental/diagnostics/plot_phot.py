@@ -807,247 +807,219 @@ def _add_marker_legend(ax, label, **kwargs):
     )
 
 
-# def plot_app_mag_funcs(
-#     dataset,
-#     data_label,
-#     param_collection,
-#     ran_key,
-#     zbins,
-#     ssp_data,
-#     savedir,
-#     lgmp_min=10.0,
-#     lgmp_max=15.0,
-#     num_halos=5000,
-#     lc_sky_area_degsq=1000,
-#     n_z_phot_table=30,
-#     dmag=0.5,
-#     cosmo_params=DEFAULT_COSMOLOGY,
-#     fb=FB,
-#     plt_show=True,
-# ):
-#     dataset_mags = dataset.mags
-#     data_sky_area_degsq = dataset.data_sky_area_degsq
+def plot_app_mag_funcs_minerva(
+    minerva_phot,
+    run_label,
+    param_collection,
+    ran_key,
+    ssp_data,
+    savedir,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
+    num_halos=5000,
+    lc_sky_area_degsq=1000,
+    n_z_phot_table=30,
+    dmag=0.5,
+    cosmo_params=DEFAULT_COSMOLOGY,
+    fb=FB,
+    plt_show=True,
+):
+    band_colors = [
+        "#001219",
+        "#04343B",
+        "#0A575C",
+        "#16787A",
+        "#31968E",
+        "#58B19B",
+        "#7AB48F",
+        "#98B07B",
+        "#B0944D",
+        "#BC772E",
+        "#B75A23",
+        "#AA3B20",
+        "#9B1D20",
+    ]
 
-#     zbins = np.array(zbins)
-#     labels_z = [" z = " + str(np.round(np.median(z), 2)) for z in zbins]
+    fig_width = 7.1
+    fig_height = 2.75
 
-#     if len(labels_z) == 1:
-#         colors_z = [
-#             "#001219",
-#         ]
+    fontsize = 10
+    labelsize = 10
+    legendsize = 8
+    alpha = 0.95
+    lw = 0.75
+    s = 2.5
 
-#     elif len(labels_z) == 2:
-#         colors_z = [
-#             "#001219",
-#             "#c87820",
-#         ]
+    zbins = minerva_phot.zbins
+    redshift = minerva_phot.redshift
+    mags = minerva_phot.mags
+    sels = minerva_phot.sels
+    mags_labels = minerva_phot.mags_labels
+    n_bands = len(mags_labels)
+    data_sky_area_degsq = minerva_phot.data_sky_area_degsq
 
-#     elif len(labels_z) == 3:
-#         colors_z = [
-#             "#001219",
-#             "#0a7a80",
-#             "#c87820",
-#         ]
+    n_z_bins = len(zbins)
 
-#     elif len(labels_z) == 4:
-#         colors_z = [
-#             "#001219",
-#             "#0a7a80",
-#             "#80cca8",
-#             "#c87820",
-#         ]
+    fig, ax = plt.subplots(
+        1, n_z_bins, figsize=(fig_width, fig_height), constrained_layout=True
+    )
+    fig.get_layout_engine().set(rect=(0, 0, 1, 0.875))
 
-#     elif len(labels_z) == 5:
-#         colors_z = ["#001219", "#0a7a80", "#80cca8", "#c87820", "#9b1d20"]
-#     elif len(labels_z) == 6:
-#         colors_z = ["#001219", "#0a7a80", "#80cca8", "#c8b44a", "#c87820", "#9b1d20"]
+    # xlim = [(13.0, 19.5), (18.5, 25.5), (19.0, 25.5), (19.5, 25.5), (20.0, 25.5)]
+    ylim = [(-6.2, -2.0), (-5.2, -1.1), (-6.2, -1.5), (-6.9, -1.8), (-6.9, -2.6)]
+    for zbin in range(len(zbins)):
+        z_min = zbins[zbin][0]
+        z_max = zbins[zbin][1]
+        z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
 
-#     n_bands = dataset_mags.shape[1] - 1
-#     if n_bands <= 5:
-#         nrows, ncols = 1, n_bands
-#     else:
-#         ncols = 4
-#         nrows = int(np.ceil(n_bands / ncols))
+        ax[zbin].set_title(str(z_min) + " < z < " + str(z_max))
 
-#     fig_width = 7.1 * ncols / 4
-#     fig_height = 5 * nrows / 2
+        z_mask = (redshift > z_min) & (redshift < z_max)
 
-#     fontsize = 10
-#     labelsize = 10
-#     alpha = 0.75
-#     s = 10
+        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
 
-#     fig, axes = plt.subplots(
-#         nrows, ncols, figsize=(fig_width, fig_height), constrained_layout=True
-#     )
-#     if nrows == 1:
-#         axes = axes[np.newaxis, :]
-#     if ncols == 1:
-#         axes = axes[:, np.newaxis]
+        z_phot_table = 10 ** jnp.linspace(
+            np.log10(z_min), np.log10(z_max), n_z_phot_table
+        )
+        lc_data = generate_lc_data(
+            ran_key,
+            num_halos,
+            z_min,
+            z_max,
+            lgmp_min,
+            lgmp_max,
+            lc_sky_area_degsq,
+            ssp_data,
+            minerva_phot.filter_info.tcurves,
+            z_phot_table,
+        )
+        obs_mags, weights, phot_kern_results = mag_kern(
+            ran_key,
+            param_collection,
+            lc_data,
+            minerva_phot.filter_info.mag_thresh,
+            minerva_phot.frac_cat,
+        )
 
-#     handles = [
-#         mlines.Line2D([], [], color=c, linewidth=6, solid_capstyle="butt", label=label)
-#         for c, label in zip(colors_z, labels_z)
-#     ]
+        shift_dex = 0.0
+        if zbin == 0:
+            d_shift_dex = 0.2
+        else:
+            d_shift_dex = 0.2
+        for i in range(n_bands):
+            sel = sels[:, i] * z_mask
+            mag_band_z = mags[:, i][sel]
+            bins = np.arange(
+                mag_band_z.min(),
+                mag_band_z.max() + dmag,
+                dmag,
+            )
+            bin_centers = (bins[1:] + bins[:-1]) / 2
 
-#     top = 1 - 0.1 / nrows
-#     fig.get_layout_engine().set(rect=[0, 0, 1, top])
-#     bb_top = top + 0.11 if nrows == 1 else top + 0.055
+            # oversampling for diffsky
+            oversample_factor = 1
+            bins_diffsky = np.linspace(
+                bins[0], bins[-1], (len(bins) - 1) * oversample_factor + 1
+            )
+            bin_diffsky_centers = (bins_diffsky[1:] + bins_diffsky[:-1]) / 2
 
-#     solid_handle = Line2D([], [], linestyle="-", color="gray", label="diffsky")
-#     handles.append(solid_handle)
+            n_data, bin_edges = np.histogram(
+                mag_band_z,
+                weights=np.ones_like(mag_band_z) * (1 / data_vol_mpc3),
+                bins=bins,
+            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=RuntimeWarning)
+                ax[zbin].scatter(
+                    bin_centers,
+                    np.log10(n_data) + shift_dex,
+                    c=band_colors[i],
+                    alpha=alpha,
+                    s=s,
+                )
 
-#     scatter_handle = Line2D(
-#         [],
-#         [],
-#         linestyle="none",
-#         marker="o",
-#         color="gray",
-#         markersize=s / 3,
-#         label=data_label,
-#     )
-#     handles.append(scatter_handle)
+            n_diffsky, _ = np.histogram(
+                obs_mags[:, i],
+                weights=weights * (1 / lc_data.lc_tot_vol_mpc3),
+                bins=bins_diffsky,
+            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings("ignore", category=RuntimeWarning)
+                ax[zbin].plot(
+                    bin_diffsky_centers,
+                    np.log10(n_diffsky) + shift_dex,
+                    c=band_colors[i],
+                    alpha=alpha,
+                    label=mags_labels[i],
+                    lw=lw,
+                )
+            shift_dex += d_shift_dex
 
-#     fig.legend(
-#         handles=handles,
-#         loc="upper center",
-#         ncol=len(zbins) + 2,
-#         frameon=False,
-#         handlelength=3,
-#         handleheight=0.5,
-#         columnspacing=0.8,
-#         handletextpad=0.1,
-#         bbox_to_anchor=(0.5, bb_top),
-#         fontsize=10,
-#     )
+        ax[zbin].set_xticks(np.arange(10, 30, 2))
+        ax[zbin].minorticks_on()
+        ax[zbin].tick_params(
+            which="major",
+            direction="in",
+            top=True,
+            right=True,
+            length=6,
+            width=1,
+            labelsize=labelsize,
+        )
+        ax[zbin].tick_params(
+            which="minor",
+            direction="in",
+            top=True,
+            right=True,
+            length=3,
+            width=0.8,
+            labelsize=labelsize,
+        )
 
-#     xlim = []
-#     for zbin in range(len(zbins)):
-#         z_min = zbins[zbin][0]
-#         z_max = zbins[zbin][1]
+        ax[zbin].set_ylim(-7, -0.5)
+        ax[zbin].set_xlim(19.0, 28.0)
 
-#         z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
-#         z_mask = (dataset_mags[:, -1] > z_min) & (dataset_mags[:, -1] < z_max)
-#         dataset_mags_z = dataset_mags[z_mask]
-#         data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
+    ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
 
-#         z_phot_table = 10 ** jnp.linspace(
-#             np.log10(z_min), np.log10(z_max), n_z_phot_table
-#         )
-#         lc_data = generate_lc_data(
-#             ran_key,
-#             num_halos,
-#             z_min,
-#             z_max,
-#             lgmp_min,
-#             lgmp_max,
-#             lc_sky_area_degsq,
-#             ssp_data,
-#             dataset.filter_info.tcurves,
-#             z_phot_table,
-#         )
-#         obs_mags, weights, phot_kern_results = mag_kern(
-#             ran_key,
-#             param_collection,
-#             lc_data,
-#             dataset.filter_info.mag_thresh,
-#             dataset.frac_cat,
-#         )
+    minerva_handle = Line2D(
+        [],
+        [],
+        linestyle="none",
+        marker="o",
+        markerfacecolor="gray",
+        markeredgecolor="none",
+        markersize=3,
+        label="MINERVA",
+    )
+    diffsky_handle = Line2D([], [], linestyle="-", lw=1, color="gray", label="diffsky")
 
-#         row = 0
-#         col = 0
-#         for i in range(n_bands):
-#             bins = np.arange(
-#                 dataset_mags_z[:, i].min(),
-#                 dataset_mags_z[:, i].max() + dmag,
-#                 dmag,
-#             )
-#             bin_centers = (bins[1:] + bins[:-1]) / 2
+    ax[0].legend(
+        handles=[minerva_handle, diffsky_handle],
+        loc="upper center",
+        frameon=False,
+        fontsize=legendsize,
+        handletextpad=0.3,
+        labelspacing=0.3,
+    )
 
-#             # oversampling for diffsky
-#             oversample_factor = 1
-#             bins_diffsky = np.linspace(
-#                 bins[0], bins[-1], (len(bins) - 1) * oversample_factor + 1
-#             )
-#             bin_diffsky_centers = (bins_diffsky[1:] + bins_diffsky[:-1]) / 2
+    handles = [
+        mlines.Line2D([], [], color=c, linewidth=6, solid_capstyle="butt", label=label)
+        for c, label in zip(band_colors, mags_labels)
+    ]
+    fig.legend(
+        handles=handles,
+        loc="upper center",
+        ncol=7,
+        bbox_to_anchor=(0.5, 1.0),
+        frameon=False,
+        fontsize=legendsize,
+    )
 
-#             if zbin == 0:
-#                 xlim_left = bins.min() - 0.5
-#                 xlim_right = np.minimum(25.5, bins.max() + 1)
-#                 xlim.append([xlim_left, xlim_right])
-
-#             axes[row, col].set_xlim(bins[0], bins[-1] + 0.2)
-
-#             n_data, bin_edges = np.histogram(
-#                 dataset_mags_z[:, i],
-#                 weights=np.ones_like(dataset_mags_z[:, i]) * (1 / data_vol_mpc3),
-#                 bins=bins,
-#             )
-#             with warnings.catch_warnings():
-#                 warnings.filterwarnings("ignore", category=RuntimeWarning)
-#                 axes[row, col].scatter(
-#                     bin_centers, np.log10(n_data), c=colors_z[zbin], alpha=alpha, s=s
-#                 )
-
-#             n_diffsky, _ = np.histogram(
-#                 obs_mags[:, i],
-#                 weights=weights * (1 / lc_data.lc_tot_vol_mpc3),
-#                 bins=bins_diffsky,
-#             )
-#             with warnings.catch_warnings():
-#                 warnings.filterwarnings("ignore", category=RuntimeWarning)
-#                 axes[row, col].plot(
-#                     bin_diffsky_centers,
-#                     np.log10(n_diffsky),
-#                     c=colors_z[zbin],
-#                     alpha=alpha,
-#                 )
-
-#             axes[row, col].set_xticks(np.arange(10, 30, 2))
-#             axes[row, col].minorticks_on()
-#             axes[row, col].tick_params(
-#                 which="major",
-#                 direction="in",
-#                 top=True,
-#                 right=True,
-#                 length=6,
-#                 width=1,
-#                 labelsize=labelsize,
-#             )
-#             axes[row, col].tick_params(
-#                 which="minor",
-#                 direction="in",
-#                 top=True,
-#                 right=True,
-#                 length=3,
-#                 width=0.8,
-#                 labelsize=labelsize,
-#             )
-
-#             axes[row, col].set_ylim(-6.9, -2.5)
-#             axes[row, col].set_xlim(xlim[i])
-#             axes[row, col].set_xlabel(dataset.mags_labels[i])
-
-#             if col != 0:
-#                 axes[row, col].set_yticklabels([])
-
-#             if col == ncols - 1:
-#                 row += 1
-#                 col = 0
-#             else:
-#                 col += 1
-
-#     for idx in range(n_bands, nrows * ncols):
-#         r, c = divmod(idx, ncols)
-#         axes[r, c].set_visible(False)
-
-#     for r in range(nrows):
-#         axes[r, 0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
-
-#     fig.savefig(
-#         savedir + "/" + data_label + "_app_mag_funcs.png",
-#         dpi=300,
-#     )
-#     if plt_show:
-#         plt.show()
-#     plt.close()
+    fig.supxlabel("apparent magnitude [AB]")
+    fig.savefig(
+        savedir + "/" + run_label + "_minerva_app_mag_funcs.png",
+        dpi=400,
+    )
+    if plt_show:
+        plt.show()
+    plt.close()

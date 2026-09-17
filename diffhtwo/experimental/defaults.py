@@ -27,6 +27,8 @@ SDSS_Z_MIN = 0.02
 SDSS_Z_MAX = 0.2
 SDSS_MAGR_THRESH = 17.6  # model mag
 
+MINERVA_AREA_DEG2 = 234 / 3600  # UDS-only
+
 FilterInfo = namedtuple("FilterInfo", ["mag_thresh", "tcurves"])
 DatasetLH = namedtuple(
     "DatasetLH",
@@ -90,4 +92,9 @@ MagColor = namedtuple(
 AppMagFunc = namedtuple(
     "AppMagFunc",
     ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data", "fit"],
+)
+
+Lf = namedtuple(
+    "Lf",
+    ["sig", "bin_lo", "bin_hi", "N_data", "fit"],
 )
