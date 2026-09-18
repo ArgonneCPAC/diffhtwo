@@ -61,19 +61,11 @@ def _loss_phot_kern_2d_multiz(
 
     phot_loss_2d = 0.0
 
-    # get color loss
+    # get loss by going through all the fitted spaces: mag, color-color, and color-magnitude
     phot_loss_2d += get_phot_loss_2d_multiz(
         ran_key,
         param_collection,
-        fitting_data.colors,
-        fitting_data.filter_info.mag_thresh,
-        fitting_data.frac_cat,
-    )
-    # get app mag func loss
-    phot_loss_2d += get_phot_loss_2d_multiz(
-        ran_key,
-        param_collection,
-        fitting_data.app_mag_funcs,
+        fitting_data.spaces,
         fitting_data.filter_info.mag_thresh,
         fitting_data.frac_cat,
     )
