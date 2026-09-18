@@ -434,7 +434,7 @@ def get_feniks_data(
     lc_data = generate_lc_data(*lc_args)
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-    u, g, r, i, z, j, h, k = get_mag_spaces_at_z(
+    u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
         z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
     )
 
@@ -612,7 +612,7 @@ def get_feniks_data(
 
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
-        u, g, r, i, z, j, h, k = get_mag_spaces_at_z(
+        u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
             z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
         )
 
@@ -775,7 +775,7 @@ def get_feniks_data(
 
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
-        u, g, r, i, z, j, h, k = get_mag_spaces_at_z(
+        u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
             z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
         )
 
@@ -946,7 +946,7 @@ def get_feniks_data(
 
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
-        u, g, r, i, z, j, h, k = get_mag_spaces_at_z(
+        u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
             z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
         )
 
@@ -1178,7 +1178,7 @@ def get_feniks_data(
     )
 
 
-def get_mag_spaces_at_z(
+def _get_mag_spaces_at_z(
     z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
 ):
     # 1D (u)

@@ -16,7 +16,7 @@ from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
-from diffhtwo.experimental.data_loaders import load_feniks
+from diffhtwo.experimental.data_loaders import load_feniks, load_sdss
 from diffhtwo.experimental.samplers import hmc_post
 
 if __name__ == "__main__":
@@ -52,11 +52,22 @@ if __name__ == "__main__":
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
     halpha_wave_aa = ssp_data.ssp_emline_wave[0]
 
+    sdss_fitting_data = load_sdss.get_sdss_fitting_data(
+        sdss_drn,
+        ran_key,
+        ssp_data,
+        num_halos=cfg["sdss"]["num_halos"],
+        lgmp_min=cfg["lgmp_min"],
+        lgmp_max=cfg["lgmp_max"],
+    )
+
     feniks_fitting_data = load_feniks.get_feniks_fitting_data(
         feniks_drn,
         ran_key,
         ssp_data,
         num_halos=cfg["feniks"]["num_halos"],
+        lgmp_min=cfg["lgmp_min"],
+        lgmp_max=cfg["lgmp_max"],
     )
 
     diffsky_param_file = (
@@ -115,7 +126,8 @@ if __name__ == "__main__":
         hmc_settings,
         inverse_mass_matrix=imm,
         diffsky_params=uparam_flat,
-        loss_data=feniks_fitting_data,
+        sdss_fitting_data=sdss_fitting_data,
+        feniks_fitting_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
         lik_key=lik_key,
     )
@@ -130,7 +142,8 @@ if __name__ == "__main__":
         warmup_states,
         step_sizes,
         diffsky_params=uparam_flat,
-        loss_data=feniks_fitting_data,
+        sdss_fitting_data=sdss_fitting_data,
+        feniks_fitting_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
         lik_key=lik_key,
     )

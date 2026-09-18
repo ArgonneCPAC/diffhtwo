@@ -16,5 +16,11 @@ var_uparams_list: [
     "u_mean_ulgy_qseq_ytp"
 ]
 
+sdss:
+  num_halos: 100
+
 feniks:
   num_halos: 100
+
+lgmp_min: 11.0
+lgmp_max: 15.0
