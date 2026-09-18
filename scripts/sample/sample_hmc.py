@@ -1,3 +1,6 @@
+#################################################
+#  Script based on code from Natalia Rodriguez  #
+#################################################
 import argparse
 import os
 from pathlib import Path
@@ -20,6 +23,9 @@ if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--config", default="config_hmc.yaml")
     args = p.parse_args()
+
+    n_devices = jax.local_device_count()
+    print(n_devices)
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
@@ -64,6 +70,7 @@ if __name__ == "__main__":
         + "_param_collection.hdf5"
     )
     param_collection = load_param_collection(diffsky_param_file)
+
     var_uparams_list = cfg["var_uparams_list"]
     var_params_list = [utils.bounded_name(name) for name in var_uparams_list]
     uparam_collection = dpwm.get_u_param_collection_from_param_collection(
@@ -87,7 +94,7 @@ if __name__ == "__main__":
 
     # keys
     ran_key = jran.key(cfg["ran_key"])
-    warmup_key, sampler_key, init_key = jax.random.split(ran_key, 3)
+    warmup_key, sampler_key, init_key, lik_key = jax.random.split(ran_key, 4)
     warmup_keys = jran.split(warmup_key, cfg["num_chains"])
     sampler_keys = jran.split(sampler_key, cfg["num_chains"])
 
@@ -110,6 +117,7 @@ if __name__ == "__main__":
         diffsky_params=uparam_flat,
         loss_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
+        lik_key=lik_key,
     )
 
     # sampling
@@ -124,6 +132,7 @@ if __name__ == "__main__":
         diffsky_params=uparam_flat,
         loss_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
+        lik_key=lik_key,
     )
     positions_path = out_drn + "/" + cfg["run_label"] + "_" + cfg["run_type"]
     np.save(positions_path, positions)
@@ -145,8 +154,4 @@ if __name__ == "__main__":
         out_drn,
         cfg["run_label"] + "_" + cfg["run_type"],
         param_collection_samples,
-    )
-
-    param_flat_samples = dpwm.unroll_param_collection_into_flat_array(
-        *param_collection_samples
     )

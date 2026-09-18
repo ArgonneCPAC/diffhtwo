@@ -1,15 +1,16 @@
 import jax.numpy as jnp
 from diffsky.experimental.inference import prior, utils
-from jax import random as jran
 from jax.flatten_util import ravel_pytree
 
 from diffhtwo.experimental.loss_kernels.phot_loss import _loss_phot_kern_2d_multiz
 from diffhtwo.experimental.param_utils import get_u_theta_from_param_collection
 
 
-def flat_logposterior_fn(var_uparam_flat, diffsky_params, loss_data, var_flat_idx):
+def flat_logposterior_fn(
+    var_uparam_flat, diffsky_params, loss_data, var_flat_idx, lik_key
+):
     """
-    Adapted from Natalia Rodriguez
+    Adapted from code by Natalia Rodriguez
 
     Combined log-posterior = log-likelihood + log-prior.
     Computes the diffsky transform ``f(*u_coll)`` once and threads the result into both the likelihood (via ``loglikelihood_from_param_coll``)
@@ -26,8 +27,7 @@ def flat_logposterior_fn(var_uparam_flat, diffsky_params, loss_data, var_flat_id
 
     # Likelihood(\theta)
     u_theta = get_u_theta_from_param_collection(param_coll)
-    ran_key = jran.key(0)
-    loglik = _loss_phot_kern_2d_multiz(u_theta, ran_key, loss_data)
+    loglik = -_loss_phot_kern_2d_multiz(u_theta, lik_key, loss_data)
 
     # -- So far we did the same as flat_loglikelihood_fn. Now we reuse computations to get the prior.
 
