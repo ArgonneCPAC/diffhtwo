@@ -1,0 +1,20 @@
+base_path: /Users/kumail/diffdir
+run_label: "run263"
+run_type: "ssperrpop" 
+
+num_samples: 10
+warmup_num_steps: 1
+max_num_doublings: 10
+target_accept: 0.8
+initial_step_size: 1.0
+ran_key: 0
+num_chains: 2 #n_devices
+init_jitter: 2
+
+var_uparams_list: [
+    "u_mean_ulgm_mseq_ytp",
+    "u_mean_ulgy_qseq_ytp"
+]
+
+feniks:
+  num_halos: 100
