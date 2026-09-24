@@ -1,7 +1,6 @@
 import argparse
 import os
 import time
-from collections import namedtuple
 from datetime import datetime
 from pathlib import Path
 
@@ -93,7 +92,7 @@ if __name__ == "__main__":
         cfg = yaml.safe_load(f)
 
     # open, modify and save config_diagnostics in a new location: fit_diagnostics_save_drn
-    with open("config_diagnostics.yaml") as df:
+    with open("../diagnose/config_diagnostics.yaml") as df:
         cfg_d = yaml.safe_load(df)
     cfg_d["model_drn"] = fit_save_drn
     cfg_d["model_nickname"] = cfg["fit_runid"] + "_" + cfg["fit_type"]
@@ -115,19 +114,13 @@ if __name__ == "__main__":
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
 
         # load sdss data
-        sdss = load_sdss.get_sdss_data(
+        sdss_fitting_data = load_sdss.get_sdss_fitting_data(
             sdss_drn,
             ran_key,
             ssp_data,
-            num_halos_coarse_zbins=cfg["sdss"]["num_halos_coarse_zbins"],
-            num_halos_fine_zbins=cfg["sdss"]["num_halos_fine_zbins"],
+            num_halos=cfg["sdss"]["num_halos"],
             lgmp_min=cfg["lgmp_min"],
             lgmp_max=cfg["lgmp_max"],
-        )
-        remove = {"dataset_dim_labels", "mags_labels"}
-        SdssFitting = namedtuple("Sdss", [s for s in sdss._fields if s not in remove])
-        sdss_fitting_data = SdssFitting(
-            **{s: getattr(sdss, s) for s in SdssFitting._fields}
         )
 
         # load feniks data
@@ -135,8 +128,7 @@ if __name__ == "__main__":
             feniks_drn,
             ran_key,
             ssp_data,
-            num_halos_coarse_zbins=cfg["feniks"]["num_halos_coarse_zbins"],
-            num_halos_fine_zbins=cfg["feniks"]["num_halos_fine_zbins"],
+            num_halos=cfg["feniks"]["num_halos"],
             lgmp_min=cfg["lgmp_min"],
             lgmp_max=cfg["lgmp_max"],
         )

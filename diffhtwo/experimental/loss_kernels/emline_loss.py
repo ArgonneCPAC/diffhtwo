@@ -72,7 +72,7 @@ def _loss_emline_kern_multi_line_multi_z(
     n_line = len(fitting_data_multi_line_multi_z.lg_Lbin_edges)
     for line in range(0, n_line):
         n_z = len(fitting_data_multi_line_multi_z.lg_Lbin_edges[line])
-        for z in range(0, n_z):
+        for z in range(1, n_z):
             emline_loss_args_z = (
                 u_theta,
                 ran_key,
