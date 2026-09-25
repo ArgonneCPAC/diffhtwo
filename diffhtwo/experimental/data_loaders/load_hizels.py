@@ -38,7 +38,7 @@ def get_hizels_data(
     halpha_wave_aa,
     logflux_limit=LOGHA_FLUX_LIMIT_NONE,
     num_halos=100,
-    lgmp_min=9.0,
+    lgmp_min=10.5,
     lgmp_max=15.0,
     lc_sky_area_degsq=100,
     n_z_phot_table=15,

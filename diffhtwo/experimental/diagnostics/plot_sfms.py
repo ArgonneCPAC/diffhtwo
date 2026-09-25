@@ -83,6 +83,8 @@ def plot_sfms_hexbin(
     tcurves,
     run_label,
     savedir,
+    lgmp_min=10.5,
+    lgmp_max=15.0,
     mag_thresh=None,
     frac_cat=None,
     xlim=(8, 12),
@@ -116,7 +118,8 @@ def plot_sfms_hexbin(
             num_halos,
             ssp_data,
             tcurves,
-            mc_merge=0,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
 
         logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)

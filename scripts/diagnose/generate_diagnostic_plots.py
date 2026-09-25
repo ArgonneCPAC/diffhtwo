@@ -38,12 +38,7 @@ from diffhtwo.experimental.diagnostics.plot_contour import (
     plot_color_contours,
 )
 from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
-from diffhtwo.experimental.diagnostics.plot_fq import (
-    plot_fq,
-    plot_fq_lit,
-    plot_fq_lit_sims,
-    plot_fq_um,
-)
+from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
     plot_halpha_insitu_exsitu,
@@ -80,9 +75,7 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
     plot_smhm_cen_sat,
     plot_smhm_hexbin,
     plot_smhm_median,
-    plot_smhm_q_sf,
     plot_smhm_ratio_cen_sat,
-    plot_smhm_ratio_q_sf,
 )
 from diffhtwo.experimental.uv_luminosity import append_uv_luminosity_to_ssp_data
 
@@ -121,8 +114,9 @@ if __name__ == "__main__":
 
     run_label2 = "run261"
     run_type2 = "diffstarpop+spspop+merging"
+    drn_pc2 = "/".join(cfg["model_drn"].split("/")[:-1]) + "/" + run_label2 + "/"
     param_collection2 = lc_mock.load_diffsky_param_collection_merging(
-        "/".join(cfg["model_drn"].split("/")[:-1]) + "/" + run_label2 + "/",
+        drn_pc2,
         run_label2 + "_" + run_type2,
     )
 
@@ -147,12 +141,16 @@ if __name__ == "__main__":
         ran_key,
         ssp_data,
         num_halos=num_halos,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
     )
     sdss = load_sdss.get_sdss_data(
         sdss_drn,
         ran_key,
         ssp_data,
         num_halos=num_halos,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
     )
 
     zbins = np.array(
@@ -212,7 +210,7 @@ if __name__ == "__main__":
             lgmp_max=lgmp_max,
             plt_show=False,
         )
-        jax.clear_caches()
+
     if cfg["plots"]["plot_smhm"]:
         print("Generating SMHM plots...")
         plot_smhm(
@@ -224,6 +222,8 @@ if __name__ == "__main__":
             feniks.filter_info.tcurves,
             run_label,
             fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
 
@@ -237,6 +237,8 @@ if __name__ == "__main__":
             run_label,
             fit_diagnostics_save_drn,
             um_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
 
@@ -250,34 +252,10 @@ if __name__ == "__main__":
             run_label,
             fit_diagnostics_save_drn,
             um_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
-
-        # plot_smhm_q_sf(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     um_drn,
-        #     plt_show=False,
-        # )
-
-        # plot_smhm_ratio_q_sf(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     um_drn,
-        #     plt_show=False,
-        # )
 
         plot_smhm_hexbin(
             ran_key,
@@ -288,9 +266,10 @@ if __name__ == "__main__":
             feniks.filter_info.tcurves,
             run_label,
             fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
-        jax.clear_caches()
 
         plot_smhm_median(
             ran_key,
@@ -301,9 +280,10 @@ if __name__ == "__main__":
             feniks.filter_info.tcurves,
             run_label,
             fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
-        jax.clear_caches()
 
     if cfg["plots"]["plot_fq"]:
         print("Generating fq plots...")
@@ -318,43 +298,10 @@ if __name__ == "__main__":
             fq_drn,
             um_fq_drn,
             fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
-        jax.clear_caches()
-        # plot_fq_um(
-        #     ran_key,
-        #     param_collection_fit,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     um_fq_drn,
-        #     plt_show=False,
-        # )
-        # plot_fq_lit(
-        #     ran_key,
-        #     param_collection_fit,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     fq_drn,
-        #     plt_show=False,
-        # )
-
-        # plot_fq_lit_sims(
-        #     ran_key,
-        #     param_collection_fit,
-        #     num_halos,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     fq_drn,
-        #     plt_show=False,
-        # )
 
     if cfg["plots"]["plot_sfms"]:
         print("Generating SFMS plots...")
@@ -380,6 +327,8 @@ if __name__ == "__main__":
             feniks.filter_info.tcurves,
             run_label,
             fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
         jax.clear_caches()
@@ -473,11 +422,11 @@ if __name__ == "__main__":
         plot_color_contour_grid(
             ran_key,
             param_collection_fit,
-            feniks.colors,
+            feniks.spaces,
             feniks_fields,
             feniks.filter_info.mag_thresh,
             feniks.frac_cat,
-            sdss.colors,
+            sdss.spaces,
             sdss_fields,
             sdss.filter_info.mag_thresh,
             sdss.frac_cat,
@@ -499,6 +448,8 @@ if __name__ == "__main__":
             ssp_data,
             feniks.filter_info.tcurves,
             halpha_wave_aa,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
         )
 
         print("Generating h-alpha LF plot...")
@@ -518,74 +469,84 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-        # print("Generating h-alpha LF ms/q/burst plot...")
-        # plot_halpha_ms_q_burst(
-        #     ran_key,
-        #     hizels,
-        #     param_collection_fit,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     halpha_wave_aa,
-        #     hizels_label,
-        #     fit_diagnostics_save_drn,
-        #     num_halos=num_halos,
-        #     plt_show=False,
-        # )
+        print("Generating h-alpha LF ms/q/burst plot...")
+        plot_halpha_ms_q_burst(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            plt_show=False,
+        )
 
-        # print("Generating h-alpha LF ssfr plot...")
-        # plot_halpha_ssfr(
-        #     ran_key,
-        #     hizels,
-        #     param_collection_fit,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     halpha_wave_aa,
-        #     hizels_label,
-        #     fit_diagnostics_save_drn,
-        #     num_halos=num_halos,
-        #     plt_show=False,
-        # )
+        print("Generating h-alpha LF ssfr plot...")
+        plot_halpha_ssfr(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            plt_show=False,
+        )
 
-        # print("Generating h-alpha LF sfr plot...")
-        # plot_halpha_sfr_single_z(
-        #     ran_key,
-        #     hizels,
-        #     param_collection_fit,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     halpha_wave_aa,
-        #     hizels_label,
-        #     fit_diagnostics_save_drn,
-        #     num_halos=num_halos,
-        #     plt_show=False,
-        # )
+        print("Generating h-alpha LF sfr plot...")
+        plot_halpha_sfr_single_z(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            plt_show=False,
+        )
 
-        # plot_halpha_sfr(
-        #     ran_key,
-        #     hizels,
-        #     param_collection_fit,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     halpha_wave_aa,
-        #     hizels_label,
-        #     fit_diagnostics_save_drn,
-        #     num_halos=num_halos,
-        #     plt_show=False,
-        # )
+        plot_halpha_sfr(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            plt_show=False,
+        )
 
-        # print("Generating h-alpha LF in-situ/ex-situ plot...")
-        # plot_halpha_insitu_exsitu(
-        #     ran_key,
-        #     hizels,
-        #     param_collection_fit,
-        #     ssp_data,
-        #     feniks.filter_info.tcurves,
-        #     halpha_wave_aa,
-        #     hizels_label,
-        #     fit_diagnostics_save_drn,
-        #     num_halos=num_halos,
-        #     plt_show=False,
-        # )
+        print("Generating h-alpha LF in-situ/ex-situ plot...")
+        plot_halpha_insitu_exsitu(
+            ran_key,
+            hizels,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            plt_show=False,
+        )
 
     """
     Plot FENIKS
@@ -619,7 +580,6 @@ if __name__ == "__main__":
                 lgmp_sub_min=lgmp_min,
                 plt_show=False,
             )
-            jax.clear_caches()
 
             # plot_color_contours(
             #     ran_key,
@@ -640,20 +600,6 @@ if __name__ == "__main__":
                 [2.0, 2.5],
             ]
         )
-
-        # if cfg["plots"]["plot_app_mag_funcs"]:
-        #     print("Generating FENIKS app mag funcs plot...")
-        # plot_app_mag_funcs(
-        #     feniks,
-        #     feniks_label,
-        #     param_collection_fit,
-        #     ran_key,
-        #     feniks_zbins,
-        #     ssp_data,
-        #     fit_diagnostics_save_drn,
-        #     num_halos=num_halos,
-        #     plt_show=False,
-        # )
 
         if cfg["plots"]["plot_uvj"]:
             print("Generating FENIKS UVJ plot...")
@@ -965,20 +911,6 @@ if __name__ == "__main__":
         #         sdss.frac_cat,
         #         sdss_label,
         #         fit_diagnostics_save_drn,
-        #     )
-
-        # if cfg["plots"]["plot_app_mag_funcs"]:
-        #     print("Generating SDSS app mag funcs plot...")
-        #     plot_app_mag_funcs(
-        #         sdss,
-        #         sdss_label,
-        #         param_collection_fit,
-        #         ran_key,
-        #         sdss_zbins,
-        #         ssp_data,
-        #         fit_diagnostics_save_drn,
-        #         num_halos=num_halos,
-        #         plt_show=False,
         #     )
 
         if cfg["plots"]["plot_exsitu_frac"]:

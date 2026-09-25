@@ -4,7 +4,6 @@ import numpy as np
 def get_fq_sm(
     logsm_obs,
     logsfr_obs,
-    # t_q,
     lc_data,
     phot_data,
     gal_weight,
@@ -22,13 +21,9 @@ def get_fq_sm(
 
     logsm_obs = logsm_obs[sel]
     logsfr_obs = logsfr_obs[sel]
-    # t_q = t_q[sel]
     gal_weight = gal_weight[sel]
 
     logssfr_obs = logsfr_obs - logsm_obs
-
-    # if quench_thresh == "t_q":
-    #     quenched = t_q < t_obs
 
     if isinstance(quench_thresh, (int, float)):
         quenched = logssfr_obs < quench_thresh
@@ -57,7 +52,6 @@ def get_fq_sm(
 def get_fq_hm(
     logsm_obs,
     logsfr_obs,
-    # t_q,
     lc_data,
     phot_data,
     gal_weight,
@@ -76,14 +70,9 @@ def get_fq_hm(
     logmp_obs = lc_data.logmp_obs[sel]
     logsm_obs = logsm_obs[sel]
     logsfr_obs = logsfr_obs[sel]
-    # t_obs = lc_data.t_obs[sel]
-    # t_q = t_q[sel]
     gal_weight = gal_weight[sel]
 
     logssfr_obs = logsfr_obs - logsm_obs
-
-    # if quench_thresh == "t_q":
-    #     quenched = t_q < t_obs
 
     if isinstance(quench_thresh, (int, float)):
         quenched = logssfr_obs < quench_thresh
@@ -95,7 +84,7 @@ def get_fq_hm(
     fq_list = []
     logmp_bins = np.arange(logmp_obs.min(), logmp_obs.max() + d_hm, d_hm)
     logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
-    for b in range(0, len(logmp_bins) - 1):
+    for b in range(len(logmp_bins) - 1):
         in_bin = (logmp_obs >= logmp_bins[b]) & (logmp_obs < logmp_bins[b + 1])
 
         f_q = gal_weight[quenched & in_bin].sum() / gal_weight[in_bin].sum()
