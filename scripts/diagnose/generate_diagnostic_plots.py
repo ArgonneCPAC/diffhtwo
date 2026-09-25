@@ -114,7 +114,9 @@ if __name__ == "__main__":
 
     run_label2 = "run261"
     run_type2 = "diffstarpop+spspop+merging"
-    drn_pc2 = "/".join(cfg["model_drn"].split("/")[:-1]) + "/" + run_label2 + "/"
+    drn_pc2 = (
+        os.path.join(os.path.dirname(cfg["model_drn"].rstrip("/")), run_label2) + "/"
+    )
     param_collection2 = lc_mock.load_diffsky_param_collection_merging(
         drn_pc2,
         run_label2 + "_" + run_type2,
