@@ -1,3 +1,5 @@
+from functools import partial
+
 from jax import jit as jjit
 from jax import lax
 
@@ -51,12 +53,8 @@ def get_phot_loss_2d_multiz(
     return phot_loss_2d
 
 
-@jjit
-def _loss_phot_kern_2d_multiz(
-    u_theta,
-    ran_key,
-    fitting_data,
-):
+@partial(jjit, static_argnames=["use_colors"])
+def _loss_phot_kern_2d_multiz(u_theta, ran_key, fitting_data, use_colors=True):
     param_collection = get_param_collection_from_u_theta(u_theta)
 
     phot_loss_2d = 0.0
