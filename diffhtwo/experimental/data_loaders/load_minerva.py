@@ -1,3 +1,4 @@
+import re
 from collections import namedtuple
 from difflib import get_close_matches
 from pathlib import Path
@@ -13,16 +14,16 @@ from ..defaults import (
     MINERVA_AREA_DEG2,
     AppMagFunc,
     ColorColor,
-    ColorCondMag,
     FilterInfo,
     Lf,
     MagColor,
 )
 from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
+from . import N_utils
 from .N_utils import get_N_1d, get_N_2d
 
-PHOT_CAT = "MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_CATALOG.fits"
+PHOT_CAT = "MINERVA-UDS_n3.0_m3.1_v1.2.1_ACS+WEBB_Kf444w_SUPER_CATALOG_wMIRI.fits"
 EAZY_CAT = "MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG_larson.zout.fits"
 BASE_PATH = Path(__file__).resolve().parent.parent
 MINERVA_FILTERS_PATH = BASE_PATH / "data" / "minerva_filters"
@@ -38,7 +39,7 @@ MinervaPhot = namedtuple(
         "mags",
         "sels",
         "mags_labels",
-        "app_mag_funcs",
+        "spaces",
         "zbins",
         "filter_info",
         "frac_cat",
@@ -131,20 +132,36 @@ def get_minerva_phot(
     zout = zout[use_phot]
     z_best = z_best[use_phot].data
 
+    default_limits = (19, 28)
     minerva_mag_thresh = PhotFilters(
-        f435w=(19.0, 28.0),
-        f606w=(19.0, 28.0),
-        f814w=(19.0, 28.0),
-        f125w=(19.0, 28.0),
-        f140w=(19.0, 28.0),
-        f160w=(19.0, 28.0),
-        f090w=(19.0, 28.0),
-        f115w=(19.0, 28.0),
-        f150w=(19.0, 28.0),
-        f200w=(19.0, 28.0),
-        f277w=(19.0, 28.0),
-        f356w=(19.0, 28.0),
-        f444w=(19.0, 28.0),
+        f435w=default_limits,
+        f606w=default_limits,
+        f775w=default_limits,
+        f814w=default_limits,
+        f098m=default_limits,
+        f105w=default_limits,
+        f125w=default_limits,
+        f140w=default_limits,
+        f160w=default_limits,
+        f090w=default_limits,
+        f115w=default_limits,
+        f140m=default_limits,
+        f150w=default_limits,
+        f162m=default_limits,
+        f182m=default_limits,
+        f200w=default_limits,
+        f210m=default_limits,
+        f250m=default_limits,
+        f277w=default_limits,
+        f300m=default_limits,
+        f335m=default_limits,
+        f356w=default_limits,
+        f360m=default_limits,
+        f410m=default_limits,
+        f430m=default_limits,
+        f444w=default_limits,
+        f460m=default_limits,
+        f480m=default_limits,
     )
 
     tcurves = []
@@ -190,16 +207,43 @@ def get_minerva_phot(
             [5.0, 6.0],
         ]
     )
-    AppMagFuncs = namedtuple(
-        "AppMagFuncs",
-        ["z_min", "z_max", "data_vol_mpc3", "lc_data", *PhotFilters._fields],
+
+    md = [
+        "F435w",
+        "F606w",
+        "F814w",
+        "F125w",
+        "F140w",
+        "F160w",
+        "F090w",
+        "F115w",
+        "F150w",
+        "F200w",
+        "F277w",
+        "F356w",
+        "F444w",
+    ]
+    ccd = ["F105wF125w_F125wF162m"]
+    cmd = ["F182m_F105wF125w"]
+
+    mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
+    ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
+    cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
+
+    Spaces = namedtuple(
+        "Spaces",
+        [
+            "z_min",
+            "z_max",
+            "data_vol_mpc3",
+            "lc_data",
+            *mag_namedtuples,
+            *ccd,
+            *cmd,
+        ],
     )
 
-    filter_namedtuples = {
-        f: namedtuple(f, AppMagFunc._fields) for f in PhotFilters._fields
-    }
-
-    app_mag_funcs = []
+    spaces = []
     for zbin in range(len(z_bins)):
         z_min = z_bins[zbin][0]
         z_max = z_bins[zbin][1]
@@ -225,16 +269,57 @@ def get_minerva_phot(
 
         z_sel = (z_best > z_min) & (z_best <= z_max)
 
-        band_z_tuples = []
-        for i, fname in enumerate(PhotFilters._fields):
-            sel = sels[:, i] * z_sel
-            N_1d, sig, bin_lo, bin_hi = get_N_1d(mags[:, i][sel])
-            band_z_tuples.append(
-                filter_namedtuples[fname](i, sig, bin_lo, bin_hi, N_1d, True)
+        mag_z_tuples = []
+        for space_name, space in mag_namedtuples.items():
+            (mag_idx,) = get_filt_indx(space_name, PhotFilters)
+
+            sel = sels[:, mag_idx] * z_sel
+            mag_selected = mags[sel]
+
+            N_1d, sig, bin_lo, bin_hi = get_N_1d(mag_selected[:, mag_idx])
+            mag_z_tuples.append(space(mag_idx, sig, bin_lo, bin_hi, N_1d, True))
+
+        ccd_z_tuples = []
+        for space_name, space in ccd_namedtuples.items():
+            col_idx = get_filt_indx(space_name, PhotFilters)
+
+            a, b, c, d = col_idx
+            sel = sels[:, a] * sels[:, b] * sels[:, c] * sels[:, d] * z_sel
+            mag_selected = mags[sel]
+
+            color1 = mag_selected[:, a] - mag_selected[:, b]
+            color2 = mag_selected[:, c] - mag_selected[:, d]
+
+            N_2d, sig, bin_lo, bin_hi = get_N_2d(color1, color2)
+            ccd_z_tuples.append(space(col_idx, sig, bin_lo, bin_hi, N_2d, True))
+
+        cmd_z_tuples = []
+        for space_name, space in cmd_namedtuples.items():
+            mag_idx, b, c = get_filt_indx(space_name, PhotFilters)
+
+            sel = sels[:, mag_idx] * sels[:, b] * sels[:, c] * z_sel
+            mag_selected = mags[sel]
+
+            mag = mag_selected[:, mag_idx]
+            color = mag_selected[:, b] - mag_selected[:, c]
+
+            N_2d, sig, bin_lo, bin_hi = get_N_2d(mag, color)
+
+            col_idx = [b, c]
+            cmd_z_tuples.append(
+                space(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, True)
             )
 
-        app_mag_funcs.append(
-            AppMagFuncs(z_min, z_max, data_vol_mpc3, lc_data, *band_z_tuples)
+        spaces.append(
+            Spaces(
+                z_min,
+                z_max,
+                data_vol_mpc3,
+                lc_data,
+                *mag_z_tuples,
+                *ccd_z_tuples,
+                *cmd_z_tuples,
+            )
         )
 
     frac_cat = 0.9
@@ -243,12 +328,27 @@ def get_minerva_phot(
         mags,
         sels,
         mag_labels,
-        app_mag_funcs,
+        spaces,
         z_bins,
         filter_info,
         frac_cat,
         MINERVA_AREA_DEG2,
     )
+
+
+def get_filt_indx(space_name, filters_namedtuple):
+    """
+    space_name: str
+        e.g. "F105wF125w_F125wF162m"
+    """
+
+    filters = re.findall(r"F\d{3}[a-z]", space_name)
+    filters = [f.lower() for f in filters]
+
+    col_idx = []
+    for filter in filters:
+        col_idx.append(N_utils.filter_name_to_idx(filter, filters_namedtuple))
+    return col_idx
 
 
 def get_minerva_phot_fitting_data(
@@ -345,24 +445,24 @@ def get_minerva_halpha(
     return lfs
 
 
-PhotFilters = namedtuple(
-    "PhotFilters",
-    [
-        "f435w",
-        "f606w",
-        "f814w",
-        "f125w",
-        "f140w",
-        "f160w",
-        "f090w",
-        "f115w",
-        "f150w",
-        "f200w",
-        "f277w",
-        "f356w",
-        "f444w",
-    ],
-)
+# PhotFilters = namedtuple(
+#     "PhotFilters",
+#     [
+#         "f435w",
+#         "f606w",
+#         "f814w",
+#         "f125w",
+#         "f140w",
+#         "f160w",
+#         "f090w",
+#         "f115w",
+#         "f150w",
+#         "f200w",
+#         "f277w",
+#         "f356w",
+#         "f444w",
+#     ],
+# )
 
 HalphaFilters = namedtuple(
     "HalphaFilters",
@@ -379,36 +479,36 @@ HalphaFilters = namedtuple(
 )
 
 
-# PhotFilters = namedtuple(
-#     "PhotFilters",
-#     [
-#         "f435w",
-#         "f606w",
-#         "f775w",
-#         "f814w",
-#         "f098m",
-#         "f105w",
-#         "f125w",
-#         "f140w",
-#         "f160w",
-#         "f090w",
-#         "f115w",
-#         "f140m",
-#         "f150w",
-#         "f162m",
-#         "f182m",
-#         "f200w",
-#         "f210m",
-#         "f250m",
-#         "f277w",
-#         "f300m",
-#         "f335m",
-#         "f356w",
-#         "f360m",
-#         "f410m",
-#         "f430m",
-#         "f444w",
-#         "f460m",
-#         "f480m",
-#     ],
-# )
+PhotFilters = namedtuple(
+    "PhotFilters",
+    [
+        "f435w",
+        "f606w",
+        "f775w",
+        "f814w",
+        "f098m",
+        "f105w",
+        "f125w",
+        "f140w",
+        "f160w",
+        "f090w",
+        "f115w",
+        "f140m",
+        "f150w",
+        "f162m",
+        "f182m",
+        "f200w",
+        "f210m",
+        "f250m",
+        "f277w",
+        "f300m",
+        "f335m",
+        "f356w",
+        "f360m",
+        "f410m",
+        "f430m",
+        "f444w",
+        "f460m",
+        "f480m",
+    ],
+)
