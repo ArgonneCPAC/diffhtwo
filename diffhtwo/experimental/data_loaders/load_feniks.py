@@ -38,9 +38,8 @@ Feniks = namedtuple(
         "dataset_dim_labels",
         "mags",
         "mags_labels",
-        "colors",
-        "app_mag_funcs",
-        "fine_zbins",
+        "spaces",
+        "zbins",
         "filter_info",
         "frac_cat",
         "lh_centroids",
@@ -157,8 +156,7 @@ def get_feniks_data(
     ran_key,
     ssp_data,
     lh_d_mag=0.6,
-    num_halos_coarse_zbins=100,
-    num_halos_fine_zbins=100,
+    num_halos=100,
     phot=PHOT,
     zout=ZOUT,
     lgmp_min=10.0,
@@ -374,7 +372,7 @@ def get_feniks_data(
     )
 
     ##############################################################################
-    # prepare 2D and 1D color spaces in coarse z-bins for fitting
+    # prepare 2D and 1D color spaces in z-bins for fitting
     zbins = np.array(
         [
             [0.4, 0.7],
@@ -383,7 +381,7 @@ def get_feniks_data(
             [1.5, 2.0],
         ]
     )
-    colors = []
+    spaces = []
     ##############################################################################
     # Z1 spaces:
 
@@ -394,6 +392,14 @@ def get_feniks_data(
             "z_max",
             "data_vol_mpc3",
             "lc_data",
+            "u",
+            "g",
+            "r",
+            "i",
+            "z",
+            "J",
+            "H",
+            "K",
             "gr_ri",
             "ug",
             "ri",
@@ -414,7 +420,7 @@ def get_feniks_data(
     )
     lc_args = (
         ran_key,
-        num_halos_coarse_zbins,
+        num_halos,
         z_min,
         z_max,
         lgmp_min,
@@ -428,6 +434,9 @@ def get_feniks_data(
     lc_data = generate_lc_data(*lc_args)
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+    u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
+        z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+    )
 
     # 2D (g - r, r - i)
     gr_ri = N_utils.get_colorcolor_space(
@@ -529,9 +538,28 @@ def get_feniks_data(
     )
 
     z1 = Z1(
-        z_min, z_max, data_vol_mpc3, lc_data, gr_ri, ug, ri, iz, jh, K_ri, K_gr, K_JH
+        z_min,
+        z_max,
+        data_vol_mpc3,
+        lc_data,
+        u,
+        g,
+        r,
+        i,
+        z,
+        j,
+        h,
+        k,
+        gr_ri,
+        ug,
+        ri,
+        iz,
+        jh,
+        K_ri,
+        K_gr,
+        K_JH,
     )
-    colors.append(z1)
+    spaces.append(z1)
 
     ##############################################################################
     if testing is False:
@@ -542,6 +570,14 @@ def get_feniks_data(
                 "z_max",
                 "data_vol_mpc3",
                 "lc_data",
+                "u",
+                "g",
+                "r",
+                "i",
+                "z",
+                "J",
+                "H",
+                "K",
                 "rz_zJ",
                 "ug",
                 "rz",
@@ -561,7 +597,7 @@ def get_feniks_data(
         )
         lc_args = (
             ran_key,
-            num_halos_coarse_zbins,
+            num_halos,
             z_min,
             z_max,
             lgmp_min,
@@ -575,6 +611,10 @@ def get_feniks_data(
         lc_data = generate_lc_data(*lc_args)
 
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+
+        u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
+            z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+        )
 
         # 2D (r - z, z - J)
         rz_zJ = N_utils.get_colorcolor_space(
@@ -663,9 +703,27 @@ def get_feniks_data(
         )
 
         z2a = Z2a(
-            z_min, z_max, data_vol_mpc3, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz, K_JH
+            z_min,
+            z_max,
+            data_vol_mpc3,
+            lc_data,
+            u,
+            g,
+            r,
+            i,
+            z,
+            j,
+            h,
+            k,
+            rz_zJ,
+            ug,
+            rz,
+            jh,
+            K_ug,
+            K_rz,
+            K_JH,
         )
-        colors.append(z2a)
+        spaces.append(z2a)
 
         ##############################################################################
         Z2b = namedtuple(
@@ -675,6 +733,14 @@ def get_feniks_data(
                 "z_max",
                 "data_vol_mpc3",
                 "lc_data",
+                "u",
+                "g",
+                "r",
+                "i",
+                "z",
+                "J",
+                "H",
+                "K",
                 "rz_zJ",
                 "ug",
                 "rz",
@@ -694,7 +760,7 @@ def get_feniks_data(
         )
         lc_args = (
             ran_key,
-            num_halos_coarse_zbins,
+            num_halos,
             z_min,
             z_max,
             lgmp_min,
@@ -708,6 +774,10 @@ def get_feniks_data(
         lc_data = generate_lc_data(*lc_args)
 
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+
+        u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
+            z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+        )
 
         # 2D (r - z, z - J)
         rz_zJ = N_utils.get_colorcolor_space(
@@ -796,9 +866,27 @@ def get_feniks_data(
         )
 
         z2b = Z2b(
-            z_min, z_max, data_vol_mpc3, lc_data, rz_zJ, ug, rz, jh, K_ug, K_rz, K_JH
+            z_min,
+            z_max,
+            data_vol_mpc3,
+            lc_data,
+            u,
+            g,
+            r,
+            i,
+            z,
+            j,
+            h,
+            k,
+            rz_zJ,
+            ug,
+            rz,
+            jh,
+            K_ug,
+            K_rz,
+            K_JH,
         )
-        colors.append(z2b)
+        spaces.append(z2b)
 
         ##############################################################################
         # Z3 spaces:
@@ -815,6 +903,14 @@ def get_feniks_data(
                 "z_max",
                 "data_vol_mpc3",
                 "lc_data",
+                "u",
+                "g",
+                "r",
+                "i",
+                "z",
+                "J",
+                "H",
+                "K",
                 "zJ_JH",
                 "ug_gr",
                 "ug",
@@ -835,7 +931,7 @@ def get_feniks_data(
         )
         lc_args = (
             ran_key,
-            num_halos_coarse_zbins,
+            num_halos,
             z_min,
             z_max,
             lgmp_min,
@@ -849,6 +945,10 @@ def get_feniks_data(
         lc_data = generate_lc_data(*lc_args)
 
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+
+        u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
+            z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+        )
 
         # 2D (z - J, J - H)
         zJ_JH = N_utils.get_colorcolor_space(
@@ -952,6 +1052,14 @@ def get_feniks_data(
             z_max,
             data_vol_mpc3,
             lc_data,
+            u,
+            g,
+            r,
+            i,
+            z,
+            j,
+            h,
+            k,
             zJ_JH,
             ug_gr,
             ug,
@@ -961,94 +1069,94 @@ def get_feniks_data(
             K_gr,
             K_JH,
         )
-        colors.append(z3)
+        spaces.append(z3)
 
-    ##############################################################################
-    # prepare 1D app mag funcs in finer z-bins for fitting
-    fine_zbins = np.array(
-        [
-            [0.4, 0.7],
-            [0.7, 1.0],
-            [1.0, 1.5],
-            [1.5, 2.0],
-        ]
-    )
-    ##############################################################################
-    AppMagFuncs = namedtuple(
-        "AppMagFuncs",
-        [
-            "z_min",
-            "z_max",
-            "data_vol_mpc3",
-            "lc_data",
-            "u",
-            "g",
-            "r",
-            "i",
-            "z",
-            "J",
-            "H",
-            "K",
-        ],
-    )
+    # ##############################################################################
+    # # prepare 1D app mag funcs in finer z-bins for fitting
+    # fine_zbins = np.array(
+    #     [
+    #         [0.4, 0.7],
+    #         [0.7, 1.0],
+    #         [1.0, 1.5],
+    #         [1.5, 2.0],
+    #     ]
+    # )
+    # ##############################################################################
+    # AppMagFuncs = namedtuple(
+    #     "AppMagFuncs",
+    #     [
+    #         "z_min",
+    #         "z_max",
+    #         "data_vol_mpc3",
+    #         "lc_data",
+    #         "u",
+    #         "g",
+    #         "r",
+    #         "i",
+    #         "z",
+    #         "J",
+    #         "H",
+    #         "K",
+    #     ],
+    # )
 
-    app_mag_funcs = []
-    for zbin in range(0, len(fine_zbins)):
-        if (zbin == 1) & (testing):
-            break
-        z_min = fine_zbins[zbin][0]
-        z_max = fine_zbins[zbin][1]
-        data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+    # app_mag_funcs = []
+    # for zbin in range(0, len(fine_zbins)):
+    #     if (zbin == 1) & (testing):
+    #         break
+    #     z_min = fine_zbins[zbin][0]
+    #     z_max = fine_zbins[zbin][1]
+    #     data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
 
-        z_phot_table = 10 ** jnp.linspace(
-            jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-        )
-        lc_args = (
-            ran_key,
-            num_halos_fine_zbins,
-            z_min,
-            z_max,
-            lgmp_min,
-            lgmp_max,
-            lc_sky_area_degsq,
-            ssp_data,
-            tcurves,
-            z_phot_table,
-        )
+    #     z_phot_table = 10 ** jnp.linspace(
+    #         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
+    #     )
+    #     lc_args = (
+    #         ran_key,
+    #         num_halos,
+    #         z_min,
+    #         z_max,
+    #         lgmp_min,
+    #         lgmp_max,
+    #         lc_sky_area_degsq,
+    #         ssp_data,
+    #         tcurves,
+    #         z_phot_table,
+    #     )
 
-        lc_data = generate_lc_data(*lc_args)
+    #     lc_data = generate_lc_data(*lc_args)
 
-        z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
+    #     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
-        # 1D (u)
-        u = N_utils.get_mag_space(
-            "U", megacam_uS, "MegaCam_uS", z_sel, FeniksFilters, fit=True
-        )
+    #     # 1D (u)
+    #     u = N_utils.get_mag_space(
+    #         "U", megacam_uS, "MegaCam_uS", z_sel, FeniksFilters, fit=True
+    #     )
 
-        # 1D (g)
-        g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, FeniksFilters, fit=True)
+    #     # 1D (g)
+    #     g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, FeniksFilters, fit=True)
 
-        # 1D (r)
-        r = N_utils.get_mag_space("R", hsc_r, "HSC_R", z_sel, FeniksFilters, fit=True)
+    #     # 1D (r)
+    #     r = N_utils.get_mag_space("R", hsc_r, "HSC_R", z_sel, FeniksFilters, fit=True)
 
-        # 1D (i)
-        i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, FeniksFilters, fit=True)
+    #     # 1D (i)
+    #     i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, FeniksFilters, fit=True)
 
-        # 1D (z)
-        z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, FeniksFilters, fit=True)
+    #     # 1D (z)
+    #     z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, FeniksFilters, fit=True)
 
-        # 1D (J)
-        j = N_utils.get_mag_space("J", uds_J, "UDS_J", z_sel, FeniksFilters, fit=True)
+    #     # 1D (J)
+    #     j = N_utils.get_mag_space("J", uds_J, "UDS_J", z_sel, FeniksFilters, fit=True)
 
-        # 1D (H)
-        h = N_utils.get_mag_space("H", uds_H, "UDS_H", z_sel, FeniksFilters, fit=True)
+    #     # 1D (H)
+    #     h = N_utils.get_mag_space("H", uds_H, "UDS_H", z_sel, FeniksFilters, fit=True)
 
-        # 1D (K)
-        k = N_utils.get_mag_space("K", uds_K, "UDS_K", z_sel, FeniksFilters, fit=True)
+    #     # 1D (K)
+    #     k = N_utils.get_mag_space("K", uds_K, "UDS_K", z_sel, FeniksFilters, fit=True)
 
-        app_mag_funcs.append(
-            AppMagFuncs(z_min, z_max, data_vol_mpc3, lc_data, u, g, r, i, z, j, h, k)
-        )
+    #     app_mag_funcs.append(
+    #         AppMagFuncs(z_min, z_max, data_vol_mpc3, lc_data, u, g, r, i, z, j, h, k)
+    # )
 
     return Feniks(
         dataset,
@@ -1057,9 +1165,8 @@ def get_feniks_data(
         dataset_dim_labels,
         mags,
         mag_labels,
-        colors,
-        app_mag_funcs,
-        fine_zbins,
+        spaces,
+        zbins,
         filter_info,
         frac_cat,
         lh_centroids,
@@ -1071,13 +1178,43 @@ def get_feniks_data(
     )
 
 
+def _get_mag_spaces_at_z(
+    z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+):
+    # 1D (u)
+    u = N_utils.get_mag_space(
+        "U", megacam_uS, "MegaCam_uS", z_sel, FeniksFilters, fit=True
+    )
+
+    # 1D (g)
+    g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, FeniksFilters, fit=True)
+
+    # 1D (r)
+    r = N_utils.get_mag_space("R", hsc_r, "HSC_R", z_sel, FeniksFilters, fit=True)
+
+    # 1D (i)
+    i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, FeniksFilters, fit=True)
+
+    # 1D (z)
+    z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, FeniksFilters, fit=True)
+
+    # 1D (J)
+    j = N_utils.get_mag_space("J", uds_J, "UDS_J", z_sel, FeniksFilters, fit=True)
+
+    # 1D (H)
+    h = N_utils.get_mag_space("H", uds_H, "UDS_H", z_sel, FeniksFilters, fit=True)
+
+    # 1D (K)
+    k = N_utils.get_mag_space("K", uds_K, "UDS_K", z_sel, FeniksFilters, fit=True)
+    return u, g, r, i, z, j, h, k
+
+
 def get_feniks_fitting_data(
     feniks_drn,
     ran_key,
     ssp_data,
     lh_d_mag=0.6,
-    num_halos_coarse_zbins=100,
-    num_halos_fine_zbins=100,
+    num_halos=100,
     phot=PHOT,
     zout=ZOUT,
     lgmp_min=10.0,
@@ -1090,8 +1227,7 @@ def get_feniks_fitting_data(
         ran_key,
         ssp_data,
         lh_d_mag=lh_d_mag,
-        num_halos_coarse_zbins=num_halos_coarse_zbins,
-        num_halos_fine_zbins=num_halos_fine_zbins,
+        num_halos=num_halos,
         phot=phot,
         zout=zout,
         lgmp_min=lgmp_min,
