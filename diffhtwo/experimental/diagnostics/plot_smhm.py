@@ -7,6 +7,7 @@ from matplotlib.lines import Line2D
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 from ..kernels.smhm import (
     _get_logsm_obs_weighted_median,
+    mc_median_smhm,
     median_smhm_and_exsitu_frac,
     median_smhm_q_sf,
 )
@@ -235,6 +236,8 @@ def plot_smhm(
     tcurves,
     run_label,
     savedir,
+    lgmp_min=10.5,
+    lgmp_max=15.0,
     mag_thresh=None,
     frac_cat=None,
     plt_show=True,
@@ -272,8 +275,8 @@ def plot_smhm(
             num_halos,
             ssp_data,
             tcurves,
-            logmp_obs_min=LOGMP_OBS_MIN,
-            logmp_obs_max=LOGMP_OBS_MAX,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             mag_thresh=mag_thresh,
             frac_cat=frac_cat,
         )
@@ -660,17 +663,27 @@ def plot_smhm_hexbin(
 def plot_smhm_cen_sat(
     ran_key,
     param_collection,
-    zbins,
     num_halos,
     ssp_data,
     tcurves,
     run_label,
     savedir,
     um_drn,
+    lgmp_min=10.5,
+    lgmp_max=15.0,
     mag_thresh=None,
     frac_cat=None,
     plt_show=True,
 ):
+    zbins = np.array(
+        [
+            [0.05, 0.15],
+            [0.30, 0.40],
+            [0.70, 0.80],
+            [1.20, 1.30],
+            [1.95, 2.05],
+        ]
+    )
     um_smhm_zname = [
         "smhm_med_z0.1.txt",
         "smhm_med_z0.35.txt",
@@ -729,8 +742,8 @@ def plot_smhm_cen_sat(
             num_halos,
             ssp_data,
             tcurves,
-            logmp_obs_min=LOGMP_OBS_MIN,
-            logmp_obs_max=LOGMP_OBS_MAX,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             mag_thresh=mag_thresh,
             frac_cat=frac_cat,
         )
@@ -861,20 +874,243 @@ def plot_smhm_cen_sat(
     plt.close()
 
 
+def plot_mc_smhm_cen_sat(
+    ran_key,
+    param_collection,
+    ssp_data,
+    tcurves,
+    run_label,
+    savedir,
+    um_drn,
+    lgmp_min=10.5,
+    lgmp_sub_min=10.5,
+    lgmp_max=15.0,
+    sky_area_degsq=0.1,
+    d_mh=0.15,
+    plt_show=True,
+):
+    zbins = np.array(
+        [
+            [0.05, 0.15],
+            [0.30, 0.40],
+            [0.70, 0.80],
+            [1.20, 1.30],
+            [1.95, 2.05],
+        ]
+    )
+    um_smhm_zname = [
+        "smhm_med_z0.1.txt",
+        "smhm_med_z0.35.txt",
+        "smhm_med_z0.75.txt",
+        "smhm_med_z1.25.txt",
+        "smhm_med_z2.0.txt",
+    ]
+    um_smhm_cen_zname = [
+        "smhm_med_cen_z0.1.txt",
+        "smhm_med_cen_z0.35.txt",
+        "smhm_med_cen_z0.75.txt",
+        "smhm_med_cen_z1.25.txt",
+        "smhm_med_cen_z2.0.txt",
+    ]
+    um_smhm_sat_zname = [
+        "smhm_med_sat_z0.1.txt",
+        "smhm_med_sat_z0.35.txt",
+        "smhm_med_sat_z0.75.txt",
+        "smhm_med_sat_z1.25.txt",
+        "smhm_med_sat_z2.0.txt",
+    ]
+
+    n_z_bins = len(zbins)
+    fig_width = 7.1
+    fig_height = 3.2
+    fig, ax = plt.subplots(
+        1,
+        3,
+        figsize=(fig_width, fig_height),
+        constrained_layout=True,
+        gridspec_kw={"wspace": 0},
+    )
+
+    ax[0].set_title("all")
+    ax[1].set_title("centrals")
+    ax[2].set_title("satellites")
+
+    for zbin in range(n_z_bins):
+        z_min = zbins[zbin][0]
+        z_max = zbins[zbin][1]
+        z_med = str(np.median(zbins[zbin]))
+
+        (
+            lgmp_bin_centers,
+            median_logsm_obs,
+            median_logsm_obs_cen_in_situ,
+            median_logsm_obs_cen,
+            median_logsm_obs_sat_in_situ,
+            median_logsm_obs_sat,
+        ) = mc_median_smhm(
+            ran_key,
+            param_collection,
+            z_min,
+            z_max,
+            ssp_data,
+            tcurves,
+            lgmp_min=lgmp_min,
+            lgmp_sub_min=lgmp_sub_min,
+            lgmp_max=lgmp_max,
+            sky_area_degsq=sky_area_degsq,
+            d_mh=d_mh,
+        )
+
+        # cen+sat
+        ax[0].plot(
+            lgmp_bin_centers,
+            median_logsm_obs,
+            label=r"$z = $" + z_med,
+            color=COLORS_Z[zbin],
+            lw=1.5,
+            alpha=alpha,
+        )
+        um_smhm = ascii.read(um_drn + "/" + um_smhm_zname[zbin])
+        ax[0].plot(
+            um_smhm["Log10(Mpeak/Msun)"],
+            um_smhm["Log10(Median_SM/Msun)"],
+            color=COLORS_Z[zbin],
+            lw=1.0,
+            ls="--",
+            alpha=alpha,
+        )
+
+        # cen
+        ax[1].plot(
+            lgmp_bin_centers,
+            median_logsm_obs_cen,
+            color=COLORS_Z[zbin],
+            lw=1.5,
+            alpha=alpha,
+        )
+        um_smhm_cen = ascii.read(um_drn + "/" + um_smhm_cen_zname[zbin])
+        ax[1].plot(
+            um_smhm_cen["Log10(Mpeak/Msun)"],
+            um_smhm_cen["Log10(Median_SM/Msun)"],
+            color=COLORS_Z[zbin],
+            lw=1.0,
+            ls="--",
+            alpha=alpha,
+        )
+
+        # sat
+        ax[2].plot(
+            lgmp_bin_centers,
+            median_logsm_obs_sat,
+            color=COLORS_Z[zbin],
+            lw=1.5,
+            alpha=alpha,
+        )
+        um_smhm_sat = ascii.read(um_drn + "/" + um_smhm_sat_zname[zbin])
+        ax[2].plot(
+            um_smhm_sat["Log10(Mpeak/Msun)"],
+            um_smhm_sat["Log10(Median_SM/Msun)"],
+            color=COLORS_Z[zbin],
+            lw=1.0,
+            ls="--",
+            alpha=alpha,
+        )
+
+    for i in range(0, 3):
+        ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[i].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
+        ax[i].set_xticks([11, 12, 13, 14, 15])
+
+        ax[i].tick_params(
+            which="major",
+            direction="in",
+            top=True,
+            right=True,
+            length=6,
+            width=1,
+            labelsize=labelsize,
+        )
+
+        ax[i].minorticks_on()
+        ax[i].tick_params(
+            which="minor",
+            direction="in",
+            top=True,
+            right=True,
+            length=3,
+            width=0.8,
+            labelsize=labelsize,
+        )
+
+        ax[i].set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
+
+    ax[0].set_ylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
+
+    fig.get_layout_engine().set(rect=[0, 0, 1, 0.94])
+    handles, labels = ax[0].get_legend_handles_labels()
+    diffsky_handle = Line2D([], [], linestyle="solid", color="gray", label="cen+sat")
+    um_handle = Line2D([], [], linestyle="--", color="gray", label="UMachine-DR1")
+
+    leg1 = fig.legend(
+        handles,
+        labels,
+        loc="outside upper center",
+        ncol=len(labels),
+        fontsize=labelsize,
+        frameon=False,
+        handlelength=1.5,
+        handletextpad=0.4,
+        columnspacing=1.0,
+    )
+    fig.add_artist(leg1)
+
+    fig.legend(
+        [diffsky_handle, um_handle],
+        ["diffsky", "UMachine-DR1"],
+        loc="outside upper center",
+        bbox_to_anchor=(0.5, 0.94),
+        ncol=2,
+        fontsize=labelsize,
+        frameon=False,
+        handlelength=1.5,
+        handletextpad=0.4,
+        columnspacing=1.0,
+    )
+
+    fig.savefig(
+        savedir + "/" + run_label + "mc_smhm_med_cen_sat.png",
+        dpi=400,
+    )
+
+    if plt_show:
+        plt.show()
+    plt.close()
+
+
 def plot_smhm_ratio_cen_sat(
     ran_key,
     param_collection,
-    zbins,
     num_halos,
     ssp_data,
     tcurves,
     run_label,
     savedir,
     um_drn,
+    lgmp_min=10.5,
+    lgmp_max=15.0,
     mag_thresh=None,
     frac_cat=None,
     plt_show=True,
 ):
+    zbins = np.array(
+        [
+            [0.05, 0.15],
+            [0.30, 0.40],
+            [0.70, 0.80],
+            [1.20, 1.30],
+            [1.95, 2.05],
+        ]
+    )
     um_smhm_zname = [
         "smhm_med_z0.1.txt",
         "smhm_med_z0.35.txt",
@@ -933,8 +1169,8 @@ def plot_smhm_ratio_cen_sat(
             num_halos,
             ssp_data,
             tcurves,
-            logmp_obs_min=LOGMP_OBS_MIN,
-            logmp_obs_max=LOGMP_OBS_MAX,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             mag_thresh=mag_thresh,
             frac_cat=frac_cat,
         )

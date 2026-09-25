@@ -1,4 +1,8 @@
 import numpy as np
+from diffsky.experimental.mc_lightcone_generators import mc_lc_photdata
+from diffsky.experimental.mc_phot import mc_lc_phot
+from jax import random as jran
+from scipy.stats import binned_statistic
 
 from ..utils import weighted_percentiles
 from .lc_phot_kern import multiband_lc_phot_kern
@@ -27,12 +31,16 @@ def get_ex_situ_frac_median_v_hm(
     ex_situ_frac = sm_obs_ex_situ / sm_obs
 
     ex_situ_frac_median = []
-    for b in range(0, len(logmp_bins) - 1):
+    for b in range(len(logmp_bins) - 1):
         cen_in_bin = (
             (logmp_obs > logmp_bins[b])
             & (logmp_obs <= logmp_bins[b + 1])
             & (is_central == 1)
         )
+
+        if not np.any(cen_in_bin):
+            ex_situ_frac_median.append(0.0)
+            continue
 
         l16, median, u84 = weighted_percentiles(
             ex_situ_frac[cen_in_bin], gal_weight[cen_in_bin]
@@ -58,6 +66,10 @@ def get_ex_situ_frac_median_v_sm(
             & (logsm_obs <= logsm_bins[b + 1])
             & (is_central == 1)
         )
+
+        if not np.any(cen_in_bin):
+            ex_situ_frac_median.append(0.0)
+            continue
 
         l16, median, u84 = weighted_percentiles(
             ex_situ_frac[cen_in_bin], gal_weight[cen_in_bin]
@@ -96,6 +108,89 @@ def _get_logsm_obs_weighted_median(logmp_bins, logmp_obs, logsm_obs, gal_weight)
     return logsm_obs_weighted_l16, logsm_obs_weighted_median, logsm_obs_weighted_u84
 
 
+def mc_median_smhm(
+    ran_key,
+    param_collection,
+    z_min,
+    z_max,
+    ssp_data,
+    tcurves,
+    lgmp_min=10.5,
+    lgmp_sub_min=10.5,
+    lgmp_max=15.0,
+    sky_area_degsq=0.1,
+    d_mh=0.15,
+    mc_merge=1,
+):
+    z_phot_table = np.linspace(z_min, z_max, 25)
+    args = (
+        ran_key,
+        z_min,
+        z_max,
+        lgmp_min,
+        lgmp_sub_min,
+        sky_area_degsq,
+        ssp_data,
+        tcurves,
+        z_phot_table,
+    )
+    lc_data = mc_lc_photdata(*args)
+    ran_key, sed_key = jran.split(ran_key, 2)
+
+    phot_info, phot_randoms, merging_randoms = mc_lc_phot(
+        sed_key, lc_data, mc_merge, param_collection=param_collection
+    )
+
+    lgmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
+    lgmp_bin_centers = (lgmp_bins[:-1] + lgmp_bins[1:]) / 2
+
+    # cen+sat in+ex-situ
+    median_logsm_obs, _, _ = binned_statistic(
+        lc_data.logmp_obs, phot_info.logsm_obs, statistic="median", bins=lgmp_bins
+    )
+
+    # cen in-situ
+    median_logsm_obs_cen_in_situ, _, _ = binned_statistic(
+        lc_data.logmp_obs[lc_data.is_central == 1],
+        phot_info.logsm_obs_in_situ[lc_data.is_central == 1],
+        statistic="median",
+        bins=lgmp_bins,
+    )
+
+    # cen in+ex-situ
+    median_logsm_obs_cen, _, _ = binned_statistic(
+        lc_data.logmp_obs[lc_data.is_central == 1],
+        phot_info.logsm_obs[lc_data.is_central == 1],
+        statistic="median",
+        bins=lgmp_bins,
+    )
+
+    # sat in-situ
+    median_logsm_obs_sat_in_situ, _, _ = binned_statistic(
+        lc_data.logmp_obs[lc_data.is_central != 1],
+        phot_info.logsm_obs_in_situ[lc_data.is_central != 1],
+        statistic="median",
+        bins=lgmp_bins,
+    )
+
+    # sat post-merging (as sats don't accrete but only lose stellar mass, so no ex-situ)
+    median_logsm_obs_sat, _, _ = binned_statistic(
+        lc_data.logmp_obs[lc_data.is_central != 1],
+        phot_info.logsm_obs[lc_data.is_central != 1],
+        statistic="median",
+        bins=lgmp_bins,
+    )
+
+    return (
+        lgmp_bin_centers,
+        median_logsm_obs,
+        median_logsm_obs_cen_in_situ,
+        median_logsm_obs_cen,
+        median_logsm_obs_sat_in_situ,
+        median_logsm_obs_sat,
+    )
+
+
 def median_smhm_and_exsitu_frac(
     ran_key,
     param_collection,
@@ -104,8 +199,8 @@ def median_smhm_and_exsitu_frac(
     num_halos,
     ssp_data,
     tcurves,
-    logmp_obs_min=10.0,
-    logmp_obs_max=15.0,
+    lgmp_min=10.0,
+    lgmp_max=15.0,
     mag_thresh=None,
     frac_cat=None,
     d_mh=0.15,
@@ -120,9 +215,11 @@ def median_smhm_and_exsitu_frac(
         tcurves,
         mag_thresh=mag_thresh,
         frac_cat=frac_cat,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
     )
 
-    logmp_bins = np.arange(logmp_obs_min, logmp_obs_max + d_mh, d_mh)
+    logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
     logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
 
     # cen+sat in+ex-situ
