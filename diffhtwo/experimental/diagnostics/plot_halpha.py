@@ -154,7 +154,7 @@ def plot_halpha(
     model_nickname,
     savedir,
     num_halos=100,
-    lgmp_min=9.0,
+    lgmp_min=10.5,
     lgmp_max=15.0,
     logHa_flux_limit_fit=LOGHA_FLUX_LIMIT_NONE,
     plt_show=True,
@@ -165,6 +165,8 @@ def plot_halpha(
         ssp_data,
         tcurves,
         halpha_wave_aa,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
         logflux_limit=LOGHA_FLUX_LIMIT_NONE,
     )
     hizels_flux_limited = load_hizels.get_hizels_data(
@@ -173,6 +175,8 @@ def plot_halpha(
         ssp_data,
         tcurves,
         halpha_wave_aa,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
         logflux_limit=logHa_flux_limit_fit,
     )
     alpha = 0.75
@@ -333,7 +337,7 @@ def plot_halpha_ms_q_burst(
     model_nickname,
     savedir,
     num_halos=100,
-    lgmp_min=9.0,
+    lgmp_min=10.5,
     lgmp_max=15.0,
     plt_show=True,
 ):
@@ -474,7 +478,7 @@ def plot_halpha_ssfr(
     model_nickname,
     savedir,
     num_halos=100,
-    lgmp_min=9.0,
+    lgmp_min=10.5,
     lgmp_max=15.0,
     plt_show=True,
 ):
@@ -622,7 +626,7 @@ def plot_halpha_sfr(
     model_nickname,
     savedir,
     num_halos=100,
-    lgmp_min=9.0,
+    lgmp_min=10.5,
     lgmp_max=15.0,
     plt_show=True,
 ):
@@ -769,7 +773,7 @@ def plot_halpha_sfr_single_z(
     model_nickname,
     savedir,
     num_halos=100,
-    lgmp_min=9.0,
+    lgmp_min=10.5,
     lgmp_max=15.0,
     plt_show=True,
 ):
@@ -912,7 +916,7 @@ def plot_halpha_insitu_exsitu(
     model_nickname,
     savedir,
     num_halos=100,
-    lgmp_min=9.0,
+    lgmp_min=10.5,
     lgmp_max=15.0,
     plt_show=True,
 ):
