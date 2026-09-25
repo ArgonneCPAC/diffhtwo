@@ -146,15 +146,13 @@ if __name__ == "__main__":
         feniks_drn,
         ran_key,
         ssp_data,
-        num_halos_coarse_zbins=num_halos,
-        num_halos_fine_zbins=int(num_halos / 2),
+        num_halos=num_halos,
     )
     sdss = load_sdss.get_sdss_data(
         sdss_drn,
         ran_key,
         ssp_data,
-        num_halos_coarse_zbins=num_halos,
-        num_halos_fine_zbins=int(num_halos / 2),
+        num_halos=num_halos,
     )
 
     zbins = np.array(
@@ -881,13 +879,6 @@ if __name__ == "__main__":
     """
     if cfg["plot_sdss"]:
         sdss_label = "sdss_" + cfg["model_nickname"].split("_")[0]
-        sdss = load_sdss.get_sdss_data(
-            sdss_drn,
-            ran_key,
-            ssp_data,
-            num_halos_coarse_zbins=num_halos,
-            num_halos_fine_zbins=int(num_halos / 2),
-        )
         sdss_zbins = np.array(
             [
                 [0.02, 0.1],
