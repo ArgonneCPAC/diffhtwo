@@ -436,7 +436,6 @@ def compare_models_in_mag_z_sfr(
     ran_key, lc_halo_key = jran.split(ran_key, 2)
     z_phot_table = np.linspace(z_min, z_max, 25)
     tcurves = dataset.filter_info.tcurves
-    mag_thresh = dataset.filter_info.mag_thresh
     mags_labels = dataset.mags_labels
 
     args = (
