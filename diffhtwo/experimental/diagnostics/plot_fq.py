@@ -2,12 +2,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import ascii
 from matplotlib.lines import Line2D
-from scipy.interpolate import interp1d
 
 from ..kernels.fq import get_fq_hm, get_fq_sm
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 from ..kernels.sfr_tau import get_logsfr_100Myr
-from .plot_sfms import get_leja22_sfms_at_z
+
+# from scipy.interpolate import interp1d
+
+
+# from .plot_sfms import get_leja22_sfms_at_z
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 
@@ -64,12 +67,12 @@ def plot_fq(
     lw_sims = 0.75
     alpha_sims = 0.8
 
-    logsm_arr = np.arange(-10, 14, 0.1)
+    # logsm_arr = np.arange(-10, 14, 0.1)
     for zbin in range(n_z_bins):
         z_med = np.median(zbins[zbin])
 
-        logsfms_leja22 = get_leja22_sfms_at_z(z_med, logsm_arr)
-        logsfms_func_at_z = interp1d(logsm_arr, logsfms_leja22, kind="linear")
+        # logsfms_leja22 = get_leja22_sfms_at_z(z_med, logsm_arr)
+        # logsfms_func_at_z = interp1d(logsm_arr, logsfms_leja22, kind="linear")
 
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
@@ -101,7 +104,6 @@ def plot_fq(
             lc_data,
             phot_data,
             gal_weight,
-            logsfms_func_at_z,
             type="all",
             quench_thresh=-11,
         )
@@ -121,7 +123,6 @@ def plot_fq(
             lc_data,
             phot_data,
             gal_weight,
-            logsfms_func_at_z,
             type="all",
             quench_thresh=-11,
         )
@@ -140,7 +141,6 @@ def plot_fq(
             lc_data,
             phot_data,
             gal_weight,
-            logsfms_func_at_z,
             type="cen",
             quench_thresh=-11,
         )
@@ -159,7 +159,6 @@ def plot_fq(
             lc_data,
             phot_data,
             gal_weight,
-            logsfms_func_at_z,
             type="cen",
             quench_thresh=-11,
         )

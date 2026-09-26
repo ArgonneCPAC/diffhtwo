@@ -55,7 +55,7 @@ def get_fq_hm(
     lc_data,
     phot_data,
     gal_weight,
-    logsfms_func_at_z,
+    logsfms_func_at_z=None,
     type="all",
     quench_thresh=-11,
     d_hm=0.15,

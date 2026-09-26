@@ -2,12 +2,14 @@ from pathlib import Path
 
 import jax.numpy as jnp
 import pytest
+from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from dsps.data_loaders import load_emline_info as lemi
 from dsps.data_loaders import retrieve_fake_fsps_data
 from dsps.data_loaders.defaults import TransmissionCurve
 from jax import random as jran
 
 from .data_loaders import load_feniks, load_hizels
+from .kernels.lc_phot_kern import multiband_lc_phot_kern
 from .latin_hypercube import lh_utils as lhu
 from .lightcone_generators import generate_lc_data
 from .utils import load_feniks_tcurve
@@ -161,3 +163,29 @@ def feniks_lc_data(ran_key, fake_subset_ssp_data, feniks):
         z_phot_table,
     )
     return lc_data
+
+
+@pytest.fixture(scope="session")
+def feniks_lc_phot_data(ran_key, fake_subset_ssp_data, feniks):
+    ssp_data, emline_wave_aa = fake_subset_ssp_data
+    tcurves = feniks.filter_info.tcurves
+
+    z_min = 0.2
+    z_max = 0.4
+
+    num_halos = 200
+    lgmp_min = 10.0
+    lgmp_max = 15.0
+
+    lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+        ran_key,
+        DEFAULT_PARAM_COLLECTION,
+        z_min,
+        z_max,
+        num_halos,
+        ssp_data,
+        tcurves,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
+    )
+    return lc_data, phot_data, gal_weight

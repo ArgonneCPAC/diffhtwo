@@ -6,7 +6,6 @@ from scipy.stats import binned_statistic
 
 from ..utils import weighted_percentiles
 from .lc_phot_kern import multiband_lc_phot_kern
-from .sfh_rapid_q import get_logsfr_obs
 
 
 def _get_logsm_obs_weighted_mean(logmp_bins, logmp_obs, logsm_obs, gal_weight):
