@@ -7,7 +7,6 @@ from DisCoWebS.data_loader import sdss_loader as sdl
 from dsps.data_loaders import load_transmission_curve
 
 from ..defaults import (
-    SDSS_AREA_DEG2,
     SDSS_MAGR_THRESH,
     SDSS_Z_MAX,
     SDSS_Z_MIN,
