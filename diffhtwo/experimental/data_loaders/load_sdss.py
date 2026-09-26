@@ -51,18 +51,20 @@ LH_D_Z = 0.025
 
 
 def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
-    return sdss[
+    sdss = sdss[
         (sdss["ra"] > ra_min)
         & (sdss["ra"] < ra_max)
         & (sdss["dec"] > dec_min)
         & (sdss["dec"] < dec_max)
     ]
+    sky_area_deg2 = compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max)
+    return sdss, sky_area_deg2
 
 
 def load_sdss_cuts_applied(drn, sdss_mag_thresh):
     sdss = sdl.load_sdss_cat(drn)
 
-    sdss = apply_ra_dec_cut(sdss)
+    sdss, sdss_area_deg2 = apply_ra_dec_cut(sdss)
 
     # implement r <= 17.6
     mag_thresh_mask = (
@@ -85,7 +87,22 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
 
     frac_cat = len(sdss) / N_obj_pre_outlier_cut
 
-    return sdss, frac_cat
+    return sdss, frac_cat, sdss_area_deg2
+
+
+def compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max):
+    """
+    usage: e.g.
+    ra_min, ra_max = 120, 240
+    dec_min, dec_max = 0, 60
+    """
+
+    area_deg2 = (
+        (ra_max - ra_min)
+        * (np.sin(np.radians(dec_max)) - np.sin(np.radians(dec_min)))
+        * (180 / np.pi)
+    )
+    return area_deg2
 
 
 def refresh_lh_centroids(DATASET, lh_d_mag):
@@ -156,7 +173,7 @@ def get_sdss_data(
         sdss_i=(13.0, 17.0),
         sdss_z=(13.0, 17.0),
     )
-    sdss, frac_cat = load_sdss_cuts_applied(drn, sdss_mag_thresh)
+    sdss, frac_cat, sdss_area_deg2 = load_sdss_cuts_applied(drn, sdss_mag_thresh)
 
     tcurves = []
     for bn_pat in SdssFilters._fields:
@@ -484,7 +501,7 @@ def get_sdss_data(
         N_data_lh,
         lh_d_mag,
         LH_D_Z,
-        SDSS_AREA_DEG2,
+        sdss_area_deg2,
     )
 
 
