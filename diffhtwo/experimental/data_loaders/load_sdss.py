@@ -7,7 +7,6 @@ from DisCoWebS.data_loader import sdss_loader as sdl
 from dsps.data_loaders import load_transmission_curve
 
 from ..defaults import (
-    SDSS_AREA_DEG2,
     SDSS_MAGR_THRESH,
     SDSS_Z_MAX,
     SDSS_Z_MIN,
@@ -51,18 +50,20 @@ LH_D_Z = 0.025
 
 
 def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
-    return sdss[
+    sdss = sdss[
         (sdss["ra"] > ra_min)
         & (sdss["ra"] < ra_max)
         & (sdss["dec"] > dec_min)
         & (sdss["dec"] < dec_max)
     ]
+    sky_area_deg2 = compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max)
+    return sdss, sky_area_deg2
 
 
 def load_sdss_cuts_applied(drn, sdss_mag_thresh):
     sdss = sdl.load_sdss_cat(drn)
 
-    sdss = apply_ra_dec_cut(sdss)
+    sdss, sdss_area_deg2 = apply_ra_dec_cut(sdss)
 
     # implement r <= 17.6
     mag_thresh_mask = (
@@ -85,7 +86,22 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
 
     frac_cat = len(sdss) / N_obj_pre_outlier_cut
 
-    return sdss, frac_cat
+    return sdss, frac_cat, sdss_area_deg2
+
+
+def compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max):
+    """
+    usage: e.g.
+    ra_min, ra_max = 120, 240
+    dec_min, dec_max = 0, 60
+    """
+
+    area_deg2 = (
+        (ra_max - ra_min)
+        * (np.sin(np.radians(dec_max)) - np.sin(np.radians(dec_min)))
+        * (180 / np.pi)
+    )
+    return area_deg2
 
 
 def refresh_lh_centroids(DATASET, lh_d_mag):
@@ -156,7 +172,7 @@ def get_sdss_data(
         sdss_i=(13.0, 17.0),
         sdss_z=(13.0, 17.0),
     )
-    sdss, frac_cat = load_sdss_cuts_applied(drn, sdss_mag_thresh)
+    sdss, frac_cat, sdss_area_deg2 = load_sdss_cuts_applied(drn, sdss_mag_thresh)
 
     tcurves = []
     for bn_pat in SdssFilters._fields:
@@ -278,7 +294,7 @@ def get_sdss_data(
     for zbin in range(0, len(zbins)):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
-        data_vol_mpc3 = zbin_volume(SDSS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+        data_vol_mpc3 = zbin_volume(sdss_area_deg2, zlow=z_min, zhigh=z_max).value
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -398,75 +414,6 @@ def get_sdss_data(
         )
 
     ##############################################################################
-    ##############################################################################
-    # prepare 1D app mag funcs in finer z-bins for fitting
-    ##############################################################################
-    # AppMagFuncs = namedtuple(
-    #     "AppMagFuncs",
-    #     ["z_min", "z_max", "data_vol_mpc3", "lc_data", "u", "g", "r", "i", "z"],
-    # )
-    # U = namedtuple("U", AppMagFunc._fields)
-    # G = namedtuple("G", AppMagFunc._fields)
-    # R = namedtuple("R", AppMagFunc._fields)
-    # I = namedtuple("I", AppMagFunc._fields)  # noqa: E741
-    # Z = namedtuple("Z", AppMagFunc._fields)
-
-    # app_mag_funcs = []
-    # for zbin in range(0, len(fine_zbins)):
-    #     z_min = fine_zbins[zbin][0]
-    #     z_max = fine_zbins[zbin][1]
-    #     data_vol_mpc3 = zbin_volume(SDSS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
-
-    #     z_phot_table = 10 ** jnp.linspace(
-    #         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-    #     )
-    #     lc_args = (
-    #         ran_key,
-    #         num_halos,
-    #         z_min,
-    #         z_max,
-    #         lgmp_min,
-    #         lgmp_max,
-    #         lc_sky_area_degsq,
-    #         ssp_data,
-    #         tcurves,
-    #         z_phot_table,
-    #     )
-
-    #     lc_data = generate_lc_data(*lc_args)
-
-    #     z_sel = (sdss_redshift > z_min) & (sdss_redshift <= z_max)
-
-    #     # 1D (u)
-    #     mag_idx_u = 0
-    #     N_1d_u, sig_u, bin_lo_u, bin_hi_u = get_N_1d(sdss_u[z_sel])
-    #     u = U(mag_idx_u, sig_u, bin_lo_u, bin_hi_u, N_1d_u, True)
-
-    #     # 1D (g)
-    #     mag_idx_g = 1
-    #     N_1d_g, sig_g, bin_lo_g, bin_hi_g = get_N_1d(sdss_g[z_sel])
-    #     g = G(mag_idx_g, sig_g, bin_lo_g, bin_hi_g, N_1d_g, True)
-
-    #     # 1D (r)
-    #     mag_idx_r = 2
-    #     N_1d_r, sig_r, bin_lo_r, bin_hi_r = get_N_1d(sdss_r[z_sel])
-    #     r = R(mag_idx_r, sig_r, bin_lo_r, bin_hi_r, N_1d_r, True)
-
-    #     # 1D (i)
-    #     mag_idx_i = 3
-    #     N_1d_i, sig_i, bin_lo_i, bin_hi_i = get_N_1d(sdss_i[z_sel])
-    #     i = I(mag_idx_i, sig_i, bin_lo_i, bin_hi_i, N_1d_i, True)
-
-    #     # 1D (z)
-    #     mag_idx_z = 4
-    #     N_1d_z, sig_z, bin_lo_z, bin_hi_z = get_N_1d(sdss_z[z_sel])
-    #     z = Z(mag_idx_z, sig_z, bin_lo_z, bin_hi_z, N_1d_z, True)
-
-    #     app_mag_funcs.append(
-    #         AppMagFuncs(z_min, z_max, data_vol_mpc3, lc_data, u, g, r, i, z)
-    #     )
-
-    ##############################################################################
 
     return Sdss(
         dataset,
@@ -484,7 +431,7 @@ def get_sdss_data(
         N_data_lh,
         lh_d_mag,
         LH_D_Z,
-        SDSS_AREA_DEG2,
+        sdss_area_deg2,
     )
 
 
