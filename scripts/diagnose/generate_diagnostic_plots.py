@@ -232,7 +232,6 @@ if __name__ == "__main__":
         plot_smhm_cen_sat(
             ran_key,
             param_collection_fit,
-            zbins,
             num_halos,
             ssp_data,
             feniks.filter_info.tcurves,
@@ -247,7 +246,6 @@ if __name__ == "__main__":
         plot_smhm_ratio_cen_sat(
             ran_key,
             param_collection_fit,
-            zbins,
             num_halos,
             ssp_data,
             feniks.filter_info.tcurves,

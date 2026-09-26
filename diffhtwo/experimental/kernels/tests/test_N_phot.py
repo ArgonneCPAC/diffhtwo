@@ -29,7 +29,7 @@ def test_mag_kern(feniks):
     obs_mags_weighted, gal_cat_weight, phot_kern_results = mag_kern(
         ran_key,
         DEFAULT_PARAM_COLLECTION,
-        feniks.colors[0].lc_data,
+        feniks.spaces[0].lc_data,
         feniks.filter_info.mag_thresh,
         feniks.frac_cat,
     )
