@@ -2,12 +2,15 @@ import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import ascii
 from matplotlib.lines import Line2D
-from scipy.interpolate import interp1d
 
 from ..kernels.fq import get_fq_hm, get_fq_sm
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 from ..kernels.sfr_tau import get_logsfr_100Myr
-from .plot_sfms import get_leja22_sfms_at_z
+
+# from scipy.interpolate import interp1d
+
+
+# from .plot_sfms import get_leja22_sfms_at_z
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 

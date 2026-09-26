@@ -866,7 +866,7 @@ def plot_app_mag_funcs_minerva(
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.875))
 
     # xlim = [(13.0, 19.5), (18.5, 25.5), (19.0, 25.5), (19.5, 25.5), (20.0, 25.5)]
-    ylim = [(-6.2, -2.0), (-5.2, -1.1), (-6.2, -1.5), (-6.9, -1.8), (-6.9, -2.6)]
+    # ylim = [(-6.2, -2.0), (-5.2, -1.1), (-6.2, -1.5), (-6.9, -1.8), (-6.9, -2.6)]
     for zbin in range(len(zbins)):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]

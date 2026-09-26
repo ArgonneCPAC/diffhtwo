@@ -189,7 +189,7 @@ def plot_color_z(
     norm0 = colors.LogNorm(vmin=vmin0, vmax=vmax0)
     for hb in hb0_list:
         hb.set_norm(norm0)
-    cbd = fig.colorbar(
+    fig.colorbar(
         hbd_list[0],
         ax=ax[:, 0],
         location="top",
@@ -197,7 +197,7 @@ def plot_color_z(
         shrink=0.85,
         pad=0.01,
     )
-    cb0 = fig.colorbar(
+    fig.colorbar(
         hb0_list[0],
         ax=ax[:, 1],
         location="top",
@@ -205,7 +205,7 @@ def plot_color_z(
         shrink=0.85,
         pad=0.01,
     )
-    cb1 = fig.colorbar(
+    fig.colorbar(
         hb1_list[0],
         ax=ax[:, 2],
         location="top",
@@ -213,7 +213,7 @@ def plot_color_z(
         shrink=0.85,
         pad=0.01,
     )
-    cb2 = fig.colorbar(
+    fig.colorbar(
         hb2_list[0],
         ax=ax[:, 3],
         location="top",
@@ -221,7 +221,7 @@ def plot_color_z(
         shrink=0.85,
         pad=0.01,
     )
-    cb3 = fig.colorbar(
+    fig.colorbar(
         hb3_list[0],
         ax=ax[:, 4],
         location="top",
