@@ -461,12 +461,12 @@ def get_minerva_halpha(
     )
     lfs = []
     for f in HalphaFilters._fields:
-        uds_halpha = Table.read(halpha_drn / f"Ha_table_{f}_minerva-uds_power.fits")
-        cosmos_halpha = Table.read(
-            halpha_drn / f"Ha_table_{f}_minerva-cosmos_power.fits"
-        )
-        egs_halpha = Table.read(halpha_drn / f"Ha_table_{f}_minerva-egs_power.fits")
-        halpha = vstack([uds_halpha, cosmos_halpha, egs_halpha])
+        halpha = Table.read(halpha_drn / f"Ha_table_{f}_minerva-uds_power.fits")
+        # cosmos_halpha = Table.read(
+        #     halpha_drn / f"Ha_table_{f}_minerva-cosmos_power.fits"
+        # )
+        # egs_halpha = Table.read(halpha_drn / f"Ha_table_{f}_minerva-egs_power.fits")
+        # halpha = vstack([uds_halpha, cosmos_halpha, egs_halpha])
 
         z_min = halpha["z_phot"].min()
         z_max = halpha["z_phot"].max()
