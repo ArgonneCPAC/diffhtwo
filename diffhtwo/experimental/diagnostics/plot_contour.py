@@ -1,3 +1,5 @@
+import re
+
 import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
@@ -324,10 +326,11 @@ def plot_color_contours(
     data_label,
     savedir,
     sigma=0.5,
-    n_levels=10,
+    plt_show=True,
 ):
-    labelsize = 14
-    for z in range(0, len(data)):
+    labelsize = 9
+    fontsize = 10
+    for z in range(len(data)):
         z_data = data[z]
 
         z_data_model = N_colors_mags(
@@ -338,22 +341,30 @@ def plot_color_contours(
             frac_cat,
         )
         fields = z_data_model._fields[4:]
+
+        # pick only color-color or color-magnitude diagrams
+        fields = [f for f in fields if "_" in f]
+
         z_min = z_data_model.z_min
         z_max = z_data_model.z_max
 
-        for f in range(0, len(fields)):
+        for f in range(len(fields)):
             space = getattr(z_data_model, fields[f])
 
             if isinstance(space, list):
                 pass
 
             else:
-                fig, ax = plt.subplots(figsize=(6.4, 5.2), constrained_layout=True)
-                fig.suptitle(str(z_min) + " < z < " + str(z_max), fontsize=18, y=0.99)
-                fig.get_layout_engine().set(h_pad=0.0, hspace=0.0, rect=(0, 0, 1, 0.95))
+                fig, ax = plt.subplots(figsize=(3.55, 3.5), constrained_layout=True)
+                fig.get_layout_engine().set(
+                    h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.92)
+                )
 
                 name = type(space).__name__
                 xlabel, ylabel = parse_color_labels(name)
+                ax.set_title(
+                    str(z_min) + " < z < " + str(z_max), fontsize=fontsize, y=1
+                )
                 plot_density(
                     space.bin_lo,
                     space.bin_hi,
@@ -363,9 +374,9 @@ def plot_color_contours(
                     ylabel,
                     dusk,
                     data_label,
+                    fontsize=fontsize,
                     N_model=space.N_model,
                     sigma=sigma,
-                    n_levels=n_levels,
                 )
                 ax.minorticks_on()
                 ax.tick_params(
@@ -405,10 +416,10 @@ def plot_color_contours(
                 fig.legend(
                     handles=legend_handles,
                     loc="upper center",
-                    bbox_to_anchor=(0.5, 1.1),
+                    bbox_to_anchor=(0.5, 1.0),
                     ncol=len(legend_handles),
                     frameon=False,
-                    fontsize=16,
+                    fontsize=fontsize,
                     borderaxespad=0.0,
                 )
 
@@ -425,7 +436,9 @@ def plot_color_contours(
                     + ".png",
                     dpi=600,
                 )
-    plt.close()
+                if plt_show:
+                    plt.show()
+                plt.close()
 
 
 def parse_axis_label(s):
@@ -434,11 +447,29 @@ def parse_axis_label(s):
     def fmt(b):
         return b.upper() if b in nir_bands else b
 
-    if len(s) == 2:
-        return f"${fmt(s[0])}-{fmt(s[1])}$"
-    return f"${fmt(s)}$"
+    bands = re.findall(r"f\d+[a-z]", s) or list(s)
+
+    if len(bands) == 2:
+        return f"${fmt(bands[0])}-{fmt(bands[1])}$"
+    return f"${fmt(bands[0])}$"
 
 
 def parse_color_labels(name):
     x_str, y_str = name.lower().split("_")
     return parse_axis_label(x_str), parse_axis_label(y_str)
+
+
+# def parse_axis_label(s):
+#     nir_bands = {"j", "h", "k"}
+
+#     def fmt(b):
+#         return b.upper() if b in nir_bands else b
+
+#     if len(s) == 2:
+#         return f"${fmt(s[0])}-{fmt(s[1])}$"
+#     return f"${fmt(s)}$"
+
+
+# def parse_color_labels(name):
+#     x_str, y_str = name.lower().split("_")
+#     return parse_axis_label(x_str), parse_axis_label(y_str)

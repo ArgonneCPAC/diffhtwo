@@ -826,18 +826,32 @@ def plot_app_mag_funcs_minerva(
 ):
     band_colors = [
         "#001219",
-        "#04343B",
-        "#0A575C",
-        "#16787A",
-        "#31968E",
-        "#58B19B",
-        "#7AB48F",
-        "#98B07B",
-        "#B0944D",
-        "#BC772E",
-        "#B75A23",
-        "#AA3B20",
-        "#9B1D20",
+        "#022229",
+        "#043138",
+        "#064148",
+        "#095257",
+        "#0e6165",
+        "#137073",
+        "#1c7f7f",
+        "#298d88",
+        "#379a90",
+        "#49a796",
+        "#5bb19a",
+        "#6ab395",
+        "#7ab48f",
+        "#88b286",
+        "#96b07d",
+        "#a1a569",
+        "#ac9854",
+        "#b48b43",
+        "#b97e35",
+        "#bb702b",
+        "#b96326",
+        "#b55523",
+        "#af4721",
+        "#a93920",
+        "#a22b20",
+        "#9b1d20",
     ]
 
     fig_width = 7.1
@@ -856,6 +870,7 @@ def plot_app_mag_funcs_minerva(
     sels = minerva_phot.sels
     mags_labels = minerva_phot.mags_labels
     n_bands = len(mags_labels)
+    print(n_bands)
     data_sky_area_degsq = minerva_phot.data_sky_area_degsq
 
     n_z_bins = len(zbins)
@@ -863,6 +878,7 @@ def plot_app_mag_funcs_minerva(
     fig, ax = plt.subplots(
         1, n_z_bins, figsize=(fig_width, fig_height), constrained_layout=True
     )
+    ax = np.atleast_1d(ax)
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.875))
 
     # xlim = [(13.0, 19.5), (18.5, 25.5), (19.0, 25.5), (19.5, 25.5), (20.0, 25.5)]
