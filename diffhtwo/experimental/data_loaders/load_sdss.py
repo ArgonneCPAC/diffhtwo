@@ -65,6 +65,11 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
 
     sdss, sdss_area_deg2 = apply_ra_dec_cut(sdss)
 
+    N_obj_pre_outlier_cut = len(sdss)
+    msk_is_not_outlier = sdl.get_color_outlier_mask(sdss, sdl.SDSS_MAG_NAMES)
+    sdss = sdss[msk_is_not_outlier]
+    frac_cat = len(sdss) / N_obj_pre_outlier_cut
+
     mag_thresh_mask = (
         (sdss["modelMag_u"] > sdss_mag_thresh.sdss_u[0])
         & (sdss["modelMag_u"] < sdss_mag_thresh.sdss_u[1])
@@ -78,12 +83,6 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
         & (sdss["modelMag_z"] < sdss_mag_thresh.sdss_z[1])
     )
     sdss = sdss[mag_thresh_mask]
-    N_obj_pre_outlier_cut = len(sdss)
-
-    msk_is_not_outlier = sdl.get_color_outlier_mask(sdss, sdl.SDSS_MAG_NAMES)
-    sdss = sdss[msk_is_not_outlier]
-
-    frac_cat = len(sdss) / N_obj_pre_outlier_cut
 
     return sdss, frac_cat, sdss_area_deg2
 

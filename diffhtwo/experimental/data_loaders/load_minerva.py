@@ -252,13 +252,12 @@ def get_minerva_phot(
         # originally masked in the phot cat due to missing coverage, for instance
         sel = ~phot[col_name].mask
 
-        # masked due to converting flux to mag for -ve flux of droputs, for instance
-        sel *= np.isfinite(mag)
-
         # based on removing masked gals (no coverage, etc.)
-        # and -ve flux gals (dropouts, etc.), what fraction of gals cat remains?
         frac_cat = sel.sum() / n_gals
         frac_cat_per_band.append(frac_cat)
+
+        # masked due to converting flux to mag for -ve flux of droputs, for instance
+        sel *= np.isfinite(mag)
 
         # mag thresh selection
         mag_limit = getattr(minerva_mag_thresh, minerva_filter)
