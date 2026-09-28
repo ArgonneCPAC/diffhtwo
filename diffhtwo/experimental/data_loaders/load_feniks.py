@@ -204,6 +204,35 @@ def get_feniks_data(
 
     filter_info = FilterInfo(feniks_mag_thresh, tcurves)
 
+    n_gals_pre_clean = len(zout)
+
+    # remove mags with bad data in any of the bands
+    clean = (
+        (megacam_uS != -99)
+        & (hsc_g != -99)
+        & (hsc_r != -99)
+        & (hsc_i != -99)
+        & (hsc_z != -99)
+        & (uds_J != -99)
+        & (uds_H != -99)
+        & (uds_K != -99)
+        & (zout["z_phot"] >= 0)
+    )
+
+    phot = phot[clean]
+    zout = zout[clean]
+    megacam_uS = megacam_uS[clean]
+    hsc_g = hsc_g[clean]
+    hsc_r = hsc_r[clean]
+    hsc_i = hsc_i[clean]
+    hsc_z = hsc_z[clean]
+    uds_J = uds_J[clean]
+    uds_H = uds_H[clean]
+    uds_K = uds_K[clean]
+
+    n_gals_post_clean = len(zout)
+    frac_cat = n_gals_post_clean / n_gals_pre_clean
+
     # get mag thresh cuts
     mag_thresh = (
         (megacam_uS > feniks_mag_thresh.MegaCam_uS[0])
@@ -237,35 +266,6 @@ def get_feniks_data(
     uds_J = uds_J[mag_thresh]
     uds_H = uds_H[mag_thresh]
     uds_K = uds_K[mag_thresh]
-
-    n_gals_pre_cuts = len(zout)
-
-    # remove mags with bad data in any of the bands
-    clean = (
-        (megacam_uS != -99)
-        & (hsc_g != -99)
-        & (hsc_r != -99)
-        & (hsc_i != -99)
-        & (hsc_z != -99)
-        & (uds_J != -99)
-        & (uds_H != -99)
-        & (uds_K != -99)
-        & (zout["z_phot"] >= 0)
-    )
-
-    phot = phot[clean]
-    zout = zout[clean]
-    megacam_uS = megacam_uS[clean]
-    hsc_g = hsc_g[clean]
-    hsc_r = hsc_r[clean]
-    hsc_i = hsc_i[clean]
-    hsc_z = hsc_z[clean]
-    uds_J = uds_J[clean]
-    uds_H = uds_H[clean]
-    uds_K = uds_K[clean]
-
-    n_gals_post_cuts = len(zout)
-    frac_cat = n_gals_post_cuts / n_gals_pre_cuts
 
     mags = np.vstack(
         (

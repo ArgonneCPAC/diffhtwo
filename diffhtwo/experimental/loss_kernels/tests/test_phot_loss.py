@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
-from jax import random as jran
 
 from ... import param_utils as pu
 from ..phot_loss import (
