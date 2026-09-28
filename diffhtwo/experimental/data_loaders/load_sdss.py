@@ -65,7 +65,6 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
 
     sdss, sdss_area_deg2 = apply_ra_dec_cut(sdss)
 
-    # implement r <= 17.6
     mag_thresh_mask = (
         (sdss["modelMag_u"] > sdss_mag_thresh.sdss_u[0])
         & (sdss["modelMag_u"] < sdss_mag_thresh.sdss_u[1])
@@ -126,9 +125,6 @@ def refresh_lh_centroids(DATASET, lh_d_mag):
 
 def get_lh_centroids(dataset, lh_d_mag):
     mu = np.mean(dataset, axis=0)
-
-    # mu[-2] = mu[-2] - 0.5  # r
-
     cov = np.cov(dataset.T)
 
     lh_centroids = lh.latin_hypercube_from_cov(
