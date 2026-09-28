@@ -59,8 +59,8 @@ MinervaPhot = namedtuple(
     [
         "redshift",
         "mags",
-        "frac_cats",
         "sels",
+        "frac_cats",
         "mags_labels",
         "spaces",
         "zbins",
@@ -257,7 +257,7 @@ def get_minerva_phot(
 
         # based on removing masked gals (no coverage, etc.)
         # and -ve flux gals (dropouts, etc.), what fraction of gals cat remains?
-        frac_cat = n_gals / sel.sum()
+        frac_cat = sel.sum() / n_gals
         frac_cat_per_band.append(frac_cat)
 
         # mag thresh selection

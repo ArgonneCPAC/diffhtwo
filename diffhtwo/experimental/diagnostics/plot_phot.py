@@ -865,6 +865,7 @@ def plot_app_mag_funcs_minerva(
     redshift = minerva_phot.redshift
     mags = minerva_phot.mags
     sels = minerva_phot.sels
+    frac_cats = minerva_phot.frac_cats
     mags_labels = minerva_phot.mags_labels
     data_sky_area_degsq = minerva_phot.data_sky_area_degsq
 
@@ -904,12 +905,11 @@ def plot_app_mag_funcs_minerva(
             minerva_phot.filter_info.tcurves,
             z_phot_table,
         )
-        obs_mags, weights, phot_kern_results = mag_kern(
+        obs_mags, gal_weight, phot_kern_results = mag_kern(
             ran_key,
             param_collection,
             lc_data,
             minerva_phot.filter_info.mag_thresh,
-            minerva_phot.frac_cat,
         )
 
         shift_dex = 0.0
@@ -959,7 +959,7 @@ def plot_app_mag_funcs_minerva(
 
             n_diffsky, _ = np.histogram(
                 obs_mags[:, mag_idx],
-                weights=weights * (1 / lc_data.lc_tot_vol_mpc3),
+                weights=gal_weight * (1 / lc_data.lc_tot_vol_mpc3) * frac_cats[mag_idx],
                 bins=bins_diffsky,
             )
             with warnings.catch_warnings():
@@ -997,7 +997,7 @@ def plot_app_mag_funcs_minerva(
             labelsize=labelsize,
         )
 
-        ax[zbin].set_ylim(-7, 0)
+        ax[zbin].set_ylim(-6, 0)
         ax[zbin].set_xlim(19.0, 27.0)
 
     ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
@@ -1030,7 +1030,7 @@ def plot_app_mag_funcs_minerva(
     fig.legend(
         handles=handles,
         loc="upper center",
-        ncol=5,
+        ncol=4,
         bbox_to_anchor=(0.5, 1.0),
         frameon=False,
         fontsize=legendsize,
