@@ -20,12 +20,12 @@ def compute_cat_weight(gal_weight, obs_mags_weighted, mag_thresh, frac_cat=1.0):
 
 
 @jjit
-def _faint_end_weight(mag, mag_thresh, k=500, ylo=1.0, yhi=0.0):
+def _faint_end_weight(mag, mag_thresh, k=1000, ylo=1.0, yhi=0.0):
     mag_weight = _sigmoid(mag, mag_thresh, k, ylo, yhi)
     return mag_weight
 
 
 @jjit
-def _bright_end_weight(mag, mag_thresh, k=500, ylo=0.0, yhi=1.0):
+def _bright_end_weight(mag, mag_thresh, k=1000, ylo=0.0, yhi=1.0):
     mag_weight = _sigmoid(mag, mag_thresh, k, ylo, yhi)
     return mag_weight
