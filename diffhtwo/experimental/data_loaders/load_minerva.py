@@ -50,17 +50,21 @@ TRANSLATE = "MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG.larson.e
 INFO = "FILTER.RES.latest.info"
 TCURVES = "FILTER.RES.latest"
 
+AppMagFunc = namedtuple("AppMagFunc", [*AppMagFunc._fields, "frac_cat"])
+ColorColor = namedtuple("ColorColor", [*ColorColor._fields, "frac_cat"])
+MagColor = namedtuple("MagColor", [*MagColor._fields, "frac_cat"])
+
 MinervaPhot = namedtuple(
     "MinervaPhot",
     [
         "redshift",
         "mags",
+        "frac_cats",
         "sels",
         "mags_labels",
         "spaces",
         "zbins",
         "filter_info",
-        "frac_cat",
         "data_sky_area_degsq",
     ],
 )
@@ -231,6 +235,7 @@ def get_minerva_phot(
     mag_per_band = []
     mag_labels = []
     sel_per_band = []
+    frac_cat_per_band = []
     tcurves = []
     for minerva_filter in PhotFilters._fields:
         tcurve = load_transmission_curve(
@@ -242,11 +247,18 @@ def get_minerva_phot(
         col_name = "f_" + minerva_filter
         mag = _get_mag_ab(phot, col_name)
 
-        # originally masked in the phot cat
+        n_gals = phot[col_name].mask.size
+
+        # originally masked in the phot cat due to missing coverage, for instance
         sel = ~phot[col_name].mask
 
-        # masked due to converting flux to mag for negative flux for instance (like drop outs)
+        # masked due to converting flux to mag for -ve flux of droputs, for instance
         sel *= np.isfinite(mag)
+
+        # based on removing masked gals (no coverage, etc.)
+        # and -ve flux gals (dropouts, etc.), what fraction of gals cat remains?
+        frac_cat = n_gals / sel.sum()
+        frac_cat_per_band.append(frac_cat)
 
         # mag thresh selection
         mag_limit = getattr(minerva_mag_thresh, minerva_filter)
@@ -259,6 +271,7 @@ def get_minerva_phot(
 
     mags = np.vstack(mag_per_band).T
     sels = np.vstack(sel_per_band).T
+    frac_cats = np.array(frac_cat_per_band)
 
     filter_info = FilterInfo(minerva_mag_thresh, tcurves)
 
@@ -338,7 +351,12 @@ def get_minerva_phot(
             mag_selected = mags[sel]
 
             N_1d, sig, bin_lo, bin_hi = get_N_1d(mag_selected[:, mag_idx])
-            mag_z_tuples.append(space(mag_idx, sig, bin_lo, bin_hi, N_1d, True))
+
+            frac_cat = frac_cats[mag_idx]
+
+            mag_z_tuples.append(
+                space(mag_idx, sig, bin_lo, bin_hi, N_1d, True, frac_cat)
+            )
 
         ccd_z_tuples = []
         for space_name, space in ccd_namedtuples.items():
@@ -352,7 +370,12 @@ def get_minerva_phot(
             color2 = mag_selected[:, c] - mag_selected[:, d]
 
             N_2d, sig, bin_lo, bin_hi = get_N_2d(color1, color2)
-            ccd_z_tuples.append(space(col_idx, sig, bin_lo, bin_hi, N_2d, True))
+
+            frac_cat = np.min((frac_cats[a], frac_cats[b], frac_cats[c], frac_cats[d]))
+
+            ccd_z_tuples.append(
+                space(col_idx, sig, bin_lo, bin_hi, N_2d, True, frac_cat)
+            )
 
         cmd_z_tuples = []
         for space_name, space in cmd_namedtuples.items():
@@ -367,8 +390,11 @@ def get_minerva_phot(
             N_2d, sig, bin_lo, bin_hi = get_N_2d(mag, color, n_bins=50)
 
             col_idx = [b, c]
+
+            frac_cat = np.min((frac_cats[mag_idx], frac_cats[b], frac_cats[c]))
+
             cmd_z_tuples.append(
-                space(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, True)
+                space(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, True, frac_cat)
             )
 
         spaces.append(
@@ -383,16 +409,15 @@ def get_minerva_phot(
             )
         )
 
-    frac_cat = 0.9
     return MinervaPhot(
         z_best,
         mags,
         sels,
+        frac_cats,
         mag_labels,
         spaces,
         z_bins,
         filter_info,
-        frac_cat,
         MINERVA_AREA_DEG2,
     )
 

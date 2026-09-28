@@ -26,6 +26,7 @@ SDSS_Z_MIN = 0.02
 SDSS_Z_MAX = 0.2
 SDSS_MAGR_THRESH = 17.6  # model mag
 
+# needs to be total survey area minus the use_phot==0 area
 MINERVA_UDS_AREA_DEG2 = 234 / 3600
 MINERVA_COSMOS_AREA_DEG2 = 144 / 3600
 MINERVA_EGS_AREA_DEG2 = 96 / 3600

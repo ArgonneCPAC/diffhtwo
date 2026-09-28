@@ -4,7 +4,7 @@ from jax import jit as jjit
 
 
 @jjit
-def compute_cat_weight(gal_weight, obs_mags_weighted, mag_thresh, frac_cat):
+def compute_cat_weight(gal_weight, obs_mags_weighted, mag_thresh, frac_cat=1.0):
     mag_thresh = jnp.array(mag_thresh)
     mag_weight = _bright_end_weight(
         obs_mags_weighted[:, 0], mag_thresh[0][0]

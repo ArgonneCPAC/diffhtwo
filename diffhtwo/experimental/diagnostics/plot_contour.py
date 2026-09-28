@@ -324,6 +324,7 @@ def plot_color_contours(
     mag_thresh,
     frac_cat,
     data_label,
+    run_label,
     savedir,
     sigma=0.5,
     plt_show=True,
@@ -426,7 +427,7 @@ def plot_color_contours(
                 fig.savefig(
                     savedir
                     + "/"
-                    + data_label
+                    + run_label
                     + "_"
                     + name
                     + "_"

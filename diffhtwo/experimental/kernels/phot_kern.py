@@ -51,7 +51,7 @@ def mag_kern(
     param_collection,
     lc_data,
     mag_thresh,
-    frac_cat,
+    frac_cat=1.0,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
     mc_merge=0,
@@ -65,7 +65,9 @@ def mag_kern(
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     # update weights to incorporate mag thresh cuts and frac_cat
-    gal_weight = compute_cat_weight(gal_weight, obs_mags_weighted, mag_thresh, frac_cat)
+    gal_weight = compute_cat_weight(
+        gal_weight, obs_mags_weighted, mag_thresh, frac_cat=frac_cat
+    )
 
     return obs_mags_weighted, gal_weight, phot_kern_results
 
