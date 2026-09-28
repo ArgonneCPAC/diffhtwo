@@ -61,14 +61,9 @@ def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
 
 
 def load_sdss_cuts_applied(drn, sdss_mag_thresh):
-    sdss = sdl.load_sdss_cat(drn)
+    sdss = sdl.load_sdss_cat(drn, apply_cuts=False)
 
     sdss, sdss_area_deg2 = apply_ra_dec_cut(sdss)
-
-    N_obj_pre_outlier_cut = len(sdss)
-    msk_is_not_outlier = sdl.get_color_outlier_mask(sdss, sdl.SDSS_MAG_NAMES)
-    sdss = sdss[msk_is_not_outlier]
-    frac_cat = len(sdss) / N_obj_pre_outlier_cut
 
     mag_thresh_mask = (
         (sdss["modelMag_u"] > sdss_mag_thresh.sdss_u[0])
@@ -84,7 +79,7 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
     )
     sdss = sdss[mag_thresh_mask]
 
-    return sdss, frac_cat, sdss_area_deg2
+    return sdss, sdss_area_deg2
 
 
 def compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max):
@@ -167,7 +162,7 @@ def get_sdss_data(
         sdss_i=(13.0, 17.0),
         sdss_z=(13.0, 17.0),
     )
-    sdss, frac_cat, sdss_area_deg2 = load_sdss_cuts_applied(drn, sdss_mag_thresh)
+    sdss, sdss_area_deg2 = load_sdss_cuts_applied(drn, sdss_mag_thresh)
 
     tcurves = []
     for bn_pat in SdssFilters._fields:
@@ -410,6 +405,7 @@ def get_sdss_data(
 
     ##############################################################################
 
+    frac_cat = 1.0
     return Sdss(
         dataset,
         col_idx_lh_dim,
