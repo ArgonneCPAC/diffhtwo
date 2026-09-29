@@ -6,16 +6,13 @@ from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from matplotlib.lines import Line2D
 
+from ..data_loaders.load_minerva import PhotFilters, get_filt_indx
 from ..kernels.phot_kern import get_colors_mags, mag_kern
 from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
 
 blue = "#1E90FF"  # DodgerBlue
 orange = "#FF8C00"  # DarkOrange
-# blue = "#4169E1"  # RoyalBlue
-# orange = "#D2691E"  # Chocolate
-# blue = "#00BFFF"  # DeepSkyBlue
-# orange = "#FFA500"  # Orange
 
 mblue = "tab:blue"
 morange = "tab:orange"
@@ -45,6 +42,36 @@ try:
     HAS_MATPLOTLIB = True
 except ImportError:
     HAS_MATPLOTLIB = False
+
+minerva_colors = [
+    "#7C93D6",
+    "#809ED7",
+    "#84A9D9",
+    "#89B5DA",
+    "#8CC0D9",
+    "#8DC8D3",
+    "#8ED0CD",
+    "#8FD7C7",
+    "#96DBBF",
+    "#A3DBB4",
+    "#AFDCAA",
+    "#BCDC9F",
+    "#C3DCA2",
+    "#C9DCA6",
+    "#CEDCAA",
+    "#D4DCAE",
+    "#DAD9AB",
+    "#E0D7A8",
+    "#E7D4A5",
+    "#EACFA2",
+    "#E9C8A0",
+    "#E9C19D",
+    "#E8B99B",
+    "#E5B19A",
+    "#E1AA9A",
+    "#DDA29B",
+    "#D99B9B",
+]
 
 
 def plot_color_pdfs(
@@ -824,24 +851,8 @@ def plot_app_mag_funcs_minerva(
     fb=FB,
     plt_show=True,
 ):
-    band_colors = [
-        "#001219",
-        "#04343B",
-        "#0A575C",
-        "#16787A",
-        "#31968E",
-        "#58B19B",
-        "#7AB48F",
-        "#98B07B",
-        "#B0944D",
-        "#BC772E",
-        "#B75A23",
-        "#AA3B20",
-        "#9B1D20",
-    ]
-
-    fig_width = 7.1
-    fig_height = 2.75
+    fig_width = 3.55
+    fig_height = 4.75
 
     fontsize = 10
     labelsize = 10
@@ -854,8 +865,8 @@ def plot_app_mag_funcs_minerva(
     redshift = minerva_phot.redshift
     mags = minerva_phot.mags
     sels = minerva_phot.sels
+    frac_cats = minerva_phot.frac_cats
     mags_labels = minerva_phot.mags_labels
-    n_bands = len(mags_labels)
     data_sky_area_degsq = minerva_phot.data_sky_area_degsq
 
     n_z_bins = len(zbins)
@@ -863,7 +874,8 @@ def plot_app_mag_funcs_minerva(
     fig, ax = plt.subplots(
         1, n_z_bins, figsize=(fig_width, fig_height), constrained_layout=True
     )
-    fig.get_layout_engine().set(rect=(0, 0, 1, 0.875))
+    ax = np.atleast_1d(ax)
+    fig.get_layout_engine().set(rect=(0, 0, 1, 0.85))
 
     # xlim = [(13.0, 19.5), (18.5, 25.5), (19.0, 25.5), (19.5, 25.5), (20.0, 25.5)]
     # ylim = [(-6.2, -2.0), (-5.2, -1.1), (-6.2, -1.5), (-6.9, -1.8), (-6.9, -2.6)]
@@ -872,7 +884,7 @@ def plot_app_mag_funcs_minerva(
         z_max = zbins[zbin][1]
         z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
 
-        ax[zbin].set_title(str(z_min) + " < z < " + str(z_max))
+        ax[zbin].set_title(str(z_min) + " < z < " + str(z_max), y=1)
 
         z_mask = (redshift > z_min) & (redshift < z_max)
 
@@ -893,12 +905,11 @@ def plot_app_mag_funcs_minerva(
             minerva_phot.filter_info.tcurves,
             z_phot_table,
         )
-        obs_mags, weights, phot_kern_results = mag_kern(
+        obs_mags, gal_weight, phot_kern_results = mag_kern(
             ran_key,
             param_collection,
             lc_data,
             minerva_phot.filter_info.mag_thresh,
-            minerva_phot.frac_cat,
         )
 
         shift_dex = 0.0
@@ -906,9 +917,17 @@ def plot_app_mag_funcs_minerva(
             d_shift_dex = 0.2
         else:
             d_shift_dex = 0.2
-        for i in range(n_bands):
-            sel = sels[:, i] * z_mask
-            mag_band_z = mags[:, i][sel]
+
+        fields = minerva_phot.spaces[zbin]._fields[4:]
+        mag_filters = [f for f in fields if "_" not in f]
+        band_colors_fitted = []
+        mags_labels_fitted = []
+        for i in range(len(mag_filters)):
+            (mag_idx,) = get_filt_indx(mag_filters[i], PhotFilters)
+
+            sel = sels[:, mag_idx] * z_mask
+            mag_band_z = mags[sel][:, mag_idx]
+
             bins = np.arange(
                 mag_band_z.min(),
                 mag_band_z.max() + dmag,
@@ -933,14 +952,14 @@ def plot_app_mag_funcs_minerva(
                 ax[zbin].scatter(
                     bin_centers,
                     np.log10(n_data) + shift_dex,
-                    c=band_colors[i],
+                    c=minerva_colors[mag_idx],
                     alpha=alpha,
                     s=s,
                 )
 
             n_diffsky, _ = np.histogram(
-                obs_mags[:, i],
-                weights=weights * (1 / lc_data.lc_tot_vol_mpc3),
+                obs_mags[:, mag_idx],
+                weights=gal_weight * (1 / lc_data.lc_tot_vol_mpc3) * frac_cats[mag_idx],
                 bins=bins_diffsky,
             )
             with warnings.catch_warnings():
@@ -948,12 +967,14 @@ def plot_app_mag_funcs_minerva(
                 ax[zbin].plot(
                     bin_diffsky_centers,
                     np.log10(n_diffsky) + shift_dex,
-                    c=band_colors[i],
+                    c=minerva_colors[mag_idx],
                     alpha=alpha,
-                    label=mags_labels[i],
+                    label=mags_labels[mag_idx],
                     lw=lw,
                 )
             shift_dex += d_shift_dex
+            band_colors_fitted.append(minerva_colors[mag_idx])
+            mags_labels_fitted.append(mags_labels[mag_idx])
 
         ax[zbin].set_xticks(np.arange(10, 30, 2))
         ax[zbin].minorticks_on()
@@ -976,8 +997,8 @@ def plot_app_mag_funcs_minerva(
             labelsize=labelsize,
         )
 
-        ax[zbin].set_ylim(-7, -0.5)
-        ax[zbin].set_xlim(19.0, 28.0)
+        ax[zbin].set_ylim(-6, 0)
+        ax[zbin].set_xlim(19.0, 27.0)
 
     ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
 
@@ -1004,12 +1025,12 @@ def plot_app_mag_funcs_minerva(
 
     handles = [
         mlines.Line2D([], [], color=c, linewidth=6, solid_capstyle="butt", label=label)
-        for c, label in zip(band_colors, mags_labels)
+        for c, label in zip(band_colors_fitted, mags_labels_fitted)
     ]
     fig.legend(
         handles=handles,
         loc="upper center",
-        ncol=7,
+        ncol=4,
         bbox_to_anchor=(0.5, 1.0),
         frameon=False,
         fontsize=legendsize,

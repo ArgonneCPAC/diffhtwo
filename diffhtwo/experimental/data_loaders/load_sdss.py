@@ -61,11 +61,10 @@ def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
 
 
 def load_sdss_cuts_applied(drn, sdss_mag_thresh):
-    sdss = sdl.load_sdss_cat(drn)
+    sdss = sdl.load_sdss_cat(drn, apply_cuts=False)
 
     sdss, sdss_area_deg2 = apply_ra_dec_cut(sdss)
 
-    # implement r <= 17.6
     mag_thresh_mask = (
         (sdss["modelMag_u"] > sdss_mag_thresh.sdss_u[0])
         & (sdss["modelMag_u"] < sdss_mag_thresh.sdss_u[1])
@@ -79,14 +78,8 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
         & (sdss["modelMag_z"] < sdss_mag_thresh.sdss_z[1])
     )
     sdss = sdss[mag_thresh_mask]
-    N_obj_pre_outlier_cut = len(sdss)
 
-    msk_is_not_outlier = sdl.get_color_outlier_mask(sdss, sdl.SDSS_MAG_NAMES)
-    sdss = sdss[msk_is_not_outlier]
-
-    frac_cat = len(sdss) / N_obj_pre_outlier_cut
-
-    return sdss, frac_cat, sdss_area_deg2
+    return sdss, sdss_area_deg2
 
 
 def compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max):
@@ -126,9 +119,6 @@ def refresh_lh_centroids(DATASET, lh_d_mag):
 
 def get_lh_centroids(dataset, lh_d_mag):
     mu = np.mean(dataset, axis=0)
-
-    # mu[-2] = mu[-2] - 0.5  # r
-
     cov = np.cov(dataset.T)
 
     lh_centroids = lh.latin_hypercube_from_cov(
@@ -172,7 +162,7 @@ def get_sdss_data(
         sdss_i=(13.0, 17.0),
         sdss_z=(13.0, 17.0),
     )
-    sdss, frac_cat, sdss_area_deg2 = load_sdss_cuts_applied(drn, sdss_mag_thresh)
+    sdss, sdss_area_deg2 = load_sdss_cuts_applied(drn, sdss_mag_thresh)
 
     tcurves = []
     for bn_pat in SdssFilters._fields:
@@ -415,6 +405,7 @@ def get_sdss_data(
 
     ##############################################################################
 
+    frac_cat = 1.0
     return Sdss(
         dataset,
         col_idx_lh_dim,
