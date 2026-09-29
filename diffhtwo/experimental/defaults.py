@@ -17,7 +17,9 @@ COSMO = FlatLambdaCDM(
     Ob0=FB * DEFAULT_COSMOLOGY.Om0,
 )
 
-FENIKS_AREA_DEG2 = 2828.247933129912 / 3600
+# FENIKS_AREA_DEG2 is Area with combined coverage in the following bands:
+# ["HSC_G", "HSC_R", "HSC_I", "HSC_Z", "UDS_J", "UDS_H", "UDS_K"]
+FENIKS_AREA_DEG2 = 0.6081027540413089
 FENIKS_Z_MIN = 0.2
 FENIKS_Z_MAX = 2.5
 FENIKS_MAGK_THRESH = 24.3  # col mag

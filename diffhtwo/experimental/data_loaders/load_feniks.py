@@ -265,7 +265,6 @@ def get_feniks_data(
     uds_K = uds_K[clean]
 
     n_gals_post_cuts = len(zout)
-    frac_cat = n_gals_post_cuts / n_gals_pre_cuts
 
     mags = np.vstack(
         (
@@ -1071,92 +1070,7 @@ def get_feniks_data(
         )
         spaces.append(z3)
 
-    # ##############################################################################
-    # # prepare 1D app mag funcs in finer z-bins for fitting
-    # fine_zbins = np.array(
-    #     [
-    #         [0.4, 0.7],
-    #         [0.7, 1.0],
-    #         [1.0, 1.5],
-    #         [1.5, 2.0],
-    #     ]
-    # )
-    # ##############################################################################
-    # AppMagFuncs = namedtuple(
-    #     "AppMagFuncs",
-    #     [
-    #         "z_min",
-    #         "z_max",
-    #         "data_vol_mpc3",
-    #         "lc_data",
-    #         "u",
-    #         "g",
-    #         "r",
-    #         "i",
-    #         "z",
-    #         "J",
-    #         "H",
-    #         "K",
-    #     ],
-    # )
-
-    # app_mag_funcs = []
-    # for zbin in range(0, len(fine_zbins)):
-    #     if (zbin == 1) & (testing):
-    #         break
-    #     z_min = fine_zbins[zbin][0]
-    #     z_max = fine_zbins[zbin][1]
-    #     data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
-
-    #     z_phot_table = 10 ** jnp.linspace(
-    #         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-    #     )
-    #     lc_args = (
-    #         ran_key,
-    #         num_halos,
-    #         z_min,
-    #         z_max,
-    #         lgmp_min,
-    #         lgmp_max,
-    #         lc_sky_area_degsq,
-    #         ssp_data,
-    #         tcurves,
-    #         z_phot_table,
-    #     )
-
-    #     lc_data = generate_lc_data(*lc_args)
-
-    #     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-
-    #     # 1D (u)
-    #     u = N_utils.get_mag_space(
-    #         "U", megacam_uS, "MegaCam_uS", z_sel, FeniksFilters, fit=True
-    #     )
-
-    #     # 1D (g)
-    #     g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (r)
-    #     r = N_utils.get_mag_space("R", hsc_r, "HSC_R", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (i)
-    #     i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (z)
-    #     z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (J)
-    #     j = N_utils.get_mag_space("J", uds_J, "UDS_J", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (H)
-    #     h = N_utils.get_mag_space("H", uds_H, "UDS_H", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (K)
-    #     k = N_utils.get_mag_space("K", uds_K, "UDS_K", z_sel, FeniksFilters, fit=True)
-
-    #     app_mag_funcs.append(
-    #         AppMagFuncs(z_min, z_max, data_vol_mpc3, lc_data, u, g, r, i, z, j, h, k)
-    # )
+    frac_cat = 1.0
 
     return Feniks(
         dataset,
