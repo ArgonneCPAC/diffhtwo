@@ -15,14 +15,14 @@ def N_colors_mags(
     param_collection,
     z_data,
     mag_thresh,
-    frac_cat,
+    frac_cat=1.0,
 ):
     obs_mags_weighted, gal_weight, phot_kern_results = mag_kern(
         ran_key,
         param_collection,
         z_data.lc_data,
         mag_thresh,
-        frac_cat,
+        frac_cat=frac_cat,
     )
     fields = z_data._fields[4:]
     mag_thresh = jnp.array(mag_thresh)
@@ -32,7 +32,7 @@ def N_colors_mags(
         if isinstance(space, list):
             # Colors conditioned on mag space
             new_list = []
-            for s in range(0, len(space)):
+            for s in range(len(space)):
                 space_n = space[s]
                 col_idx = space_n.col_idx
 
@@ -55,6 +55,9 @@ def N_colors_mags(
                     space_n.bin_lo,
                     space_n.bin_hi,
                 )
+
+                if "frac_cat" in space_n._fields:
+                    N_model = space_n.frac_cat * N_model
 
                 NewTuple = namedtuple(
                     type(space_n).__name__, [*space_n._fields, "N_model"]
@@ -82,6 +85,9 @@ def N_colors_mags(
                     space.bin_hi,
                 )
 
+                if "frac_cat" in space._fields:
+                    N_model = space.frac_cat * N_model
+
                 NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
                 new = NewTuple(*space, N_model)
                 z_data = z_data._replace(**{fields[f]: new})
@@ -98,6 +104,8 @@ def N_colors_mags(
                     space.bin_lo,
                     space.bin_hi,
                 )
+                if "frac_cat" in space._fields:
+                    N_model = space.frac_cat * N_model
 
                 NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
                 new = NewTuple(*space, N_model)
@@ -122,6 +130,9 @@ def N_colors_mags(
                 space.bin_lo,
                 space.bin_hi,
             )
+
+            if "frac_cat" in space._fields:
+                N_model = space.frac_cat * N_model
 
             NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
             new = NewTuple(*space, N_model)

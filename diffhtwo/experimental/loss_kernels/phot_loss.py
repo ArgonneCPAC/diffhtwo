@@ -1,5 +1,3 @@
-from functools import partial
-
 from jax import jit as jjit
 from jax import lax
 
@@ -14,7 +12,7 @@ def get_phot_loss_2d_multiz(
     param_collection,
     data,
     mag_thresh,
-    frac_cat,
+    frac_cat=1.0,
 ):
     phot_loss_2d = 0.0
     for z in range(0, len(data)):
@@ -24,7 +22,7 @@ def get_phot_loss_2d_multiz(
             param_collection,
             z_data,
             mag_thresh,
-            frac_cat,
+            frac_cat=frac_cat,
         )
         # sky_rescale = data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
         fields = z_data_model._fields[4:]
@@ -53,20 +51,28 @@ def get_phot_loss_2d_multiz(
     return phot_loss_2d
 
 
-@partial(jjit, static_argnames=["use_colors"])
-def _loss_phot_kern_2d_multiz(u_theta, ran_key, fitting_data, use_colors=True):
+@jjit
+def _loss_phot_kern_2d_multiz(u_theta, ran_key, fitting_data):
     param_collection = get_param_collection_from_u_theta(u_theta)
 
     phot_loss_2d = 0.0
 
     # get loss by going through all the fitted spaces: mag, color-color, and color-magnitude
-    phot_loss_2d += get_phot_loss_2d_multiz(
-        ran_key,
-        param_collection,
-        fitting_data.spaces,
-        fitting_data.filter_info.mag_thresh,
-        fitting_data.frac_cat,
-    )
+    if "frac_cat" in fitting_data._fields:
+        phot_loss_2d += get_phot_loss_2d_multiz(
+            ran_key,
+            param_collection,
+            fitting_data.spaces,
+            fitting_data.filter_info.mag_thresh,
+            frac_cat=fitting_data.frac_cat,
+        )
+    else:
+        phot_loss_2d += get_phot_loss_2d_multiz(
+            ran_key,
+            param_collection,
+            fitting_data.spaces,
+            fitting_data.filter_info.mag_thresh,
+        )
 
     return phot_loss_2d
 

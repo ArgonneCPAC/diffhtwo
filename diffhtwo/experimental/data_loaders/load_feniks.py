@@ -85,7 +85,7 @@ def _get_mag_thresh(mag, completeness=0.9, power_law_limit=24):
     return np.round(mag_thresh, 1)
 
 
-def get_mag_ab(phot_table, col_name, ZP=25):
+def get_mag_ab(phot_table, col_name, ZP=25.0):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=RuntimeWarning)
         mag_ab = -2.5 * np.log10(phot_table[col_name]) + ZP
@@ -93,9 +93,9 @@ def get_mag_ab(phot_table, col_name, ZP=25):
     mag_ab[~np.isfinite(mag_ab)] = -99.0
     mag_ab = mag_ab.data
 
-    # mag_thresh = _get_mag_thresh(mag_ab[mag_ab != -99])
+    missing_or_contam_data = phot_table[col_name] == -99.0
 
-    return mag_ab
+    return mag_ab, missing_or_contam_data
 
 
 def refresh_lh_centroids(DATASET, lh_d_mag):
@@ -182,14 +182,45 @@ def get_feniks_data(
         zout = add_random_rows(zout, N=200)
 
     # get mags
-    megacam_uS = get_mag_ab(phot, "fcol_MegaCam_uS")
-    hsc_g = get_mag_ab(phot, "fcol_HSC_G")
-    hsc_r = get_mag_ab(phot, "fcol_HSC_R")
-    hsc_i = get_mag_ab(phot, "fcol_HSC_I")
-    hsc_z = get_mag_ab(phot, "fcol_HSC_Z")
-    uds_J = get_mag_ab(phot, "fcol_UDS_J")
-    uds_H = get_mag_ab(phot, "fcol_UDS_H")
-    uds_K = get_mag_ab(phot, "fcol_UDS_K")
+    megacam_uS, drop_data = get_mag_ab(phot, "fcol_MegaCam_uS")
+    not_m_or_c_data = ~drop_data
+
+    hsc_g, drop_data = get_mag_ab(phot, "fcol_HSC_G")
+    not_m_or_c_data *= ~drop_data
+
+    hsc_r, drop_data = get_mag_ab(phot, "fcol_HSC_R")
+    not_m_or_c_data *= ~drop_data
+
+    hsc_i, drop_data = get_mag_ab(phot, "fcol_HSC_I")
+    not_m_or_c_data *= ~drop_data
+
+    hsc_z, drop_data = get_mag_ab(phot, "fcol_HSC_Z")
+    not_m_or_c_data *= ~drop_data
+
+    uds_J, drop_data = get_mag_ab(phot, "fcol_UDS_J")
+    not_m_or_c_data *= ~drop_data
+
+    uds_H, drop_data = get_mag_ab(phot, "fcol_UDS_H")
+    not_m_or_c_data *= ~drop_data
+
+    uds_K, drop_data = get_mag_ab(phot, "fcol_UDS_K")
+    not_m_or_c_data *= ~drop_data
+
+    drop_data = zout["z_phot"] < 0
+    not_m_or_c_data *= ~drop_data
+
+    frac_cat = not_m_or_c_data.sum() / not_m_or_c_data.size
+
+    phot = phot[not_m_or_c_data]
+    zout = zout[not_m_or_c_data]
+    megacam_uS = megacam_uS[not_m_or_c_data]
+    hsc_g = hsc_g[not_m_or_c_data]
+    hsc_r = hsc_r[not_m_or_c_data]
+    hsc_i = hsc_i[not_m_or_c_data]
+    hsc_z = hsc_z[not_m_or_c_data]
+    uds_J = uds_J[not_m_or_c_data]
+    uds_H = uds_H[not_m_or_c_data]
+    uds_K = uds_K[not_m_or_c_data]
 
     feniks_mag_thresh = FeniksFilters(
         MegaCam_uS=(21.0, 24.9),
@@ -203,6 +234,29 @@ def get_feniks_data(
     )
 
     filter_info = FilterInfo(feniks_mag_thresh, tcurves)
+
+    # remove dropouts essentially
+    not_dropout = (
+        (megacam_uS != -99.0)
+        & (hsc_g != -99.0)
+        & (hsc_r != -99.0)
+        & (hsc_i != -99.0)
+        & (hsc_z != -99.0)
+        & (uds_J != -99.0)
+        & (uds_H != -99.0)
+        & (uds_K != -99.0)
+    )
+
+    phot = phot[not_dropout]
+    zout = zout[not_dropout]
+    megacam_uS = megacam_uS[not_dropout]
+    hsc_g = hsc_g[not_dropout]
+    hsc_r = hsc_r[not_dropout]
+    hsc_i = hsc_i[not_dropout]
+    hsc_z = hsc_z[not_dropout]
+    uds_J = uds_J[not_dropout]
+    uds_H = uds_H[not_dropout]
+    uds_K = uds_K[not_dropout]
 
     # get mag thresh cuts
     mag_thresh = (
@@ -237,35 +291,6 @@ def get_feniks_data(
     uds_J = uds_J[mag_thresh]
     uds_H = uds_H[mag_thresh]
     uds_K = uds_K[mag_thresh]
-
-    n_gals_pre_cuts = len(zout)
-
-    # remove mags with bad data in any of the bands
-    clean = (
-        (megacam_uS != -99)
-        & (hsc_g != -99)
-        & (hsc_r != -99)
-        & (hsc_i != -99)
-        & (hsc_z != -99)
-        & (uds_J != -99)
-        & (uds_H != -99)
-        & (uds_K != -99)
-        & (zout["z_phot"] >= 0)
-    )
-
-    phot = phot[clean]
-    zout = zout[clean]
-    megacam_uS = megacam_uS[clean]
-    hsc_g = hsc_g[clean]
-    hsc_r = hsc_r[clean]
-    hsc_i = hsc_i[clean]
-    hsc_z = hsc_z[clean]
-    uds_J = uds_J[clean]
-    uds_H = uds_H[clean]
-    uds_K = uds_K[clean]
-
-    n_gals_post_cuts = len(zout)
-    frac_cat = n_gals_post_cuts / n_gals_pre_cuts
 
     mags = np.vstack(
         (

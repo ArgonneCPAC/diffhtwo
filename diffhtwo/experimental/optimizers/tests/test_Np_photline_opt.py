@@ -10,8 +10,8 @@ from ... import param_utils as pu
 from ..Np_photline_opt import (
     _loss_and_grad_emline_kern_multi_line_multi_z,
     _loss_and_grad_phot_kern_2d_multiz,
-    fit_feniks_hizels,
     fit_N_phot_2d,
+    fit_sdss_feniks_hizels,
 )
 
 
@@ -147,10 +147,17 @@ def test_photline_opt(
         assert np.isfinite(grad_emline[g]).all()
 
     trainable_params = pu.get_trainable_params(fit_type="all")
-    loss_hist, loss_phot_hist, loss_emline_hist, u_theta_fit = fit_feniks_hizels(
+    (
+        loss_hist,
+        loss_feniks_hist,
+        loss_feniks_hist,
+        loss_emline_hist,
+        u_theta_fit,
+    ) = fit_sdss_feniks_hizels(
         u_theta,
         trainable_params,
         ran_key,
+        feniks_fitting_data,
         feniks_fitting_data,
         hizels_fitting_data,
         n_steps=2,
