@@ -122,7 +122,7 @@ def get_minerva_phot(
     phot = Table.read(drn / phot_cat)
     zout = Table.read(drn / eazy_cat)
 
-    spec_avail = zout["z_spec"] != -99.0
+    spec_avail = zout["z_spec"] != -99.0  # goes in frac_cat?
     z_best = zout["z_ml"].copy()
     z_best[spec_avail] = zout["z_spec"][spec_avail]
     z_best = np.float32(z_best)
