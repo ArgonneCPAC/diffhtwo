@@ -78,9 +78,8 @@ def get_uds_area(mask_drn):
 
     within_edge_path = within_edge_path.reshape(np.shape(uds_Mask_data))
 
-    outside_edge_path = within_edge_path != True
-
-    uds_Mask_data[np.where(outside_edge_path)] = 1
+    outside_edge_path = ~within_edge_path
+    uds_Mask_data[outside_edge_path] = 1
 
     uds_arcmin2 = (np.sum(uds_Mask_data == 0) * (ARCSEC_PER_PIXEL**2)) / (3600)
     uds_degsq = uds_arcmin2 / 3600
