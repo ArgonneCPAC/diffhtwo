@@ -1,14 +1,11 @@
-import matplotlib.patches as patches
-import matplotlib.pyplot as plt
 import numpy as np
 from astropy.coordinates import SkyCoord
-from astropy.io import ascii, fits
-from astropy.table import Column, Table
+from astropy.io import fits
 from astropy.wcs import WCS
-from astropy.wcs.utils import skycoord_to_pixel
 from matplotlib.path import Path
 
 ARCSEC_PER_PIXEL = 0.2684
+
 edge_verts = [
     (34.9044413, -4.6567358),
     (34.8942569, -4.6511511),
@@ -23,6 +20,7 @@ edge_verts = [
     (34.9061761, -5.5346894),
     (34.9044413, -4.6567358),
 ]
+
 edge_codes = [
     Path.MOVETO,
     Path.LINETO,
@@ -67,9 +65,6 @@ def get_uds_area(mask_drn):
         edge_verts[v] = uds_Mask_wcs.world_to_pixel(coord)
 
     edge_path = Path(edge_verts, edge_codes)
-    # edge_patch = patches.PathPatch(
-    #     edge_path, facecolor="none", lw=2, edgecolor="red"
-    # )
 
     y = np.arange(0, np.shape(uds_Mask_data)[0], 1)
     x = np.arange(0, np.shape(uds_Mask_data)[1], 1)
