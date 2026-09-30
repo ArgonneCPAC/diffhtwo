@@ -189,8 +189,8 @@ def get_feniks_data(
     zout = ascii.read(drn_path / zout)
 
     if add_random_rows_for_testing:
-        phot = add_random_rows(phot, N=200)
-        zout = add_random_rows(zout, N=200)
+        phot = add_random_rows(phot, N=400)
+        zout = add_random_rows(zout, N=400)
 
     # get total and optimal aperture (for colors) mags
     megacam_uS_col = get_mag_ab_col(phot, "fcol_MegaCam_uS")
