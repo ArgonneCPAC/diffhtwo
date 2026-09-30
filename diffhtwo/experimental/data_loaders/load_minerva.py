@@ -23,7 +23,11 @@ from . import N_utils
 from .N_utils import get_N_1d, get_N_2d
 
 BASE_PATH = Path(__file__).resolve().parent.parent
+
 MINERVA_FILTERS_PATH = BASE_PATH / "data" / "minerva_filters"
+
+IGM_DRN = BASE_PATH / "data" / "igm"
+IGM_BN = "igm_attenuation_minerva.h5"
 
 UDS_PHOT_CAT = (
     "uds/MINERVA-UDS_n3.0_m3.1_v1.2.1_ACS+WEBB_Kf444w_SUPER_CATALOG_wMIRI.fits"
@@ -325,6 +329,7 @@ def get_minerva_phot(
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
         )
+
         lc_args = (
             ran_key,
             num_halos,
@@ -338,7 +343,15 @@ def get_minerva_phot(
             z_phot_table,
         )
 
-        lc_data = generate_lc_data(*lc_args)
+        lc_data = generate_lc_data(
+            *lc_args,
+            apply_igm=True,
+            igm_drn=IGM_DRN,
+            igm_bn=IGM_BN,
+            igm_filters_namedtuple=PhotFilters,
+            igm_filter_prefix="minerva_",
+            logmp_cutoff=lgmp_min,
+        )
 
         z_sel = (z_best > z_min) & (z_best <= z_max)
 
