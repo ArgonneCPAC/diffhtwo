@@ -173,6 +173,7 @@ def get_minerva_phot(
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
+    apply_igm=True,
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
     uds_phot_cat=UDS_PHOT_CAT,
@@ -345,7 +346,7 @@ def get_minerva_phot(
 
         lc_data = generate_lc_data(
             *lc_args,
-            apply_igm=True,
+            apply_igm=apply_igm,
             igm_drn=IGM_DRN,
             igm_bn=IGM_BN,
             igm_filters_namedtuple=PhotFilters,

@@ -1,4 +1,5 @@
 import warnings
+from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
@@ -32,6 +33,9 @@ fontsize = 40
 labelsize = 40
 legend_fontsize = 30
 
+BASE_PATH = Path(__file__).resolve().parent.parent
+IGM_DRN = BASE_PATH / "data" / "igm"
+IGM_BN = "igm_attenuation_minerva.h5"
 
 try:
     import matplotlib.lines as mlines
@@ -860,7 +864,13 @@ def plot_app_mag_funcs_minerva(
     savedir,
     lgmp_min=10.0,
     lgmp_max=15.0,
+    logmp_cutoff=10.0,
     num_halos=5000,
+    apply_igm=True,
+    igm_drn=IGM_DRN,
+    igm_bn=IGM_BN,
+    igm_filters_namedtuple=PhotFilters,
+    igm_filter_prefix="minerva_",
     lc_sky_area_degsq=1000,
     n_z_phot_table=30,
     dmag=0.5,
@@ -910,7 +920,7 @@ def plot_app_mag_funcs_minerva(
         z_phot_table = 10 ** jnp.linspace(
             np.log10(z_min), np.log10(z_max), n_z_phot_table
         )
-        lc_data = generate_lc_data(
+        lc_args = (
             ran_key,
             num_halos,
             z_min,
@@ -922,6 +932,17 @@ def plot_app_mag_funcs_minerva(
             minerva_phot.filter_info.tcurves,
             z_phot_table,
         )
+
+        lc_data = generate_lc_data(
+            *lc_args,
+            apply_igm=apply_igm,
+            igm_drn=igm_drn,
+            igm_bn=igm_bn,
+            igm_filters_namedtuple=igm_filters_namedtuple,
+            igm_filter_prefix=igm_filter_prefix,
+            logmp_cutoff=lgmp_min,
+        )
+
         obs_mags, gal_weight, phot_kern_results = mag_kern(
             ran_key,
             param_collection,
