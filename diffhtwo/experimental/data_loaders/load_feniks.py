@@ -85,17 +85,28 @@ def _get_mag_thresh(mag, completeness=0.9, power_law_limit=24):
     return np.round(mag_thresh, 1)
 
 
-def get_mag_ab(phot_table, col_name, ZP=25.0):
+def get_mag_ab_col(phot_table, col_name, ZP=25.0):
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore", category=RuntimeWarning)
-        mag_ab = -2.5 * np.log10(phot_table[col_name]) + ZP
+        mag_ab_col = -2.5 * np.log10(phot_table[col_name]) + ZP
 
-    mag_ab[~np.isfinite(mag_ab)] = -99.0
-    mag_ab = mag_ab.data
+    mag_ab_col[~np.isfinite(mag_ab_col)] = -99.0
+    mag_ab_col = mag_ab_col.data
 
-    missing_or_contam_data = phot_table[col_name] == -99.0
+    return mag_ab_col
 
-    return mag_ab, missing_or_contam_data
+
+def get_mag_ab_tot(phot_table, col_name, ZP=25.0):
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", category=RuntimeWarning)
+        mag_ab_tot = (
+            -2.5 * np.log10(phot_table[col_name] * phot_table["aper_to_tot_corr"]) + ZP
+        )
+
+    mag_ab_tot[~np.isfinite(mag_ab_tot)] = -99.0
+    mag_ab_tot = mag_ab_tot.data
+
+    return mag_ab_tot
 
 
 def refresh_lh_centroids(DATASET, lh_d_mag):
@@ -178,49 +189,33 @@ def get_feniks_data(
     zout = ascii.read(drn_path / zout)
 
     if add_random_rows_for_testing:
-        phot = add_random_rows(phot, N=200)
-        zout = add_random_rows(zout, N=200)
+        phot = add_random_rows(phot, N=400)
+        zout = add_random_rows(zout, N=400)
 
-    # get mags
-    megacam_uS, drop_data = get_mag_ab(phot, "fcol_MegaCam_uS")
-    not_m_or_c_data = ~drop_data
+    # get total and optimal aperture (for colors) mags
+    megacam_uS_col = get_mag_ab_col(phot, "fcol_MegaCam_uS")
+    megacam_uS_tot = get_mag_ab_tot(phot, "fcol_MegaCam_uS")
 
-    hsc_g, drop_data = get_mag_ab(phot, "fcol_HSC_G")
-    not_m_or_c_data *= ~drop_data
+    hsc_g_col = get_mag_ab_col(phot, "fcol_HSC_G")
+    hsc_g_tot = get_mag_ab_tot(phot, "fcol_HSC_G")
 
-    hsc_r, drop_data = get_mag_ab(phot, "fcol_HSC_R")
-    not_m_or_c_data *= ~drop_data
+    hsc_r_col = get_mag_ab_col(phot, "fcol_HSC_R")
+    hsc_r_tot = get_mag_ab_tot(phot, "fcol_HSC_R")
 
-    hsc_i, drop_data = get_mag_ab(phot, "fcol_HSC_I")
-    not_m_or_c_data *= ~drop_data
+    hsc_i_col = get_mag_ab_col(phot, "fcol_HSC_I")
+    hsc_i_tot = get_mag_ab_tot(phot, "fcol_HSC_I")
 
-    hsc_z, drop_data = get_mag_ab(phot, "fcol_HSC_Z")
-    not_m_or_c_data *= ~drop_data
+    hsc_z_col = get_mag_ab_col(phot, "fcol_HSC_Z")
+    hsc_z_tot = get_mag_ab_tot(phot, "fcol_HSC_Z")
 
-    uds_J, drop_data = get_mag_ab(phot, "fcol_UDS_J")
-    not_m_or_c_data *= ~drop_data
+    uds_J_col = get_mag_ab_col(phot, "fcol_UDS_J")
+    uds_J_tot = get_mag_ab_tot(phot, "fcol_UDS_J")
 
-    uds_H, drop_data = get_mag_ab(phot, "fcol_UDS_H")
-    not_m_or_c_data *= ~drop_data
+    uds_H_col = get_mag_ab_col(phot, "fcol_UDS_H")
+    uds_H_tot = get_mag_ab_tot(phot, "fcol_UDS_H")
 
-    uds_K, drop_data = get_mag_ab(phot, "fcol_UDS_K")
-    not_m_or_c_data *= ~drop_data
-
-    drop_data = zout["z_phot"] < 0
-    not_m_or_c_data *= ~drop_data
-
-    frac_cat = not_m_or_c_data.sum() / not_m_or_c_data.size
-
-    phot = phot[not_m_or_c_data]
-    zout = zout[not_m_or_c_data]
-    megacam_uS = megacam_uS[not_m_or_c_data]
-    hsc_g = hsc_g[not_m_or_c_data]
-    hsc_r = hsc_r[not_m_or_c_data]
-    hsc_i = hsc_i[not_m_or_c_data]
-    hsc_z = hsc_z[not_m_or_c_data]
-    uds_J = uds_J[not_m_or_c_data]
-    uds_H = uds_H[not_m_or_c_data]
-    uds_K = uds_K[not_m_or_c_data]
+    uds_K_col = get_mag_ab_col(phot, "fcol_UDS_K")
+    uds_K_tot = get_mag_ab_tot(phot, "fcol_UDS_K")
 
     feniks_mag_thresh = FeniksFilters(
         MegaCam_uS=(21.0, 24.9),
@@ -235,73 +230,118 @@ def get_feniks_data(
 
     filter_info = FilterInfo(feniks_mag_thresh, tcurves)
 
-    # remove dropouts essentially
-    not_dropout = (
-        (megacam_uS != -99.0)
-        & (hsc_g != -99.0)
-        & (hsc_r != -99.0)
-        & (hsc_i != -99.0)
-        & (hsc_z != -99.0)
-        & (uds_J != -99.0)
-        & (uds_H != -99.0)
-        & (uds_K != -99.0)
+    """
+    The FENIKS_AREA_DEG2 is calculated using individual band masks which were used to assign
+    flux in a given band to -99.0. for objects near bright stars, etc.
+    This means that the removal of objects as below will be mostly from the masked areas already taken into account in area calculation.
+    That's good. However, the masks sets flux=-99.0 only for bad areas. What about objects with flux<0 & flux!=-99.0, essentially the droputs?
+    These objects will get their magnitudes be set to -99.0 through the get_mag_ab functions above. So, they will
+    also be removed below. It turns out that's ok! We don't need to rederive area due to dropout removal because, these dropouts will anyway be discarded
+    due to the magnitude cuts defined in feniks_mag_thresh
+    """
+    clean = (
+        (megacam_uS_col != -99.0)
+        & (megacam_uS_tot != -99.0)
+        & (hsc_g_col != -99.0)
+        & (hsc_g_tot != -99.0)
+        & (hsc_r_col != -99.0)
+        & (hsc_r_tot != -99.0)
+        & (hsc_i_col != -99.0)
+        & (hsc_i_tot != -99.0)
+        & (hsc_z_col != -99.0)
+        & (hsc_z_tot != -99.0)
+        & (uds_J_col != -99.0)
+        & (uds_J_tot != -99.0)
+        & (uds_H_col != -99.0)
+        & (uds_H_tot != -99.0)
+        & (uds_K_col != -99.0)
+        & (uds_K_tot != -99.0)
     )
 
-    phot = phot[not_dropout]
-    zout = zout[not_dropout]
-    megacam_uS = megacam_uS[not_dropout]
-    hsc_g = hsc_g[not_dropout]
-    hsc_r = hsc_r[not_dropout]
-    hsc_i = hsc_i[not_dropout]
-    hsc_z = hsc_z[not_dropout]
-    uds_J = uds_J[not_dropout]
-    uds_H = uds_H[not_dropout]
-    uds_K = uds_K[not_dropout]
+    phot = phot[clean]
+    zout = zout[clean]
+
+    megacam_uS_col = megacam_uS_col[clean]
+    megacam_uS_tot = megacam_uS_tot[clean]
+
+    hsc_g_col = hsc_g_col[clean]
+    hsc_g_tot = hsc_g_tot[clean]
+
+    hsc_r_col = hsc_r_col[clean]
+    hsc_r_tot = hsc_r_tot[clean]
+
+    hsc_i_col = hsc_i_col[clean]
+    hsc_i_tot = hsc_i_tot[clean]
+
+    hsc_z_col = hsc_z_col[clean]
+    hsc_z_tot = hsc_z_tot[clean]
+
+    uds_J_col = uds_J_col[clean]
+    uds_J_tot = uds_J_tot[clean]
+
+    uds_H_col = uds_H_col[clean]
+    uds_H_tot = uds_H_tot[clean]
+
+    uds_K_col = uds_K_col[clean]
+    uds_K_tot = uds_K_tot[clean]
 
     # get mag thresh cuts
     mag_thresh = (
-        (megacam_uS > feniks_mag_thresh.MegaCam_uS[0])
-        & (megacam_uS < feniks_mag_thresh.MegaCam_uS[1])
-        & (hsc_g > feniks_mag_thresh.HSC_G[0])
-        & (hsc_g < feniks_mag_thresh.HSC_G[1])
-        & (hsc_r > feniks_mag_thresh.HSC_R[0])
-        & (hsc_r < feniks_mag_thresh.HSC_R[1])
-        & (hsc_i > feniks_mag_thresh.HSC_I[0])
-        & (hsc_i < feniks_mag_thresh.HSC_I[1])
-        & (hsc_z > feniks_mag_thresh.HSC_Z[0])
-        & (hsc_z < feniks_mag_thresh.HSC_Z[1])
-        & (uds_J > feniks_mag_thresh.UDS_J[0])
-        & (uds_J < feniks_mag_thresh.UDS_J[1])
-        & (uds_H > feniks_mag_thresh.UDS_H[0])
-        & (uds_H < feniks_mag_thresh.UDS_H[1])
-        & (uds_K > feniks_mag_thresh.UDS_K[0])
-        & (uds_K < feniks_mag_thresh.UDS_K[1])
+        (megacam_uS_tot > feniks_mag_thresh.MegaCam_uS[0])
+        & (megacam_uS_tot < feniks_mag_thresh.MegaCam_uS[1])
+        & (hsc_g_tot > feniks_mag_thresh.HSC_G[0])
+        & (hsc_g_tot < feniks_mag_thresh.HSC_G[1])
+        & (hsc_r_tot > feniks_mag_thresh.HSC_R[0])
+        & (hsc_r_tot < feniks_mag_thresh.HSC_R[1])
+        & (hsc_i_tot > feniks_mag_thresh.HSC_I[0])
+        & (hsc_i_tot < feniks_mag_thresh.HSC_I[1])
+        & (hsc_z_tot > feniks_mag_thresh.HSC_Z[0])
+        & (hsc_z_tot < feniks_mag_thresh.HSC_Z[1])
+        & (uds_J_tot > feniks_mag_thresh.UDS_J[0])
+        & (uds_J_tot < feniks_mag_thresh.UDS_J[1])
+        & (uds_H_tot > feniks_mag_thresh.UDS_H[0])
+        & (uds_H_tot < feniks_mag_thresh.UDS_H[1])
+        & (uds_K_tot > feniks_mag_thresh.UDS_K[0])
+        & (uds_K_tot < feniks_mag_thresh.UDS_K[1])
     )
 
-    # apply mag_thresh cuts and record n_gals.
-    # This is the starting point from which any further cuts will
-    # lead to frac_cat (fraction of catalog thrown due to bad data) being calculated
     phot = phot[mag_thresh]
     zout = zout[mag_thresh]
-    megacam_uS = megacam_uS[mag_thresh]
-    hsc_g = hsc_g[mag_thresh]
-    hsc_r = hsc_r[mag_thresh]
-    hsc_i = hsc_i[mag_thresh]
-    hsc_z = hsc_z[mag_thresh]
-    uds_J = uds_J[mag_thresh]
-    uds_H = uds_H[mag_thresh]
-    uds_K = uds_K[mag_thresh]
+
+    megacam_uS_col = megacam_uS_col[mag_thresh]
+    megacam_uS_tot = megacam_uS_tot[mag_thresh]
+
+    hsc_g_col = hsc_g_col[mag_thresh]
+    hsc_g_tot = hsc_g_tot[mag_thresh]
+
+    hsc_r_col = hsc_r_col[mag_thresh]
+    hsc_r_tot = hsc_r_tot[mag_thresh]
+
+    hsc_i_col = hsc_i_col[mag_thresh]
+    hsc_i_tot = hsc_i_tot[mag_thresh]
+
+    hsc_z_col = hsc_z_col[mag_thresh]
+    hsc_z_tot = hsc_z_tot[mag_thresh]
+
+    uds_J_col = uds_J_col[mag_thresh]
+    uds_J_tot = uds_J_tot[mag_thresh]
+
+    uds_H_col = uds_H_col[mag_thresh]
+    uds_H_tot = uds_H_tot[mag_thresh]
+
+    uds_K_col = uds_K_col[mag_thresh]
+    uds_K_tot = uds_K_tot[mag_thresh]
 
     mags = np.vstack(
         (
-            megacam_uS,
-            hsc_g,
-            hsc_r,
-            hsc_i,
-            hsc_z,
-            uds_J,
-            uds_H,
-            uds_K,
+            megacam_uS_tot,
+            hsc_g_tot,
+            hsc_r_tot,
+            hsc_i_tot,
+            hsc_z_tot,
+            uds_J_tot,
+            uds_H_tot,
+            uds_K_tot,
             zout["z_phot"],
         )
     ).T
@@ -319,14 +359,14 @@ def get_feniks_data(
     ]
 
     # derive colors from mags
-    megacam_hsc_uSg = megacam_uS - hsc_g
-    hsc_gr = hsc_g - hsc_r
-    hsc_ri = hsc_r - hsc_i
-    hsc_iz = hsc_i - hsc_z
-    hsc_rz = hsc_r - hsc_z
-    hsc_uds_zJ = hsc_z - uds_J
-    uds_JH = uds_J - uds_H
-    uds_HK = uds_H - uds_K
+    megacam_hsc_uSg = megacam_uS_col - hsc_g_col
+    hsc_gr = hsc_g_col - hsc_r_col
+    hsc_ri = hsc_r_col - hsc_i_col
+    hsc_iz = hsc_i_col - hsc_z_col
+    hsc_rz = hsc_r_col - hsc_z_col
+    hsc_uds_zJ = hsc_z_col - uds_J_col
+    uds_JH = uds_J_col - uds_H_col
+    uds_HK = uds_H_col - uds_K_col
 
     # stack colors_mag
     dataset = np.vstack(
@@ -338,8 +378,8 @@ def get_feniks_data(
             hsc_uds_zJ,
             uds_JH,
             uds_HK,
-            megacam_uS,
-            uds_K,
+            megacam_uS_tot,
+            uds_K_tot,
             zout["z_phot"],
         )
     ).T
@@ -357,18 +397,6 @@ def get_feniks_data(
         0,  # u
         7,  # K
     ]
-    # dataset_dim_labels = [
-    #     r"$uS_{MegaCam} - g_{HSC}$",
-    #     r"$g_{HSC} - r_{HSC}$",
-    #     r"$r_{HSC} - i_{HSC}$",
-    #     r"$i_{HSC} - z_{HSC}$",
-    #     r"$z_{HSC} - J_{UDS}$",
-    #     r"$J_{UDS} - H_{UDS}$",
-    #     r"$H_{UDS} - K_{UDS}$",
-    #     r"$uS_{MegaCam}$",
-    #     r"$K_{UDS}$",
-    #     r"$redshift$",
-    # ]
     dataset_dim_labels = [
         r"$u - g$",
         r"$g - r$",
@@ -460,7 +488,15 @@ def get_feniks_data(
 
     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
     u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
-        z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+        z_sel,
+        megacam_uS_tot,
+        hsc_g_tot,
+        hsc_r_tot,
+        hsc_i_tot,
+        hsc_z_tot,
+        uds_J_tot,
+        uds_H_tot,
+        uds_K_tot,
     )
 
     # 2D (g - r, r - i)
@@ -478,7 +514,7 @@ def get_feniks_data(
     ug = N_utils.get_color_cond_space_list(
         "Ug_condK",
         megacam_hsc_uSg,
-        uds_K,
+        uds_K_tot,
         ["MegaCam_uS", "HSC_G"],
         "UDS_K",
         z_sel,
@@ -491,7 +527,7 @@ def get_feniks_data(
     ri = N_utils.get_color_cond_space_list(
         "Ri_condK",
         hsc_ri,
-        uds_K,
+        uds_K_tot,
         ["HSC_R", "HSC_I"],
         "UDS_K",
         z_sel,
@@ -504,7 +540,7 @@ def get_feniks_data(
     iz = N_utils.get_color_cond_space_list(
         "Iz_condK",
         hsc_iz,
-        uds_K,
+        uds_K_tot,
         ["HSC_I", "HSC_Z"],
         "UDS_K",
         z_sel,
@@ -517,7 +553,7 @@ def get_feniks_data(
     jh = N_utils.get_color_cond_space_list(
         "JH_condK",
         uds_JH,
-        uds_K,
+        uds_K_tot,
         ["UDS_J", "UDS_H"],
         "UDS_K",
         z_sel,
@@ -529,7 +565,7 @@ def get_feniks_data(
     # 2D (K, r - i)
     K_ri = N_utils.get_mag_color_space(
         "K_ri",
-        uds_K,
+        uds_K_tot,
         hsc_ri,
         "UDS_K",
         ["HSC_R", "HSC_I"],
@@ -541,7 +577,7 @@ def get_feniks_data(
     # 2D (K, g - r)
     K_gr = N_utils.get_mag_color_space(
         "K_gr",
-        uds_K,
+        uds_K_tot,
         hsc_gr,
         "UDS_K",
         ["HSC_G", "HSC_R"],
@@ -553,7 +589,7 @@ def get_feniks_data(
     # 2D (K, J - H)
     K_JH = N_utils.get_mag_color_space(
         "K_JH",
-        uds_K,
+        uds_K_tot,
         uds_JH,
         "UDS_K",
         ["UDS_J", "UDS_H"],
@@ -638,7 +674,15 @@ def get_feniks_data(
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
         u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
-            z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+            z_sel,
+            megacam_uS_tot,
+            hsc_g_tot,
+            hsc_r_tot,
+            hsc_i_tot,
+            hsc_z_tot,
+            uds_J_tot,
+            uds_H_tot,
+            uds_K_tot,
         )
 
         # 2D (r - z, z - J)
@@ -656,7 +700,7 @@ def get_feniks_data(
         ug = N_utils.get_color_cond_space_list(
             "Ug_condK",
             megacam_hsc_uSg,
-            uds_K,
+            uds_K_tot,
             ["MegaCam_uS", "HSC_G"],
             "UDS_K",
             z_sel,
@@ -669,7 +713,7 @@ def get_feniks_data(
         rz = N_utils.get_color_cond_space_list(
             "Rz_condK",
             hsc_rz,
-            uds_K,
+            uds_K_tot,
             ["HSC_R", "HSC_Z"],
             "UDS_K",
             z_sel,
@@ -682,7 +726,7 @@ def get_feniks_data(
         jh = N_utils.get_color_cond_space_list(
             "JH_condK",
             uds_JH,
-            uds_K,
+            uds_K_tot,
             ["UDS_J", "UDS_H"],
             "UDS_K",
             z_sel,
@@ -694,7 +738,7 @@ def get_feniks_data(
         # 2D (K, u - g)
         K_ug = N_utils.get_mag_color_space(
             "K_ug",
-            uds_K,
+            uds_K_tot,
             megacam_hsc_uSg,
             "UDS_K",
             ["MegaCam_uS", "HSC_G"],
@@ -706,7 +750,7 @@ def get_feniks_data(
         # 2D (K, r - z)
         K_rz = N_utils.get_mag_color_space(
             "K_rz",
-            uds_K,
+            uds_K_tot,
             hsc_rz,
             "UDS_K",
             ["HSC_R", "HSC_Z"],
@@ -718,7 +762,7 @@ def get_feniks_data(
         # 2D (K, J - H)
         K_JH = N_utils.get_mag_color_space(
             "K_JH",
-            uds_K,
+            uds_K_tot,
             uds_JH,
             "UDS_K",
             ["UDS_J", "UDS_H"],
@@ -801,7 +845,15 @@ def get_feniks_data(
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
         u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
-            z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+            z_sel,
+            megacam_uS_tot,
+            hsc_g_tot,
+            hsc_r_tot,
+            hsc_i_tot,
+            hsc_z_tot,
+            uds_J_tot,
+            uds_H_tot,
+            uds_K_tot,
         )
 
         # 2D (r - z, z - J)
@@ -819,7 +871,7 @@ def get_feniks_data(
         ug = N_utils.get_color_cond_space_list(
             "Ug_condK",
             megacam_hsc_uSg,
-            uds_K,
+            uds_K_tot,
             ["MegaCam_uS", "HSC_G"],
             "UDS_K",
             z_sel,
@@ -832,7 +884,7 @@ def get_feniks_data(
         rz = N_utils.get_color_cond_space_list(
             "Rz_condK",
             hsc_rz,
-            uds_K,
+            uds_K_tot,
             ["HSC_R", "HSC_Z"],
             "UDS_K",
             z_sel,
@@ -845,7 +897,7 @@ def get_feniks_data(
         jh = N_utils.get_color_cond_space_list(
             "JH_condK",
             uds_JH,
-            uds_K,
+            uds_K_tot,
             ["UDS_J", "UDS_H"],
             "UDS_K",
             z_sel,
@@ -857,7 +909,7 @@ def get_feniks_data(
         # 2D (K, u - g)
         K_ug = N_utils.get_mag_color_space(
             "K_ug",
-            uds_K,
+            uds_K_tot,
             megacam_hsc_uSg,
             "UDS_K",
             ["MegaCam_uS", "HSC_G"],
@@ -869,7 +921,7 @@ def get_feniks_data(
         # 2D (K, r - z)
         K_rz = N_utils.get_mag_color_space(
             "K_rz",
-            uds_K,
+            uds_K_tot,
             hsc_rz,
             "UDS_K",
             ["HSC_R", "HSC_Z"],
@@ -881,7 +933,7 @@ def get_feniks_data(
         # 2D (K, J - H)
         K_JH = N_utils.get_mag_color_space(
             "K_JH",
-            uds_K,
+            uds_K_tot,
             uds_JH,
             "UDS_K",
             ["UDS_J", "UDS_H"],
@@ -972,7 +1024,15 @@ def get_feniks_data(
         z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
 
         u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
-            z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+            z_sel,
+            megacam_uS_tot,
+            hsc_g_tot,
+            hsc_r_tot,
+            hsc_i_tot,
+            hsc_z_tot,
+            uds_J_tot,
+            uds_H_tot,
+            uds_K_tot,
         )
 
         # 2D (z - J, J - H)
@@ -1001,7 +1061,7 @@ def get_feniks_data(
         ug = N_utils.get_color_cond_space_list(
             "Ug_condK",
             megacam_hsc_uSg,
-            uds_K,
+            uds_K_tot,
             ["MegaCam_uS", "HSC_G"],
             "UDS_K",
             z_sel,
@@ -1014,7 +1074,7 @@ def get_feniks_data(
         gr = N_utils.get_color_cond_space_list(
             "Gr_condK",
             hsc_gr,
-            uds_K,
+            uds_K_tot,
             ["HSC_G", "HSC_R"],
             "UDS_K",
             z_sel,
@@ -1027,7 +1087,7 @@ def get_feniks_data(
         jh = N_utils.get_color_cond_space_list(
             "JH_condK",
             uds_JH,
-            uds_K,
+            uds_K_tot,
             ["UDS_J", "UDS_H"],
             "UDS_K",
             z_sel,
@@ -1039,7 +1099,7 @@ def get_feniks_data(
         # 2D (K, u - g)
         K_ug = N_utils.get_mag_color_space(
             "K_ug",
-            uds_K,
+            uds_K_tot,
             megacam_hsc_uSg,
             "UDS_K",
             ["MegaCam_uS", "HSC_G"],
@@ -1051,7 +1111,7 @@ def get_feniks_data(
         # 2D (K, g - r)
         K_gr = N_utils.get_mag_color_space(
             "K_gr",
-            uds_K,
+            uds_K_tot,
             hsc_gr,
             "UDS_K",
             ["HSC_G", "HSC_R"],
@@ -1063,7 +1123,7 @@ def get_feniks_data(
         # 2D (K, J - H)
         K_JH = N_utils.get_mag_color_space(
             "K_JH",
-            uds_K,
+            uds_K_tot,
             uds_JH,
             "UDS_K",
             ["UDS_J", "UDS_H"],
@@ -1096,92 +1156,7 @@ def get_feniks_data(
         )
         spaces.append(z3)
 
-    # ##############################################################################
-    # # prepare 1D app mag funcs in finer z-bins for fitting
-    # fine_zbins = np.array(
-    #     [
-    #         [0.4, 0.7],
-    #         [0.7, 1.0],
-    #         [1.0, 1.5],
-    #         [1.5, 2.0],
-    #     ]
-    # )
-    # ##############################################################################
-    # AppMagFuncs = namedtuple(
-    #     "AppMagFuncs",
-    #     [
-    #         "z_min",
-    #         "z_max",
-    #         "data_vol_mpc3",
-    #         "lc_data",
-    #         "u",
-    #         "g",
-    #         "r",
-    #         "i",
-    #         "z",
-    #         "J",
-    #         "H",
-    #         "K",
-    #     ],
-    # )
-
-    # app_mag_funcs = []
-    # for zbin in range(0, len(fine_zbins)):
-    #     if (zbin == 1) & (testing):
-    #         break
-    #     z_min = fine_zbins[zbin][0]
-    #     z_max = fine_zbins[zbin][1]
-    #     data_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
-
-    #     z_phot_table = 10 ** jnp.linspace(
-    #         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-    #     )
-    #     lc_args = (
-    #         ran_key,
-    #         num_halos,
-    #         z_min,
-    #         z_max,
-    #         lgmp_min,
-    #         lgmp_max,
-    #         lc_sky_area_degsq,
-    #         ssp_data,
-    #         tcurves,
-    #         z_phot_table,
-    #     )
-
-    #     lc_data = generate_lc_data(*lc_args)
-
-    #     z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-
-    #     # 1D (u)
-    #     u = N_utils.get_mag_space(
-    #         "U", megacam_uS, "MegaCam_uS", z_sel, FeniksFilters, fit=True
-    #     )
-
-    #     # 1D (g)
-    #     g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (r)
-    #     r = N_utils.get_mag_space("R", hsc_r, "HSC_R", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (i)
-    #     i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (z)
-    #     z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (J)
-    #     j = N_utils.get_mag_space("J", uds_J, "UDS_J", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (H)
-    #     h = N_utils.get_mag_space("H", uds_H, "UDS_H", z_sel, FeniksFilters, fit=True)
-
-    #     # 1D (K)
-    #     k = N_utils.get_mag_space("K", uds_K, "UDS_K", z_sel, FeniksFilters, fit=True)
-
-    #     app_mag_funcs.append(
-    #         AppMagFuncs(z_min, z_max, data_vol_mpc3, lc_data, u, g, r, i, z, j, h, k)
-    # )
+    frac_cat = 1.0
 
     return Feniks(
         dataset,
@@ -1204,33 +1179,27 @@ def get_feniks_data(
 
 
 def _get_mag_spaces_at_z(
-    z_sel, megacam_uS, hsc_g, hsc_r, hsc_i, hsc_z, uds_J, uds_H, uds_K
+    z_sel,
+    megacam_uS_tot,
+    hsc_g_tot,
+    hsc_r_tot,
+    hsc_i_tot,
+    hsc_z_tot,
+    uds_J_tot,
+    uds_H_tot,
+    uds_K_tot,
 ):
-    # 1D (u)
     u = N_utils.get_mag_space(
-        "U", megacam_uS, "MegaCam_uS", z_sel, FeniksFilters, fit=True
+        "U", megacam_uS_tot, "MegaCam_uS", z_sel, FeniksFilters, fit=True
     )
+    g = N_utils.get_mag_space("G", hsc_g_tot, "HSC_G", z_sel, FeniksFilters, fit=True)
+    r = N_utils.get_mag_space("R", hsc_r_tot, "HSC_R", z_sel, FeniksFilters, fit=True)
+    i = N_utils.get_mag_space("I", hsc_i_tot, "HSC_I", z_sel, FeniksFilters, fit=True)
+    z = N_utils.get_mag_space("Z", hsc_z_tot, "HSC_Z", z_sel, FeniksFilters, fit=True)
+    j = N_utils.get_mag_space("J", uds_J_tot, "UDS_J", z_sel, FeniksFilters, fit=True)
+    h = N_utils.get_mag_space("H", uds_H_tot, "UDS_H", z_sel, FeniksFilters, fit=True)
+    k = N_utils.get_mag_space("K", uds_K_tot, "UDS_K", z_sel, FeniksFilters, fit=True)
 
-    # 1D (g)
-    g = N_utils.get_mag_space("G", hsc_g, "HSC_G", z_sel, FeniksFilters, fit=True)
-
-    # 1D (r)
-    r = N_utils.get_mag_space("R", hsc_r, "HSC_R", z_sel, FeniksFilters, fit=True)
-
-    # 1D (i)
-    i = N_utils.get_mag_space("I", hsc_i, "HSC_I", z_sel, FeniksFilters, fit=True)
-
-    # 1D (z)
-    z = N_utils.get_mag_space("Z", hsc_z, "HSC_Z", z_sel, FeniksFilters, fit=True)
-
-    # 1D (J)
-    j = N_utils.get_mag_space("J", uds_J, "UDS_J", z_sel, FeniksFilters, fit=True)
-
-    # 1D (H)
-    h = N_utils.get_mag_space("H", uds_H, "UDS_H", z_sel, FeniksFilters, fit=True)
-
-    # 1D (K)
-    k = N_utils.get_mag_space("K", uds_K, "UDS_K", z_sel, FeniksFilters, fit=True)
     return u, g, r, i, z, j, h, k
 
 

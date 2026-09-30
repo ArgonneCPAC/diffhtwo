@@ -644,8 +644,8 @@ def plot_app_mag_funcs(
     )
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.9))
 
-    xlim = [(13.0, 19.5), (18.5, 25.5), (19.0, 25.5), (19.5, 25.5), (20.0, 25.5)]
-    ylim = [(-6.2, -2.0), (-5.2, -1.1), (-6.2, -1.5), (-6.9, -1.8), (-6.9, -2.6)]
+    xlim = [(12.6, 20.0), (17.5, 25.5), (17.5, 25.6), (17.5, 25.6), (18.5, 25.6)]
+    ylim = [(-6.4, -2.0), (-5.2, -0.7), (-6.2, -0.8), (-6.4, -0.9), (-6.3, -1.3)]
     for zbin in range(len(zbins)):
         if zbin == 0:
             dataset = sdss_dataset
@@ -786,6 +786,23 @@ def plot_app_mag_funcs(
         fontsize=legendsize,
         handletextpad=0.3,
         labelspacing=0.3,
+    )
+
+    ax[0].annotate(
+        "",
+        xy=(0.9, 0.3),
+        xytext=(0.9, 0.06),
+        xycoords="axes fraction",
+        arrowprops=dict(arrowstyle="->", lw=0.75, color="k"),
+    )
+    ax[0].text(
+        0.86,
+        0.18,
+        "shift by\n +0.2 dex",
+        transform=ax[0].transAxes,
+        ha="right",
+        va="center",
+        fontsize=legendsize - 2,
     )
 
     for i in range(1, len(zbins)):

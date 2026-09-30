@@ -322,10 +322,10 @@ def plot_color_contours(
     param_collection,
     data,
     mag_thresh,
-    frac_cat,
     data_label,
     run_label,
     savedir,
+    frac_cat=1.0,
     sigma=0.5,
     plt_show=True,
 ):
@@ -339,7 +339,7 @@ def plot_color_contours(
             param_collection,
             z_data,
             mag_thresh,
-            frac_cat,
+            frac_cat=frac_cat,
         )
         fields = z_data_model._fields[4:]
 
