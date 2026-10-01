@@ -442,6 +442,124 @@ def plot_color_contours(
                 plt.close()
 
 
+def plot_cc_cm_grid_minerva(
+    ran_key,
+    param_collection,
+    spaces,
+    fields,
+    mag_thresh,
+    run_label,
+    savedir,
+    sigma=0.5,
+    plt_show=True,
+):
+    labelsize = 9
+    fontsize = 10
+    n_z_bins = len(spaces)
+    fig, ax = plt.subplots(2, n_z_bins, figsize=(7.1, 3.4), constrained_layout=True)
+    fig.get_layout_engine().set(
+        h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.925)
+    )
+
+    for z in range(n_z_bins):
+        z_data = spaces[z]
+        z_data_model = N_colors_mags(
+            ran_key,
+            param_collection,
+            z_data,
+            mag_thresh,
+        )
+        fields_at_z = fields[z]
+        z_min = z_data_model.z_min
+        z_max = z_data_model.z_max
+        ax[0][z].set_title(
+            str(z_min) + " < z < " + str(z_max), fontsize=fontsize, y=0.99
+        )
+        for f in range(len(fields_at_z)):
+            space = getattr(z_data_model, fields_at_z[f])
+            name = type(space).__name__
+            xlabel, ylabel = parse_color_labels(name)
+            qm = plot_density(
+                space.bin_lo,
+                space.bin_hi,
+                space.N_data,
+                ax[f][z],
+                xlabel,
+                ylabel,
+                dusk,
+                "MINERVA",
+                fontsize=fontsize,
+                N_model=space.N_model,
+                sigma=sigma,
+            )
+            ax[f][z].minorticks_on()
+            ax[f][z].tick_params(
+                which="major",
+                direction="in",
+                top=True,
+                right=True,
+                length=6,
+                width=1,
+                labelsize=labelsize,
+            )
+            ax[f][z].tick_params(
+                which="minor",
+                direction="in",
+                top=True,
+                right=True,
+                length=3,
+                width=0.8,
+                labelsize=labelsize,
+            )
+
+    cbar = fig.colorbar(
+        qm,
+        ax=ax.ravel().tolist(),
+        location="right",
+        shrink=1,
+        aspect=40,
+        pad=0.01,
+    )
+    # place ticks at bin centers and label with sigma bands
+    level_edges = np.asarray(qm.levels)
+    tick_locs = 0.5 * (level_edges[:-1] + level_edges[1:])
+    sigma_labels = [r"$>3\sigma$", r"$3\sigma$", r"$2\sigma$", r"$1\sigma$"]
+    cbar.set_ticks(tick_locs)
+    cbar.set_ticklabels(sigma_labels)
+    cbar.ax.tick_params(
+        labelsize=labelsize, labelleft=False, labelright=True, direction="in", length=0
+    )
+
+    legend_handles = [mpatches.Patch(color=dusk(0.7), alpha=0.5, label="MINERVA")]
+    legend_handles.append(
+        mlines.Line2D(
+            [],
+            [],
+            color=dusk(0.7),
+            linewidth=1.5,
+            linestyle="dashed",
+            alpha=0.9,
+            label="diffsky",
+        )
+    )
+    fig.legend(
+        handles=legend_handles,
+        loc="upper center",
+        bbox_to_anchor=(0.5, 1.0),
+        ncol=len(legend_handles),
+        frameon=False,
+        fontsize=fontsize,
+        borderaxespad=0.0,
+    )
+    fig.savefig(
+        savedir + "/" + run_label + "_cc_cm_grid.png",
+        dpi=600,
+    )
+    if plt_show:
+        plt.show()
+    plt.close()
+
+
 def parse_axis_label(s):
     nir_bands = {"j", "h", "k"}
 

@@ -878,8 +878,8 @@ def plot_app_mag_funcs_minerva(
     fb=FB,
     plt_show=True,
 ):
-    fig_width = 3.55
-    fig_height = 4.75
+    fig_width = 7.1
+    fig_height = 2.5
 
     fontsize = 10
     labelsize = 10
@@ -904,8 +904,8 @@ def plot_app_mag_funcs_minerva(
     ax = np.atleast_1d(ax)
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.85))
 
-    # xlim = [(13.0, 19.5), (18.5, 25.5), (19.0, 25.5), (19.5, 25.5), (20.0, 25.5)]
-    # ylim = [(-6.2, -2.0), (-5.2, -1.1), (-6.2, -1.5), (-6.9, -1.8), (-6.9, -2.6)]
+    xlim = [(18.0, 26.0), (18.0, 26.0), (18.0, 26.0), (18.0, 26.0), (18.0, 26.0)]
+    ylim = [(-6.5, 1), (-6.2, 0.0), (-6.2, -0.2), (-6.2, -0.4), (-6.4, -0.6)]
     for zbin in range(len(zbins)):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
@@ -1035,8 +1035,8 @@ def plot_app_mag_funcs_minerva(
             labelsize=labelsize,
         )
 
-        ax[zbin].set_ylim(-6, 0)
-        ax[zbin].set_xlim(19.0, 27.0)
+        ax[zbin].set_ylim(-6.5, 0)
+        ax[zbin].set_xlim(18.5, 27.0)
 
     ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
 
@@ -1052,13 +1052,29 @@ def plot_app_mag_funcs_minerva(
     )
     diffsky_handle = Line2D([], [], linestyle="-", lw=1, color="gray", label="diffsky")
 
-    ax[0].legend(
+    ax[-1].legend(
         handles=[minerva_handle, diffsky_handle],
         loc="upper center",
         frameon=False,
         fontsize=legendsize,
         handletextpad=0.3,
         labelspacing=0.3,
+    )
+    ax[0].annotate(
+        "",
+        xy=(0.9, 0.3),
+        xytext=(0.9, 0.06),
+        xycoords="axes fraction",
+        arrowprops=dict(arrowstyle="->", lw=0.75, color="k"),
+    )
+    ax[0].text(
+        0.86,
+        0.18,
+        "shift by\n +0.2 dex",
+        transform=ax[0].transAxes,
+        ha="right",
+        va="center",
+        fontsize=legendsize - 2,
     )
 
     handles = [
@@ -1068,7 +1084,7 @@ def plot_app_mag_funcs_minerva(
     fig.legend(
         handles=handles,
         loc="upper center",
-        ncol=4,
+        ncol=8,
         bbox_to_anchor=(0.5, 1.0),
         frameon=False,
         fontsize=legendsize,
