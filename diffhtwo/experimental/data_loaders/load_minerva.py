@@ -458,6 +458,7 @@ def get_minerva_phot_fitting_data(
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
+    apply_igm=True,
 ):
     minerva_phot = get_minerva_phot(
         drn,
@@ -466,6 +467,7 @@ def get_minerva_phot_fitting_data(
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
+        apply_igm=apply_igm,
     )
     fields = [f for f in minerva_phot._fields if f != "mags_labels"]
     MinervaPhotFit = namedtuple("MinervaPhotFit", fields)

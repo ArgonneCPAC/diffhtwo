@@ -94,6 +94,7 @@ if __name__ == "__main__":
             num_halos=cfg["phot"]["num_halos"],
             lgmp_min=cfg["lgmp_min"],
             lgmp_max=cfg["lgmp_max"],
+            apply_igm=cfg["apply_igm"],
         )
 
         # load halpha data
