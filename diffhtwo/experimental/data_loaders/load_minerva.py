@@ -281,7 +281,8 @@ def get_minerva_phot(
 
     z_bins = np.array(
         [
-            [1.35, 1.61],
+            # [1.35, 1.61],
+            [1.5, 2.0],
         ]
     )
 
@@ -301,8 +302,8 @@ def get_minerva_phot(
         "F444w",
     ]
     ccd = ["F105wF125w_F125wF162m"]
-    # cmd = ["F182m_F105wF125w"]
-    cmd = ["F162m_F160wF162m"]
+    cmd = ["F182m_F105wF125w"]
+    # cmd = ["F162m_F160wF162m"]
 
     mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
     ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
@@ -539,25 +540,6 @@ def get_minerva_halpha(
         lfs.append(LumFunc(z_min, z_max, data_vol_mpc3, lc_data, lf_data))
     return lfs
 
-
-# PhotFilters = namedtuple(
-#     "PhotFilters",
-#     [
-#         "f435w",
-#         "f606w",
-#         "f814w",
-#         "f125w",
-#         "f140w",
-#         "f160w",
-#         "f090w",
-#         "f115w",
-#         "f150w",
-#         "f200w",
-#         "f277w",
-#         "f356w",
-#         "f444w",
-#     ],
-# )
 
 HalphaFilters = namedtuple(
     "HalphaFilters",
