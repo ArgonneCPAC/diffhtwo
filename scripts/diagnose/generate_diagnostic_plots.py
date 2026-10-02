@@ -2,7 +2,6 @@ import argparse
 import os
 from pathlib import Path
 
-import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
@@ -16,7 +15,12 @@ from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
-from diffhtwo.experimental.data_loaders import load_feniks, load_hizels, load_sdss
+from diffhtwo.experimental.data_loaders import (
+    load_feniks,
+    load_hizels,
+    load_minerva,
+    load_sdss,
+)
 from diffhtwo.experimental.defaults import (
     FENIKS_Z_MAX,
     FENIKS_Z_MIN,
@@ -33,10 +37,7 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_color_redshift import plot_color_z
-from diffhtwo.experimental.diagnostics.plot_contour import (
-    plot_color_contour_grid,
-    plot_color_contours,
-)
+from diffhtwo.experimental.diagnostics.plot_contour import plot_color_contour_grid
 from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
 from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
 from diffhtwo.experimental.diagnostics.plot_halpha import (
@@ -59,6 +60,7 @@ from diffhtwo.experimental.diagnostics.plot_mag_redshift import (
 )
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
+    plot_app_mag_funcs_minerva,
     plot_color_pdfs,
     plot_n_colors_mag,
     plot_n_mags,
@@ -70,13 +72,14 @@ from diffhtwo.experimental.diagnostics.plot_satquench import (
     plot_satquench_model,
 )
 from diffhtwo.experimental.diagnostics.plot_sfms import plot_sfms_hexbin
-from diffhtwo.experimental.diagnostics.plot_smhm import (
-    plot_smhm,
-    plot_smhm_cen_sat,
-    plot_smhm_hexbin,
-    plot_smhm_median,
-    plot_smhm_ratio_cen_sat,
-)
+
+# from diffhtwo.experimental.diagnostics.plot_smhm import (
+#     plot_smhm,
+#     plot_smhm_cen_sat,
+#     plot_smhm_hexbin,
+#     plot_smhm_median,
+#     plot_smhm_ratio_cen_sat,
+# )
 from diffhtwo.experimental.uv_luminosity import append_uv_luminosity_to_ssp_data
 
 if __name__ == "__main__":
@@ -94,6 +97,7 @@ if __name__ == "__main__":
     sdss_drn = cfg["sdss_drn"]
     feniks_drn = cfg["feniks_drn"]
     hizels_drn = Path(cfg["hizels_drn"])
+    minerva_drn = cfg["minerva_drn"]
 
     um_drn = cfg["um_drn"]
     frac_ex_situ_lit_drn = cfg["frac_ex_situ_lit_drn"]
@@ -331,7 +335,6 @@ if __name__ == "__main__":
             lgmp_max=lgmp_max,
             plt_show=False,
         )
-        jax.clear_caches()
     if cfg["plots"]["plot_fburst_mh_z"]:
         print("Generating lgfburst plot...")
         plot_lgfburst_mh_z(
@@ -346,7 +349,6 @@ if __name__ == "__main__":
             num_halos=num_halos,
             plt_show=False,
         )
-        jax.clear_caches()
 
     if cfg["plots"]["plot_halpha_uv_ratio"]:
         print("Generating H-alpha-to-UV ratio plot...")
@@ -376,34 +378,6 @@ if __name__ == "__main__":
             feniks.filter_info.tcurves,
             run_label,
             fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            plt_show=False,
-        )
-
-    if cfg["plots"]["plot_app_mag_funcs"]:
-        print("Generating app mag funcs plot...")
-
-        zbins = np.array(
-            [
-                [0.02, 0.2],
-                [0.4, 0.7],
-                [0.7, 1.0],
-                [1.0, 1.5],
-                [1.5, 2.0],
-            ]
-        )
-
-        plot_app_mag_funcs(
-            sdss,
-            feniks,
-            run_label,
-            param_collection_fit,
-            ran_key,
-            zbins,
-            ssp_data,
-            fit_diagnostics_save_drn,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
             num_halos=num_halos,
             plt_show=False,
         )
@@ -553,6 +527,33 @@ if __name__ == "__main__":
     """
     if cfg["plot_feniks"]:
         feniks_label = "feniks_" + cfg["model_nickname"].split("_")[0]
+        if cfg["plots"]["plot_app_mag_funcs"]:
+            print("Generating app mag funcs plot...")
+
+            sdss_feniks_zbins = np.array(
+                [
+                    [0.02, 0.2],
+                    [0.4, 0.7],
+                    [0.7, 1.0],
+                    [1.0, 1.5],
+                    [1.5, 2.0],
+                ]
+            )
+
+            plot_app_mag_funcs(
+                sdss,
+                feniks,
+                run_label,
+                param_collection_fit,
+                ran_key,
+                sdss_feniks_zbins,
+                ssp_data,
+                fit_diagnostics_save_drn,
+                lgmp_min=lgmp_min,
+                lgmp_max=lgmp_max,
+                num_halos=num_halos,
+                plt_show=False,
+            )
 
         feniks_zbins = np.array(
             [
@@ -1101,3 +1102,26 @@ if __name__ == "__main__":
                     num_halos=num_halos,
                     plt_show=False,
                 )
+    if cfg["plot_minerva"]:
+        minerva = load_minerva.get_minerva_phot(
+            minerva_drn,
+            ran_key,
+            ssp_data,
+            num_halos=num_halos,
+        )
+        if cfg["plots"]["plot_app_mag_funcs"]:
+            print("Generating MINERVA app mag funcs plot...")
+            plot_app_mag_funcs_minerva(
+                minerva,
+                run_label,
+                param_collection_fit,
+                ran_key,
+                ssp_data,
+                fit_diagnostics_save_drn,
+                lgmp_min=lgmp_min,
+                lgmp_max=lgmp_max,
+                logmp_cutoff=lgmp_min,
+                num_halos=num_halos,
+                apply_igm=True,
+                plt_show=False,
+            )

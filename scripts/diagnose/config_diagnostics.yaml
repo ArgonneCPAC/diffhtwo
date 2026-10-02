@@ -1,10 +1,11 @@
-model_drn: /Users/kumail/diffdir/fits/run290
-model_nickname: run290_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run290/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run306
+model_nickname: run306_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run306/diagnostic_plots/diffstarpop+spspop+merging
 
 sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
 hizels_drn: /Users/kumail/diffdir/hizels
+minerva_drn: /Users/kumail/minerva/cats
 
 cosmos20_drn: /Users/kumail/diffdir/COSMOS20
 dsps_drn: /Users/kumail/diffdir/COSMOS20/portal.nersc.gov/project/hacc/aphearin/DSPS_data
@@ -15,11 +16,13 @@ fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 
-plot_sdss: True
-plot_feniks: True
+plot_sdss: False
+plot_feniks: False
 plot_hizels: False
 
-num_halos : 100
+plot_minerva: True
+
+num_halos : 1000
 sky_area_degsq: 4.
 
 lgmp_min: 11.0

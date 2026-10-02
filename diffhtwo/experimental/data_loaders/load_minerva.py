@@ -55,10 +55,6 @@ TRANSLATE = "MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG.larson.e
 INFO = "FILTER.RES.latest.info"
 TCURVES = "FILTER.RES.latest"
 
-AppMagFunc = namedtuple("AppMagFunc", [*AppMagFunc._fields, "frac_cat"])
-ColorColor = namedtuple("ColorColor", [*ColorColor._fields, "frac_cat"])
-MagColor = namedtuple("MagColor", [*MagColor._fields, "frac_cat"])
-
 MinervaPhot = namedtuple(
     "MinervaPhot",
     [
@@ -399,7 +395,7 @@ def get_minerva_phot(
             frac_cat = frac_cats[mag_idx]
 
             mag_z_tuples.append(
-                space(mag_idx, sig, bin_lo, bin_hi, N_1d, True, frac_cat)
+                space(mag_idx, sig, bin_lo, bin_hi, N_1d, frac_cat, True)
             )
 
         ccd_z_tuples = []
@@ -418,7 +414,7 @@ def get_minerva_phot(
             frac_cat = np.min((frac_cats[a], frac_cats[b], frac_cats[c], frac_cats[d]))
 
             ccd_z_tuples.append(
-                space(col_idx, sig, bin_lo, bin_hi, N_2d, True, frac_cat)
+                space(col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, True)
             )
 
         cmd_z_tuples = []
@@ -438,7 +434,7 @@ def get_minerva_phot(
             frac_cat = np.min((frac_cats[mag_idx], frac_cats[b], frac_cats[c]))
 
             cmd_z_tuples.append(
-                space(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, True, frac_cat)
+                space(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, True)
             )
 
         spaces.append(

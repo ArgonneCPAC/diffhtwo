@@ -998,7 +998,7 @@ def plot_app_mag_funcs_minerva(
             n_diffsky, _ = np.histogram(
                 obs_mags[:, mag_idx],
                 weights=gal_weight
-                * mag_weight[mag_idx]
+                * mag_weight[:, mag_idx]
                 * (1 / lc_data.lc_tot_vol_mpc3)
                 * frac_cats[mag_idx],
                 bins=bins_diffsky,
@@ -1087,7 +1087,7 @@ def plot_app_mag_funcs_minerva(
     fig.legend(
         handles=handles,
         loc="upper center",
-        ncol=8,
+        ncol=7,
         bbox_to_anchor=(0.5, 1.0),
         frameon=False,
         fontsize=legendsize,

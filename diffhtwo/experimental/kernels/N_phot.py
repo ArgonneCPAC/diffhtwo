@@ -15,14 +15,12 @@ def N_colors_mags(
     param_collection,
     z_data,
     mag_thresh,
-    frac_cat=1.0,
 ):
     obs_mags_weighted, gal_weight, mag_weight, phot_kern_results = mag_kern(
         ran_key,
         param_collection,
         z_data.lc_data,
         mag_thresh,
-        frac_cat=frac_cat,
     )
     fields = z_data._fields[4:]
     mag_thresh = jnp.array(mag_thresh)
@@ -54,8 +52,7 @@ def N_colors_mags(
                     space.bin_hi,
                 )
 
-                if "frac_cat" in space._fields:
-                    N_model = space.frac_cat * N_model
+                N_model = space.frac_cat * N_model
 
                 NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
                 new = NewTuple(*space, N_model)
@@ -75,8 +72,8 @@ def N_colors_mags(
                     space.bin_lo,
                     space.bin_hi,
                 )
-                if "frac_cat" in space._fields:
-                    N_model = space.frac_cat * N_model
+
+                N_model = space.frac_cat * N_model
 
                 NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
                 new = NewTuple(*space, N_model)
@@ -109,8 +106,7 @@ def N_colors_mags(
                 space.bin_hi,
             )
 
-            if "frac_cat" in space._fields:
-                N_model = space.frac_cat * N_model
+            N_model = space.frac_cat * N_model
 
             NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
             new = NewTuple(*space, N_model)
