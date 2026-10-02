@@ -1,3 +1,7 @@
+"""
+Adapted from code by Kaustav Mitra at:
+https://github.com/ArgonneCPAC/DisCoWebS/blob/main/DisCoWebS/modelling/igm.py
+"""
 import os
 
 import h5py
