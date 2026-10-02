@@ -15,7 +15,8 @@ def get_phot_loss_2d_multiz(
     frac_cat=1.0,
 ):
     phot_loss_2d = 0.0
-    for z in range(0, len(data)):
+    n_z_bins = len(data)
+    for z in range(n_z_bins):
         z_data = data[z]
         z_data_model = N_colors_mags(
             ran_key,
@@ -24,30 +25,17 @@ def get_phot_loss_2d_multiz(
             mag_thresh,
             frac_cat=frac_cat,
         )
-        # sky_rescale = data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
-        fields = z_data_model._fields[4:]
-        for f in range(0, len(fields)):
-            space = getattr(z_data_model, fields[f])
-            if isinstance(space, list):
-                for s in range(0, len(space)):
-                    space_n = space[s]
-                    phot_loss_2d += lax.cond(
-                        space_n.fit,
-                        lambda sp=space_n: poisson_loss(
-                            sp.N_model / z_data_model.lc_data.lc_tot_vol_mpc3,
-                            sp.N_data / z_data_model.data_vol_mpc3,
-                        ),
-                        lambda: 0.0,
-                    )
-            else:
-                phot_loss_2d += lax.cond(
-                    space.fit,
-                    lambda sp=space: poisson_loss(
-                        sp.N_model / z_data_model.lc_data.lc_tot_vol_mpc3,
-                        sp.N_data / z_data_model.data_vol_mpc3,
-                    ),
-                    lambda: 0.0,
-                )
+        space_names = z_data_model._fields[4:]
+        for space_name in space_names:
+            space = getattr(z_data_model, space_name)
+            phot_loss_2d += lax.cond(
+                space.fit,
+                lambda sp=space: poisson_loss(
+                    sp.N_model / z_data_model.lc_data.lc_tot_vol_mpc3,
+                    sp.N_data / z_data_model.data_vol_mpc3,
+                ),
+                lambda: 0.0,
+            )
     return phot_loss_2d
 
 

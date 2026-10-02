@@ -454,10 +454,6 @@ def get_feniks_data(
             "H",
             "K",
             "gr_ri",
-            "ug",
-            "ri",
-            "iz",
-            "jh",
             "K_ri",
             "K_gr",
             "K_JH",
@@ -510,58 +506,6 @@ def get_feniks_data(
         fit=True,
     )
 
-    # 1D (u - g | K)
-    ug = N_utils.get_color_cond_space_list(
-        "Ug_condK",
-        megacam_hsc_uSg,
-        uds_K_tot,
-        ["MegaCam_uS", "HSC_G"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=2,
-        fit=False,
-    )
-
-    # 1D (r − i | K)
-    ri = N_utils.get_color_cond_space_list(
-        "Ri_condK",
-        hsc_ri,
-        uds_K_tot,
-        ["HSC_R", "HSC_I"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=2,
-        fit=False,
-    )
-
-    # 1D (i − z | K)
-    iz = N_utils.get_color_cond_space_list(
-        "Iz_condK",
-        hsc_iz,
-        uds_K_tot,
-        ["HSC_I", "HSC_Z"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=2,
-        fit=False,
-    )
-
-    # 1D (J − H | K)
-    jh = N_utils.get_color_cond_space_list(
-        "JH_condK",
-        uds_JH,
-        uds_K_tot,
-        ["UDS_J", "UDS_H"],
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        cond_dmag=2,
-        fit=False,
-    )
-
     # 2D (K, r - i)
     K_ri = N_utils.get_mag_color_space(
         "K_ri",
@@ -612,10 +556,6 @@ def get_feniks_data(
         h,
         k,
         gr_ri,
-        ug,
-        ri,
-        iz,
-        jh,
         K_ri,
         K_gr,
         K_JH,
@@ -640,9 +580,6 @@ def get_feniks_data(
                 "H",
                 "K",
                 "rz_zJ",
-                "ug",
-                "rz",
-                "jh",
                 "K_ug",
                 "K_rz",
                 "K_JH",
@@ -696,45 +633,6 @@ def get_feniks_data(
             fit=True,
         )
 
-        # 1D (u - g | K)
-        ug = N_utils.get_color_cond_space_list(
-            "Ug_condK",
-            megacam_hsc_uSg,
-            uds_K_tot,
-            ["MegaCam_uS", "HSC_G"],
-            "UDS_K",
-            z_sel,
-            FeniksFilters,
-            cond_dmag=2,
-            fit=False,
-        )
-
-        # 1D (r - z | K)
-        rz = N_utils.get_color_cond_space_list(
-            "Rz_condK",
-            hsc_rz,
-            uds_K_tot,
-            ["HSC_R", "HSC_Z"],
-            "UDS_K",
-            z_sel,
-            FeniksFilters,
-            cond_dmag=2,
-            fit=False,
-        )
-
-        # 1D (J − H | K)
-        jh = N_utils.get_color_cond_space_list(
-            "JH_condK",
-            uds_JH,
-            uds_K_tot,
-            ["UDS_J", "UDS_H"],
-            "UDS_K",
-            z_sel,
-            FeniksFilters,
-            cond_dmag=2,
-            fit=False,
-        )
-
         # 2D (K, u - g)
         K_ug = N_utils.get_mag_color_space(
             "K_ug",
@@ -785,9 +683,6 @@ def get_feniks_data(
             h,
             k,
             rz_zJ,
-            ug,
-            rz,
-            jh,
             K_ug,
             K_rz,
             K_JH,
@@ -811,9 +706,6 @@ def get_feniks_data(
                 "H",
                 "K",
                 "rz_zJ",
-                "ug",
-                "rz",
-                "jh",
                 "K_ug",
                 "K_rz",
                 "K_JH",
@@ -867,45 +759,6 @@ def get_feniks_data(
             fit=True,
         )
 
-        # 1D (u - g | K)
-        ug = N_utils.get_color_cond_space_list(
-            "Ug_condK",
-            megacam_hsc_uSg,
-            uds_K_tot,
-            ["MegaCam_uS", "HSC_G"],
-            "UDS_K",
-            z_sel,
-            FeniksFilters,
-            cond_dmag=2,
-            fit=False,
-        )
-
-        # 1D (r - z | K)
-        rz = N_utils.get_color_cond_space_list(
-            "Rz_condK",
-            hsc_rz,
-            uds_K_tot,
-            ["HSC_R", "HSC_Z"],
-            "UDS_K",
-            z_sel,
-            FeniksFilters,
-            cond_dmag=2,
-            fit=False,
-        )
-
-        # 1D (J − H | K)
-        jh = N_utils.get_color_cond_space_list(
-            "JH_condK",
-            uds_JH,
-            uds_K_tot,
-            ["UDS_J", "UDS_H"],
-            "UDS_K",
-            z_sel,
-            FeniksFilters,
-            cond_dmag=2,
-            fit=False,
-        )
-
         # 2D (K, u - g)
         K_ug = N_utils.get_mag_color_space(
             "K_ug",
@@ -956,9 +809,6 @@ def get_feniks_data(
             h,
             k,
             rz_zJ,
-            ug,
-            rz,
-            jh,
             K_ug,
             K_rz,
             K_JH,
@@ -990,9 +840,6 @@ def get_feniks_data(
                 "K",
                 "zJ_JH",
                 "ug_gr",
-                "ug",
-                "gr",
-                "jh",
                 "K_ug",
                 "K_gr",
                 "K_JH",
@@ -1057,45 +904,6 @@ def get_feniks_data(
             fit=True,
         )
 
-        # 1D (u - g | K)
-        ug = N_utils.get_color_cond_space_list(
-            "Ug_condK",
-            megacam_hsc_uSg,
-            uds_K_tot,
-            ["MegaCam_uS", "HSC_G"],
-            "UDS_K",
-            z_sel,
-            FeniksFilters,
-            cond_dmag=4,
-            fit=False,
-        )
-
-        # 1D (g - r | K)
-        gr = N_utils.get_color_cond_space_list(
-            "Gr_condK",
-            hsc_gr,
-            uds_K_tot,
-            ["HSC_G", "HSC_R"],
-            "UDS_K",
-            z_sel,
-            FeniksFilters,
-            cond_dmag=4,
-            fit=False,
-        )
-
-        # 1D (J − H | K)
-        jh = N_utils.get_color_cond_space_list(
-            "JH_condK",
-            uds_JH,
-            uds_K_tot,
-            ["UDS_J", "UDS_H"],
-            "UDS_K",
-            z_sel,
-            FeniksFilters,
-            cond_dmag=4,
-            fit=False,
-        )
-
         # 2D (K, u - g)
         K_ug = N_utils.get_mag_color_space(
             "K_ug",
@@ -1147,9 +955,6 @@ def get_feniks_data(
             k,
             zJ_JH,
             ug_gr,
-            ug,
-            gr,
-            jh,
             K_ug,
             K_gr,
             K_JH,

@@ -943,7 +943,7 @@ def plot_app_mag_funcs_minerva(
             logmp_cutoff=lgmp_min,
         )
 
-        obs_mags, gal_weight, phot_kern_results = mag_kern(
+        obs_mags, gal_weight, mag_weight, phot_kern_results = mag_kern(
             ran_key,
             param_collection,
             lc_data,
@@ -997,7 +997,10 @@ def plot_app_mag_funcs_minerva(
 
             n_diffsky, _ = np.histogram(
                 obs_mags[:, mag_idx],
-                weights=gal_weight * (1 / lc_data.lc_tot_vol_mpc3) * frac_cats[mag_idx],
+                weights=gal_weight
+                * mag_weight[mag_idx]
+                * (1 / lc_data.lc_tot_vol_mpc3)
+                * frac_cats[mag_idx],
                 bins=bins_diffsky,
             )
             with warnings.catch_warnings():

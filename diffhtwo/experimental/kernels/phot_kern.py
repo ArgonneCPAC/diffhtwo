@@ -7,7 +7,7 @@ from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from .cat_weight import compute_cat_weight
+from .cat_weight import compute_mag_weight
 from .gehrels_err import get_n_data_err
 from .lc_phot_kern import mc_phot_kern_merging_wrapper
 
@@ -45,6 +45,33 @@ def get_colors_mags(
     return obs_color_mag, gal_weight, phot_kern_results
 
 
+# @jjit
+# def mag_kern(
+#     ran_key,
+#     param_collection,
+#     lc_data,
+#     mag_thresh,
+#     frac_cat=1.0,
+#     cosmo_params=DEFAULT_COSMOLOGY,
+#     fb=FB,
+#     mc_merge=0,
+# ):
+#     phot_kern_results = mc_phot_kern_merging_wrapper(
+#         ran_key,
+#         param_collection,
+#         lc_data,
+#     )
+#     obs_mags_weighted = phot_kern_results.obs_mags_weighted
+#     gal_weight = lc_data.cen_weight * lc_data.sat_weight
+
+#     # update weights to incorporate mag thresh cuts and frac_cat
+#     gal_weight = compute_cat_weight(
+#         gal_weight, obs_mags_weighted, mag_thresh, frac_cat=frac_cat
+#     )
+
+#     return obs_mags_weighted, gal_weight, phot_kern_results
+
+
 @jjit
 def mag_kern(
     ran_key,
@@ -64,12 +91,9 @@ def mag_kern(
     obs_mags_weighted = phot_kern_results.obs_mags_weighted
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
-    # update weights to incorporate mag thresh cuts and frac_cat
-    gal_weight = compute_cat_weight(
-        gal_weight, obs_mags_weighted, mag_thresh, frac_cat=frac_cat
-    )
+    mag_weight = compute_mag_weight(obs_mags_weighted, mag_thresh)
 
-    return obs_mags_weighted, gal_weight, phot_kern_results
+    return obs_mags_weighted, gal_weight, mag_weight, phot_kern_results
 
 
 @partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
