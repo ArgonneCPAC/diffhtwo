@@ -1,11 +1,6 @@
 import os
 
 import h5py
-import jax.random as jran
-import matplotlib.pyplot as plt
-import numpy as np
-from astropy.table import Table
-from diffsky.param_utils.load_calib_params import load_param_collection
 from jax import numpy as jnp
 
 

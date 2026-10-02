@@ -1,15 +1,6 @@
 from collections import namedtuple
 
-import jax.numpy as jnp
-import numpy as np
-from diffhalos.lightcone_generators import mc_lightcone as mcl
-from diffmah import logmh_at_t_obs
-from diffmah.diffmah_kernels import _log_mah_kern
-from diffsky.experimental import precompute_ssp_phot as psspp
 from diffsky.experimental.lc_generators import lc_data_phot as lcdp
-from diffsky.utils.phot_utils import get_wave_eff_table
-from dsps.constants import T_TABLE_MIN
-from dsps.cosmology import flat_wcdm
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
 from .kernels import igm
