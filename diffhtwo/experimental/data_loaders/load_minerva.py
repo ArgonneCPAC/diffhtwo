@@ -330,8 +330,6 @@ def get_minerva_phot(
     ]
     z_bins = np.array([sp["z"] for sp in cc_cmd_spaces_at_z])
 
-    # ccd = ["F090wF150w_F150wF356w"]
-    # cmd = ["F356w_F150wF356w"]
     # cmd = ["F162m_F160wF162m"]#H-alpha emitted at z~1.5 figure
 
     spaces = []
