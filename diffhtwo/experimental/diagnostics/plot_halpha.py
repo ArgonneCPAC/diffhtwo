@@ -129,7 +129,7 @@ def plot_halpha_minerva(
         ncol=2,
         fontsize=legendsize,
     )
-    ax.set_ylim(-7, -2)
+    ax.set_ylim(-6, -2)
     ax.set_xlim(38.1, 44.1)
 
     ax.set_xlabel("log$_{10}$ (L$_{H\u03b1}$ [erg/s])", fontsize=labelsize)

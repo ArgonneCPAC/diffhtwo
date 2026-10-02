@@ -1,4 +1,5 @@
 import warnings
+from pathlib import Path
 
 import jax.numpy as jnp
 import numpy as np
@@ -32,6 +33,9 @@ fontsize = 40
 labelsize = 40
 legend_fontsize = 30
 
+BASE_PATH = Path(__file__).resolve().parent.parent
+IGM_DRN = BASE_PATH / "data" / "igm"
+IGM_BN = "igm_attenuation_minerva.h5"
 
 try:
     import matplotlib.lines as mlines
@@ -860,7 +864,13 @@ def plot_app_mag_funcs_minerva(
     savedir,
     lgmp_min=10.0,
     lgmp_max=15.0,
+    logmp_cutoff=10.0,
     num_halos=5000,
+    apply_igm=True,
+    igm_drn=IGM_DRN,
+    igm_bn=IGM_BN,
+    igm_filters_namedtuple=PhotFilters,
+    igm_filter_prefix="minerva_",
     lc_sky_area_degsq=1000,
     n_z_phot_table=30,
     dmag=0.5,
@@ -868,8 +878,8 @@ def plot_app_mag_funcs_minerva(
     fb=FB,
     plt_show=True,
 ):
-    fig_width = 3.55
-    fig_height = 4.75
+    fig_width = 7.1
+    fig_height = 2.5
 
     fontsize = 10
     labelsize = 10
@@ -894,8 +904,8 @@ def plot_app_mag_funcs_minerva(
     ax = np.atleast_1d(ax)
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.85))
 
-    # xlim = [(13.0, 19.5), (18.5, 25.5), (19.0, 25.5), (19.5, 25.5), (20.0, 25.5)]
-    # ylim = [(-6.2, -2.0), (-5.2, -1.1), (-6.2, -1.5), (-6.9, -1.8), (-6.9, -2.6)]
+    # xlim = [(18.0, 26.0), (18.0, 26.0), (18.0, 26.0), (18.0, 26.0), (18.0, 26.0)]
+    # ylim = [(-6.5, 1), (-6.2, 0.0), (-6.2, -0.2), (-6.2, -0.4), (-6.4, -0.6)]
     for zbin in range(len(zbins)):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
@@ -910,7 +920,7 @@ def plot_app_mag_funcs_minerva(
         z_phot_table = 10 ** jnp.linspace(
             np.log10(z_min), np.log10(z_max), n_z_phot_table
         )
-        lc_data = generate_lc_data(
+        lc_args = (
             ran_key,
             num_halos,
             z_min,
@@ -922,6 +932,17 @@ def plot_app_mag_funcs_minerva(
             minerva_phot.filter_info.tcurves,
             z_phot_table,
         )
+
+        lc_data = generate_lc_data(
+            *lc_args,
+            apply_igm=apply_igm,
+            igm_drn=igm_drn,
+            igm_bn=igm_bn,
+            igm_filters_namedtuple=igm_filters_namedtuple,
+            igm_filter_prefix=igm_filter_prefix,
+            logmp_cutoff=lgmp_min,
+        )
+
         obs_mags, gal_weight, phot_kern_results = mag_kern(
             ran_key,
             param_collection,
@@ -1014,8 +1035,8 @@ def plot_app_mag_funcs_minerva(
             labelsize=labelsize,
         )
 
-        ax[zbin].set_ylim(-6, 0)
-        ax[zbin].set_xlim(19.0, 27.0)
+        ax[zbin].set_ylim(-6.5, 0)
+        ax[zbin].set_xlim(18.5, 27.0)
 
     ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
 
@@ -1031,13 +1052,29 @@ def plot_app_mag_funcs_minerva(
     )
     diffsky_handle = Line2D([], [], linestyle="-", lw=1, color="gray", label="diffsky")
 
-    ax[0].legend(
+    ax[-1].legend(
         handles=[minerva_handle, diffsky_handle],
         loc="upper center",
         frameon=False,
         fontsize=legendsize,
         handletextpad=0.3,
         labelspacing=0.3,
+    )
+    ax[0].annotate(
+        "",
+        xy=(0.9, 0.3),
+        xytext=(0.9, 0.06),
+        xycoords="axes fraction",
+        arrowprops=dict(arrowstyle="->", lw=0.75, color="k"),
+    )
+    ax[0].text(
+        0.86,
+        0.18,
+        "shift by\n +0.2 dex",
+        transform=ax[0].transAxes,
+        ha="right",
+        va="center",
+        fontsize=legendsize - 2,
     )
 
     handles = [
@@ -1047,7 +1084,7 @@ def plot_app_mag_funcs_minerva(
     fig.legend(
         handles=handles,
         loc="upper center",
-        ncol=4,
+        ncol=8,
         bbox_to_anchor=(0.5, 1.0),
         frameon=False,
         fontsize=legendsize,

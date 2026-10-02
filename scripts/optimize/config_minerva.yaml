@@ -4,16 +4,16 @@ minerva_path: "/home/kzaidi/diffdir/minerva"
 start_runid: "run90"
 start_fit_type: "all"
 
-fit_runid: "run300"
+fit_runid: "runtest"
 fit_type: "diffstarpop+spspop+merging"
 
 phot:
   lh_d_mag: 0.4
   N_centroids: 100
-  num_halos: 10000
+  num_halos: 100
 
 halpha:
-  num_halos: 10000
+  num_halos: 100
 
 w_phot: 1.
 w_halpha: 1.
@@ -21,9 +21,11 @@ w_halpha: 1.
 lgmp_min: 10.5
 lgmp_max: 15.0
 
+apply_igm: True
+
 epoch:
-  n_it: 5
-  n_steps: 25
+  n_it: 1
+  n_steps: 2
   step_size: 0.1
     
 defaults:

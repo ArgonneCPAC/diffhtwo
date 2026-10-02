@@ -11,6 +11,7 @@ from dsps.data_loaders import load_transmission_curve
 
 from ..defaults import (
     MINERVA_AREA_DEG2,
+    MINERVA_UDS_AREA_DEG2,
     AppMagFunc,
     ColorColor,
     FilterInfo,
@@ -23,7 +24,11 @@ from . import N_utils
 from .N_utils import get_N_1d, get_N_2d
 
 BASE_PATH = Path(__file__).resolve().parent.parent
+
 MINERVA_FILTERS_PATH = BASE_PATH / "data" / "minerva_filters"
+
+IGM_DRN = BASE_PATH / "data" / "igm"
+IGM_BN = "igm_attenuation_minerva.h5"
 
 UDS_PHOT_CAT = (
     "uds/MINERVA-UDS_n3.0_m3.1_v1.2.1_ACS+WEBB_Kf444w_SUPER_CATALOG_wMIRI.fits"
@@ -169,6 +174,7 @@ def get_minerva_phot(
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
+    apply_igm=True,
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
     uds_phot_cat=UDS_PHOT_CAT,
@@ -274,12 +280,6 @@ def get_minerva_phot(
 
     filter_info = FilterInfo(minerva_mag_thresh, tcurves)
 
-    z_bins = np.array(
-        [
-            [1.35, 1.61],
-        ]
-    )
-
     md = [
         "F435w",
         "F606w",
@@ -295,36 +295,73 @@ def get_minerva_phot(
         "F356w",
         "F444w",
     ]
-    ccd = ["F105wF125w_F125wF162m"]
-    # cmd = ["F182m_F105wF125w"]
-    cmd = ["F162m_F160wF162m"]
-
     mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
-    ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
-    cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
 
-    Spaces = namedtuple(
-        "Spaces",
-        [
-            "z_min",
-            "z_max",
-            "data_vol_mpc3",
-            "lc_data",
-            *mag_namedtuples,
-            *ccd,
-            *cmd,
-        ],
-    )
+    cc_cmd_spaces_at_z = [
+        {
+            "z": (1.0, 2.0),
+            "ccd": ["F090wF150w_F150wF356w"],
+            "cmd": ["F356w_F150wF356w"],
+        },
+        {
+            "z": (2.0, 3.0),
+            "ccd": ["F115wF200w_F200wF356w", "F150wF200w_F200wF277w"],
+            "cmd": ["F356w_F115wF356w"],
+        },
+        {
+            "z": (3.0, 4.0),
+            "ccd": ["F150wF277w_F277wF444w", "F200wF277w_F277wF356w"],
+            "cmd": ["F356w_F150wF356w"],
+        },
+        {
+            "z": (4.0, 5.0),
+            "ccd": [
+                "F814wF150w_F150wF277w",
+                "F200wF277w_F277wF444w",
+                "F356wF410m_F410mF444w",
+            ],
+            "cmd": ["F444w_F150wF444w"],
+        },
+        {
+            "z": (5.0, 6.0),
+            "ccd": ["F115wF200w_F200wF444w", "F277wF356w_F356wF444w"],
+            "cmd": ["F444w_F115wF444w"],
+        },
+    ]
+    z_bins = np.array([sp["z"] for sp in cc_cmd_spaces_at_z])
+
+    # cmd = ["F162m_F160wF162m"]#H-alpha emitted at z~1.5 figure
 
     spaces = []
     for zbin in range(len(z_bins)):
         z_min = z_bins[zbin][0]
         z_max = z_bins[zbin][1]
+
+        ccd = cc_cmd_spaces_at_z[zbin]["ccd"]
+        cmd = cc_cmd_spaces_at_z[zbin]["cmd"]
+
+        ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
+        cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
+
+        Spaces = namedtuple(
+            "Spaces",
+            [
+                "z_min",
+                "z_max",
+                "data_vol_mpc3",
+                "lc_data",
+                *mag_namedtuples,
+                *ccd,
+                *cmd,
+            ],
+        )
+
         data_vol_mpc3 = zbin_volume(MINERVA_AREA_DEG2, zlow=z_min, zhigh=z_max).value
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
         )
+
         lc_args = (
             ran_key,
             num_halos,
@@ -338,7 +375,15 @@ def get_minerva_phot(
             z_phot_table,
         )
 
-        lc_data = generate_lc_data(*lc_args)
+        lc_data = generate_lc_data(
+            *lc_args,
+            apply_igm=apply_igm,
+            igm_drn=IGM_DRN,
+            igm_bn=IGM_BN,
+            igm_filters_namedtuple=PhotFilters,
+            igm_filter_prefix="minerva_",
+            logmp_cutoff=lgmp_min,
+        )
 
         z_sel = (z_best > z_min) & (z_best <= z_max)
 
@@ -443,6 +488,7 @@ def get_minerva_phot_fitting_data(
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
+    apply_igm=True,
 ):
     minerva_phot = get_minerva_phot(
         drn,
@@ -451,6 +497,7 @@ def get_minerva_phot_fitting_data(
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
+        apply_igm=apply_igm,
     )
     fields = [f for f in minerva_phot._fields if f != "mags_labels"]
     MinervaPhotFit = namedtuple("MinervaPhotFit", fields)
@@ -494,7 +541,9 @@ def get_minerva_halpha(
 
         z_min = halpha["z_phot"].min()
         z_max = halpha["z_phot"].max()
-        data_vol_mpc3 = zbin_volume(MINERVA_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+        data_vol_mpc3 = zbin_volume(
+            MINERVA_UDS_AREA_DEG2, zlow=z_min, zhigh=z_max
+        ).value
 
         lgLHa = jnp.log10(
             abs(halpha["L_Ha"].data)
@@ -525,25 +574,6 @@ def get_minerva_halpha(
         lfs.append(LumFunc(z_min, z_max, data_vol_mpc3, lc_data, lf_data))
     return lfs
 
-
-# PhotFilters = namedtuple(
-#     "PhotFilters",
-#     [
-#         "f435w",
-#         "f606w",
-#         "f814w",
-#         "f125w",
-#         "f140w",
-#         "f160w",
-#         "f090w",
-#         "f115w",
-#         "f150w",
-#         "f200w",
-#         "f277w",
-#         "f356w",
-#         "f444w",
-#     ],
-# )
 
 HalphaFilters = namedtuple(
     "HalphaFilters",
