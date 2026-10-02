@@ -124,14 +124,13 @@ def N_colors_mags_lh(
     redshift_as_last_dimension_in_lh=True,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
-    obs_color_mag, weights, phot_kern_results = get_colors_mags(
+    obs_color_mag, weights, mag_weight, phot_kern_results = get_colors_mags(
         ran_key,
         param_collection,
         fitting_data.lc_data,
         meta_data.col_idx,
         meta_data.mag_idx,
         meta_data.mag_thresh,
-        meta_data.frac_cat,
     )
 
     # calculate number density in LH bins

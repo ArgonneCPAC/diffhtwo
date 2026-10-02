@@ -27,7 +27,6 @@ def get_zbins_lh_lc(
         dataset.filter_info.mag_thresh,
         dataset.col_idx,
         dataset.mag_idx,
-        dataset.frac_cat,
         dataset.data_sky_area_degsq,
     )
 
@@ -111,7 +110,6 @@ def get_single_zbin_lh_lc(
         dataset.filter_info.mag_thresh,
         dataset.col_idx,
         dataset.mag_idx,
-        dataset.frac_cat,
         dataset.data_sky_area_degsq,
     )
 
@@ -234,7 +232,6 @@ MetaData = namedtuple(
         "mag_thresh",
         "col_idx",
         "mag_idx",
-        "frac_cat",
         "data_sky_area_degsq",
     ],
 )
