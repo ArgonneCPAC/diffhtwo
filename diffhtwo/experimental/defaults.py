@@ -22,11 +22,11 @@ COSMO = FlatLambdaCDM(
 FENIKS_AREA_DEG2 = 0.6081027540413089
 FENIKS_Z_MIN = 0.2
 FENIKS_Z_MAX = 2.5
-FENIKS_MAGK_THRESH = 24.3  # col mag
+FENIKS_MAGK_THRESH = 24.0  # col mag
 
 SDSS_Z_MIN = 0.02
 SDSS_Z_MAX = 0.2
-SDSS_MAGR_THRESH = 17.6  # model mag
+SDSS_MAGR_THRESH = 17.5  # model mag
 
 # needs to be total survey area minus the use_phot==0 area
 MINERVA_UDS_AREA_DEG2 = 234 / 3600
@@ -74,31 +74,17 @@ Dataset = namedtuple(
 )
 
 ColorColor = namedtuple(
-    "ColorColor", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data", "fit"]
-)
-
-ColorCondMag = namedtuple(
-    "ColorCondMag",
-    [
-        "col_idx",
-        "cond_idx",
-        "cond_min",
-        "cond_max",
-        "sig",
-        "bin_lo",
-        "bin_hi",
-        "N_data",
-        "fit",
-    ],
+    "ColorColor", ["col_idx", "sig", "bin_lo", "bin_hi", "N_data", "frac_cat", "fit"]
 )
 
 MagColor = namedtuple(
-    "MagColor", ["mag_idx", "col_idx", "sig", "bin_lo", "bin_hi", "N_data", "fit"]
+    "MagColor",
+    ["mag_idx", "col_idx", "sig", "bin_lo", "bin_hi", "N_data", "frac_cat", "fit"],
 )
 
 AppMagFunc = namedtuple(
     "AppMagFunc",
-    ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data", "fit"],
+    ["mag_idx", "sig", "bin_lo", "bin_hi", "N_data", "frac_cat", "fit"],
 )
 
 Lf = namedtuple(

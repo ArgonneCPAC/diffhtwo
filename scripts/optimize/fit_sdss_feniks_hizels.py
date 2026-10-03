@@ -232,4 +232,6 @@ if __name__ == "__main__":
     plt.savefig(fit_diagnostics_save_drn + "/loss/loss_" + ts + ".png")
     plt.close()
 
-    os.system(f"python generate_diagnostic_plots.py --config {new_config_diag_path}")
+    os.system(
+        f"python ../diagnose/generate_diagnostic_plots.py --config {new_config_diag_path}"
+    )

@@ -1,5 +1,5 @@
-base_path: "/home/kzaidi/diffdir"
-minerva_path: "/home/kzaidi/diffdir/minerva"
+base_path: "/Users/kumail/diffdir"
+minerva_path: "/Users/kumail/minerva"
 
 start_runid: "run90"
 start_fit_type: "all"
@@ -16,7 +16,7 @@ halpha:
   num_halos: 100
 
 w_phot: 1.
-w_halpha: 1.
+w_halpha: 0.
 
 lgmp_min: 10.5
 lgmp_max: 15.0

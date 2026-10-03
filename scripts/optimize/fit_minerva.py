@@ -80,6 +80,21 @@ if __name__ == "__main__":
     with open(fit_diagnostics_save_drn + "/" + args.config) as f:
         cfg = yaml.safe_load(f)
 
+    # open, modify and save config_diagnostics in a new location: fit_diagnostics_save_drn
+    with open("../diagnose/config_diagnostics.yaml") as df:
+        cfg_d = yaml.safe_load(df)
+    cfg_d["model_drn"] = fit_save_drn
+    cfg_d["model_nickname"] = cfg["fit_runid"] + "_" + cfg["fit_type"]
+    cfg_d["fit_diagnostics_save_drn"] = fit_diagnostics_save_drn
+    cfg_d["lgmp_min"] = cfg["lgmp_min"]
+    cfg_d["lgmp_max"] = cfg["lgmp_max"]
+
+    new_config_diag_path = os.path.join(
+        fit_diagnostics_save_drn, "config_diagnostics.yaml"
+    )
+    with open(new_config_diag_path, "w") as df:
+        yaml.dump(cfg_d, df, default_flow_style=False, sort_keys=False)
+
     initial_pts = []
     start = time.time()
     ran_key = jran.key(0)
@@ -178,3 +193,7 @@ if __name__ == "__main__":
     ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
     plt.savefig(fit_diagnostics_save_drn + "/loss/loss_" + ts + ".png")
     plt.close()
+
+    os.system(
+        f"python ../diagnose/generate_diagnostic_plots.py --config {new_config_diag_path}"
+    )
