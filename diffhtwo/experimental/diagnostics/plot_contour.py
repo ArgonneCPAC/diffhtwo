@@ -146,11 +146,9 @@ def plot_color_contour_grid(
     feniks_data,
     feniks_fields,
     feniks_mag_thresh,
-    feniks_frac_cat,
     sdss_data,
     sdss_fields,
     sdss_mag_thresh,
-    sdss_frac_cat,
     run_label,
     savedir,
     sigma=0.5,
@@ -170,7 +168,6 @@ def plot_color_contour_grid(
         param_collection,
         sdss_data[0],
         sdss_mag_thresh,
-        sdss_frac_cat,
     )
     sdss_fields_at_z = sdss_fields[0]
     z_min = sdss_data_model.z_min
@@ -222,7 +219,6 @@ def plot_color_contour_grid(
             param_collection,
             z_data,
             feniks_mag_thresh,
-            feniks_frac_cat,
         )
         fields_at_z = feniks_fields[z]
         z_min = z_data_model.z_min
@@ -325,7 +321,6 @@ def plot_color_contours(
     data_label,
     run_label,
     savedir,
-    frac_cat=1.0,
     sigma=0.5,
     plt_show=True,
 ):
@@ -339,7 +334,6 @@ def plot_color_contours(
             param_collection,
             z_data,
             mag_thresh,
-            frac_cat=frac_cat,
         )
         fields = z_data_model._fields[4:]
 

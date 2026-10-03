@@ -656,9 +656,11 @@ def plot_app_mag_funcs(
         else:
             dataset = feniks_dataset
 
-        dataset_mags = dataset.mags
+        redshift = dataset.redshift
+        mags = dataset.mags
+        mag_sels = dataset.mag_sels
         data_sky_area_degsq = dataset.data_sky_area_degsq
-        n_bands = dataset_mags.shape[1] - 1
+        n_bands = mags.shape[1]
 
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
@@ -666,8 +668,7 @@ def plot_app_mag_funcs(
 
         ax[zbin].set_title(str(z_min) + " < z < " + str(z_max))
 
-        z_mask = (dataset_mags[:, -1] > z_min) & (dataset_mags[:, -1] < z_max)
-        dataset_mags_z = dataset_mags[z_mask]
+        z_mask = (redshift > z_min) & (redshift < z_max)
         data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
 
         z_phot_table = 10 ** jnp.linspace(
@@ -685,12 +686,11 @@ def plot_app_mag_funcs(
             dataset.filter_info.tcurves,
             z_phot_table,
         )
-        obs_mags, weights, phot_kern_results = mag_kern(
+        obs_mags, gal_weight, mag_weight, phot_kern_results = mag_kern(
             ran_key,
             param_collection,
             lc_data,
             dataset.filter_info.mag_thresh,
-            dataset.frac_cat,
         )
 
         shift_dex = 0.0
@@ -699,9 +699,11 @@ def plot_app_mag_funcs(
         else:
             d_shift_dex = 0.2
         for i in range(n_bands):
+            sel = mag_sels[:, i] * z_mask
+            mag_band_z = mags[sel][:, i]
             bins = np.arange(
-                dataset_mags_z[:, i].min(),
-                dataset_mags_z[:, i].max() + dmag,
+                mag_band_z.min(),
+                mag_band_z.max() + dmag,
                 dmag,
             )
             bin_centers = (bins[1:] + bins[:-1]) / 2
@@ -714,8 +716,8 @@ def plot_app_mag_funcs(
             bin_diffsky_centers = (bins_diffsky[1:] + bins_diffsky[:-1]) / 2
 
             n_data, bin_edges = np.histogram(
-                dataset_mags_z[:, i],
-                weights=np.ones_like(dataset_mags_z[:, i]) * (1 / data_vol_mpc3),
+                mag_band_z,
+                weights=np.ones_like(mag_band_z) * (1 / data_vol_mpc3),
                 bins=bins,
             )
             with warnings.catch_warnings():
@@ -730,7 +732,7 @@ def plot_app_mag_funcs(
 
             n_diffsky, _ = np.histogram(
                 obs_mags[:, i],
-                weights=weights * (1 / lc_data.lc_tot_vol_mpc3),
+                weights=gal_weight * mag_weight[:, i] * (1 / lc_data.lc_tot_vol_mpc3),
                 bins=bins_diffsky,
             )
             with warnings.catch_warnings():

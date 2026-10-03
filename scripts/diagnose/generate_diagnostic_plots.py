@@ -37,7 +37,10 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_color_redshift import plot_color_z
-from diffhtwo.experimental.diagnostics.plot_contour import plot_color_contour_grid
+from diffhtwo.experimental.diagnostics.plot_contour import (
+    plot_cc_cm_grid_minerva,
+    plot_color_contour_grid,
+)
 from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
 from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
 from diffhtwo.experimental.diagnostics.plot_halpha import (
@@ -381,33 +384,6 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-    if cfg["plots"]["plot_color_contours"]:
-        sdss_fields = [
-            ["gr_ri", "r_ri"],
-        ]
-        feniks_fields = [
-            ["gr_ri", "K_gr"],
-            ["rz_zJ", "K_rz"],
-            ["rz_zJ", "K_rz"],
-            ["zJ_JH", "K_gr"],
-        ]
-        print("Generating FENIKS color contour plots...")
-        plot_color_contour_grid(
-            ran_key,
-            param_collection_fit,
-            feniks.spaces,
-            feniks_fields,
-            feniks.filter_info.mag_thresh,
-            feniks.frac_cat,
-            sdss.spaces,
-            sdss_fields,
-            sdss.filter_info.mag_thresh,
-            sdss.frac_cat,
-            run_label,
-            fit_diagnostics_save_drn,
-            plt_show=False,
-        )
-
     """
     Plot HiZELS
     """
@@ -527,7 +503,7 @@ if __name__ == "__main__":
     if cfg["plot_feniks"]:
         feniks_label = "feniks_" + cfg["model_nickname"].split("_")[0]
         if cfg["plots"]["plot_app_mag_funcs"]:
-            print("Generating app mag funcs plot...")
+            print("Generating SDSS/FENIKS app mag funcs plot...")
 
             sdss_feniks_zbins = np.array(
                 [
@@ -554,14 +530,30 @@ if __name__ == "__main__":
                 plt_show=False,
             )
 
-        feniks_zbins = np.array(
-            [
-                [0.5, 1.0],
-                [1.0, 1.5],
-                [1.5, 2.0],
-                [2.0, 2.5],
+        if cfg["plots"]["plot_color_contours"]:
+            sdss_fields = [
+                ["gr_ri", "r_ri"],
             ]
-        )
+            feniks_fields = [
+                ["gr_ri", "K_gr"],
+                ["rz_zJ", "K_rz"],
+                ["rz_zJ", "K_rz"],
+                ["zJ_JH", "K_gr"],
+            ]
+            print("Generating SDSS/FENIKS color contour plots...")
+            plot_color_contour_grid(
+                ran_key,
+                param_collection_fit,
+                feniks.spaces,
+                feniks_fields,
+                feniks.filter_info.mag_thresh,
+                sdss.spaces,
+                sdss_fields,
+                sdss.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
 
         if cfg["plots"]["plot_color_z"]:
             print("Generating FENIKS color v. redshift plot...")
@@ -580,26 +572,6 @@ if __name__ == "__main__":
                 lgmp_sub_min=lgmp_min,
                 plt_show=False,
             )
-
-            # plot_color_contours(
-            #     ran_key,
-            #     param_collection_fit,
-            #     feniks.colors,
-            #     feniks.filter_info.mag_thresh,
-            #     feniks.frac_cat,
-            #     feniks_label,
-            #     fit_diagnostics_save_drn,
-            # )
-
-        feniks_zbins = np.array(
-            [
-                [0.4, 0.8],
-                [0.8, 1.2],
-                [1.2, 1.6],
-                [1.6, 2.0],
-                [2.0, 2.5],
-            ]
-        )
 
         if cfg["plots"]["plot_uvj"]:
             print("Generating FENIKS UVJ plot...")
@@ -631,6 +603,16 @@ if __name__ == "__main__":
                 drn_out=fit_diagnostics_save_drn,
             )
             plt.close()
+
+        feniks_zbins = np.array(
+            [
+                [0.4, 0.8],
+                [0.8, 1.2],
+                [1.2, 1.6],
+                [1.6, 2.0],
+                [2.0, 2.5],
+            ]
+        )
 
         for zbin in range(0, len(feniks_zbins)):
             z_min = feniks_zbins[zbin][0]
@@ -1122,5 +1104,24 @@ if __name__ == "__main__":
                 logmp_cutoff=lgmp_min,
                 num_halos=num_halos,
                 apply_igm=True,
+                plt_show=False,
+            )
+        if cfg["plots"]["plot_color_contours"]:
+            print("Generating MINERVA color contour plots...")
+            fields = [
+                ["F090wF150w_F150wF356w", "F356w_F150wF356w"],
+                ["F115wF200w_F200wF356w", "F356w_F115wF356w"],
+                ["F150wF277w_F277wF444w", "F356w_F150wF356w"],
+                ["F200wF277w_F277wF444w", "F444w_F150wF444w"],
+                ["F277wF356w_F356wF444w", "F444w_F115wF444w"],
+            ]
+            plot_cc_cm_grid_minerva(
+                ran_key,
+                param_collection_fit,
+                minerva.spaces,
+                fields,
+                minerva.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
                 plt_show=False,
             )

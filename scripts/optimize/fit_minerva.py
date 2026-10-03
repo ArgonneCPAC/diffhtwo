@@ -88,7 +88,6 @@ if __name__ == "__main__":
     cfg_d["fit_diagnostics_save_drn"] = fit_diagnostics_save_drn
     cfg_d["lgmp_min"] = cfg["lgmp_min"]
     cfg_d["lgmp_max"] = cfg["lgmp_max"]
-    cfg_d["logHa_flux_limit"] = cfg["hizels"]["logHa_flux_limit"]
 
     new_config_diag_path = os.path.join(
         fit_diagnostics_save_drn, "config_diagnostics.yaml"

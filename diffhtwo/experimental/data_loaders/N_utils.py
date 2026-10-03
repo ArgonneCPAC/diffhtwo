@@ -68,12 +68,20 @@ def filter_name_to_idx(filter_name, filters_namedtuple):
 
 
 def get_mag_space(
-    namedtuple_name, mag, filter_name, z_sel, filters_namedtuple, frac_cats, fit=True
+    namedtuple_name,
+    mag,
+    filter_name,
+    z_sel,
+    filters_namedtuple,
+    mag_sels,
+    frac_cats,
+    fit=True,
 ):
     AppMagFuncSpace = namedtuple(namedtuple_name, AppMagFunc._fields)
 
     mag_idx = filter_name_to_idx(filter_name, filters_namedtuple)
-    N_1d, sig, bin_lo, bin_hi = get_N_1d(mag[z_sel])
+    sel = z_sel * mag_sels[:, mag_idx]
+    N_1d, sig, bin_lo, bin_hi = get_N_1d(mag[sel])
 
     frac_cat = frac_cats[mag_idx]
 
@@ -87,21 +95,24 @@ def get_colorcolor_space(
     col_filter_names,
     z_sel,
     filters_namedtuple,
+    mag_sels,
     frac_cats,
     fit=True,
 ):
     ColorColorSpace = namedtuple(namedtuple_name, ColorColor._fields)
 
-    N_2d, sig, bin_lo, bin_hi = get_N_2d(color1[z_sel], color2[z_sel])
-
+    sel = z_sel
     col_idx = []
     for n in col_filter_names:
         idx = filter_name_to_idx(n, filters_namedtuple)
+        sel *= mag_sels[:, idx]
         col_idx.append(idx)
 
     frac_cat = 1.0
     for idx in set(col_idx):
         frac_cat *= frac_cats[idx]
+
+    N_2d, sig, bin_lo, bin_hi = get_N_2d(color1[sel], color2[sel])
 
     return ColorColorSpace(col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, fit)
 
@@ -114,22 +125,25 @@ def get_mag_color_space(
     col_filter_names,
     z_sel,
     filters_namedtuple,
+    mag_sels,
     frac_cats,
     fit=True,
 ):
     MagColorSpace = namedtuple(namedtuple_name, MagColor._fields)
 
     mag_idx = filter_name_to_idx(mag_filter_name, filters_namedtuple)
+    sel = z_sel * mag_sels[:, mag_idx]
 
     col_idx = []
     for n in col_filter_names:
         idx = filter_name_to_idx(n, filters_namedtuple)
+        sel *= mag_sels[:, idx]
         col_idx.append(idx)
-
-    N_2d, sig, bin_lo, bin_hi = get_N_2d(mag[z_sel], color[z_sel])
 
     frac_cat = 1.0
     for idx in {mag_idx, *col_idx}:
         frac_cat *= frac_cats[idx]
+
+    N_2d, sig, bin_lo, bin_hi = get_N_2d(mag[sel], color[sel])
 
     return MagColorSpace(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, fit)

@@ -24,7 +24,9 @@ Sdss = namedtuple(
         "col_idx",
         "mag_idx",
         "dataset_dim_labels",
+        "redshift",
         "mags",
+        "mag_sels",
         "mags_labels",
         "spaces",
         "zbins",
@@ -61,21 +63,38 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
 
     sdss, sdss_area_deg2 = apply_ra_dec_cut(sdss)
 
-    mag_thresh_mask = (
+    mag_sel_u = (
         (sdss["modelMag_u"] > sdss_mag_thresh.sdss_u[0])
         & (sdss["modelMag_u"] < sdss_mag_thresh.sdss_u[1])
-        & (sdss["modelMag_g"] > sdss_mag_thresh.sdss_g[0])
+        & (sdss["modelMag_r"] > sdss_mag_thresh.sdss_r[0])
+        & (sdss["modelMag_r"] < sdss_mag_thresh.sdss_r[1])
+    )
+
+    mag_sel_g = (
+        (sdss["modelMag_g"] > sdss_mag_thresh.sdss_g[0])
         & (sdss["modelMag_g"] < sdss_mag_thresh.sdss_g[1])
         & (sdss["modelMag_r"] > sdss_mag_thresh.sdss_r[0])
         & (sdss["modelMag_r"] < sdss_mag_thresh.sdss_r[1])
-        & (sdss["modelMag_i"] > sdss_mag_thresh.sdss_i[0])
-        & (sdss["modelMag_i"] < sdss_mag_thresh.sdss_i[1])
-        & (sdss["modelMag_z"] > sdss_mag_thresh.sdss_z[0])
-        & (sdss["modelMag_z"] < sdss_mag_thresh.sdss_z[1])
     )
-    sdss = sdss[mag_thresh_mask]
+    mag_sel_r = (sdss["modelMag_r"] > sdss_mag_thresh.sdss_r[0]) & (
+        sdss["modelMag_r"] < sdss_mag_thresh.sdss_r[1]
+    )
+    mag_sel_i = (
+        (sdss["modelMag_i"] > sdss_mag_thresh.sdss_i[0])
+        & (sdss["modelMag_i"] < sdss_mag_thresh.sdss_i[1])
+        & (sdss["modelMag_r"] > sdss_mag_thresh.sdss_r[0])
+        & (sdss["modelMag_r"] < sdss_mag_thresh.sdss_r[1])
+    )
+    mag_sel_z = (
+        (sdss["modelMag_z"] > sdss_mag_thresh.sdss_z[0])
+        & (sdss["modelMag_z"] < sdss_mag_thresh.sdss_z[1])
+        & (sdss["modelMag_r"] > sdss_mag_thresh.sdss_r[0])
+        & (sdss["modelMag_r"] < sdss_mag_thresh.sdss_r[1])
+    )
+    mag_sels = [mag_sel_u, mag_sel_g, mag_sel_r, mag_sel_i, mag_sel_z]
+    mag_sels = np.vstack(mag_sels).T
 
-    return sdss, sdss_area_deg2
+    return sdss, mag_sels, sdss_area_deg2
 
 
 def compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max):
@@ -153,13 +172,13 @@ def get_sdss_data(
     n_z_phot_table=30,
 ):
     sdss_mag_thresh = SdssFilters(
-        sdss_u=(15.0, 19.7),
-        sdss_g=(14.0, 18.0),
-        sdss_r=(14.0, SDSS_MAGR_THRESH),
-        sdss_i=(13.0, 17.0),
-        sdss_z=(13.0, 17.0),
+        sdss_u=(15.0, 19.0),
+        sdss_g=(13.5, 19.0),
+        sdss_r=(13.0, SDSS_MAGR_THRESH),
+        sdss_i=(12.5, 17.5),
+        sdss_z=(12.5, 17.5),
     )
-    sdss, sdss_area_deg2 = load_sdss_cuts_applied(drn, sdss_mag_thresh)
+    sdss, mag_sels, sdss_area_deg2 = load_sdss_cuts_applied(drn, sdss_mag_thresh)
 
     tcurves = []
     frac_cat_per_band = []
@@ -175,9 +194,16 @@ def get_sdss_data(
     sdss_r = sdss["modelMag_r"].data
     sdss_i = sdss["modelMag_i"].data
     sdss_z = sdss["modelMag_z"].data
-    sdss_redshift = sdss["z"].data
+    redshift = sdss["z"].data
 
-    mags = np.vstack((sdss_u, sdss_g, sdss_r, sdss_i, sdss_z, sdss_redshift)).T
+    mags = np.vstack((sdss_u, sdss_g, sdss_r, sdss_i, sdss_z)).T
+    mag_labels = [
+        r"$u$",
+        r"$g$",
+        r"$r$",
+        r"$i$",
+        r"$z$",
+    ]
 
     # derive colors from mags
     sdss_ug = sdss_u - sdss_g
@@ -194,7 +220,7 @@ def get_sdss_data(
             sdss_ri,
             sdss_iz,
             sdss_r,
-            sdss_redshift,
+            redshift,
         )
     ).T
     dataset_dim_labels = [
@@ -205,14 +231,7 @@ def get_sdss_data(
         r"$r$",
         r"$redshift$",
     ]
-    mag_labels = [
-        r"$u$",
-        r"$g$",
-        r"$r$",
-        r"$i$",
-        r"$z$",
-        r"$redshift$",
-    ]
+
     col_idx_lh_dim = [
         [0, 1],  # u - g
         [1, 2],  # g - r
@@ -285,9 +304,9 @@ def get_sdss_data(
 
         lc_data = generate_lc_data(*lc_args)
 
-        z_sel = (sdss_redshift > z_min) & (sdss_redshift <= z_max)
+        z_sel = (redshift > z_min) & (redshift <= z_max)
         mag_u, mag_g, mag_r, mag_i, mag_z = _get_mag_spaces_at_z(
-            z_sel, sdss_u, sdss_g, sdss_r, sdss_i, sdss_z, frac_cats
+            z_sel, sdss_u, sdss_g, sdss_r, sdss_i, sdss_z, mag_sels, frac_cats
         )
 
         # 2D (u - r, r - i)
@@ -298,6 +317,7 @@ def get_sdss_data(
             ["sdss_u", "sdss_r", "sdss_r", "sdss_i"],
             z_sel,
             SdssFilters,
+            mag_sels,
             frac_cats,
             fit=True,
         )
@@ -310,6 +330,7 @@ def get_sdss_data(
             ["sdss_g", "sdss_r", "sdss_r", "sdss_i"],
             z_sel,
             SdssFilters,
+            mag_sels,
             frac_cats,
             fit=True,
         )
@@ -323,6 +344,7 @@ def get_sdss_data(
             ["sdss_u", "sdss_r"],
             z_sel,
             SdssFilters,
+            mag_sels,
             frac_cats,
             fit=True,
         )
@@ -336,6 +358,7 @@ def get_sdss_data(
             ["sdss_r", "sdss_i"],
             z_sel,
             SdssFilters,
+            mag_sels,
             frac_cats,
             fit=True,
         )
@@ -365,7 +388,9 @@ def get_sdss_data(
         col_idx_lh_dim,
         mag_idx_lh_dim,
         dataset_dim_labels,
+        redshift,
         mags,
+        mag_sels,
         mag_labels,
         spaces,
         zbins,
@@ -404,30 +429,32 @@ def get_sdss_fitting_data(
     return sdss_fitting_data
 
 
-def _get_mag_spaces_at_z(z_sel, sdss_u, sdss_g, sdss_r, sdss_i, sdss_z, frac_cats):
+def _get_mag_spaces_at_z(
+    z_sel, sdss_u, sdss_g, sdss_r, sdss_i, sdss_z, mag_sels, frac_cats
+):
     # 1D (u)
     u = N_utils.get_mag_space(
-        "U", sdss_u, "sdss_u", z_sel, SdssFilters, frac_cats, fit=True
+        "U", sdss_u, "sdss_u", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
     )
 
     # 1D (g)
     g = N_utils.get_mag_space(
-        "G", sdss_g, "sdss_g", z_sel, SdssFilters, frac_cats, fit=True
+        "G", sdss_g, "sdss_g", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
     )
 
     # 1D (r)
     r = N_utils.get_mag_space(
-        "R", sdss_r, "sdss_r", z_sel, SdssFilters, frac_cats, fit=True
+        "R", sdss_r, "sdss_r", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
     )
 
     # 1D (i)
     i = N_utils.get_mag_space(
-        "I", sdss_i, "sdss_i", z_sel, SdssFilters, frac_cats, fit=True
+        "I", sdss_i, "sdss_i", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
     )
 
     # 1D (z)
     z = N_utils.get_mag_space(
-        "Z", sdss_z, "sdss_z", z_sel, SdssFilters, frac_cats, fit=True
+        "Z", sdss_z, "sdss_z", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
     )
 
     return u, g, r, i, z
