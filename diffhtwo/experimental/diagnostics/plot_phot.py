@@ -632,7 +632,7 @@ def plot_app_mag_funcs(
     bands = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$", r"$J$", r"$H$", r"$K$"]
 
     fig_width = 7.1
-    fig_height = 2.5
+    fig_height = 2.6
 
     fontsize = 10
     labelsize = 10
@@ -640,16 +640,15 @@ def plot_app_mag_funcs(
     alpha = 0.95
     lw = 0.75
     s = 2.5
+    ypad = 0.2
 
     n_z_bins = len(zbins)
 
     fig, ax = plt.subplots(
         1, n_z_bins, figsize=(fig_width, fig_height), constrained_layout=True
     )
-    fig.get_layout_engine().set(rect=(0, 0, 1, 0.9))
+    fig.get_layout_engine().set(rect=(0, 0, 1, 0.92))
 
-    xlim = [(12.0, 20.0), (17.0, 27.0), (17.25, 27.0), (17.5, 27.0), (18.5, 27.0)]
-    ylim = [(-6.25, -1.5), (-6.25, 0.0), (-6.25, -0.45), (-6.25, -0.5), (-6.25, -0.75)]
     for zbin in range(len(zbins)):
         if zbin == 0:
             dataset = sdss_dataset
@@ -666,7 +665,8 @@ def plot_app_mag_funcs(
         z_max = zbins[zbin][1]
         z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
 
-        ax[zbin].set_title(str(z_min) + " < z < " + str(z_max))
+        survey = "SDSS" if zbin == 0 else "FENIKS"
+        ax[zbin].set_title(f"{z_min} < z < {z_max}\n{survey}", fontsize=fontsize)
 
         z_mask = (redshift > z_min) & (redshift < z_max)
         data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
@@ -694,10 +694,8 @@ def plot_app_mag_funcs(
         )
 
         shift_dex = 0.0
-        if zbin == 0:
-            d_shift_dex = 0.2
-        else:
-            d_shift_dex = 0.2
+        d_shift_dex = 0.2
+        xs, ys = [], []
         for i in range(n_bands):
             sel = mag_sels[:, i] * z_mask
             mag_band_z = mags[sel][:, i]
@@ -708,7 +706,6 @@ def plot_app_mag_funcs(
             )
             bin_centers = (bins[1:] + bins[:-1]) / 2
 
-            # oversampling for diffsky
             oversample_factor = 1
             bins_diffsky = np.linspace(
                 bins[0], bins[-1], (len(bins) - 1) * oversample_factor + 1
@@ -722,13 +719,17 @@ def plot_app_mag_funcs(
             )
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
+                y_data = np.log10(n_data) + shift_dex
                 ax[zbin].scatter(
                     bin_centers,
-                    np.log10(n_data) + shift_dex,
+                    y_data,
                     c=band_colors[i],
                     alpha=alpha,
                     s=s,
                 )
+            finite = np.isfinite(y_data)
+            xs.append(bin_centers[finite])
+            ys.append(y_data[finite])
 
             n_diffsky, _ = np.histogram(
                 obs_mags[:, i],
@@ -768,31 +769,11 @@ def plot_app_mag_funcs(
             labelsize=labelsize,
         )
 
-        ax[zbin].set_ylim(ylim[zbin])
-        ax[zbin].set_xlim(xlim[zbin])
+        x, y = np.concatenate(xs), np.concatenate(ys)
+        ax[zbin].set_xlim(x.min() - dmag, x.max() + dmag)
+        ax[zbin].set_ylim(y.min() - ypad, y.max() + ypad)
 
     ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
-
-    sdss_handle = Line2D(
-        [],
-        [],
-        linestyle="none",
-        marker="o",
-        markerfacecolor="gray",
-        markeredgecolor="none",
-        markersize=3,
-        label="SDSS",
-    )
-    diffsky_handle = Line2D([], [], linestyle="-", lw=1, color="gray", label="diffsky")
-
-    ax[0].legend(
-        handles=[sdss_handle, diffsky_handle],
-        loc="upper center",
-        frameon=False,
-        fontsize=legendsize,
-        handletextpad=0.3,
-        labelspacing=0.3,
-    )
 
     ax[0].annotate(
         "",
@@ -811,20 +792,33 @@ def plot_app_mag_funcs(
         fontsize=legendsize - 2,
     )
 
-    for i in range(1, len(zbins)):
-        _add_marker_legend(ax[i], "FENIKS", fontsize=legendsize)
-
     handles = [
         mlines.Line2D([], [], color=c, linewidth=6, solid_capstyle="butt", label=label)
         for c, label in zip(band_colors, bands)
     ]
+    handles += [
+        mlines.Line2D(
+            [],
+            [],
+            linestyle="none",
+            marker="o",
+            markerfacecolor="gray",
+            markeredgecolor="none",
+            markersize=3,
+            label="data",
+        ),
+        mlines.Line2D([], [], linestyle="-", lw=1, color="gray", label="diffsky"),
+    ]
     fig.legend(
         handles=handles,
         loc="upper center",
-        ncol=len(bands),
-        bbox_to_anchor=(0.5, 1.0),
+        ncol=len(handles),
+        bbox_to_anchor=(0, 1.0, 1, 0),
+        mode="expand",
         frameon=False,
         fontsize=legendsize,
+        handletextpad=0.4,
+        borderaxespad=0.2,
     )
 
     fig.supxlabel("apparent magnitude [AB]")
@@ -889,6 +883,8 @@ def plot_app_mag_funcs_minerva(
     alpha = 0.95
     lw = 0.75
     s = 2.5
+    d_shift_dex = 0.3
+    ypad = 0.2
 
     zbins = minerva_phot.zbins
     redshift = minerva_phot.redshift
@@ -906,8 +902,6 @@ def plot_app_mag_funcs_minerva(
     ax = np.atleast_1d(ax)
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.85))
 
-    # xlim = [(18.0, 26.0), (18.0, 26.0), (18.0, 26.0), (18.0, 26.0), (18.0, 26.0)]
-    # ylim = [(-6.5, 1), (-6.2, 0.0), (-6.2, -0.2), (-6.2, -0.4), (-6.4, -0.6)]
     for zbin in range(len(zbins)):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
@@ -953,10 +947,7 @@ def plot_app_mag_funcs_minerva(
         )
 
         shift_dex = 0.0
-        if zbin == 0:
-            d_shift_dex = 0.2
-        else:
-            d_shift_dex = 0.2
+        xs, ys = [], []
 
         fields = minerva_phot.spaces[zbin]._fields[4:]
         mag_filters = [f for f in fields if "_" not in f]
@@ -975,27 +966,24 @@ def plot_app_mag_funcs_minerva(
             )
             bin_centers = (bins[1:] + bins[:-1]) / 2
 
-            # oversampling for diffsky
-            oversample_factor = 1
-            bins_diffsky = np.linspace(
-                bins[0], bins[-1], (len(bins) - 1) * oversample_factor + 1
-            )
-            bin_diffsky_centers = (bins_diffsky[1:] + bins_diffsky[:-1]) / 2
-
-            n_data, bin_edges = np.histogram(
+            n_data, _ = np.histogram(
                 mag_band_z,
                 weights=np.ones_like(mag_band_z) * (1 / data_vol_mpc3),
                 bins=bins,
             )
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
+                y_data = np.log10(n_data) + shift_dex
                 ax[zbin].scatter(
                     bin_centers,
-                    np.log10(n_data) + shift_dex,
+                    y_data,
                     c=minerva_colors[mag_idx],
                     alpha=alpha,
                     s=s,
                 )
+            finite = np.isfinite(y_data)
+            xs.append(bin_centers[finite])
+            ys.append(y_data[finite])
 
             n_diffsky, _ = np.histogram(
                 obs_mags[:, mag_idx],
@@ -1003,16 +991,15 @@ def plot_app_mag_funcs_minerva(
                 * mag_weight[:, mag_idx]
                 * (1 / lc_data.lc_tot_vol_mpc3)
                 * frac_cats[mag_idx],
-                bins=bins_diffsky,
+                bins=bins,
             )
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
                 ax[zbin].plot(
-                    bin_diffsky_centers,
+                    bin_centers,
                     np.log10(n_diffsky) + shift_dex,
                     c=minerva_colors[mag_idx],
                     alpha=alpha,
-                    label=mags_labels[mag_idx],
                     lw=lw,
                 )
             shift_dex += d_shift_dex
@@ -1040,31 +1027,12 @@ def plot_app_mag_funcs_minerva(
             labelsize=labelsize,
         )
 
-        ax[zbin].set_ylim(-6.5, 0)
-        ax[zbin].set_xlim(18.5, 27.0)
+        x, y = np.concatenate(xs), np.concatenate(ys)
+        ax[zbin].set_xlim(x.min() - dmag, x.max() + dmag)
+        ax[zbin].set_ylim(y.min() - ypad, y.max() + ypad)
 
     ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
 
-    minerva_handle = Line2D(
-        [],
-        [],
-        linestyle="none",
-        marker="o",
-        markerfacecolor="gray",
-        markeredgecolor="none",
-        markersize=3,
-        label="MINERVA",
-    )
-    diffsky_handle = Line2D([], [], linestyle="-", lw=1, color="gray", label="diffsky")
-
-    ax[-1].legend(
-        handles=[minerva_handle, diffsky_handle],
-        loc="upper center",
-        frameon=False,
-        fontsize=legendsize,
-        handletextpad=0.3,
-        labelspacing=0.3,
-    )
     ax[0].annotate(
         "",
         xy=(0.9, 0.3),
@@ -1075,22 +1043,45 @@ def plot_app_mag_funcs_minerva(
     ax[0].text(
         0.86,
         0.18,
-        "shift by\n +0.2 dex",
+        f"shift by\n +{d_shift_dex} dex",
         transform=ax[0].transAxes,
         ha="right",
         va="center",
         fontsize=legendsize - 2,
     )
 
-    handles = [
-        mlines.Line2D([], [], color=c, linewidth=6, solid_capstyle="butt", label=label)
-        for c, label in zip(band_colors_fitted, mags_labels_fitted)
-    ]
+    leg = fig.legend(
+        handles=[Line2D([], [], linestyle="none", label=l) for l in mags_labels_fitted],
+        loc="upper left",
+        bbox_to_anchor=(0.0, 1.0),
+        ncol=len(mags_labels_fitted),
+        frameon=False,
+        fontsize=legendsize,
+        handlelength=0,
+        handletextpad=0,
+        columnspacing=0.8,
+    )
+    for t, c in zip(leg.get_texts(), band_colors_fitted):
+        t.set_color("w")
+        t.set_bbox(dict(facecolor=c, edgecolor="none", pad=2))
+
     fig.legend(
-        handles=handles,
-        loc="upper center",
-        ncol=7,
-        bbox_to_anchor=(0.5, 1.0),
+        handles=[
+            Line2D(
+                [],
+                [],
+                linestyle="none",
+                marker="o",
+                markerfacecolor="gray",
+                markeredgecolor="none",
+                markersize=3,
+                label="MINERVA",
+            ),
+            Line2D([], [], linestyle="-", lw=1, color="gray", label="diffsky"),
+        ],
+        loc="upper right",
+        bbox_to_anchor=(1.0, 1.0),
+        ncol=2,
         frameon=False,
         fontsize=legendsize,
     )

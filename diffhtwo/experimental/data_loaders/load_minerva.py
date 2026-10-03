@@ -427,7 +427,7 @@ def get_minerva_phot(
             mag = mag_selected[:, mag_idx]
             color = mag_selected[:, b] - mag_selected[:, c]
 
-            N_2d, sig, bin_lo, bin_hi = get_N_2d(mag, color, n_bins=50)
+            N_2d, sig, bin_lo, bin_hi = get_N_2d(mag, color)
 
             col_idx = [b, c]
 
