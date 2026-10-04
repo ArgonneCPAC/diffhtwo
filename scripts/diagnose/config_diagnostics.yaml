@@ -16,7 +16,7 @@ fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 
-plot_sdss: False
+plot_sdss: True
 plot_feniks: True
 plot_hizels: False
 
@@ -31,7 +31,7 @@ lgmp_max: 15.0
 logHa_flux_limit: -15.9
 
 plots:
-  plot_app_mag_funcs: True
+  plot_app_mag_funcs: False
   
   plot_exsitu_frac_z0: False
   plot_exsitu_frac: False
@@ -42,7 +42,7 @@ plots:
 
   plot_color_z: False
   plot_mag_z: False
-  plot_color_contours: False
+  plot_color_contours: True
 
   plot_color_pdfs: False
   plot_colors_mags: False

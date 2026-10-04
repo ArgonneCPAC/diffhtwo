@@ -38,8 +38,9 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_color_redshift import plot_color_z
 from diffhtwo.experimental.diagnostics.plot_contour import (
+    plot_cc_cm_grid,
     plot_cc_cm_grid_minerva,
-    plot_color_contour_grid,
+    plot_cc_cm_grid_raw,
 )
 from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
 from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
@@ -541,7 +542,20 @@ if __name__ == "__main__":
                 ["zJ_JH", "K_gr"],
             ]
             print("Generating SDSS/FENIKS color contour plots...")
-            plot_color_contour_grid(
+            plot_cc_cm_grid(
+                ran_key,
+                param_collection_fit,
+                feniks.spaces,
+                feniks_fields,
+                feniks.filter_info.mag_thresh,
+                sdss.spaces,
+                sdss_fields,
+                sdss.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+            plot_cc_cm_grid_raw(
                 ran_key,
                 param_collection_fit,
                 feniks.spaces,
