@@ -16,7 +16,7 @@ fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 
-plot_sdss: True
+plot_sdss: False
 plot_feniks: True
 plot_hizels: False
 

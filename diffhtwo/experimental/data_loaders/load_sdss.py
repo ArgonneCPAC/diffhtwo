@@ -441,7 +441,7 @@ def get_sdss_fitting_data(
         ssp_data,
         d_mag_1d=d_mag_1d,
         d_mag_2d=d_mag_2d,
-        gauss_sig=gauss_sig_2d,
+        gauss_sig_2d=gauss_sig_2d,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,

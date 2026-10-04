@@ -1162,7 +1162,7 @@ def get_feniks_fitting_data(
         ssp_data,
         d_mag_1d=d_mag_1d,
         d_mag_2d=d_mag_2d,
-        gauss_sig=gauss_sig_2d,
+        gauss_sig_2d=gauss_sig_2d,
         lh_d_mag=lh_d_mag,
         num_halos=num_halos,
         phot=phot,
