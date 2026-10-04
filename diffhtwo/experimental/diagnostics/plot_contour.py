@@ -40,6 +40,51 @@ dusk = ListedColormap(
 )
 
 
+def plot_density_raw(bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap=dusk, N_model=None):
+    w = (bin_hi - bin_lo)[0]
+    idx = np.round((bin_lo - bin_lo.min(0)) / w).astype(int)
+    shape = idx[:, 1].max() + 1, idx[:, 0].max() + 1
+    x = bin_lo[:, 0].min() + w[0] * np.arange(shape[1] + 1)
+    y = bin_lo[:, 1].min() + w[1] * np.arange(shape[0] + 1)
+
+    Z = np.full(shape, np.nan)
+    Z[idx[:, 1], idx[:, 0]] = N
+
+    ax.set_facecolor("0.9")
+    qm = ax.pcolormesh(x, y, Z, cmap=cmap, norm=LogNorm())
+    ax.figure.colorbar(qm, ax=ax, label=r"$N$")
+
+    if N_model is not None:
+        Zm = np.full(shape, np.nan)
+        Zm[idx[:, 1], idx[:, 0]] = N_model
+        ax.contour(
+            (x[:-1] + x[1:]) / 2,
+            (y[:-1] + y[1:]) / 2,
+            Zm,
+            norm=qm.norm,
+            cmap=cmap,
+            linewidths=0.8,
+        )
+    ax.set_xlabel(xlabel, labelpad=0.8)
+    ax.set_ylabel(ylabel, labelpad=0.8)
+
+
+def plot_cc_cm_grid_raw(spaces, fields):
+    fig, ax = plt.subplots(1, len(fields), figsize=(7.1, 1.5), constrained_layout=True)
+    fig.get_layout_engine().set(
+        h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.925)
+    )
+
+    for f in range(len(fields)):
+        space = getattr(spaces, fields[f])
+        name = type(space).__name__
+        xlabel, ylabel = parse_color_labels(name)
+        plot_density_raw(
+            space.bin_lo, space.bin_hi, space.N_data, ax[f], xlabel, ylabel
+        )
+    plt.show()
+
+
 def sigma_levels(Z_lin, sigmas=(1, 2, 3)):
     flat = np.sort(Z_lin.ravel())[::-1]
     cumsum = np.cumsum(flat)
@@ -99,35 +144,6 @@ def plot_density(
     ax.set_xlabel(xlabel, fontsize=fontsize)
     ax.set_ylabel(ylabel, fontsize=fontsize)
     return qm
-
-
-def plot_density_raw(bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap=dusk, N_model=None):
-    w = (bin_hi - bin_lo)[0]
-    idx = np.round((bin_lo - bin_lo.min(0)) / w).astype(int)
-    shape = idx[:, 1].max() + 1, idx[:, 0].max() + 1
-    x = bin_lo[:, 0].min() + w[0] * np.arange(shape[1] + 1)
-    y = bin_lo[:, 1].min() + w[1] * np.arange(shape[0] + 1)
-
-    Z = np.full(shape, np.nan)
-    Z[idx[:, 1], idx[:, 0]] = N
-
-    ax.set_facecolor("0.9")
-    qm = ax.pcolormesh(x, y, Z, cmap=cmap, norm=LogNorm())
-    ax.figure.colorbar(qm, ax=ax, label=r"$N$")
-
-    if N_model is not None:
-        Zm = np.full(shape, np.nan)
-        Zm[idx[:, 1], idx[:, 0]] = N_model
-        ax.contour(
-            (x[:-1] + x[1:]) / 2,
-            (y[:-1] + y[1:]) / 2,
-            Zm,
-            norm=qm.norm,
-            cmap=cmap,
-            linewidths=0.8,
-        )
-    ax.set_xlabel(xlabel, labelpad=0.8)
-    ax.set_ylabel(ylabel, labelpad=0.8)
 
 
 def plot_color_contour_grid(

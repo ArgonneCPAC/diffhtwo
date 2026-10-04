@@ -163,6 +163,9 @@ def get_sdss_data(
     drn,
     ran_key,
     ssp_data,
+    d_mag_1d=0.1,
+    d_mag_2d=0.05,
+    gauss_sig_2d=3.0,
     frac_cat=1.0,
     lh_d_mag=0.1,
     num_halos=150,
@@ -306,7 +309,15 @@ def get_sdss_data(
 
         z_sel = (redshift > z_min) & (redshift <= z_max)
         mag_u, mag_g, mag_r, mag_i, mag_z = _get_mag_spaces_at_z(
-            z_sel, sdss_u, sdss_g, sdss_r, sdss_i, sdss_z, mag_sels, frac_cats
+            z_sel,
+            sdss_u,
+            sdss_g,
+            sdss_r,
+            sdss_i,
+            sdss_z,
+            mag_sels,
+            frac_cats,
+            dmag=d_mag_1d,
         )
 
         # 2D (u - r, r - i)
@@ -319,6 +330,8 @@ def get_sdss_data(
             SdssFilters,
             mag_sels,
             frac_cats,
+            dmag=d_mag_2d,
+            gauss_sig=gauss_sig_2d,
             fit=True,
         )
 
@@ -332,6 +345,8 @@ def get_sdss_data(
             SdssFilters,
             mag_sels,
             frac_cats,
+            dmag=d_mag_2d,
+            gauss_sig=gauss_sig_2d,
             fit=True,
         )
 
@@ -346,6 +361,8 @@ def get_sdss_data(
             SdssFilters,
             mag_sels,
             frac_cats,
+            dmag=d_mag_2d,
+            gauss_sig=gauss_sig_2d,
             fit=True,
         )
 
@@ -360,6 +377,8 @@ def get_sdss_data(
             SdssFilters,
             mag_sels,
             frac_cats,
+            dmag=d_mag_2d,
+            gauss_sig=gauss_sig_2d,
             fit=True,
         )
 
@@ -409,6 +428,9 @@ def get_sdss_fitting_data(
     drn,
     ran_key,
     ssp_data,
+    d_mag_1d=0.1,
+    d_mag_2d=0.05,
+    gauss_sig_2d=3.0,
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
@@ -417,6 +439,9 @@ def get_sdss_fitting_data(
         drn,
         ran_key,
         ssp_data,
+        d_mag_1d=d_mag_1d,
+        d_mag_2d=d_mag_2d,
+        gauss_sig=gauss_sig_2d,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
@@ -430,31 +455,79 @@ def get_sdss_fitting_data(
 
 
 def _get_mag_spaces_at_z(
-    z_sel, sdss_u, sdss_g, sdss_r, sdss_i, sdss_z, mag_sels, frac_cats
+    z_sel,
+    sdss_u,
+    sdss_g,
+    sdss_r,
+    sdss_i,
+    sdss_z,
+    mag_sels,
+    frac_cats,
+    dmag=0.1,
 ):
     # 1D (u)
     u = N_utils.get_mag_space(
-        "U", sdss_u, "sdss_u", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
+        "U",
+        sdss_u,
+        "sdss_u",
+        z_sel,
+        SdssFilters,
+        mag_sels,
+        frac_cats,
+        dmag=dmag,
+        fit=True,
     )
 
     # 1D (g)
     g = N_utils.get_mag_space(
-        "G", sdss_g, "sdss_g", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
+        "G",
+        sdss_g,
+        "sdss_g",
+        z_sel,
+        SdssFilters,
+        mag_sels,
+        frac_cats,
+        dmag=dmag,
+        fit=True,
     )
 
     # 1D (r)
     r = N_utils.get_mag_space(
-        "R", sdss_r, "sdss_r", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
+        "R",
+        sdss_r,
+        "sdss_r",
+        z_sel,
+        SdssFilters,
+        mag_sels,
+        frac_cats,
+        dmag=dmag,
+        fit=True,
     )
 
     # 1D (i)
     i = N_utils.get_mag_space(
-        "I", sdss_i, "sdss_i", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
+        "I",
+        sdss_i,
+        "sdss_i",
+        z_sel,
+        SdssFilters,
+        mag_sels,
+        frac_cats,
+        dmag=dmag,
+        fit=True,
     )
 
     # 1D (z)
     z = N_utils.get_mag_space(
-        "Z", sdss_z, "sdss_z", z_sel, SdssFilters, mag_sels, frac_cats, fit=True
+        "Z",
+        sdss_z,
+        "sdss_z",
+        z_sel,
+        SdssFilters,
+        mag_sels,
+        frac_cats,
+        dmag=dmag,
+        fit=True,
     )
 
     return u, g, r, i, z

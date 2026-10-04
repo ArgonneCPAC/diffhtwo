@@ -168,6 +168,7 @@ def get_feniks_data(
     drn,
     ran_key,
     ssp_data,
+    d_mag_1d=0.2,
     d_mag_2d=0.1,
     gauss_sig_2d=3.0,
     frac_cat=1.0,
@@ -465,6 +466,7 @@ def get_feniks_data(
         uds_K_tot,
         mag_sels,
         frac_cats,
+        dmag=d_mag_1d,
     )
 
     # 2D (g - r, r - i)
@@ -610,6 +612,7 @@ def get_feniks_data(
             uds_K_tot,
             mag_sels,
             frac_cats,
+            dmag=d_mag_1d,
         )
 
         # 2D (r - z, z - J)
@@ -754,6 +757,7 @@ def get_feniks_data(
             uds_K_tot,
             mag_sels,
             frac_cats,
+            dmag=d_mag_1d,
         )
 
         # 2D (r - z, z - J)
@@ -906,6 +910,7 @@ def get_feniks_data(
             uds_K_tot,
             mag_sels,
             frac_cats,
+            dmag=d_mag_1d,
         )
 
         # 2D (z - J, J - H)
@@ -1041,6 +1046,7 @@ def _get_mag_spaces_at_z(
     uds_K_tot,
     mag_sels,
     frac_cats,
+    dmag=0.2,
 ):
     u = N_utils.get_mag_space(
         "U",
@@ -1050,6 +1056,7 @@ def _get_mag_spaces_at_z(
         FeniksFilters,
         mag_sels,
         frac_cats,
+        dmag=dmag,
         fit=True,
     )
     g = N_utils.get_mag_space(
@@ -1060,6 +1067,7 @@ def _get_mag_spaces_at_z(
         FeniksFilters,
         mag_sels,
         frac_cats,
+        dmag=dmag,
         fit=True,
     )
     r = N_utils.get_mag_space(
@@ -1070,6 +1078,7 @@ def _get_mag_spaces_at_z(
         FeniksFilters,
         mag_sels,
         frac_cats,
+        dmag=dmag,
         fit=True,
     )
     i = N_utils.get_mag_space(
@@ -1080,6 +1089,7 @@ def _get_mag_spaces_at_z(
         FeniksFilters,
         mag_sels,
         frac_cats,
+        dmag=dmag,
         fit=True,
     )
     z = N_utils.get_mag_space(
@@ -1090,6 +1100,7 @@ def _get_mag_spaces_at_z(
         FeniksFilters,
         mag_sels,
         frac_cats,
+        dmag=dmag,
         fit=True,
     )
     j = N_utils.get_mag_space(
@@ -1100,6 +1111,7 @@ def _get_mag_spaces_at_z(
         FeniksFilters,
         mag_sels,
         frac_cats,
+        dmag=dmag,
         fit=True,
     )
     h = N_utils.get_mag_space(
@@ -1110,6 +1122,7 @@ def _get_mag_spaces_at_z(
         FeniksFilters,
         mag_sels,
         frac_cats,
+        dmag=dmag,
         fit=True,
     )
     k = N_utils.get_mag_space(
@@ -1120,6 +1133,7 @@ def _get_mag_spaces_at_z(
         FeniksFilters,
         mag_sels,
         frac_cats,
+        dmag=dmag,
         fit=True,
     )
 
@@ -1130,6 +1144,7 @@ def get_feniks_fitting_data(
     feniks_drn,
     ran_key,
     ssp_data,
+    d_mag_1d=0.2,
     d_mag_2d=0.1,
     gauss_sig_2d=3.0,
     lh_d_mag=0.6,
@@ -1145,7 +1160,8 @@ def get_feniks_fitting_data(
         feniks_drn,
         ran_key,
         ssp_data,
-        dmag=d_mag_2d,
+        d_mag_1d=d_mag_1d,
+        d_mag_2d=d_mag_2d,
         gauss_sig=gauss_sig_2d,
         lh_d_mag=lh_d_mag,
         num_halos=num_halos,

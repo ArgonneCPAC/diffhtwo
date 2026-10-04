@@ -66,13 +66,14 @@ def get_mag_space(
     filters_namedtuple,
     mag_sels,
     frac_cats,
+    dmag=0.2,
     fit=True,
 ):
     AppMagFuncSpace = namedtuple(namedtuple_name, AppMagFunc._fields)
 
     mag_idx = filter_name_to_idx(filter_name, filters_namedtuple)
     sel = z_sel * mag_sels[:, mag_idx]
-    N_1d, sig, bin_lo, bin_hi = get_N_1d(mag[sel])
+    N_1d, sig, bin_lo, bin_hi = get_N_1d(mag[sel], dmag=dmag)
 
     frac_cat = frac_cats[mag_idx]
 
