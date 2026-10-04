@@ -41,7 +41,6 @@ def get_N_2d(dim1, dim2, dmag=0.1, sig_scale=0.5, gauss_sig=3.0):
             np.arange(dim2.min(), dim2.max() + dmag, dmag),
         ],
     )
-    print(H.shape[0] * H.shape[1])
 
     h = np.sort(H.ravel())[::-1]
     k = np.searchsorted(np.cumsum(h) / h.sum(), 1 - np.exp(-(gauss_sig**2) / 2))

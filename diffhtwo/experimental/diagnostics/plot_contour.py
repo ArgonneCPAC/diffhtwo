@@ -64,48 +64,35 @@ def plot_density(
     sigmas=(1, 2, 3),
     model_own_levels=True,
 ):
-    x_edges = np.unique(np.append(bin_lo[:, 0], bin_hi[-1, 0]))
-    y_edges = np.unique(np.append(bin_lo[:, 1], bin_hi[-1, 1]))
-    xc = 0.5 * (x_edges[:-1] + x_edges[1:])
-    yc = 0.5 * (y_edges[:-1] + y_edges[1:])
+    w = (bin_hi - bin_lo)[0]
+    ix, iy = np.round((bin_lo - bin_lo.min(0)) / w).astype(int).T
+    shape = iy.max() + 1, ix.max() + 1
+    xc = bin_lo[:, 0].min() + w[0] * (np.arange(shape[1]) + 0.5)
+    yc = bin_lo[:, 1].min() + w[1] * (np.arange(shape[0]) + 0.5)
 
-    Z_lin = gaussian_filter(
-        (N / N.sum()).reshape(len(y_edges) - 1, len(x_edges) - 1).astype(float),
-        sigma=sigma,
-    ).clip(min=np.finfo(float).tiny)
-    Z = np.log10(Z_lin)
+    grids = []
+    for counts in (N, N_model):
+        if counts is None:
+            continue
+        Z = np.zeros(shape)
+        Z[iy, ix] = counts / counts.sum()
+        Z = gaussian_filter(Z, sigma).clip(np.finfo(float).tiny)
+        lv = np.log10(sigma_levels(Z, sigmas=sigmas))
+        Z = np.log10(Z)
+        grids.append((Z, np.concatenate([[Z.min()], lv, [Z.max()]])))
 
-    levels_lin = sigma_levels(Z_lin, sigmas=sigmas)
-    levels = np.log10(levels_lin)  # ascending: outer sigma -> inner sigma
-    levels = np.concatenate([[Z.min()], levels, [Z.max()]])
-
+    Z, levels = grids[0]
     qm = ax.contourf(xc, yc, Z, levels=levels, colors=cmap.colors, alpha=0.5)
 
     if N_model is not None:
-        Z_model_lin = gaussian_filter(
-            (N_model / N_model.sum())
-            .reshape(len(y_edges) - 1, len(x_edges) - 1)
-            .astype(float),
-            sigma=sigma,
-        ).clip(min=np.finfo(float).tiny)
-        Z_model = np.log10(Z_model_lin)
-
-        if model_own_levels:
-            model_levels_lin = sigma_levels(Z_model_lin, sigmas=sigmas)
-            model_levels = np.concatenate(
-                [[Z_model.min()], np.log10(model_levels_lin), [Z_model.max()]]
-            )
-        else:
-            model_levels = levels  # compare against data's thresholds
-
+        Zm, levels_m = grids[1]
         ax.contour(
             xc,
             yc,
-            Z_model,
-            levels=model_levels,
+            Zm,
+            levels=levels_m if model_own_levels else levels,
             colors=cmap.colors,
             linewidths=1.5,
-            alpha=1,
             linestyles="dashed",
         )
 
