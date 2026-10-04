@@ -32,34 +32,26 @@ def get_N_1d(dim1, dim1_bin_edges=None, dmag=0.2, sig_scale=0.5):
     )
 
 
-def get_N_2d(dim1, dim2, sig_scale=0.5, n_bins=22):
-    dataset = np.vstack((dim1, dim2)).T
-
-    dim1_bin_edges = np.linspace(dim1.min(), dim1.max(), n_bins)
-    dim2_bin_edges = np.linspace(dim2.min(), dim2.max(), n_bins)
-
-    dim1_lo = dim1_bin_edges[:-1]
-    dim2_lo = dim2_bin_edges[:-1]
-    bin_lo = np.meshgrid(dim1_lo, dim2_lo, indexing="ij")
-    bin_lo = np.array(bin_lo).T.reshape(-1, 2)
-
-    dim1_hi = dim1_bin_edges[1:]
-    dim2_hi = dim2_bin_edges[1:]
-    bin_hi = np.meshgrid(dim1_hi, dim2_hi, indexing="ij")
-    bin_hi = np.array(bin_hi).T.reshape(-1, 2)
-
-    sig1 = np.diff(dim1_bin_edges) * sig_scale
-    sig2 = np.diff(dim2_bin_edges) * sig_scale
-    sig = np.meshgrid(sig1, sig2, indexing="ij")
-    sig = np.array(sig).T.reshape(-1, 2)
-
-    N_2d = diffndhist_lomem.tw_ndhist(
-        dataset,
-        sig,
-        bin_lo,
-        bin_hi,
+def get_N_2d(dim1, dim2, dmag=0.1, sig_scale=0.5, gauss_sig=3.0):
+    H, xe, ye = np.histogram2d(
+        dim1,
+        dim2,
+        [
+            np.arange(dim1.min(), dim1.max() + dmag, dmag),
+            np.arange(dim2.min(), dim2.max() + dmag, dmag),
+        ],
     )
+    print(H.shape[0] * H.shape[1])
 
+    h = np.sort(H.ravel())[::-1]
+    k = np.searchsorted(np.cumsum(h) / h.sum(), 1 - np.exp(-(gauss_sig**2) / 2))
+    i, j = np.where(H >= h[k])
+
+    N_2d = H[i, j]
+    bin_lo = np.stack([xe[i], ye[j]], 1)
+    bin_hi = np.stack([xe[i + 1], ye[j + 1]], 1)
+    bin_width = bin_hi - bin_lo
+    sig = bin_width * sig_scale
     return N_2d, sig, bin_lo, bin_hi
 
 
@@ -97,6 +89,9 @@ def get_colorcolor_space(
     filters_namedtuple,
     mag_sels,
     frac_cats,
+    dmag=0.1,
+    sig_scale=0.5,
+    gauss_sig=3.0,
     fit=True,
 ):
     ColorColorSpace = namedtuple(namedtuple_name, ColorColor._fields)
@@ -112,7 +107,9 @@ def get_colorcolor_space(
     for idx in set(col_idx):
         frac_cat *= frac_cats[idx]
 
-    N_2d, sig, bin_lo, bin_hi = get_N_2d(color1[sel], color2[sel])
+    N_2d, sig, bin_lo, bin_hi = get_N_2d(
+        color1[sel], color2[sel], dmag=dmag, sig_scale=sig_scale, gauss_sig=gauss_sig
+    )
 
     return ColorColorSpace(col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, fit)
 
@@ -127,6 +124,9 @@ def get_mag_color_space(
     filters_namedtuple,
     mag_sels,
     frac_cats,
+    dmag=0.1,
+    sig_scale=0.5,
+    gauss_sig=3.0,
     fit=True,
 ):
     MagColorSpace = namedtuple(namedtuple_name, MagColor._fields)
@@ -144,6 +144,8 @@ def get_mag_color_space(
     for idx in {mag_idx, *col_idx}:
         frac_cat *= frac_cats[idx]
 
-    N_2d, sig, bin_lo, bin_hi = get_N_2d(mag[sel], color[sel])
+    N_2d, sig, bin_lo, bin_hi = get_N_2d(
+        mag[sel], color[sel], dmag=dmag, sig_scale=sig_scale, gauss_sig=gauss_sig
+    )
 
     return MagColorSpace(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, fit)
