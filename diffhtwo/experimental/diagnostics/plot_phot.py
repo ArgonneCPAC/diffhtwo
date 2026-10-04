@@ -5,6 +5,7 @@ import jax.numpy as jnp
 import numpy as np
 from diffstar.defaults import FB
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
+from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 from ..data_loaders.load_minerva import PhotFilters, get_filt_indx
@@ -47,35 +48,21 @@ try:
 except ImportError:
     HAS_MATPLOTLIB = False
 
-minerva_colors = [
+MINERVA_ANCHORS = [
     "#7C93D6",
-    "#809ED7",
-    "#84A9D9",
-    "#89B5DA",
-    "#8CC0D9",
     "#8DC8D3",
-    "#8ED0CD",
-    "#8FD7C7",
-    "#96DBBF",
     "#A3DBB4",
-    "#AFDCAA",
     "#BCDC9F",
-    "#C3DCA2",
-    "#C9DCA6",
-    "#CEDCAA",
-    "#D4DCAE",
     "#DAD9AB",
-    "#E0D7A8",
-    "#E7D4A5",
     "#EACFA2",
-    "#E9C8A0",
     "#E9C19D",
-    "#E8B99B",
-    "#E5B19A",
-    "#E1AA9A",
-    "#DDA29B",
     "#D99B9B",
 ]
+
+
+def minerva_colors(n):
+    cmap = LinearSegmentedColormap.from_list("minerva", MINERVA_ANCHORS)
+    return [cmap(x) for x in np.linspace(0, 1, n)]
 
 
 def plot_color_pdfs(
@@ -951,9 +938,13 @@ def plot_app_mag_funcs_minerva(
 
         fields = minerva_phot.spaces[zbin]._fields[4:]
         mag_filters = [f for f in fields if "_" not in f]
+
+        n_filters = len(mag_filters)
+        colors = minerva_colors(n_filters)
+
         band_colors_fitted = []
         mags_labels_fitted = []
-        for i in range(len(mag_filters)):
+        for i in range(n_filters):
             (mag_idx,) = get_filt_indx(mag_filters[i], PhotFilters)
 
             sel = sels[:, mag_idx] * z_mask
@@ -977,7 +968,7 @@ def plot_app_mag_funcs_minerva(
                 ax[zbin].scatter(
                     bin_centers,
                     y_data,
-                    c=minerva_colors[mag_idx],
+                    color=colors[i],
                     alpha=alpha,
                     s=s,
                 )
@@ -998,12 +989,12 @@ def plot_app_mag_funcs_minerva(
                 ax[zbin].plot(
                     bin_centers,
                     np.log10(n_diffsky) + shift_dex,
-                    c=minerva_colors[mag_idx],
+                    color=colors[i],
                     alpha=alpha,
                     lw=lw,
                 )
             shift_dex += d_shift_dex
-            band_colors_fitted.append(minerva_colors[mag_idx])
+            band_colors_fitted.append(colors[i])
             mags_labels_fitted.append(mags_labels[mag_idx])
 
         ax[zbin].set_xticks(np.arange(10, 30, 2))
@@ -1052,8 +1043,7 @@ def plot_app_mag_funcs_minerva(
 
     leg = fig.legend(
         handles=[Line2D([], [], linestyle="none", label=l) for l in mags_labels_fitted],
-        loc="upper left",
-        bbox_to_anchor=(0.0, 1.0),
+        loc="center left",
         ncol=len(mags_labels_fitted),
         frameon=False,
         fontsize=legendsize,
@@ -1065,7 +1055,7 @@ def plot_app_mag_funcs_minerva(
         t.set_color("w")
         t.set_bbox(dict(facecolor=c, edgecolor="none", pad=2))
 
-    fig.legend(
+    leg2 = fig.legend(
         handles=[
             Line2D(
                 [],
@@ -1079,12 +1069,21 @@ def plot_app_mag_funcs_minerva(
             ),
             Line2D([], [], linestyle="-", lw=1, color="gray", label="diffsky"),
         ],
-        loc="upper right",
-        bbox_to_anchor=(1.0, 1.0),
+        loc="center left",
         ncol=2,
         frameon=False,
         fontsize=legendsize,
     )
+
+    fig.canvas.draw()
+    inv = fig.transFigure.inverted()
+    w1 = leg.get_window_extent().transformed(inv).width
+    w2 = leg2.get_window_extent().transformed(inv).width
+    gap = 0.03
+    y = 0.93
+    x0 = 0.5 - (w1 + gap + w2) / 2
+    leg.set_bbox_to_anchor((x0, y), transform=fig.transFigure)
+    leg2.set_bbox_to_anchor((x0 + w1 + gap, y), transform=fig.transFigure)
 
     fig.supxlabel("apparent magnitude [AB]")
     fig.savefig(

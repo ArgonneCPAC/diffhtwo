@@ -41,6 +41,7 @@ from diffhtwo.experimental.diagnostics.plot_contour import (
     plot_cc_cm_grid,
     plot_cc_cm_grid_minerva,
     plot_cc_cm_grid_raw,
+    plot_cc_cm_grid_raw_minerva,
 )
 from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
 from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
@@ -1129,7 +1130,7 @@ if __name__ == "__main__":
                 ["F200wF277w_F277wF444w", "F444w_F150wF444w"],
                 ["F277wF356w_F356wF444w", "F444w_F115wF444w"],
             ]
-            plot_cc_cm_grid_minerva(
+            plot_cc_cm_grid_raw_minerva(
                 ran_key,
                 param_collection_fit,
                 minerva.spaces,
@@ -1139,3 +1140,13 @@ if __name__ == "__main__":
                 fit_diagnostics_save_drn,
                 plt_show=False,
             )
+            # plot_cc_cm_grid_minerva(
+            #     ran_key,
+            #     param_collection_fit,
+            #     minerva.spaces,
+            #     fields,
+            #     minerva.filter_info.mag_thresh,
+            #     run_label,
+            #     fit_diagnostics_save_drn,
+            #     plt_show=False,
+            # )
