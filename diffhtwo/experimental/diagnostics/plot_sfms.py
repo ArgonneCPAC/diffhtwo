@@ -12,8 +12,6 @@ cmap = make_cmap()
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 
-LOGMP_OBS_MIN, LOGMP_OBS_MAX = 10.5, 14.5
-
 
 pantone_colors = [
     "#2D3142",  # deep indigo (Pantone Graphite-ish)
@@ -89,9 +87,10 @@ def plot_sfms_hexbin(
     frac_cat=None,
     xlim=(8, 12),
     ylim=(-3, 2),
-    xlim_halo=(10, 13.2),
     plt_show=True,
 ):
+    xlim_halo = (lgmp_min, 13.2)
+
     n_z_bins = len(zbins)
     fig, ax = plt.subplots(
         2,
