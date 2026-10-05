@@ -120,7 +120,7 @@ if __name__ == "__main__":
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    run_label2 = "run261"
+    run_label2 = "run321"
     run_type2 = "diffstarpop+spspop+merging"
     drn_pc2 = (
         os.path.join(os.path.dirname(cfg["model_drn"].rstrip("/")), run_label2) + "/"
@@ -1140,13 +1140,13 @@ if __name__ == "__main__":
                 fit_diagnostics_save_drn,
                 plt_show=False,
             )
-            # plot_cc_cm_grid_minerva(
-            #     ran_key,
-            #     param_collection_fit,
-            #     minerva.spaces,
-            #     fields,
-            #     minerva.filter_info.mag_thresh,
-            #     run_label,
-            #     fit_diagnostics_save_drn,
-            #     plt_show=False,
-            # )
+            plot_cc_cm_grid_minerva(
+                ran_key,
+                param_collection_fit,
+                minerva.spaces,
+                fields,
+                minerva.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
