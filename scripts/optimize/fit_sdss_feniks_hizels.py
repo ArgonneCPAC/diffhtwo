@@ -195,13 +195,16 @@ if __name__ == "__main__":
         f'Gradient descent took {elapsed/60:.3f} minutes for {cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]} steps.'
     )
     print(f'speed: {elapsed/(cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]):.3f} s/it')
+
     # gradient descent figure
-    fig_loss, ax_loss = plt.subplots(1)
+    fig, ax = plt.subplots(1, 4, figsize=(7.1, 3), constrained_layout=True)
     start_step = [s[0] for s in initial_pts]
     start_loss = [s[1] for s in initial_pts]
-    ax_loss.scatter(start_step, start_loss, s=50, c="k")
-    ax_loss.plot(STEPS, LOSS_HIST, c="k", label="total")
-    ax_loss.plot(
+
+    ax[0].scatter(start_step, start_loss, s=50, c="k")
+    ax[0].plot(STEPS, LOSS_HIST, c="k", label="total")
+
+    ax[1].plot(
         STEPS,
         LOSS_SDSS_HIST,
         c="#0a7a80",
@@ -209,7 +212,9 @@ if __name__ == "__main__":
         alpha=0.7,
         label="sdss",
     )
-    ax_loss.plot(
+    ax[1].legend()
+
+    ax[2].plot(
         STEPS,
         LOSS_FENIKS_HIST,
         c="#c87820",
@@ -217,7 +222,9 @@ if __name__ == "__main__":
         alpha=0.7,
         label="feniks",
     )
-    ax_loss.plot(
+    ax[2].legend()
+
+    ax[3].plot(
         STEPS,
         LOSS_HIZELS_HIST,
         c="#DA291C",
@@ -225,11 +232,14 @@ if __name__ == "__main__":
         alpha=0.7,
         label="hizels",
     )
-    ax_loss.legend()
-    ax_loss.set_ylabel("Poisson Negative Log-Likelihood")
-    ax_loss.set_xlabel("steps")
+    ax[3].legend()
+
+    fig.supylabel("Poisson Negative Log-Likelihood")
+    fig.supxlabel("steps")
+
     ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    plt.savefig(fit_diagnostics_save_drn + "/loss/loss_" + ts + ".png")
+    fig.savefig(fit_diagnostics_save_drn + "/loss/loss_" + ts + ".png")
+
     plt.close()
 
     os.system(

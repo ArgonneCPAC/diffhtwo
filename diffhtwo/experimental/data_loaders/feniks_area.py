@@ -40,7 +40,7 @@ edge_codes = [
 def calc_multiband_area(
     mask_drn,
 ):
-    bands = ["HSC_G", "HSC_R", "HSC_I", "HSC_Z", "UDS_J", "UDS_H"]
+    bands = ["MegaCam_uS", "HSC_G", "HSC_R", "HSC_I", "HSC_Z", "UDS_J", "UDS_H"]
 
     uds_area_degsq, uds_mask = get_uds_area(mask_drn)
     uds_data = 1 - uds_mask

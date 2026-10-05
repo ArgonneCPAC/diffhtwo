@@ -18,8 +18,9 @@ COSMO = FlatLambdaCDM(
 )
 
 # FENIKS_AREA_DEG2 is Area with combined coverage in the following bands:
-# ["HSC_G", "HSC_R", "HSC_I", "HSC_Z", "UDS_J", "UDS_H", "UDS_K"]
-FENIKS_AREA_DEG2 = 0.6081027540413089
+# ["MegaCam_uS", HSC_G", "HSC_R", "HSC_I", "HSC_Z", "UDS_J", "UDS_H", "UDS_K"]
+FENIKS_AREA_DEG2 = 0.5801314485383459
+# FENIKS_AREA_DEG2 = 0.6081027540413089 #without MegaCam_uS
 FENIKS_Z_MIN = 0.2
 FENIKS_Z_MAX = 2.5
 FENIKS_MAGK_THRESH = 24.0  # col mag
