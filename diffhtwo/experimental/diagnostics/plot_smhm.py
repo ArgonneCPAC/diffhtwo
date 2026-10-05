@@ -18,7 +18,6 @@ plt.rc("font", family="serif", serif=["Times New Roman"])
 cmap = make_cmap()
 ex_situ_frac_color = "#3E7CB1"
 
-LOGMP_OBS_MIN, LOGMP_OBS_MAX = 10.5, 14.5
 LOGSM_OBS_MIN, LOGSM_OBS_MAX = 7.0, 12.5
 
 COLORS_Z = ["#2d0b52", "#0491a1", "#a1d661", "#ee6920", "#8a0f17"]
@@ -305,7 +304,7 @@ def plot_smhm(
         )
         ax_ex_situ_frac.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
-        ax[zbin].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[zbin].set_xlim(lgmp_min, lgmp_max)
         ax[zbin].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
         ax[zbin].set_xticks([11, 12, 13, 14])
         ax[zbin].set_yticks([7, 8, 9, 10, 11, 12])
@@ -443,7 +442,7 @@ def plot_smhm_median(
         )
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
-        logmp_bins = np.arange(LOGMP_OBS_MIN, LOGMP_OBS_MAX + d_mh, d_mh)
+        logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
         logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
         (
             logsm_obs_weighted_l16,
@@ -493,7 +492,7 @@ def plot_smhm_median(
         width=0.8,
         labelsize=labelsize,
     )
-    ax.set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+    ax.set_xlim(lgmp_min, lgmp_max)
     ax.set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
     ax.set_xticks([11, 12, 13, 14])
     ax.set_yticks([7, 8, 9, 10, 11, 12])
@@ -572,12 +571,12 @@ def plot_smhm_hexbin(
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,
-            extent=(LOGMP_OBS_MIN, LOGMP_OBS_MAX, LOGSM_OBS_MIN, LOGSM_OBS_MAX),
+            extent=(lgmp_min, lgmp_max, LOGSM_OBS_MIN, LOGSM_OBS_MAX),
         )
         hbs.append(hb)
         all_counts.append(hb.get_array())
 
-        logmp_bins = np.arange(LOGMP_OBS_MIN, LOGMP_OBS_MAX + d_mh, d_mh)
+        logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
         logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
         _, logsm_obs_weighted_median, _ = _get_logsm_obs_weighted_median(
             logmp_bins, logmp_obs, logsm_obs, gal_weight
@@ -610,7 +609,7 @@ def plot_smhm_hexbin(
             labelsize=labelsize,
         )
         ax[zbin].set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
-        ax[zbin].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[zbin].set_xlim(lgmp_min, lgmp_max)
         ax[zbin].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
         ax[zbin].set_xticks([11, 12, 13, 14])
         ax[zbin].set_yticks([7, 8, 9, 10, 11, 12])
@@ -778,7 +777,7 @@ def plot_smhm_cen_sat(
         )
 
     for i in range(0, 3):
-        ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[i].set_xlim(lgmp_min, lgmp_max)
         ax[i].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
         ax[i].set_xticks([11, 12, 13, 14, 15])
 
@@ -990,7 +989,7 @@ def plot_mc_smhm_cen_sat(
         )
 
     for i in range(0, 3):
-        ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[i].set_xlim(lgmp_min, lgmp_max)
         ax[i].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
         ax[i].set_xticks([11, 12, 13, 14, 15])
 
@@ -1204,7 +1203,7 @@ def plot_smhm_ratio_cen_sat(
         )
 
     for i in range(0, 3):
-        ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[i].set_xlim(lgmp_min, lgmp_max)
         ax[i].set_ylim(-3.2, -1.2)
         ax[i].set_xticks([11, 12, 13, 14, 15])
 
