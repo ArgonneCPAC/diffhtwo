@@ -311,6 +311,9 @@ def get_feniks_data(
     tcurves = []
     frac_cat_per_band = []
     mag_sel_per_band = []
+
+    mag_limit_K = getattr(feniks_mag_thresh, "UDS_K")
+    mag_sel_K = (mags[:, -1] > mag_limit_K[0]) & (mags[:, -1] < mag_limit_K[1])
     for f in range(len(FeniksFilters._fields)):
         feniks_filter = FeniksFilters._fields[f]
 
@@ -320,7 +323,7 @@ def get_feniks_data(
 
         mag_limit = getattr(feniks_mag_thresh, feniks_filter)
         mag_sel = (mags[:, f] > mag_limit[0]) & (mags[:, f] < mag_limit[1])
-        mag_sel *= (mags[:, -1] > mag_limit[0]) & (mags[:, -1] < mag_limit[1])
+        mag_sel *= mag_sel_K
 
         mag_sel_per_band.append(mag_sel)
         frac_cat_per_band.append(frac_cat)

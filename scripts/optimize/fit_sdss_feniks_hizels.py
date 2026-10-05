@@ -203,6 +203,7 @@ if __name__ == "__main__":
 
     ax[0].scatter(start_step, start_loss, s=50, c="k")
     ax[0].plot(STEPS, LOSS_HIST, c="k", label="total")
+    ax[0].legend()
 
     ax[1].plot(
         STEPS,
