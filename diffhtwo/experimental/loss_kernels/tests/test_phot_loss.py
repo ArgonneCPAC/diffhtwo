@@ -44,7 +44,6 @@ def test_phot_loss_2d(ran_key, feniks_fitting_data):
         DEFAULT_PARAM_COLLECTION,
         feniks_fitting_data.spaces,
         feniks_fitting_data.filter_info.mag_thresh,
-        frac_cat=feniks_fitting_data.frac_cat,
     )
     assert np.isfinite(phot_loss)
 

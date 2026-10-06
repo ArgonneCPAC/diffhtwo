@@ -4,7 +4,7 @@ import matplotlib.lines as mlines
 import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
 import numpy as np
-from matplotlib.colors import LinearSegmentedColormap, ListedColormap
+from matplotlib.colors import LinearSegmentedColormap, ListedColormap, LogNorm
 from scipy.ndimage import gaussian_filter
 
 from ..kernels.N_phot import N_colors_mags
@@ -40,6 +40,197 @@ dusk = ListedColormap(
 )
 
 
+def plot_density_raw(bin_lo, bin_hi, n, ax, xlabel, ylabel, cmap=dusk, norm=None):
+    w = (bin_hi - bin_lo)[0]
+    ix, iy = np.round((bin_lo - bin_lo.min(0)) / w).astype(int).T
+    x = bin_lo[:, 0].min() + w[0] * np.arange(ix.max() + 2)
+    y = bin_lo[:, 1].min() + w[1] * np.arange(iy.max() + 2)
+
+    Z = np.full((iy.max() + 1, ix.max() + 1), np.nan)
+    Z[iy, ix] = n
+
+    ax.set_facecolor("0.9")
+    qm = ax.pcolormesh(x, y, Z, cmap=cmap, norm=norm)
+    ax.set_xlabel(xlabel, labelpad=0.8)
+    ax.set_ylabel(ylabel, labelpad=0.8)
+    return qm
+
+
+def plot_cc_cm_grid_raw(
+    ran_key,
+    param_collection,
+    feniks_data,
+    feniks_fields,
+    feniks_mag_thresh,
+    sdss_data,
+    sdss_fields,
+    sdss_mag_thresh,
+    run_label,
+    savedir,
+    plt_show=True,
+    percentile=(2, 98),
+):
+    labelsize = 9
+    fontsize = 10
+
+    sources = [(sdss_data[0], sdss_fields[0], sdss_mag_thresh)]
+    sources += [
+        (data, fields, feniks_mag_thresh)
+        for data, fields in zip(feniks_data, feniks_fields)
+    ]
+
+    models = []
+    panels = []
+    n_data = []
+    n_model = []
+    for col, (data, fields, mag_thresh) in enumerate(sources):
+        model = N_colors_mags(ran_key, param_collection, data, mag_thresh)
+        models.append(model)
+        for row, field in enumerate(fields):
+            space = getattr(model, field)
+            panels.append((row, col, space))
+            n_data.append(space.N_data / model.data_vol_mpc3)
+            n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
+
+    data_vals = np.concatenate([np.ravel(n) for n in n_data])
+    vmin, vmax = np.percentile(data_vals[data_vals > 0], percentile)
+    norm = LogNorm(vmin, vmax)
+
+    figures = [
+        ("SDSS or FENIKS", "data", n_data),
+        ("diffsky", "model", n_model),
+    ]
+    for label, suffix, densities in figures:
+        fig, ax = plt.subplots(
+            2, len(models), figsize=(7.1, 3.4), constrained_layout=True
+        )
+        fig.get_layout_engine().set(w_pad=0.04, h_pad=0.04, wspace=0.05, hspace=0.05)
+
+        for col, model in enumerate(models):
+            ax[0][col].set_title(
+                f"{model.z_min} < z < {model.z_max}", fontsize=fontsize, y=1.0, pad=3
+            )
+
+        for (row, col, space), n in zip(panels, densities):
+            a = ax[row][col]
+            xlabel, ylabel = parse_color_labels(type(space).__name__)
+            qm = plot_density_raw(
+                space.bin_lo, space.bin_hi, n, a, xlabel, ylabel, dusk, norm=norm
+            )
+            a.minorticks_on()
+            for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
+                a.tick_params(
+                    which=which,
+                    direction="in",
+                    top=True,
+                    right=True,
+                    length=length,
+                    width=width,
+                    labelsize=labelsize,
+                )
+
+        cbar = fig.colorbar(
+            qm,
+            ax=ax.ravel().tolist(),
+            location="right",
+            shrink=1,
+            aspect=40,
+            pad=0.01,
+            extend="both",
+        )
+        cbar.set_label(r"$n\ [\mathrm{Mpc}^{-3}]$", fontsize=fontsize)
+        cbar.ax.tick_params(labelsize=labelsize)
+
+        fig.suptitle(label, fontsize=fontsize)
+        fig.savefig(f"{savedir}/{run_label}_cc_cm_grid_raw_{suffix}.png", dpi=600)
+        if plt_show:
+            plt.show()
+        plt.close()
+
+
+def plot_cc_cm_grid_raw_minerva(
+    ran_key,
+    param_collection,
+    spaces,
+    fields,
+    mag_thresh,
+    run_label,
+    savedir,
+    plt_show=True,
+    percentile=(2, 98),
+):
+    labelsize = 9
+    fontsize = 10
+
+    models = []
+    panels = []
+    n_data = []
+    n_model = []
+    for col, (z_data, z_fields) in enumerate(zip(spaces, fields)):
+        model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
+        models.append(model)
+        for row, field in enumerate(z_fields):
+            space = getattr(model, field)
+            panels.append((row, col, space))
+            n_data.append(space.N_data / model.data_vol_mpc3)
+            n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
+
+    data_vals = np.concatenate([np.ravel(n) for n in n_data])
+    vmin, vmax = np.percentile(data_vals[data_vals > 0], percentile)
+    norm = LogNorm(vmin, vmax)
+
+    figures = [
+        ("MINERVA", "data", n_data),
+        ("diffsky", "model", n_model),
+    ]
+    for label, suffix, densities in figures:
+        fig, ax = plt.subplots(
+            2, len(models), figsize=(7.1, 3.4), constrained_layout=True
+        )
+        fig.get_layout_engine().set(w_pad=0.04, h_pad=0.04, wspace=0.05, hspace=0.05)
+
+        for col, model in enumerate(models):
+            ax[0][col].set_title(
+                f"{model.z_min} < z < {model.z_max}", fontsize=fontsize, y=1.0, pad=3
+            )
+
+        for (row, col, space), n in zip(panels, densities):
+            a = ax[row][col]
+            xlabel, ylabel = parse_color_labels(type(space).__name__)
+            qm = plot_density_raw(
+                space.bin_lo, space.bin_hi, n, a, xlabel, ylabel, dusk, norm=norm
+            )
+            a.minorticks_on()
+            for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
+                a.tick_params(
+                    which=which,
+                    direction="in",
+                    top=True,
+                    right=True,
+                    length=length,
+                    width=width,
+                    labelsize=labelsize,
+                )
+
+        cbar = fig.colorbar(
+            qm,
+            ax=ax.ravel().tolist(),
+            location="right",
+            shrink=1,
+            aspect=40,
+            pad=0.01,
+            extend="both",
+        )
+        cbar.set_label(r"$n\ [\mathrm{Mpc}^{-3}]$", fontsize=fontsize)
+        cbar.ax.tick_params(labelsize=labelsize)
+
+        fig.suptitle(label, fontsize=fontsize)
+        fig.savefig(f"{savedir}/{run_label}_cc_cm_grid_raw_{suffix}.png", dpi=600)
+        if plt_show:
+            plt.show()
+        plt.close()
+
+
 def sigma_levels(Z_lin, sigmas=(1, 2, 3)):
     flat = np.sort(Z_lin.ravel())[::-1]
     cumsum = np.cumsum(flat)
@@ -52,60 +243,43 @@ def sigma_levels(Z_lin, sigmas=(1, 2, 3)):
 def plot_density(
     bin_lo,
     bin_hi,
-    N,
+    n,
     ax,
     xlabel,
     ylabel,
     cmap,
-    data_label,
     fontsize=18,
-    N_model=None,
-    sigma=0.5,
+    n_model=None,
+    sigma=1.0,
     sigmas=(1, 2, 3),
     model_own_levels=True,
 ):
-    x_edges = np.unique(np.append(bin_lo[:, 0], bin_hi[-1, 0]))
-    y_edges = np.unique(np.append(bin_lo[:, 1], bin_hi[-1, 1]))
-    xc = 0.5 * (x_edges[:-1] + x_edges[1:])
-    yc = 0.5 * (y_edges[:-1] + y_edges[1:])
+    w = (bin_hi - bin_lo)[0]
+    ix, iy = np.round((bin_lo - bin_lo.min(0)) / w).astype(int).T
+    shape = iy.max() + 1, ix.max() + 1
+    xc = bin_lo[:, 0].min() + w[0] * (np.arange(shape[1]) + 0.5)
+    yc = bin_lo[:, 1].min() + w[1] * (np.arange(shape[0]) + 0.5)
 
-    Z_lin = gaussian_filter(
-        (N / N.sum()).reshape(len(y_edges) - 1, len(x_edges) - 1).astype(float),
-        sigma=sigma,
-    ).clip(min=np.finfo(float).tiny)
-    Z = np.log10(Z_lin)
+    def log_grid(dens):
+        Z = np.zeros(shape)
+        Z[iy, ix] = dens
+        Z = gaussian_filter(Z, sigma).clip(np.finfo(float).tiny)
+        logZ = np.log10(Z)
+        levels = [logZ.min(), *np.log10(sigma_levels(Z, sigmas)), logZ.max()]
+        return logZ, levels
 
-    levels_lin = sigma_levels(Z_lin, sigmas=sigmas)
-    levels = np.log10(levels_lin)  # ascending: outer sigma -> inner sigma
-    levels = np.concatenate([[Z.min()], levels, [Z.max()]])
-
+    Z, levels = log_grid(n)
     qm = ax.contourf(xc, yc, Z, levels=levels, colors=cmap.colors, alpha=0.5)
 
-    if N_model is not None:
-        Z_model_lin = gaussian_filter(
-            (N_model / N_model.sum())
-            .reshape(len(y_edges) - 1, len(x_edges) - 1)
-            .astype(float),
-            sigma=sigma,
-        ).clip(min=np.finfo(float).tiny)
-        Z_model = np.log10(Z_model_lin)
-
-        if model_own_levels:
-            model_levels_lin = sigma_levels(Z_model_lin, sigmas=sigmas)
-            model_levels = np.concatenate(
-                [[Z_model.min()], np.log10(model_levels_lin), [Z_model.max()]]
-            )
-        else:
-            model_levels = levels  # compare against data's thresholds
-
+    if n_model is not None:
+        Zm, levels_m = log_grid(n_model)
         ax.contour(
             xc,
             yc,
-            Z_model,
-            levels=model_levels,
+            Zm,
+            levels=levels_m if model_own_levels else levels,
             colors=cmap.colors,
             linewidths=1.5,
-            alpha=1,
             linestyles="dashed",
         )
 
@@ -114,204 +288,95 @@ def plot_density(
     return qm
 
 
-def plot_density_raw(bin_lo, bin_hi, N, ax, xlabel, ylabel, cmap, N_model=None):
-    x_edges = np.unique(np.append(bin_lo[:, 0], bin_hi[-1, 0]))
-    y_edges = np.unique(np.append(bin_lo[:, 1], bin_hi[-1, 1]))
-    xc = 0.5 * (x_edges[:-1] + x_edges[1:])
-    yc = 0.5 * (y_edges[:-1] + y_edges[1:])
-    Z = np.log10(
-        (N / N.sum())
-        .reshape(len(y_edges) - 1, len(x_edges) - 1)
-        .astype(float)
-        .clip(min=np.finfo(float).tiny)
-    )
-    qm = ax.pcolormesh(x_edges, y_edges, Z, cmap=cmap)
-    ax.get_figure().colorbar(qm, ax=ax, label=r"$\log_{10}(N / N_{\rm tot})$")
-    if N_model is not None:
-        Z_model = np.log10(
-            (N_model / N_model.sum())
-            .reshape(len(y_edges) - 1, len(x_edges) - 1)
-            .astype(float)
-            .clip(min=np.finfo(float).tiny)
-        )
-        levels = np.linspace(Z.min(), Z.max(), 8)
-        ax.contour(xc, yc, Z_model, levels=levels, cmap=cmap, linewidths=0.8, alpha=0.9)
-    ax.set_xlabel(xlabel, labelpad=0.8)
-    ax.set_ylabel(ylabel, labelpad=0.8)
-
-
-def plot_color_contour_grid(
+def plot_cc_cm_grid(
     ran_key,
     param_collection,
     feniks_data,
     feniks_fields,
     feniks_mag_thresh,
-    feniks_frac_cat,
     sdss_data,
     sdss_fields,
     sdss_mag_thresh,
-    sdss_frac_cat,
     run_label,
     savedir,
-    sigma=0.5,
     plt_show=True,
 ):
     labelsize = 9
     fontsize = 10
-    n_cols = len(feniks_data) + 1  # +1 for SDSS column
-    fig, ax = plt.subplots(2, n_cols, figsize=(7.1, 3.4), constrained_layout=True)
+
+    sources = [(sdss_data[0], sdss_fields[0], sdss_mag_thresh)]
+    sources += [
+        (data, fields, feniks_mag_thresh)
+        for data, fields in zip(feniks_data, feniks_fields)
+    ]
+
+    fig, ax = plt.subplots(2, len(sources), figsize=(7.1, 3.4), constrained_layout=True)
     fig.get_layout_engine().set(
         h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.925)
     )
 
-    """ SDSS """
-    sdss_data_model = N_colors_mags(
-        ran_key,
-        param_collection,
-        sdss_data[0],
-        sdss_mag_thresh,
-        sdss_frac_cat,
-    )
-    sdss_fields_at_z = sdss_fields[0]
-    z_min = sdss_data_model.z_min
-    z_max = sdss_data_model.z_max
-    ax[0][0].set_title(str(z_min) + " < z < " + str(z_max), fontsize=fontsize, y=0.99)
-    for f in range(0, len(sdss_fields_at_z)):
-        space = getattr(sdss_data_model, sdss_fields_at_z[f])
-        name = type(space).__name__
-        xlabel, ylabel = parse_color_labels(name)
-        qm = plot_density(
-            space.bin_lo,
-            space.bin_hi,
-            space.N_data,
-            ax[f][0],
-            xlabel,
-            ylabel,
-            dusk,
-            "SDSS or FENIKS",
-            fontsize=fontsize,
-            N_model=space.N_model,
-            sigma=sigma,
-        )
-        ax[f][0].minorticks_on()
-        ax[f][0].tick_params(
-            which="major",
-            direction="in",
-            top=True,
-            right=True,
-            length=6,
-            width=1,
-            labelsize=labelsize,
-        )
-        ax[f][0].tick_params(
-            which="minor",
-            direction="in",
-            top=True,
-            right=True,
-            length=3,
-            width=0.8,
-            labelsize=labelsize,
-        )
-
-    """ FENIKS """
-    for z in range(0, len(feniks_data)):
-        col = z + 1
-        z_data = feniks_data[z]
-        z_data_model = N_colors_mags(
-            ran_key,
-            param_collection,
-            z_data,
-            feniks_mag_thresh,
-            feniks_frac_cat,
-        )
-        fields_at_z = feniks_fields[z]
-        z_min = z_data_model.z_min
-        z_max = z_data_model.z_max
+    for col, (data, fields, mag_thresh) in enumerate(sources):
+        model = N_colors_mags(ran_key, param_collection, data, mag_thresh)
         ax[0][col].set_title(
-            str(z_min) + " < z < " + str(z_max), fontsize=fontsize, y=0.99
+            f"{model.z_min} < z < {model.z_max}", fontsize=fontsize, y=0.99
         )
-        for f in range(0, len(fields_at_z)):
-            space = getattr(z_data_model, fields_at_z[f])
-            name = type(space).__name__
-            xlabel, ylabel = parse_color_labels(name)
+        for row, field in enumerate(fields):
+            space = getattr(model, field)
+            xlabel, ylabel = parse_color_labels(type(space).__name__)
             qm = plot_density(
                 space.bin_lo,
                 space.bin_hi,
-                space.N_data,
-                ax[f][col],
+                space.N_data / model.data_vol_mpc3,
+                ax[row][col],
                 xlabel,
                 ylabel,
                 dusk,
-                "SDSS or FENIKS",
                 fontsize=fontsize,
-                N_model=space.N_model,
-                sigma=sigma,
+                n_model=space.N_model / model.lc_data.lc_tot_vol_mpc3,
             )
-            ax[f][col].minorticks_on()
-            ax[f][col].tick_params(
-                which="major",
-                direction="in",
-                top=True,
-                right=True,
-                length=6,
-                width=1,
-                labelsize=labelsize,
-            )
-            ax[f][col].tick_params(
-                which="minor",
-                direction="in",
-                top=True,
-                right=True,
-                length=3,
-                width=0.8,
-                labelsize=labelsize,
-            )
+            ax[row][col].minorticks_on()
+            for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
+                ax[row][col].tick_params(
+                    which=which,
+                    direction="in",
+                    top=True,
+                    right=True,
+                    length=length,
+                    width=width,
+                    labelsize=labelsize,
+                )
 
     cbar = fig.colorbar(
-        qm,
-        ax=ax.ravel().tolist(),
-        location="right",
-        shrink=1,
-        aspect=40,
-        pad=0.01,
+        qm, ax=ax.ravel().tolist(), location="right", shrink=1, aspect=40, pad=0.01
     )
-    # place ticks at bin centers and label with sigma bands
-    level_edges = np.asarray(qm.levels)
-    tick_locs = 0.5 * (level_edges[:-1] + level_edges[1:])
-    sigma_labels = [r"$>3\sigma$", r"$3\sigma$", r"$2\sigma$", r"$1\sigma$"]
-    cbar.set_ticks(tick_locs)
-    cbar.set_ticklabels(sigma_labels)
+    edges = np.asarray(qm.levels)
+    cbar.set_ticks(0.5 * (edges[:-1] + edges[1:]))
+    cbar.set_ticklabels([r"$>3\sigma$", r"$3\sigma$", r"$2\sigma$", r"$1\sigma$"])
     cbar.ax.tick_params(
         labelsize=labelsize, labelleft=False, labelright=True, direction="in", length=0
     )
 
-    legend_handles = [
-        mpatches.Patch(color=dusk(0.7), alpha=0.5, label="SDSS or FENIKS")
-    ]
-    legend_handles.append(
-        mlines.Line2D(
-            [],
-            [],
-            color=dusk(0.7),
-            linewidth=1.5,
-            linestyle="dashed",
-            alpha=0.9,
-            label="diffsky",
-        )
-    )
     fig.legend(
-        handles=legend_handles,
+        handles=[
+            mpatches.Patch(color=dusk(0.7), alpha=0.5, label="SDSS or FENIKS"),
+            mlines.Line2D(
+                [],
+                [],
+                color=dusk(0.7),
+                linewidth=1.5,
+                linestyle="dashed",
+                alpha=0.9,
+                label="diffsky",
+            ),
+        ],
         loc="upper center",
         bbox_to_anchor=(0.5, 1.0),
-        ncol=len(legend_handles),
+        ncol=2,
         frameon=False,
         fontsize=fontsize,
         borderaxespad=0.0,
     )
-    fig.savefig(
-        savedir + "/" + run_label + "_cc_cm_grid.png",
-        dpi=600,
-    )
+    fig.savefig(f"{savedir}/{run_label}_cc_cm_grid.png", dpi=600)
     if plt_show:
         plt.show()
     plt.close()
@@ -325,84 +390,56 @@ def plot_color_contours(
     data_label,
     run_label,
     savedir,
-    frac_cat=1.0,
-    sigma=0.5,
     plt_show=True,
 ):
     labelsize = 9
     fontsize = 10
-    for z in range(len(data)):
-        z_data = data[z]
 
-        z_data_model = N_colors_mags(
-            ran_key,
-            param_collection,
-            z_data,
-            mag_thresh,
-            frac_cat=frac_cat,
-        )
-        fields = z_data_model._fields[4:]
+    for z_data in data:
+        model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
+        fields = [f for f in model._fields[4:] if "_" in f]
 
-        # pick only color-color or color-magnitude diagrams
-        fields = [f for f in fields if "_" in f]
-
-        z_min = z_data_model.z_min
-        z_max = z_data_model.z_max
-
-        for f in range(len(fields)):
-            space = getattr(z_data_model, fields[f])
-
+        for field in fields:
+            space = getattr(model, field)
             if isinstance(space, list):
-                pass
+                continue
 
-            else:
-                fig, ax = plt.subplots(figsize=(3.55, 3.5), constrained_layout=True)
-                fig.get_layout_engine().set(
-                    h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.92)
-                )
+            name = type(space).__name__
+            xlabel, ylabel = parse_color_labels(name)
 
-                name = type(space).__name__
-                xlabel, ylabel = parse_color_labels(name)
-                ax.set_title(
-                    str(z_min) + " < z < " + str(z_max), fontsize=fontsize, y=1
-                )
-                plot_density(
-                    space.bin_lo,
-                    space.bin_hi,
-                    space.N_data,
-                    ax,
-                    xlabel,
-                    ylabel,
-                    dusk,
-                    data_label,
-                    fontsize=fontsize,
-                    N_model=space.N_model,
-                    sigma=sigma,
-                )
-                ax.minorticks_on()
+            fig, ax = plt.subplots(figsize=(3.55, 3.5), constrained_layout=True)
+            fig.get_layout_engine().set(
+                h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.92)
+            )
+            ax.set_title(f"{model.z_min} < z < {model.z_max}", fontsize=fontsize)
+
+            plot_density(
+                space.bin_lo,
+                space.bin_hi,
+                space.N_data / model.data_vol_mpc3,
+                ax,
+                xlabel,
+                ylabel,
+                dusk,
+                fontsize=fontsize,
+                n_model=space.N_model / model.lc_data.lc_tot_vol_mpc3,
+            )
+
+            ax.minorticks_on()
+            for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
                 ax.tick_params(
-                    which="major",
+                    which=which,
                     direction="in",
                     top=True,
                     right=True,
-                    length=6,
-                    width=1,
-                    labelsize=labelsize,
-                )
-                ax.tick_params(
-                    which="minor",
-                    direction="in",
-                    top=True,
-                    right=True,
-                    length=3,
-                    width=0.8,
+                    length=length,
+                    width=width,
                     labelsize=labelsize,
                 )
 
-                legend_handles = [
-                    mpatches.Patch(color=dusk(0.7), alpha=0.5, label=data_label)
-                ]
-                legend_handles.append(
+            fig.legend(
+                handles=[
+                    mpatches.Patch(color=dusk(0.7), alpha=0.5, label=data_label),
                     mlines.Line2D(
                         [],
                         [],
@@ -411,35 +448,23 @@ def plot_color_contours(
                         linestyle="dashed",
                         alpha=0.9,
                         label="diffsky",
-                    )
-                )
+                    ),
+                ],
+                loc="upper center",
+                bbox_to_anchor=(0.5, 1.0),
+                ncol=2,
+                frameon=False,
+                fontsize=fontsize,
+                borderaxespad=0.0,
+            )
 
-                fig.legend(
-                    handles=legend_handles,
-                    loc="upper center",
-                    bbox_to_anchor=(0.5, 1.0),
-                    ncol=len(legend_handles),
-                    frameon=False,
-                    fontsize=fontsize,
-                    borderaxespad=0.0,
-                )
-
-                fig.savefig(
-                    savedir
-                    + "/"
-                    + run_label
-                    + "_"
-                    + name
-                    + "_"
-                    + str(z_min)
-                    + "-"
-                    + str(z_max)
-                    + ".png",
-                    dpi=600,
-                )
-                if plt_show:
-                    plt.show()
-                plt.close()
+            fig.savefig(
+                f"{savedir}/{run_label}_{name}_{model.z_min}-{model.z_max}.png",
+                dpi=600,
+            )
+            if plt_show:
+                plt.show()
+            plt.close()
 
 
 def plot_cc_cm_grid_minerva(
@@ -450,111 +475,81 @@ def plot_cc_cm_grid_minerva(
     mag_thresh,
     run_label,
     savedir,
-    sigma=0.5,
     plt_show=True,
 ):
     labelsize = 9
     fontsize = 10
-    n_z_bins = len(spaces)
-    fig, ax = plt.subplots(2, n_z_bins, figsize=(7.1, 3.4), constrained_layout=True)
+
+    fig, ax = plt.subplots(2, len(spaces), figsize=(7.1, 3.4), constrained_layout=True)
     fig.get_layout_engine().set(
         h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.925)
     )
 
-    for z in range(n_z_bins):
-        z_data = spaces[z]
-        z_data_model = N_colors_mags(
-            ran_key,
-            param_collection,
-            z_data,
-            mag_thresh,
+    for col, (z_data, z_fields) in enumerate(zip(spaces, fields)):
+        model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
+        ax[0][col].set_title(
+            f"{model.z_min} < z < {model.z_max}", fontsize=fontsize, y=0.99
         )
-        fields_at_z = fields[z]
-        z_min = z_data_model.z_min
-        z_max = z_data_model.z_max
-        ax[0][z].set_title(
-            str(z_min) + " < z < " + str(z_max), fontsize=fontsize, y=0.99
-        )
-        for f in range(len(fields_at_z)):
-            space = getattr(z_data_model, fields_at_z[f])
-            name = type(space).__name__
-            xlabel, ylabel = parse_color_labels(name)
+
+        for row, field in enumerate(z_fields):
+            space = getattr(model, field)
+            a = ax[row][col]
+            xlabel, ylabel = parse_color_labels(type(space).__name__)
             qm = plot_density(
                 space.bin_lo,
                 space.bin_hi,
-                space.N_data,
-                ax[f][z],
+                space.N_data / model.data_vol_mpc3,
+                a,
                 xlabel,
                 ylabel,
                 dusk,
-                "MINERVA",
                 fontsize=fontsize,
-                N_model=space.N_model,
-                sigma=sigma,
-            )
-            ax[f][z].minorticks_on()
-            ax[f][z].tick_params(
-                which="major",
-                direction="in",
-                top=True,
-                right=True,
-                length=6,
-                width=1,
-                labelsize=labelsize,
-            )
-            ax[f][z].tick_params(
-                which="minor",
-                direction="in",
-                top=True,
-                right=True,
-                length=3,
-                width=0.8,
-                labelsize=labelsize,
+                n_model=space.N_model / model.lc_data.lc_tot_vol_mpc3,
             )
 
+            a.minorticks_on()
+            for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
+                a.tick_params(
+                    which=which,
+                    direction="in",
+                    top=True,
+                    right=True,
+                    length=length,
+                    width=width,
+                    labelsize=labelsize,
+                )
+
     cbar = fig.colorbar(
-        qm,
-        ax=ax.ravel().tolist(),
-        location="right",
-        shrink=1,
-        aspect=40,
-        pad=0.01,
+        qm, ax=ax.ravel().tolist(), location="right", shrink=1, aspect=40, pad=0.01
     )
-    # place ticks at bin centers and label with sigma bands
-    level_edges = np.asarray(qm.levels)
-    tick_locs = 0.5 * (level_edges[:-1] + level_edges[1:])
-    sigma_labels = [r"$>3\sigma$", r"$3\sigma$", r"$2\sigma$", r"$1\sigma$"]
-    cbar.set_ticks(tick_locs)
-    cbar.set_ticklabels(sigma_labels)
+    edges = np.asarray(qm.levels)
+    cbar.set_ticks(0.5 * (edges[:-1] + edges[1:]))
+    cbar.set_ticklabels([r"$>3\sigma$", r"$3\sigma$", r"$2\sigma$", r"$1\sigma$"])
     cbar.ax.tick_params(
         labelsize=labelsize, labelleft=False, labelright=True, direction="in", length=0
     )
 
-    legend_handles = [mpatches.Patch(color=dusk(0.7), alpha=0.5, label="MINERVA")]
-    legend_handles.append(
-        mlines.Line2D(
-            [],
-            [],
-            color=dusk(0.7),
-            linewidth=1.5,
-            linestyle="dashed",
-            alpha=0.9,
-            label="diffsky",
-        )
-    )
     fig.legend(
-        handles=legend_handles,
+        handles=[
+            mpatches.Patch(color=dusk(0.7), alpha=0.5, label="MINERVA"),
+            mlines.Line2D(
+                [],
+                [],
+                color=dusk(0.7),
+                linewidth=1.5,
+                linestyle="dashed",
+                alpha=0.9,
+                label="diffsky",
+            ),
+        ],
         loc="upper center",
         bbox_to_anchor=(0.5, 1.0),
-        ncol=len(legend_handles),
+        ncol=2,
         frameon=False,
         fontsize=fontsize,
         borderaxespad=0.0,
     )
-    fig.savefig(
-        savedir + "/" + run_label + "_cc_cm_grid.png",
-        dpi=600,
-    )
+    fig.savefig(f"{savedir}/{run_label}_cc_cm_grid.png", dpi=600)
     if plt_show:
         plt.show()
     plt.close()

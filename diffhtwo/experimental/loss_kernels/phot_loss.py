@@ -7,47 +7,28 @@ from .loss_functions import poisson_loss
 
 
 @jjit
-def get_phot_loss_2d_multiz(
-    ran_key,
-    param_collection,
-    data,
-    mag_thresh,
-    frac_cat=1.0,
-):
+def get_phot_loss_2d_multiz(ran_key, param_collection, data, mag_thresh):
     phot_loss_2d = 0.0
-    for z in range(0, len(data)):
+    n_z_bins = len(data)
+    for z in range(n_z_bins):
         z_data = data[z]
         z_data_model = N_colors_mags(
             ran_key,
             param_collection,
             z_data,
             mag_thresh,
-            frac_cat=frac_cat,
         )
-        # sky_rescale = data_sky_area_degsq / z_data_model.lc_data.sky_area_degsq
-        fields = z_data_model._fields[4:]
-        for f in range(0, len(fields)):
-            space = getattr(z_data_model, fields[f])
-            if isinstance(space, list):
-                for s in range(0, len(space)):
-                    space_n = space[s]
-                    phot_loss_2d += lax.cond(
-                        space_n.fit,
-                        lambda sp=space_n: poisson_loss(
-                            sp.N_model / z_data_model.lc_data.lc_tot_vol_mpc3,
-                            sp.N_data / z_data_model.data_vol_mpc3,
-                        ),
-                        lambda: 0.0,
-                    )
-            else:
-                phot_loss_2d += lax.cond(
-                    space.fit,
-                    lambda sp=space: poisson_loss(
-                        sp.N_model / z_data_model.lc_data.lc_tot_vol_mpc3,
-                        sp.N_data / z_data_model.data_vol_mpc3,
-                    ),
-                    lambda: 0.0,
-                )
+        space_names = z_data_model._fields[4:]
+        for space_name in space_names:
+            space = getattr(z_data_model, space_name)
+            phot_loss_2d += lax.cond(
+                space.fit,
+                lambda sp=space: poisson_loss(
+                    sp.N_model / z_data_model.lc_data.lc_tot_vol_mpc3,
+                    sp.N_data / z_data_model.data_vol_mpc3,
+                ),
+                lambda: 0.0,
+            )
     return phot_loss_2d
 
 
@@ -58,21 +39,12 @@ def _loss_phot_kern_2d_multiz(u_theta, ran_key, fitting_data):
     phot_loss_2d = 0.0
 
     # get loss by going through all the fitted spaces: mag, color-color, and color-magnitude
-    if "frac_cat" in fitting_data._fields:
-        phot_loss_2d += get_phot_loss_2d_multiz(
-            ran_key,
-            param_collection,
-            fitting_data.spaces,
-            fitting_data.filter_info.mag_thresh,
-            frac_cat=fitting_data.frac_cat,
-        )
-    else:
-        phot_loss_2d += get_phot_loss_2d_multiz(
-            ran_key,
-            param_collection,
-            fitting_data.spaces,
-            fitting_data.filter_info.mag_thresh,
-        )
+    phot_loss_2d += get_phot_loss_2d_multiz(
+        ran_key,
+        param_collection,
+        fitting_data.spaces,
+        fitting_data.filter_info.mag_thresh,
+    )
 
     return phot_loss_2d
 

@@ -5,7 +5,6 @@ from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
 from ..lightcone_generators import generate_lc_data
-from .cat_weight import compute_cat_weight
 
 
 def multiband_lc_phot_kern(
@@ -18,8 +17,6 @@ def multiband_lc_phot_kern(
     tcurves,
     lgmp_min=10,
     lgmp_max=15,
-    mag_thresh=None,
-    frac_cat=None,
     lc_sky_area_degsq=1000,
     n_z_phot_table=15,
     mc_merge=0,
@@ -40,18 +37,12 @@ def multiband_lc_phot_kern(
         z_phot_table,
     )
 
-    phot_kern_results = mc_phot_kern_merging_wrapper(
+    phot_data = mc_phot_kern_merging_wrapper(
         ran_key, param_collection, lc_data, mc_merge=mc_merge
     )
-    obs_mags_weighted = phot_kern_results.obs_mags_weighted
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
-    if mag_thresh is not None:
-        gal_weight = compute_cat_weight(
-            gal_weight, obs_mags_weighted, mag_thresh, frac_cat
-        )
-
-    return lc_data, phot_kern_results, gal_weight
+    return lc_data, phot_data, gal_weight
 
 
 @jjit
@@ -63,7 +54,7 @@ def mc_phot_kern_merging_wrapper(
     fb=FB,
     mc_merge=0,
 ):
-    phot_kern_results, phot_randoms, merging_randoms = pk._mc_phot_kern_merging(
+    phot_data, phot_randoms, merging_randoms = pk._mc_phot_kern_merging(
         ran_key,
         lc_data.z_obs,
         lc_data.t_obs,
@@ -83,4 +74,4 @@ def mc_phot_kern_merging_wrapper(
         lc_data.halo_indx,
         mc_merge,
     )
-    return phot_kern_results
+    return phot_data

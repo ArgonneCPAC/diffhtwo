@@ -1,7 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from astropy.io import ascii
-from diffsky.experimental.inference import utils
+
+# from diffsky.experimental.inference import utils
 from matplotlib.lines import Line2D
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
@@ -17,7 +18,6 @@ plt.rc("font", family="serif", serif=["Times New Roman"])
 cmap = make_cmap()
 ex_situ_frac_color = "#3E7CB1"
 
-LOGMP_OBS_MIN, LOGMP_OBS_MAX = 10.5, 14.5
 LOGSM_OBS_MIN, LOGSM_OBS_MAX = 7.0, 12.5
 
 COLORS_Z = ["#2d0b52", "#0491a1", "#a1d661", "#ee6920", "#8a0f17"]
@@ -29,203 +29,163 @@ legendsize = 8
 alpha = 0.7
 
 
-def plot_smhm_samples(
-    ran_key,
-    param_collection_samples,
-    zbins,
-    num_halos,
-    ssp_data,
-    tcurves,
-    run_label,
-    savedir,
-    lgmp_min=10.5,
-    lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
-    plt_show=True,
-):
-    param_collection_list = utils.unpack_nested_samples(param_collection_samples)
-    param_collection_list = param_collection_list[:100]
+# def plot_smhm_samples(
+#     ran_key,
+#     param_collection_samples,
+#     zbins,
+#     num_halos,
+#     ssp_data,
+#     tcurves,
+#     run_label,
+#     savedir,
+#     lgmp_min=10.5,
+#     lgmp_max=15.0,
+#     plt_show=True,
+# ):
+#     param_collection_list = utils.unpack_nested_samples(param_collection_samples)
+#     param_collection_list = param_collection_list[:100]
 
-    n_z_bins = len(zbins)
-    fig_width = 7.1
-    fig_height = 4.2
-    fig, ax = plt.subplots(
-        1,
-        len(zbins),
-        figsize=(fig_width, fig_height),
-        constrained_layout=True,
-        gridspec_kw={"wspace": 0},
-    )
+#     n_z_bins = len(zbins)
+#     fig_width = 7.1
+#     fig_height = 4.2
+#     fig, ax = plt.subplots(
+#         1,
+#         len(zbins),
+#         figsize=(fig_width, fig_height),
+#         constrained_layout=True,
+#         gridspec_kw={"wspace": 0},
+#     )
 
-    for zbin in range(n_z_bins):
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
-        z_med = str(np.median(zbins[zbin]))
-        ax[zbin].set_title(r"$z = $" + z_med)
-        ax_ex_situ_frac = ax[zbin].twinx()
+#     for zbin in range(n_z_bins):
+#         z_min = zbins[zbin][0]
+#         z_max = zbins[zbin][1]
+#         z_med = str(np.median(zbins[zbin]))
+#         ax[zbin].set_title(r"$z = $" + z_med)
+#         ax_ex_situ_frac = ax[zbin].twinx()
 
-        for param_collection in param_collection_list:
-            (
-                logmp_bin_centers,
-                logsm_obs_weighted_median,
-                logsm_obs_weighted_median_cen_in_situ,
-                logsm_obs_weighted_median_cen,
-                logsm_obs_weighted_median_sat_in_situ,
-                logsm_obs_weighted_median_sat,
-                ex_situ_frac_median,
-            ) = median_smhm_and_exsitu_frac(
-                ran_key,
-                param_collection,
-                z_min,
-                z_max,
-                num_halos,
-                ssp_data,
-                tcurves,
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                mag_thresh=mag_thresh,
-                frac_cat=frac_cat,
-            )
+#         for param_collection in param_collection_list:
+#             (
+#                 logmp_bin_centers,
+#                 logsm_obs_weighted_median,
+#                 logsm_obs_weighted_median_cen_in_situ,
+#                 logsm_obs_weighted_median_cen,
+#                 logsm_obs_weighted_median_sat_in_situ,
+#                 logsm_obs_weighted_median_sat,
+#                 ex_situ_frac_median,
+#             ) = median_smhm_and_exsitu_frac(
+#                 ran_key,
+#                 param_collection,
+#                 z_min,
+#                 z_max,
+#                 num_halos,
+#                 ssp_data,
+#                 tcurves,
+#                 lgmp_min=lgmp_min,
+#                 lgmp_max=lgmp_max,
+#             )
 
-            # cen+sat
-            ax[zbin].plot(
-                logmp_bin_centers,
-                logsm_obs_weighted_median,
-                # label="cen+sat post-merging",
-                color="#000000",
-                lw=0.25,
-                alpha=0.5,
-            )
+#             # cen+sat
+#             ax[zbin].plot(
+#                 logmp_bin_centers,
+#                 logsm_obs_weighted_median,
+#                 # label="cen+sat post-merging",
+#                 color="#000000",
+#                 lw=0.25,
+#                 alpha=0.5,
+#             )
 
-            # cen
-            # ax[zbin].plot(
-            #     logmp_bin_centers,
-            #     logsm_obs_weighted_median_cen_in_situ,
-            #     # label="cen pre-merging",
-            #     color="#FFB689",
-            #     lw=0.25,
-            #     ls=":",
-            # )
-            # ax[zbin].plot(
-            #     logmp_bin_centers,
-            #     logsm_obs_weighted_median_cen,
-            #     # label="cen post-merging",
-            #     color="#FFB689",
-            #     lw=0.25,
-            #     alpha=0.7,
-            # )
+#             # ex-situ frac
+#             ax_ex_situ_frac.plot(
+#                 logmp_bin_centers,
+#                 ex_situ_frac_median,
+#                 color=ex_situ_frac_color,  # C8102E",
+#                 lw=0.25,
+#                 alpha=0.5,
+#                 # ls=":",
+#             )
+#         ax_ex_situ_frac.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
-            # sat
-            # ax[zbin].plot(
-            #     logmp_bin_centers,
-            #     logsm_obs_weighted_median_sat_in_situ,
-            #     label="sat pre-merging",
-            #     color="#61C0BF",
-            #     lw=1.5,
-            #     ls=":",
-            # )
-            # ax[zbin].plot(
-            #     logmp_bin_centers,
-            #     logsm_obs_weighted_median_sat,
-            #     label="sat post-merging",
-            #     color="#61C0BF",
-            #     lw=1.5,
-            #     alpha=0.7,
-            # )
+#         ax[zbin].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+#         ax[zbin].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
+#         ax[zbin].set_xticks([11, 12, 13, 14])
+#         ax[zbin].set_yticks([7, 8, 9, 10, 11, 12])
 
-            # ex-situ frac
-            ax_ex_situ_frac.plot(
-                logmp_bin_centers,
-                ex_situ_frac_median,
-                color=ex_situ_frac_color,  # C8102E",
-                lw=0.25,
-                alpha=0.5,
-                # ls=":",
-            )
-        ax_ex_situ_frac.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+#         ax[zbin].tick_params(
+#             which="major",
+#             direction="in",
+#             top=True,
+#             right=False,
+#             length=6,
+#             width=1,
+#             labelsize=labelsize,
+#         )
 
-        ax[zbin].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
-        ax[zbin].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
-        ax[zbin].set_xticks([11, 12, 13, 14])
-        ax[zbin].set_yticks([7, 8, 9, 10, 11, 12])
+#         ax[zbin].minorticks_on()
+#         ax[zbin].tick_params(
+#             which="minor",
+#             direction="in",
+#             top=True,
+#             length=3,
+#             width=0.8,
+#             labelsize=labelsize,
+#         )
 
-        ax[zbin].tick_params(
-            which="major",
-            direction="in",
-            top=True,
-            right=False,
-            length=6,
-            width=1,
-            labelsize=labelsize,
-        )
+#         ax_ex_situ_frac.tick_params(
+#             which="major",
+#             direction="in",
+#             top=True,
+#             right=True,
+#             left=False,
+#             length=6,
+#             width=1,
+#             labelsize=labelsize,
+#             colors=ex_situ_frac_color,
+#         )
 
-        ax[zbin].minorticks_on()
-        ax[zbin].tick_params(
-            which="minor",
-            direction="in",
-            top=True,
-            length=3,
-            width=0.8,
-            labelsize=labelsize,
-        )
+#         ax_ex_situ_frac.minorticks_on()
+#         ax_ex_situ_frac.tick_params(
+#             which="minor",
+#             direction="in",
+#             right=True,
+#             left=False,
+#             length=3,
+#             width=0.8,
+#             labelsize=labelsize,
+#             colors=ex_situ_frac_color,
+#         )
 
-        ax_ex_situ_frac.tick_params(
-            which="major",
-            direction="in",
-            top=True,
-            right=True,
-            left=False,
-            length=6,
-            width=1,
-            labelsize=labelsize,
-            colors=ex_situ_frac_color,
-        )
+#         ax_ex_situ_frac.set_ylim(-0.01, 1)
+#         ax_ex_situ_frac.spines["right"].set_color(ex_situ_frac_color)
 
-        ax_ex_situ_frac.minorticks_on()
-        ax_ex_situ_frac.tick_params(
-            which="minor",
-            direction="in",
-            right=True,
-            left=False,
-            length=3,
-            width=0.8,
-            labelsize=labelsize,
-            colors=ex_situ_frac_color,
-        )
+#         if zbin == n_z_bins - 1:
+#             ax_ex_situ_frac.set_ylabel(
+#                 "$\U0001D453_{ex-situ}$", color=ex_situ_frac_color, fontsize=fontsize
+#             )
 
-        ax_ex_situ_frac.set_ylim(-0.01, 1)
-        ax_ex_situ_frac.spines["right"].set_color(ex_situ_frac_color)
+#         ax[zbin].set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
 
-        if zbin == n_z_bins - 1:
-            ax_ex_situ_frac.set_ylabel(
-                "$\U0001D453_{ex-situ}$", color=ex_situ_frac_color, fontsize=fontsize
-            )
+#     ax[0].set_ylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
+#     # handles, labels = ax[-1].get_legend_handles_labels()
+#     # fig.legend(
+#     #     handles,
+#     #     labels,
+#     #     loc="outside upper center",
+#     #     ncol=len(labels),
+#     #     fontsize=labelsize,
+#     #     frameon=False,
+#     #     handlelength=1.5,
+#     #     handletextpad=0.4,
+#     #     columnspacing=1.0,
+#     # )
 
-        ax[zbin].set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
+#     fig.savefig(
+#         savedir + "/" + run_label + "_smhm_med_samples.png",
+#         dpi=400,
+#     )
 
-    ax[0].set_ylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
-    # handles, labels = ax[-1].get_legend_handles_labels()
-    # fig.legend(
-    #     handles,
-    #     labels,
-    #     loc="outside upper center",
-    #     ncol=len(labels),
-    #     fontsize=labelsize,
-    #     frameon=False,
-    #     handlelength=1.5,
-    #     handletextpad=0.4,
-    #     columnspacing=1.0,
-    # )
-
-    fig.savefig(
-        savedir + "/" + run_label + "_smhm_med_samples.png",
-        dpi=400,
-    )
-
-    if plt_show:
-        plt.show()
-    plt.close()
+#     if plt_show:
+#         plt.show()
+#     plt.close()
 
 
 def plot_smhm(
@@ -239,8 +199,6 @@ def plot_smhm(
     savedir,
     lgmp_min=10.5,
     lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     n_z_bins = len(zbins)
@@ -278,8 +236,6 @@ def plot_smhm(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
 
         # cen+sat
@@ -340,7 +296,7 @@ def plot_smhm(
         )
         ax_ex_situ_frac.set_yticks([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
 
-        ax[zbin].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[zbin].set_xlim(lgmp_min, lgmp_max)
         ax[zbin].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
         ax[zbin].set_xticks([11, 12, 13, 14])
         ax[zbin].set_yticks([7, 8, 9, 10, 11, 12])
@@ -435,8 +391,6 @@ def plot_smhm_median(
     lgmp_min=10.5,
     lgmp_max=15.0,
     d_mh=0.15,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     n_z_bins = len(zbins)
@@ -473,12 +427,10 @@ def plot_smhm_median(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
-        logmp_bins = np.arange(LOGMP_OBS_MIN, LOGMP_OBS_MAX + d_mh, d_mh)
+        logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
         logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
         (
             logsm_obs_weighted_l16,
@@ -528,7 +480,7 @@ def plot_smhm_median(
         width=0.8,
         labelsize=labelsize,
     )
-    ax.set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+    ax.set_xlim(lgmp_min, lgmp_max)
     ax.set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
     ax.set_xticks([11, 12, 13, 14])
     ax.set_yticks([7, 8, 9, 10, 11, 12])
@@ -557,8 +509,6 @@ def plot_smhm_hexbin(
     lgmp_max=15.0,
     d_mh=0.15,
     cmap=cmap,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     n_z_bins = len(zbins)
@@ -592,8 +542,6 @@ def plot_smhm_hexbin(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
@@ -607,12 +555,12 @@ def plot_smhm_hexbin(
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,
-            extent=(LOGMP_OBS_MIN, LOGMP_OBS_MAX, LOGSM_OBS_MIN, LOGSM_OBS_MAX),
+            extent=(lgmp_min, lgmp_max, LOGSM_OBS_MIN, LOGSM_OBS_MAX),
         )
         hbs.append(hb)
         all_counts.append(hb.get_array())
 
-        logmp_bins = np.arange(LOGMP_OBS_MIN, LOGMP_OBS_MAX + d_mh, d_mh)
+        logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
         logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
         _, logsm_obs_weighted_median, _ = _get_logsm_obs_weighted_median(
             logmp_bins, logmp_obs, logsm_obs, gal_weight
@@ -645,7 +593,7 @@ def plot_smhm_hexbin(
             labelsize=labelsize,
         )
         ax[zbin].set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
-        ax[zbin].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[zbin].set_xlim(lgmp_min, lgmp_max)
         ax[zbin].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
         ax[zbin].set_xticks([11, 12, 13, 14])
         ax[zbin].set_yticks([7, 8, 9, 10, 11, 12])
@@ -680,8 +628,6 @@ def plot_smhm_cen_sat(
     um_drn,
     lgmp_min=10.5,
     lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     zbins = np.array(
@@ -753,8 +699,6 @@ def plot_smhm_cen_sat(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
 
         # cen+sat
@@ -813,7 +757,7 @@ def plot_smhm_cen_sat(
         )
 
     for i in range(0, 3):
-        ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[i].set_xlim(lgmp_min, lgmp_max)
         ax[i].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
         ax[i].set_xticks([11, 12, 13, 14, 15])
 
@@ -1025,7 +969,7 @@ def plot_mc_smhm_cen_sat(
         )
 
     for i in range(0, 3):
-        ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[i].set_xlim(lgmp_min, lgmp_max)
         ax[i].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
         ax[i].set_xticks([11, 12, 13, 14, 15])
 
@@ -1106,8 +1050,6 @@ def plot_smhm_ratio_cen_sat(
     um_drn,
     lgmp_min=10.5,
     lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     zbins = np.array(
@@ -1179,8 +1121,6 @@ def plot_smhm_ratio_cen_sat(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
 
         # cen+sat
@@ -1239,7 +1179,7 @@ def plot_smhm_ratio_cen_sat(
         )
 
     for i in range(0, 3):
-        ax[i].set_xlim(LOGMP_OBS_MIN, LOGMP_OBS_MAX)
+        ax[i].set_xlim(lgmp_min, lgmp_max)
         ax[i].set_ylim(-3.2, -1.2)
         ax[i].set_xticks([11, 12, 13, 14, 15])
 

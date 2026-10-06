@@ -55,10 +55,6 @@ TRANSLATE = "MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG.larson.e
 INFO = "FILTER.RES.latest.info"
 TCURVES = "FILTER.RES.latest"
 
-AppMagFunc = namedtuple("AppMagFunc", [*AppMagFunc._fields, "frac_cat"])
-ColorColor = namedtuple("ColorColor", [*ColorColor._fields, "frac_cat"])
-MagColor = namedtuple("MagColor", [*MagColor._fields, "frac_cat"])
-
 MinervaPhot = namedtuple(
     "MinervaPhot",
     [
@@ -171,6 +167,9 @@ def get_minerva_phot(
     drn,
     ran_key,
     ssp_data,
+    d_mag_1d=0.2,
+    d_mag_2d=0.1,
+    gauss_sig_2d=3.0,
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
@@ -206,15 +205,13 @@ def get_minerva_phot(
     zout = zout[use_phot]
     z_best = z_best[use_phot].data
 
-    default_limits = (19, 26)
+    default_limits = (19.0, 27.0)
     minerva_mag_thresh = PhotFilters(
         f435w=default_limits,
         f606w=default_limits,
         f814w=default_limits,
-        f098m=default_limits,
         f105w=default_limits,
         f125w=default_limits,
-        f140w=default_limits,
         f160w=default_limits,
         f090w=default_limits,
         f115w=default_limits,
@@ -227,15 +224,16 @@ def get_minerva_phot(
         f250m=default_limits,
         f277w=default_limits,
         f300m=default_limits,
-        f335m=default_limits,
         f356w=default_limits,
         f360m=default_limits,
         f410m=default_limits,
-        f430m=default_limits,
         f444w=default_limits,
         f460m=default_limits,
-        f480m=default_limits,
     )
+    mag_f444w = _get_mag_ab(phot, "f_f444w")
+    (f444w_idx,) = get_filt_indx("F444w", PhotFilters)
+    mag_limit_f444w = getattr(minerva_mag_thresh, "f444w")
+    sel_f444w = (mag_f444w > mag_limit_f444w[0]) & (mag_f444w < mag_limit_f444w[1])
 
     tcurves = []
     mag_per_band = []
@@ -268,6 +266,7 @@ def get_minerva_phot(
         # mag thresh selection
         mag_limit = getattr(minerva_mag_thresh, minerva_filter)
         sel *= (mag > mag_limit[0]) & (mag < mag_limit[1])
+        sel *= sel_f444w
 
         mag_per_band.append(mag)
         sel_per_band.append(sel)
@@ -285,7 +284,6 @@ def get_minerva_phot(
         "F606w",
         "F814w",
         "F125w",
-        "F140w",
         "F160w",
         "F090w",
         "F115w",
@@ -394,12 +392,14 @@ def get_minerva_phot(
             sel = sels[:, mag_idx] * z_sel
             mag_selected = mags[sel]
 
-            N_1d, sig, bin_lo, bin_hi = get_N_1d(mag_selected[:, mag_idx])
+            N_1d, sig, bin_lo, bin_hi = get_N_1d(
+                mag_selected[:, mag_idx], dmag=d_mag_1d
+            )
 
             frac_cat = frac_cats[mag_idx]
 
             mag_z_tuples.append(
-                space(mag_idx, sig, bin_lo, bin_hi, N_1d, True, frac_cat)
+                space(mag_idx, sig, bin_lo, bin_hi, N_1d, frac_cat, True)
             )
 
         ccd_z_tuples = []
@@ -413,12 +413,14 @@ def get_minerva_phot(
             color1 = mag_selected[:, a] - mag_selected[:, b]
             color2 = mag_selected[:, c] - mag_selected[:, d]
 
-            N_2d, sig, bin_lo, bin_hi = get_N_2d(color1, color2)
+            N_2d, sig, bin_lo, bin_hi = get_N_2d(
+                color1, color2, dmag=d_mag_2d, gauss_sig=gauss_sig_2d
+            )
 
             frac_cat = np.min((frac_cats[a], frac_cats[b], frac_cats[c], frac_cats[d]))
 
             ccd_z_tuples.append(
-                space(col_idx, sig, bin_lo, bin_hi, N_2d, True, frac_cat)
+                space(col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, True)
             )
 
         cmd_z_tuples = []
@@ -431,14 +433,16 @@ def get_minerva_phot(
             mag = mag_selected[:, mag_idx]
             color = mag_selected[:, b] - mag_selected[:, c]
 
-            N_2d, sig, bin_lo, bin_hi = get_N_2d(mag, color, n_bins=50)
+            N_2d, sig, bin_lo, bin_hi = get_N_2d(
+                mag, color, dmag=d_mag_2d, gauss_sig=gauss_sig_2d
+            )
 
             col_idx = [b, c]
 
             frac_cat = np.min((frac_cats[mag_idx], frac_cats[b], frac_cats[c]))
 
             cmd_z_tuples.append(
-                space(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, True, frac_cat)
+                space(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, True)
             )
 
         spaces.append(
@@ -485,6 +489,9 @@ def get_minerva_phot_fitting_data(
     drn,
     ran_key,
     ssp_data,
+    d_mag_1d=0.1,
+    d_mag_2d=0.05,
+    gauss_sig_2d=3.0,
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
@@ -494,6 +501,9 @@ def get_minerva_phot_fitting_data(
         drn,
         ran_key,
         ssp_data,
+        d_mag_1d=d_mag_1d,
+        d_mag_2d=d_mag_2d,
+        gauss_sig_2d=gauss_sig_2d,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
@@ -596,10 +606,8 @@ PhotFilters = namedtuple(
         "f435w",
         "f606w",
         "f814w",
-        "f098m",
         "f105w",
         "f125w",
-        "f140w",
         "f160w",
         "f090w",
         "f115w",
@@ -612,13 +620,10 @@ PhotFilters = namedtuple(
         "f250m",
         "f277w",
         "f300m",
-        "f335m",
         "f356w",
         "f360m",
         "f410m",
-        "f430m",
         "f444w",
         "f460m",
-        "f480m",
     ],
 )

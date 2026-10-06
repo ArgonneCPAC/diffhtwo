@@ -7,7 +7,7 @@ from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from .cat_weight import compute_cat_weight
+from .cat_weight import compute_mag_weight
 from .gehrels_err import get_n_data_err
 from .lc_phot_kern import mc_phot_kern_merging_wrapper
 
@@ -20,14 +20,12 @@ def get_colors_mags(
     col_idx,
     mag_idx,
     mag_thresh,
-    frac_cat,
 ):
-    mags, gal_weight, phot_kern_results = mag_kern(
+    mags, gal_weight, mag_weight, phot_kern_results = mag_kern(
         ran_key,
         param_collection,
         lc_data,
         mag_thresh,
-        frac_cat,
     )
     # collect colors and mags
     n_gals, n_bands = mags.shape
@@ -42,7 +40,7 @@ def get_colors_mags(
         obs_color_mag = jnp.vstack((obs_color_mag, mags[:, mag_idx[m]]))
 
     obs_color_mag = obs_color_mag.T
-    return obs_color_mag, gal_weight, phot_kern_results
+    return obs_color_mag, gal_weight, mag_weight, phot_kern_results
 
 
 @jjit
@@ -51,7 +49,6 @@ def mag_kern(
     param_collection,
     lc_data,
     mag_thresh,
-    frac_cat=1.0,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
     mc_merge=0,
@@ -64,12 +61,9 @@ def mag_kern(
     obs_mags_weighted = phot_kern_results.obs_mags_weighted
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
-    # update weights to incorporate mag thresh cuts and frac_cat
-    gal_weight = compute_cat_weight(
-        gal_weight, obs_mags_weighted, mag_thresh, frac_cat=frac_cat
-    )
+    mag_weight = compute_mag_weight(obs_mags_weighted, mag_thresh)
 
-    return obs_mags_weighted, gal_weight, phot_kern_results
+    return obs_mags_weighted, gal_weight, mag_weight, phot_kern_results
 
 
 @partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
@@ -82,18 +76,16 @@ def n_colors_mags_lh(
     mag_thresh,
     lh_centroids,
     d_centroids,
-    frac_cat,
     redshift_as_last_dimension_in_lh=False,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
-    obs_color_mag, gal_weight, phot_kern_results = get_colors_mags(
+    obs_color_mag, gal_weight, mag_weight, phot_kern_results = get_colors_mags(
         ran_key,
         param_collection,
         lc_data,
         mag_columns,
         mag_thresh_column,
         mag_thresh,
-        frac_cat,
     )
 
     # calculate number density in LH bins

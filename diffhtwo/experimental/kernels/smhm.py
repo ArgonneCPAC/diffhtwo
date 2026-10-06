@@ -200,8 +200,6 @@ def median_smhm_and_exsitu_frac(
     tcurves,
     lgmp_min=10.0,
     lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
     d_mh=0.15,
 ):
     lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
@@ -212,8 +210,6 @@ def median_smhm_and_exsitu_frac(
         num_halos,
         ssp_data,
         tcurves,
-        mag_thresh=mag_thresh,
-        frac_cat=frac_cat,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
     )
