@@ -1042,7 +1042,10 @@ def plot_app_mag_funcs_minerva(
     )
 
     leg = fig.legend(
-        handles=[Line2D([], [], linestyle="none", label=l) for l in mags_labels_fitted],
+        handles=[
+            Line2D([], [], linestyle="none", label=l)
+            for l in mags_labels_fitted  # noqa: E741
+        ],
         loc="center left",
         ncol=len(mags_labels_fitted),
         frameon=False,
