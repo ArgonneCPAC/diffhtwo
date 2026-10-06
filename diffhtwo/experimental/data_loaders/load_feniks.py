@@ -32,10 +32,6 @@ ZOUT = "feniks_zout_selected.ecsv"
 Feniks = namedtuple(
     "Feniks",
     [
-        "dataset",
-        "col_idx",
-        "mag_idx",
-        "dataset_dim_labels",
         "redshift",
         "mags",
         "mag_sels",
@@ -44,12 +40,11 @@ Feniks = namedtuple(
         "zbins",
         "filter_info",
         "frac_cats",
-        "lh_centroids",
-        "d_centroids",
-        "N_data",
-        "lh_dmag",
-        "lh_dz",
         "data_sky_area_degsq",
+        "dataset",
+        "col_idx",
+        "mag_idx",
+        "dataset_dim_labels",
     ],
 )
 
@@ -172,7 +167,6 @@ def get_feniks_data(
     d_mag_2d=0.1,
     gauss_sig_2d=3.0,
     frac_cat=1.0,
-    lh_d_mag=0.6,
     num_halos=100,
     phot=PHOT,
     zout=ZOUT,
@@ -383,20 +377,6 @@ def get_feniks_data(
         r"$K$",
         r"$redshift$",
     ]
-
-    lh_centroids, d_centroids = get_lh_centroids(dataset, lh_d_mag)
-
-    # run initial diffndhist_lomem with fixed dmag
-    dataset_sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
-    lh_centroids_lo = lh_centroids - (d_centroids / 2)
-    lh_centroids_hi = lh_centroids + (d_centroids / 2)
-
-    N_data_lh = diffndhist_lomem.tw_ndhist(
-        dataset,
-        dataset_sig,
-        lh_centroids_lo,
-        lh_centroids_hi,
-    )
 
     ##############################################################################
     # prepare 2D and 1D color spaces in z-bins for fitting
@@ -1016,10 +996,6 @@ def get_feniks_data(
         spaces.append(z3)
 
     return Feniks(
-        dataset,
-        col_idx_lh_dim,
-        mag_idx_lh_dim,
-        dataset_dim_labels,
         z_best,
         mags,
         mag_sels,
@@ -1028,12 +1004,11 @@ def get_feniks_data(
         zbins,
         filter_info,
         frac_cats,
-        lh_centroids,
-        d_centroids,
-        N_data_lh,
-        lh_d_mag,
-        LH_D_Z,
         FENIKS_AREA_DEG2,
+        dataset,
+        col_idx_lh_dim,
+        mag_idx_lh_dim,
+        dataset_dim_labels,
     )
 
 
@@ -1150,7 +1125,6 @@ def get_feniks_fitting_data(
     d_mag_1d=0.2,
     d_mag_2d=0.1,
     gauss_sig_2d=3.0,
-    lh_d_mag=0.6,
     num_halos=100,
     phot=PHOT,
     zout=ZOUT,
@@ -1166,7 +1140,6 @@ def get_feniks_fitting_data(
         d_mag_1d=d_mag_1d,
         d_mag_2d=d_mag_2d,
         gauss_sig_2d=gauss_sig_2d,
-        lh_d_mag=lh_d_mag,
         num_halos=num_halos,
         phot=phot,
         zout=zout,
