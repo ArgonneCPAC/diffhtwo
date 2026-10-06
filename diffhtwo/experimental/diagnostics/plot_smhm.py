@@ -40,8 +40,6 @@ alpha = 0.7
 #     savedir,
 #     lgmp_min=10.5,
 #     lgmp_max=15.0,
-#     mag_thresh=None,
-#     frac_cat=None,
 #     plt_show=True,
 # ):
 #     param_collection_list = utils.unpack_nested_samples(param_collection_samples)
@@ -84,8 +82,6 @@ alpha = 0.7
 #                 tcurves,
 #                 lgmp_min=lgmp_min,
 #                 lgmp_max=lgmp_max,
-#                 mag_thresh=mag_thresh,
-#                 frac_cat=frac_cat,
 #             )
 
 #             # cen+sat
@@ -203,8 +199,6 @@ def plot_smhm(
     savedir,
     lgmp_min=10.5,
     lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     n_z_bins = len(zbins)
@@ -242,8 +236,6 @@ def plot_smhm(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
 
         # cen+sat
@@ -399,8 +391,6 @@ def plot_smhm_median(
     lgmp_min=10.5,
     lgmp_max=15.0,
     d_mh=0.15,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     n_z_bins = len(zbins)
@@ -437,8 +427,6 @@ def plot_smhm_median(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
@@ -521,8 +509,6 @@ def plot_smhm_hexbin(
     lgmp_max=15.0,
     d_mh=0.15,
     cmap=cmap,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     n_z_bins = len(zbins)
@@ -556,8 +542,6 @@ def plot_smhm_hexbin(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
@@ -644,8 +628,6 @@ def plot_smhm_cen_sat(
     um_drn,
     lgmp_min=10.5,
     lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     zbins = np.array(
@@ -717,8 +699,6 @@ def plot_smhm_cen_sat(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
 
         # cen+sat
@@ -1070,8 +1050,6 @@ def plot_smhm_ratio_cen_sat(
     um_drn,
     lgmp_min=10.5,
     lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     zbins = np.array(
@@ -1143,8 +1121,6 @@ def plot_smhm_ratio_cen_sat(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
-            mag_thresh=mag_thresh,
-            frac_cat=frac_cat,
         )
 
         # cen+sat

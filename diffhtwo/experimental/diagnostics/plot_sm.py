@@ -17,8 +17,6 @@ def plot_insitu_sm_obs(
     tcurves,
     model_nickname,
     savedir,
-    mag_thresh=None,
-    frac_cat=None,
     num_halos=1000,
     plt_show=True,
 ):
@@ -38,8 +36,6 @@ def plot_insitu_sm_obs(
         num_halos,
         ssp_data,
         tcurves,
-        mag_thresh=mag_thresh,
-        frac_cat=frac_cat,
     )
 
     bins = np.linspace(
@@ -130,8 +126,6 @@ def plot_sm_obs(
     tcurves,
     model_nickname,
     savedir,
-    mag_thresh=None,
-    frac_cat=None,
     num_halos=1000,
     plt_show=True,
 ):
@@ -151,8 +145,6 @@ def plot_sm_obs(
         num_halos,
         ssp_data,
         tcurves,
-        mag_thresh=mag_thresh,
-        frac_cat=frac_cat,
     )
 
     bins = np.linspace(

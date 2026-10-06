@@ -16,8 +16,6 @@ def plot_massive_cen_colors(
     tcurves,
     model_nickname,
     savedir,
-    mag_thresh=None,
-    frac_cat=None,
     num_halos=1000,
     logsm_obs_thresh=11,
     plt_show=True,
@@ -30,8 +28,6 @@ def plot_massive_cen_colors(
         num_halos,
         ssp_data,
         tcurves,
-        mag_thresh=mag_thresh,
-        frac_cat=frac_cat,
     )
 
     sm_cut = (phot_kern_results.logsm_obs > logsm_obs_thresh) & (

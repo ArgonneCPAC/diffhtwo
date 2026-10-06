@@ -83,8 +83,6 @@ def plot_sfms_hexbin(
     savedir,
     lgmp_min=10.5,
     lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
     xlim=(8, 12),
     ylim=(-3, 2),
     plt_show=True,

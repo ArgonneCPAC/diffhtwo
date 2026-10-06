@@ -792,8 +792,6 @@ if __name__ == "__main__":
                 #     tcurves,
                 #     feniks_label + "_weighted",
                 #     fit_diagnostics_save_drn,
-                #     mag_thresh=mag_thresh,
-                #     frac_cat=frac_cat,
                 #     num_halos=num_halos,
                 #     plt_show=False,
                 # )
@@ -811,8 +809,6 @@ if __name__ == "__main__":
                     feniks.filter_info.tcurves,
                     feniks_label,
                     fit_diagnostics_save_drn,
-                    mag_thresh=feniks.filter_info.mag_thresh,
-                    frac_cat=feniks.frac_cat,
                     num_halos=num_halos,
                     plt_show=False,
                 )
@@ -1093,8 +1089,6 @@ if __name__ == "__main__":
                     sdss.filter_info.tcurves,
                     sdss_label,
                     fit_diagnostics_save_drn,
-                    mag_thresh=sdss.filter_info.mag_thresh,
-                    frac_cat=sdss.frac_cat,
                     num_halos=num_halos,
                     plt_show=False,
                 )

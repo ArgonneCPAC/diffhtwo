@@ -102,8 +102,6 @@ def plot_lgfburst_mh_z(
     tcurves,
     model_nickname,
     savedir,
-    mag_thresh=None,
-    frac_cat=None,
     num_halos=10000,
     gridsize=40,
     mincnt=1,
@@ -118,8 +116,6 @@ def plot_lgfburst_mh_z(
         num_halos,
         ssp_data,
         tcurves,
-        mag_thresh=mag_thresh,
-        frac_cat=frac_cat,
     )
 
     if plot == "cen":

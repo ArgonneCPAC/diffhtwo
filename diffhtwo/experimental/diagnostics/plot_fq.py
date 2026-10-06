@@ -31,8 +31,6 @@ def plot_fq(
     savedir,
     lgmp_min=10.5,
     lgmp_max=15.0,
-    mag_thresh=None,
-    frac_cat=None,
     plt_show=True,
 ):
     zbins = np.array(

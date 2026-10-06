@@ -16,8 +16,6 @@ def plot_merging_sat_colors(
     tcurves,
     model_nickname,
     savedir,
-    mag_thresh=None,
-    frac_cat=None,
     num_halos=10000,
     logsm_obs_thresh=6,
     p_merge_thresh=0.5,
@@ -31,8 +29,6 @@ def plot_merging_sat_colors(
         num_halos,
         ssp_data,
         tcurves,
-        mag_thresh=mag_thresh,
-        frac_cat=frac_cat,
     )
 
     pmerge_thresh_lo = 0.1

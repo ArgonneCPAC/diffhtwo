@@ -32,8 +32,6 @@ def generate_sat_plots(
     tcurves,
     model_nickname,
     savedir,
-    mag_thresh=None,
-    frac_cat=None,
     num_halos=1000,
     plt_show=True,
 ):
@@ -45,8 +43,6 @@ def generate_sat_plots(
         num_halos,
         ssp_data,
         tcurves,
-        mag_thresh=mag_thresh,
-        frac_cat=frac_cat,
     )
     z_min_label = str(np.round(z_min, 2))
     z_max_label = str(np.round(z_max, 2))
