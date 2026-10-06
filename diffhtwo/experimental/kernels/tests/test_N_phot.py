@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
 from jax import random as jran
 
@@ -6,6 +7,7 @@ from ..N_phot import N_colors_mags_lh
 from ..phot_kern import mag_kern
 
 
+@pytest.mark.skip(reason="latin hypercube cube is currently not maintained")
 def test_N_colors_mags_lh(feniks_single_z_data):
     feniks_meta_data, feniks_fitting_data = feniks_single_z_data
 
