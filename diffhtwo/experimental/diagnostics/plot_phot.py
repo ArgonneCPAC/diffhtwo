@@ -645,6 +645,7 @@ def plot_app_mag_funcs(
         redshift = dataset.redshift
         mags = dataset.mags
         mag_sels = dataset.mag_sels
+        parent_cut_idx = dataset.parent_cut_idx
         data_sky_area_degsq = dataset.data_sky_area_degsq
         n_bands = mags.shape[1]
 
@@ -720,7 +721,10 @@ def plot_app_mag_funcs(
 
             n_diffsky, _ = np.histogram(
                 obs_mags[:, i],
-                weights=gal_weight * mag_weight[:, i] * (1 / lc_data.lc_tot_vol_mpc3),
+                weights=gal_weight
+                * mag_weight[:, parent_cut_idx]
+                * mag_weight[:, i]
+                * (1 / lc_data.lc_tot_vol_mpc3),
                 bins=bins_diffsky,
             )
             with warnings.catch_warnings():
@@ -878,6 +882,7 @@ def plot_app_mag_funcs_minerva(
     mags = minerva_phot.mags
     sels = minerva_phot.sels
     frac_cats = minerva_phot.frac_cats
+    parent_cut_idx = minerva_phot.parent_cut_idx
     mags_labels = minerva_phot.mags_labels
     data_sky_area_degsq = minerva_phot.data_sky_area_degsq
 
@@ -980,6 +985,7 @@ def plot_app_mag_funcs_minerva(
                 obs_mags[:, mag_idx],
                 weights=gal_weight
                 * mag_weight[:, mag_idx]
+                * mag_weight[:, parent_cut_idx]
                 * (1 / lc_data.lc_tot_vol_mpc3)
                 * frac_cats[mag_idx],
                 bins=bins,

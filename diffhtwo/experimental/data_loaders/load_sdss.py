@@ -28,6 +28,7 @@ Sdss = namedtuple(
         "zbins",
         "filter_info",
         "frac_cats",
+        "parent_cut_idx",
         "data_sky_area_degsq",
         "dataset",
         "col_idx",
@@ -94,7 +95,9 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
     mag_sels = [mag_sel_u, mag_sel_g, mag_sel_r, mag_sel_i, mag_sel_z]
     mag_sels = np.vstack(mag_sels).T
 
-    return sdss, mag_sels, sdss_area_deg2
+    r_idx = N_utils.filter_name_to_idx("sdss_r", SdssFilters)
+
+    return sdss, mag_sels, sdss_area_deg2, r_idx
 
 
 def compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max):
@@ -180,7 +183,7 @@ def get_sdss_data(
         sdss_i=(12.5, 17.5),
         sdss_z=(12.5, 17.5),
     )
-    sdss, mag_sels, sdss_area_deg2 = load_sdss_cuts_applied(drn, sdss_mag_thresh)
+    sdss, mag_sels, sdss_area_deg2, r_idx = load_sdss_cuts_applied(drn, sdss_mag_thresh)
 
     tcurves = []
     frac_cat_per_band = []
@@ -304,6 +307,7 @@ def get_sdss_data(
             sdss_z,
             mag_sels,
             frac_cats,
+            r_idx,
             dmag=d_mag_1d,
         )
 
@@ -317,6 +321,7 @@ def get_sdss_data(
             SdssFilters,
             mag_sels,
             frac_cats,
+            r_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
             fit=True,
@@ -332,6 +337,7 @@ def get_sdss_data(
             SdssFilters,
             mag_sels,
             frac_cats,
+            r_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
             fit=True,
@@ -348,6 +354,7 @@ def get_sdss_data(
             SdssFilters,
             mag_sels,
             frac_cats,
+            r_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
             fit=True,
@@ -364,6 +371,7 @@ def get_sdss_data(
             SdssFilters,
             mag_sels,
             frac_cats,
+            r_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
             fit=True,
@@ -398,6 +406,7 @@ def get_sdss_data(
         zbins,
         filter_info,
         frac_cats,
+        r_idx,
         sdss_area_deg2,
         dataset,
         col_idx_lh_dim,
@@ -445,6 +454,7 @@ def _get_mag_spaces_at_z(
     sdss_z,
     mag_sels,
     frac_cats,
+    parent_cut_idx,
     dmag=0.1,
 ):
     # 1D (u)
@@ -456,6 +466,7 @@ def _get_mag_spaces_at_z(
         SdssFilters,
         mag_sels,
         frac_cats,
+        parent_cut_idx,
         dmag=dmag,
         fit=True,
     )
@@ -469,6 +480,7 @@ def _get_mag_spaces_at_z(
         SdssFilters,
         mag_sels,
         frac_cats,
+        parent_cut_idx,
         dmag=dmag,
         fit=True,
     )
@@ -482,6 +494,7 @@ def _get_mag_spaces_at_z(
         SdssFilters,
         mag_sels,
         frac_cats,
+        parent_cut_idx,
         dmag=dmag,
         fit=True,
     )
@@ -495,6 +508,7 @@ def _get_mag_spaces_at_z(
         SdssFilters,
         mag_sels,
         frac_cats,
+        parent_cut_idx,
         dmag=dmag,
         fit=True,
     )
@@ -508,6 +522,7 @@ def _get_mag_spaces_at_z(
         SdssFilters,
         mag_sels,
         frac_cats,
+        parent_cut_idx,
         dmag=dmag,
         fit=True,
     )
