@@ -30,6 +30,7 @@ def N_colors_mags(
         if "mag_idx" in space._fields:
             if "col_idx" in space._fields:
                 # Magnitude-Color space
+                parent_cut_idx = space.parent_cut_idx
                 col_idx = space.col_idx
                 mag_idx = space.mag_idx
 
@@ -38,7 +39,8 @@ def N_colors_mags(
                     obs_mags_weighted[:, col_idx[0]] - obs_mags_weighted[:, col_idx[1]]
                 )
                 mag_weight_space = (
-                    mag_weight[:, mag_idx]
+                    mag_weight[:, parent_cut_idx]
+                    * mag_weight[:, mag_idx]
                     * mag_weight[:, col_idx[0]]
                     * mag_weight[:, col_idx[1]]
                 )
@@ -59,11 +61,14 @@ def N_colors_mags(
                 z_data = z_data._replace(**{fields[f]: new})
             else:
                 # Apparent Magnitude space
+                parent_cut_idx = space.parent_cut_idx
                 mag_idx = space.mag_idx
                 obs_mag = obs_mags_weighted[:, mag_idx]
                 obs_mag = obs_mag.reshape(obs_mag.size, 1)
 
-                mag_weight_space = mag_weight[:, mag_idx]
+                mag_weight_space = (
+                    mag_weight[:, mag_idx] * mag_weight[:, parent_cut_idx]
+                )
 
                 N_model = diffndhist_lomem.tw_ndhist_weighted(
                     obs_mag,
@@ -81,6 +86,7 @@ def N_colors_mags(
 
         else:
             # Color-Color space
+            parent_cut_idx = space.parent_cut_idx
             col_idx = space.col_idx
             obs_colors = []
             for c in range(0, len(col_idx) - 1, 2):
@@ -92,7 +98,8 @@ def N_colors_mags(
             obs_colors = jnp.array(obs_colors).T
 
             mag_weight_space = (
-                mag_weight[:, col_idx[0]]
+                mag_weight[:, parent_cut_idx]
+                * mag_weight[:, col_idx[0]]
                 * mag_weight[:, col_idx[1]]
                 * mag_weight[:, col_idx[2]]
                 * mag_weight[:, col_idx[3]]

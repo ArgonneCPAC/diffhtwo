@@ -62,6 +62,7 @@ MinervaPhot = namedtuple(
         "mags",
         "sels",
         "frac_cats",
+        "parent_cut_idx",
         "mags_labels",
         "spaces",
         "zbins",
@@ -229,10 +230,11 @@ def get_minerva_phot(
         f444w=default_limits,
         f460m=default_limits,
     )
-    mag_f444w = _get_mag_ab(phot, "f_f444w")
+
+    f444w_mag = _get_mag_ab(phot, "f_f444w")
     (f444w_idx,) = get_filt_indx("F444w", PhotFilters)
-    mag_limit_f444w = getattr(minerva_mag_thresh, "f444w")
-    sel_f444w = (mag_f444w > mag_limit_f444w[0]) & (mag_f444w < mag_limit_f444w[1])
+    f444w_mag_thresh = getattr(minerva_mag_thresh, "f444w")
+    f444w_sel = (f444w_mag > f444w_mag_thresh[0]) & (f444w_mag < f444w_mag_thresh[1])
 
     tcurves = []
     mag_per_band = []
@@ -265,7 +267,7 @@ def get_minerva_phot(
         # mag thresh selection
         mag_limit = getattr(minerva_mag_thresh, minerva_filter)
         sel *= (mag > mag_limit[0]) & (mag < mag_limit[1])
-        sel *= sel_f444w
+        sel *= f444w_sel
 
         mag_per_band.append(mag)
         sel_per_band.append(sel)
@@ -398,7 +400,7 @@ def get_minerva_phot(
             frac_cat = frac_cats[mag_idx]
 
             mag_z_tuples.append(
-                space(mag_idx, sig, bin_lo, bin_hi, N_1d, frac_cat, True)
+                space(f444w_idx, mag_idx, sig, bin_lo, bin_hi, N_1d, frac_cat, True)
             )
 
         ccd_z_tuples = []
@@ -419,7 +421,7 @@ def get_minerva_phot(
             frac_cat = np.min((frac_cats[a], frac_cats[b], frac_cats[c], frac_cats[d]))
 
             ccd_z_tuples.append(
-                space(col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, True)
+                space(f444w_idx, col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, True)
             )
 
         cmd_z_tuples = []
@@ -441,7 +443,17 @@ def get_minerva_phot(
             frac_cat = np.min((frac_cats[mag_idx], frac_cats[b], frac_cats[c]))
 
             cmd_z_tuples.append(
-                space(mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, True)
+                space(
+                    f444w_idx,
+                    mag_idx,
+                    col_idx,
+                    sig,
+                    bin_lo,
+                    bin_hi,
+                    N_2d,
+                    frac_cat,
+                    True,
+                )
             )
 
         spaces.append(
@@ -461,6 +473,7 @@ def get_minerva_phot(
         mags,
         sels,
         frac_cats,
+        f444w_idx,
         mag_labels,
         spaces,
         z_bins,
