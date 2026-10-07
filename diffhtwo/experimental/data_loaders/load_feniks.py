@@ -316,7 +316,7 @@ def get_feniks_data(
         HSC_G=(20.6, 25.5),
         HSC_R=(19.8, 25.3),
         HSC_I=(19.0, 25.0),
-        HSC_Z=(18.8, 24.7),
+        HSC_Z=(18.8, 24.5),
         UDS_J=(18.0, 24.0),
         UDS_H=(17.5, 24.0),
         UDS_K=(17.0, FENIKS_MAGK_THRESH),
