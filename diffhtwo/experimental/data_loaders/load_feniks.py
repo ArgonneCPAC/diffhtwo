@@ -290,14 +290,35 @@ def get_feniks_data(
         r"$K_{UDS}$",
     ]
 
+    # feniks_mag_thresh = FeniksFilters(
+    #     MegaCam_uS=(21.4, 26.2),  # -0.9 5sig
+    #     HSC_G=(20.6, 26.5),  # -0.6 5sig
+    #     HSC_R=(19.8, 26.0),  # -0.7 5sig
+    #     HSC_I=(19.0, 25.5),  # -0.6 5sig
+    #     HSC_Z=(18.8, 25.2),  # -0.6 5sig
+    #     UDS_J=(18.0, 25.0),  # -0.6 5sig--> 24.5 --> 24.0
+    #     UDS_H=(17.5, 24.4),  # -0.6 5sig
+    #     UDS_K=(17.0, FENIKS_MAGK_THRESH),
+    # )
+    # feniks_mag_thresh = FeniksFilters(
+    #     MegaCam_uS=(21.4, 25.5),
+    #     HSC_G=(20.6, 26.0),
+    #     HSC_R=(19.8, 25.5),
+    #     HSC_I=(19.0, 25.0),
+    #     HSC_Z=(18.8, 24.7),
+    #     UDS_J=(18.0, 24.0),
+    #     UDS_H=(17.5, 24.0),
+    #     UDS_K=(17.0, FENIKS_MAGK_THRESH),
+    # )
+
     feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=(21.4, 26.2),  # -0.9 5sig
-        HSC_G=(20.6, 26.5),  # -0.6 5sig
-        HSC_R=(19.8, 26.0),  # -0.7 5sig
-        HSC_I=(19.0, 25.5),  # -0.6 5sig
-        HSC_Z=(18.8, 25.2),  # -0.6 5sig
-        UDS_J=(18.0, 25.0),  # -0.6 5sig
-        UDS_H=(17.5, 24.4),  # -0.6 5sig
+        MegaCam_uS=(21.4, 25.0),
+        HSC_G=(20.6, 25.5),
+        HSC_R=(19.8, 25.3),
+        HSC_I=(19.0, 25.0),
+        HSC_Z=(18.8, 24.5),
+        UDS_J=(18.0, 24.0),
+        UDS_H=(17.5, 24.0),
         UDS_K=(17.0, FENIKS_MAGK_THRESH),
     )
 

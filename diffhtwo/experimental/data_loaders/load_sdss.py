@@ -41,8 +41,12 @@ LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
 LH_D_Z = 0.025
 
+F_HOLES = 0.003531  # hole fraction with rmax=0.3 degrees
 
-def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
+
+def apply_ra_dec_cut(
+    sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60, f_holes=F_HOLES
+):
     sdss = sdss[
         (sdss["ra"] > ra_min)
         & (sdss["ra"] < ra_max)
@@ -50,6 +54,7 @@ def apply_ra_dec_cut(sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60):
         & (sdss["dec"] < dec_max)
     ]
     sky_area_deg2 = compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max)
+    sky_area_deg2 = sky_area_deg2 * (1 - f_holes)
     return sdss, sky_area_deg2
 
 
