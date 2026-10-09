@@ -68,7 +68,6 @@ def plot_cc_cm_grid_raw(
     run_label,
     savedir,
     plt_show=True,
-    percentile=(2, 98),
 ):
     labelsize = 9
     fontsize = 10
@@ -93,7 +92,7 @@ def plot_cc_cm_grid_raw(
             n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
 
     data_vals = np.concatenate([np.ravel(n) for n in n_data])
-    vmin, vmax = np.percentile(data_vals[data_vals > 0], percentile)
+    vmin, vmax = data_vals.min(), data_vals.max()
     norm = LogNorm(vmin, vmax)
 
     figures = [
@@ -157,7 +156,6 @@ def plot_cc_cm_grid_raw_minerva(
     run_label,
     savedir,
     plt_show=True,
-    percentile=(2, 98),
 ):
     labelsize = 9
     fontsize = 10
@@ -176,7 +174,7 @@ def plot_cc_cm_grid_raw_minerva(
             n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
 
     data_vals = np.concatenate([np.ravel(n) for n in n_data])
-    vmin, vmax = np.percentile(data_vals[data_vals > 0], percentile)
+    vmin, vmax = data_vals.min(), data_vals.max()
     norm = LogNorm(vmin, vmax)
 
     figures = [

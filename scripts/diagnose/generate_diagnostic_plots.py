@@ -570,19 +570,19 @@ if __name__ == "__main__":
                 ["zJ_JH", "K_gr"],
             ]
             print("Generating SDSS/FENIKS color contour plots...")
-            plot_cc_cm_grid(
-                ran_key,
-                param_collection_fit,
-                feniks.spaces,
-                feniks_fields,
-                feniks.filter_info.mag_thresh,
-                sdss.spaces,
-                sdss_fields,
-                sdss.filter_info.mag_thresh,
-                run_label,
-                fit_diagnostics_save_drn,
-                plt_show=False,
-            )
+            # plot_cc_cm_grid(
+            #     ran_key,
+            #     param_collection_fit,
+            #     feniks.spaces,
+            #     feniks_fields,
+            #     feniks.filter_info.mag_thresh,
+            #     sdss.spaces,
+            #     sdss_fields,
+            #     sdss.filter_info.mag_thresh,
+            #     run_label,
+            #     fit_diagnostics_save_drn,
+            #     plt_show=False,
+            # )
             plot_cc_cm_grid_raw(
                 ran_key,
                 param_collection_fit,

@@ -30,25 +30,8 @@ MINERVA_FILTERS_PATH = BASE_PATH / "data" / "minerva_filters"
 IGM_DRN = BASE_PATH / "data" / "igm"
 IGM_BN = "igm_attenuation_minerva.h5"
 
-UDS_PHOT_CAT = (
-    "uds/MINERVA-UDS_n3.0_m3.1_v1.2.1_ACS+WEBB_Kf444w_SUPER_CATALOG_wMIRI.fits"
-)
-UDS_EAZY_CAT = (
-    "uds/MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG_larson.zout.fits"
-)
-
-COSMOS_PHOT_CAT = (
-    "cosmos/MINERVA-COSMOS_n3.0_m3.0_v1.0.1_ACS+WEBB_Kf444w_SUPER_CATALOG_wMIRI.fits"
-)
-
-COSMOS_EAZY_CAT = "cosmos/MINERVA-COSMOS_n3.0_v1.0_ACS+WEBB_Kf444w_SUPER_CATALOG.larson.ZPiter.eazy.zout.fits"
-
-EGS_PHOT_CAT = (
-    "egs/MINERVA-EGS_n2.0_m2.1_v1.3.1_ACS+WEBB_Kf444w_SUPER_CATALOG_wMIRI.fits"
-)
-EGS_EAZY_CAT = (
-    "egs/MINERVA-EGS_n2.0_v1.3_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG_larson.zout.fits"
-)
+PHOT = "minerva_uds_cosmos_egs_phot.fits"
+ZOUT = "minerva_uds_cosmos_egs_zout.fits"
 
 
 TRANSLATE = "MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG.larson.eazypy.zphot.translate"
@@ -177,24 +160,12 @@ def get_minerva_phot(
     apply_igm=True,
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
-    uds_phot_cat=UDS_PHOT_CAT,
-    uds_eazy_cat=UDS_EAZY_CAT,
-    cosmos_phot_cat=COSMOS_PHOT_CAT,
-    cosmos_eazy_cat=COSMOS_EAZY_CAT,
-    egs_phot_cat=EGS_PHOT_CAT,
-    egs_eazy_cat=EGS_EAZY_CAT,
+    phot=PHOT,
+    zout=ZOUT,
 ):
     drn = Path(drn)
-    uds_phot = Table.read(drn / uds_phot_cat)
-    uds_zout = Table.read(drn / uds_eazy_cat)
-    cosmos_phot = Table.read(drn / cosmos_phot_cat)
-    cosmos_zout = Table.read(drn / cosmos_eazy_cat)
-    egs_phot = Table.read(drn / egs_phot_cat)
-    egs_zout = Table.read(drn / egs_eazy_cat)
-
-    phot, zout = _merge_minerva_fields(
-        uds_phot, uds_zout, cosmos_phot, cosmos_zout, egs_phot, egs_zout
-    )
+    phot = Table.read(drn / phot)
+    zout = Table.read(drn / zout)
 
     spec_avail = zout["z_spec"] != -99.0  # goes in frac_cat?
     z_best = zout["z_ml"].copy()
@@ -211,8 +182,6 @@ def get_minerva_phot(
         f435w=default_limits,
         f606w=default_limits,
         f814w=default_limits,
-        f125w=default_limits,
-        f160w=default_limits,
         f090w=default_limits,
         f115w=default_limits,
         f140m=default_limits,
@@ -284,8 +253,6 @@ def get_minerva_phot(
         "F435w",
         "F606w",
         "F814w",
-        "F125w",
-        "F160w",
         "F090w",
         "F115w",
         "F150w",
@@ -618,8 +585,6 @@ PhotFilters = namedtuple(
         "f435w",
         "f606w",
         "f814w",
-        "f125w",
-        "f160w",
         "f090w",
         "f115w",
         "f140m",

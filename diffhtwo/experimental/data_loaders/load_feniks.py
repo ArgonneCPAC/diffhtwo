@@ -51,8 +51,11 @@ Feniks = namedtuple(
 
 LH_SIG = 3.0
 LH_N_CENTROIDS = 30_000
-
 LH_D_Z = 0.3
+
+D_MAG_1d = 0.2
+D_MAG_2d = 0.2
+GAUSS_SIG_2d = 3.0
 
 
 def _power_law(x, A, B):
@@ -164,9 +167,9 @@ def get_feniks_data(
     drn,
     ran_key,
     ssp_data,
-    d_mag_1d=0.2,
-    d_mag_2d=0.1,
-    gauss_sig_2d=3.0,
+    d_mag_1d=D_MAG_1d,
+    d_mag_2d=D_MAG_2d,
+    gauss_sig_2d=GAUSS_SIG_2d,
     frac_cat=1.0,
     num_halos=100,
     phot=PHOT,
@@ -1155,9 +1158,9 @@ def get_feniks_fitting_data(
     feniks_drn,
     ran_key,
     ssp_data,
-    d_mag_1d=0.2,
-    d_mag_2d=0.1,
-    gauss_sig_2d=3.0,
+    d_mag_1d=D_MAG_1d,
+    d_mag_2d=D_MAG_2d,
+    gauss_sig_2d=GAUSS_SIG_2d,
     num_halos=100,
     phot=PHOT,
     zout=ZOUT,
