@@ -647,6 +647,7 @@ def plot_app_mag_funcs(
         mag_sels = dataset.mag_sels
         parent_cut_idx = dataset.parent_cut_idx
         data_sky_area_degsq = dataset.data_sky_area_degsq
+        mag_thresh = dataset.filter_info.mag_thresh
         n_bands = mags.shape[1]
 
         z_min = zbins[zbin][0]
@@ -678,7 +679,7 @@ def plot_app_mag_funcs(
             ran_key,
             param_collection,
             lc_data,
-            dataset.filter_info.mag_thresh,
+            mag_thresh,
         )
 
         shift_dex = 0.0
@@ -688,8 +689,8 @@ def plot_app_mag_funcs(
             sel = mag_sels[:, i] * z_mask
             mag_band_z = mags[sel][:, i]
             bins = np.arange(
-                mag_band_z.min(),
-                mag_band_z.max() + dmag,
+                mag_thresh[i][0],
+                mag_thresh[i][1],
                 dmag,
             )
             bin_centers = (bins[1:] + bins[:-1]) / 2
