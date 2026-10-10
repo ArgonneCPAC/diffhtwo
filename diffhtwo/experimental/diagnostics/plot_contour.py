@@ -68,7 +68,6 @@ def plot_cc_cm_grid_raw(
     run_label,
     savedir,
     plt_show=True,
-    percentile=(2, 98),
 ):
     labelsize = 9
     fontsize = 10
@@ -93,94 +92,11 @@ def plot_cc_cm_grid_raw(
             n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
 
     data_vals = np.concatenate([np.ravel(n) for n in n_data])
-    vmin, vmax = np.percentile(data_vals[data_vals > 0], percentile)
+    vmin, vmax = data_vals.min(), data_vals.max()
     norm = LogNorm(vmin, vmax)
 
     figures = [
         ("SDSS or FENIKS", "data", n_data),
-        ("diffsky", "model", n_model),
-    ]
-    for label, suffix, densities in figures:
-        fig, ax = plt.subplots(
-            2, len(models), figsize=(7.1, 3.4), constrained_layout=True
-        )
-        fig.get_layout_engine().set(w_pad=0.04, h_pad=0.04, wspace=0.05, hspace=0.05)
-
-        for col, model in enumerate(models):
-            ax[0][col].set_title(
-                f"{model.z_min} < z < {model.z_max}", fontsize=fontsize, y=1.0, pad=3
-            )
-
-        for (row, col, space), n in zip(panels, densities):
-            a = ax[row][col]
-            xlabel, ylabel = parse_color_labels(type(space).__name__)
-            qm = plot_density_raw(
-                space.bin_lo, space.bin_hi, n, a, xlabel, ylabel, dusk, norm=norm
-            )
-            a.minorticks_on()
-            for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
-                a.tick_params(
-                    which=which,
-                    direction="in",
-                    top=True,
-                    right=True,
-                    length=length,
-                    width=width,
-                    labelsize=labelsize,
-                )
-
-        cbar = fig.colorbar(
-            qm,
-            ax=ax.ravel().tolist(),
-            location="right",
-            shrink=1,
-            aspect=40,
-            pad=0.01,
-            extend="both",
-        )
-        cbar.set_label(r"$n\ [\mathrm{Mpc}^{-3}]$", fontsize=fontsize)
-        cbar.ax.tick_params(labelsize=labelsize)
-
-        fig.suptitle(label, fontsize=fontsize)
-        fig.savefig(f"{savedir}/{run_label}_cc_cm_grid_raw_{suffix}.png", dpi=600)
-        if plt_show:
-            plt.show()
-        plt.close()
-
-
-def plot_cc_cm_grid_raw_minerva(
-    ran_key,
-    param_collection,
-    spaces,
-    fields,
-    mag_thresh,
-    run_label,
-    savedir,
-    plt_show=True,
-    percentile=(2, 98),
-):
-    labelsize = 9
-    fontsize = 10
-
-    models = []
-    panels = []
-    n_data = []
-    n_model = []
-    for col, (z_data, z_fields) in enumerate(zip(spaces, fields)):
-        model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
-        models.append(model)
-        for row, field in enumerate(z_fields):
-            space = getattr(model, field)
-            panels.append((row, col, space))
-            n_data.append(space.N_data / model.data_vol_mpc3)
-            n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
-
-    data_vals = np.concatenate([np.ravel(n) for n in n_data])
-    vmin, vmax = np.percentile(data_vals[data_vals > 0], percentile)
-    norm = LogNorm(vmin, vmax)
-
-    figures = [
-        ("MINERVA", "data", n_data),
         ("diffsky", "model", n_model),
     ]
     for label, suffix, densities in figures:
@@ -476,24 +392,40 @@ def plot_cc_cm_grid_minerva(
     run_label,
     savedir,
     plt_show=True,
+    figsize=(7.1, 3.4),
+    tag="",
+    ncols=None,
 ):
     labelsize = 9
     fontsize = 10
 
-    fig, ax = plt.subplots(2, len(spaces), figsize=(7.1, 3.4), constrained_layout=True)
+    by_z = {(sp.z_min, sp.z_max): sp for sp in spaces}
+    if ncols:
+        nrows, n_cols = -(-len(fields) // ncols), ncols
+    else:
+        nrows, n_cols = max(len(f) for _, f in fields), len(fields)
+
+    fig, ax = plt.subplots(
+        nrows, n_cols, figsize=figsize, constrained_layout=True, squeeze=False
+    )
     fig.get_layout_engine().set(
         h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.925)
     )
+    for a in ax.ravel():
+        a.axis("off")
 
-    for col, (z_data, z_fields) in enumerate(zip(spaces, fields)):
-        model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
-        ax[0][col].set_title(
-            f"{model.z_min} < z < {model.z_max}", fontsize=fontsize, y=0.99
-        )
+    for i, (z, z_fields) in enumerate(fields):
+        model = N_colors_mags(ran_key, param_collection, by_z[z], mag_thresh)
 
         for row, field in enumerate(z_fields):
             space = getattr(model, field)
-            a = ax[row][col]
+            r, c = divmod(i, ncols) if ncols else (row, i)
+            a = ax[r][c]
+            a.axis("on")
+            if ncols or row == 0:
+                a.set_title(
+                    f"{model.z_min} < z < {model.z_max}", fontsize=fontsize, y=0.99
+                )
             xlabel, ylabel = parse_color_labels(type(space).__name__)
             qm = plot_density(
                 space.bin_lo,
@@ -549,10 +481,100 @@ def plot_cc_cm_grid_minerva(
         fontsize=fontsize,
         borderaxespad=0.0,
     )
-    fig.savefig(f"{savedir}/{run_label}_cc_cm_grid.png", dpi=600)
+    fig.savefig(f"{savedir}/{run_label}_cc_cm_grid{tag}.png", dpi=600)
     if plt_show:
         plt.show()
     plt.close()
+
+
+def plot_cc_cm_grid_raw_minerva(
+    ran_key,
+    param_collection,
+    spaces,
+    fields,
+    mag_thresh,
+    run_label,
+    savedir,
+    plt_show=True,
+    figsize=(7.1, 3.4),
+    tag="",
+    ncols=None,
+):
+    labelsize = 9
+    fontsize = 10
+
+    by_z = {(sp.z_min, sp.z_max): sp for sp in spaces}
+    if ncols:
+        nrows, n_cols = -(-len(fields) // ncols), ncols
+    else:
+        nrows, n_cols = max(len(f) for _, f in fields), len(fields)
+
+    panels, n_data, n_model = [], [], []
+    for i, (z, z_fields) in enumerate(fields):
+        model = N_colors_mags(ran_key, param_collection, by_z[z], mag_thresh)
+        for row, field in enumerate(z_fields):
+            space = getattr(model, field)
+            r, c = divmod(i, ncols) if ncols else (row, i)
+            title = (
+                f"{model.z_min} < z < {model.z_max}" if (ncols or row == 0) else None
+            )
+            panels.append((r, c, space, title))
+            n_data.append(space.N_data / model.data_vol_mpc3)
+            n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
+
+    data_vals = np.concatenate([np.ravel(n) for n in n_data])
+    norm = LogNorm(data_vals.min(), data_vals.max())
+
+    figures = [
+        ("MINERVA", "data", n_data),
+        ("diffsky", "model", n_model),
+    ]
+    for label, suffix, densities in figures:
+        fig, ax = plt.subplots(
+            nrows, n_cols, figsize=figsize, constrained_layout=True, squeeze=False
+        )
+        fig.get_layout_engine().set(w_pad=0.04, h_pad=0.04, wspace=0.05, hspace=0.05)
+        for a in ax.ravel():
+            a.axis("off")
+
+        for (r, c, space, title), n in zip(panels, densities):
+            a = ax[r][c]
+            a.axis("on")
+            if title:
+                a.set_title(title, fontsize=fontsize, y=1.0, pad=3)
+            xlabel, ylabel = parse_color_labels(type(space).__name__)
+            qm = plot_density_raw(
+                space.bin_lo, space.bin_hi, n, a, xlabel, ylabel, dusk, norm=norm
+            )
+            a.minorticks_on()
+            for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
+                a.tick_params(
+                    which=which,
+                    direction="in",
+                    top=True,
+                    right=True,
+                    length=length,
+                    width=width,
+                    labelsize=labelsize,
+                )
+
+        cbar = fig.colorbar(
+            qm,
+            ax=ax.ravel().tolist(),
+            location="right",
+            shrink=1,
+            aspect=40,
+            pad=0.01,
+            extend="both",
+        )
+        cbar.set_label(r"$n\ [\mathrm{Mpc}^{-3}]$", fontsize=fontsize)
+        cbar.ax.tick_params(labelsize=labelsize)
+
+        fig.suptitle(label, fontsize=fontsize)
+        fig.savefig(f"{savedir}/{run_label}_cc_cm_grid_raw{tag}_{suffix}.png", dpi=600)
+        if plt_show:
+            plt.show()
+        plt.close()
 
 
 def parse_axis_label(s):

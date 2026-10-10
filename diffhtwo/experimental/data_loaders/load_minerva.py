@@ -11,7 +11,6 @@ from dsps.data_loaders import load_transmission_curve
 
 from ..defaults import (
     MINERVA_AREA_DEG2,
-    MINERVA_UDS_AREA_DEG2,
     AppMagFunc,
     ColorColor,
     FilterInfo,
@@ -30,30 +29,16 @@ MINERVA_FILTERS_PATH = BASE_PATH / "data" / "minerva_filters"
 IGM_DRN = BASE_PATH / "data" / "igm"
 IGM_BN = "igm_attenuation_minerva.h5"
 
-UDS_PHOT_CAT = (
-    "uds/MINERVA-UDS_n3.0_m3.1_v1.2.1_ACS+WEBB_Kf444w_SUPER_CATALOG_wMIRI.fits"
-)
-UDS_EAZY_CAT = (
-    "uds/MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG_larson.zout.fits"
-)
-
-COSMOS_PHOT_CAT = (
-    "cosmos/MINERVA-COSMOS_n3.0_m3.0_v1.0.1_ACS+WEBB_Kf444w_SUPER_CATALOG_wMIRI.fits"
-)
-
-COSMOS_EAZY_CAT = "cosmos/MINERVA-COSMOS_n3.0_v1.0_ACS+WEBB_Kf444w_SUPER_CATALOG.larson.ZPiter.eazy.zout.fits"
-
-EGS_PHOT_CAT = (
-    "egs/MINERVA-EGS_n2.0_m2.1_v1.3.1_ACS+WEBB_Kf444w_SUPER_CATALOG_wMIRI.fits"
-)
-EGS_EAZY_CAT = (
-    "egs/MINERVA-EGS_n2.0_v1.3_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG_larson.zout.fits"
-)
-
+PHOT = "minerva_uds_cosmos_phot.fits"
+ZOUT = "minerva_uds_cosmos_zout.fits"
 
 TRANSLATE = "MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG.larson.eazypy.zphot.translate"
 INFO = "FILTER.RES.latest.info"
 TCURVES = "FILTER.RES.latest"
+
+D_MAG_1d = 0.2
+D_MAG_2d = 0.2
+GAUSS_SIG_2d = 3.0
 
 MinervaPhot = namedtuple(
     "MinervaPhot",
@@ -61,7 +46,6 @@ MinervaPhot = namedtuple(
         "redshift",
         "mags",
         "sels",
-        "frac_cats",
         "parent_cut_idx",
         "mags_labels",
         "spaces",
@@ -150,16 +134,16 @@ def _merge_minerva_fields(
     cosmos_phot["flag_kron"] = cosmos_phot["flag_kron"].astype("int64")
     cosmos_phot["use_circle"] = cosmos_phot["use_circle"].astype("int64")
 
-    phot = vstack([uds_phot, cosmos_phot, egs_phot], metadata_conflicts="silent")
+    phot = vstack([uds_phot, cosmos_phot], metadata_conflicts="silent")
 
     common = set(uds_zout.colnames) & set(cosmos_zout.colnames) & set(egs_zout.colnames)
     common = [c for c in uds_zout.colnames if c in common]
 
     uds_zout = uds_zout[common]
     cosmos_zout = cosmos_zout[common]
-    egs_zout = egs_zout[common]
+    # egs_zout = egs_zout[common]
 
-    zout = vstack([uds_zout, cosmos_zout, egs_zout], metadata_conflicts="silent")
+    zout = vstack([uds_zout, cosmos_zout], metadata_conflicts="silent")
 
     return phot, zout
 
@@ -168,33 +152,22 @@ def get_minerva_phot(
     drn,
     ran_key,
     ssp_data,
-    d_mag_1d=0.2,
-    d_mag_2d=0.1,
-    gauss_sig_2d=3.0,
+    d_mag_1d=D_MAG_1d,
+    d_mag_2d=D_MAG_2d,
+    gauss_sig_2d=GAUSS_SIG_2d,
+    frac_cat=1.0,
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
     apply_igm=True,
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
-    uds_phot_cat=UDS_PHOT_CAT,
-    uds_eazy_cat=UDS_EAZY_CAT,
-    cosmos_phot_cat=COSMOS_PHOT_CAT,
-    cosmos_eazy_cat=COSMOS_EAZY_CAT,
-    egs_phot_cat=EGS_PHOT_CAT,
-    egs_eazy_cat=EGS_EAZY_CAT,
+    phot=PHOT,
+    zout=ZOUT,
 ):
     drn = Path(drn)
-    uds_phot = Table.read(drn / uds_phot_cat)
-    uds_zout = Table.read(drn / uds_eazy_cat)
-    cosmos_phot = Table.read(drn / cosmos_phot_cat)
-    cosmos_zout = Table.read(drn / cosmos_eazy_cat)
-    egs_phot = Table.read(drn / egs_phot_cat)
-    egs_zout = Table.read(drn / egs_eazy_cat)
-
-    phot, zout = _merge_minerva_fields(
-        uds_phot, uds_zout, cosmos_phot, cosmos_zout, egs_phot, egs_zout
-    )
+    phot = Table.read(drn / phot)
+    zout = Table.read(drn / zout)
 
     spec_avail = zout["z_spec"] != -99.0  # goes in frac_cat?
     z_best = zout["z_ml"].copy()
@@ -206,29 +179,26 @@ def get_minerva_phot(
     zout = zout[use_phot]
     z_best = z_best[use_phot].data
 
-    default_limits = (19.0, 27.0)
     minerva_mag_thresh = PhotFilters(
-        f435w=default_limits,
-        f606w=default_limits,
-        f814w=default_limits,
-        f125w=default_limits,
-        f160w=default_limits,
-        f090w=default_limits,
-        f115w=default_limits,
-        f140m=default_limits,
-        f150w=default_limits,
-        f162m=default_limits,
-        f182m=default_limits,
-        f200w=default_limits,
-        f210m=default_limits,
-        f250m=default_limits,
-        f277w=default_limits,
-        f300m=default_limits,
-        f356w=default_limits,
-        f360m=default_limits,
-        f410m=default_limits,
-        f444w=default_limits,
-        f460m=default_limits,
+        f435w=(20.0, 27.5),
+        f606w=(20.0, 27.5),
+        f814w=(19.0, 27.5),
+        f090w=(19.0, 27.5),
+        f115w=(19.0, 27.5),
+        f140m=(19.0, 27.5),
+        f150w=(19.0, 27.5),
+        f162m=(19.0, 27.5),
+        f182m=(19.0, 27.5),
+        f200w=(19.0, 27.5),
+        f210m=(19.0, 27.5),
+        f250m=(19.0, 27.5),
+        f277w=(19.0, 27.5),
+        f300m=(19.0, 27.5),
+        f356w=(19.0, 27.5),
+        f360m=(19.0, 27.5),
+        f410m=(19.0, 27.5),
+        f444w=(19.0, 27.5),
+        f460m=(19.0, 27.0),
     )
 
     f444w_mag = _get_mag_ab(phot, "f_f444w")
@@ -240,7 +210,6 @@ def get_minerva_phot(
     mag_per_band = []
     mag_labels = []
     sel_per_band = []
-    frac_cat_per_band = []
     tcurves = []
     for minerva_filter in PhotFilters._fields:
         tcurve = load_transmission_curve(
@@ -258,8 +227,8 @@ def get_minerva_phot(
         sel = ~phot[col_name].mask
 
         # based on removing masked gals (no coverage, etc.)
-        frac_cat = sel.sum() / n_gals
-        frac_cat_per_band.append(frac_cat)
+        # frac_cat = sel.sum() / n_gals
+        # frac_cat_per_band.append(frac_cat)
 
         # masked due to converting flux to mag for -ve flux of droputs, for instance
         sel *= np.isfinite(mag)
@@ -276,16 +245,14 @@ def get_minerva_phot(
 
     mags = np.vstack(mag_per_band).T
     sels = np.vstack(sel_per_band).T
-    frac_cats = np.array(frac_cat_per_band)
+    # frac_cats = np.array(frac_cat_per_band)
 
     filter_info = FilterInfo(minerva_mag_thresh, tcurves)
 
-    md = [
+    app_mag_funcs = [
         "F435w",
         "F606w",
         "F814w",
-        "F125w",
-        "F160w",
         "F090w",
         "F115w",
         "F150w",
@@ -294,51 +261,68 @@ def get_minerva_phot(
         "F356w",
         "F444w",
     ]
-    mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
 
-    cc_cmd_spaces_at_z = [
+    spaces_at_z = [
         {
             "z": (1.0, 2.0),
-            "ccd": ["F090wF150w_F150wF356w"],
-            "cmd": ["F356w_F150wF356w"],
+            "md": app_mag_funcs,
+            "ccd": [("F090wF150w_F150wF356w", True)],
+            "cmd": [("F356w_F150wF356w", True)],
         },
         {
             "z": (2.0, 3.0),
-            "ccd": ["F115wF200w_F200wF356w", "F150wF200w_F200wF277w"],
-            "cmd": ["F356w_F115wF356w"],
+            "md": app_mag_funcs,
+            "ccd": [("F115wF200w_F200wF356w", True), ("F150wF200w_F200wF277w", True)],
+            "cmd": [("F356w_F115wF356w", True)],
         },
         {
             "z": (3.0, 4.0),
-            "ccd": ["F150wF277w_F277wF444w", "F200wF277w_F277wF356w"],
-            "cmd": ["F356w_F150wF356w"],
+            "md": app_mag_funcs,
+            "ccd": [("F150wF277w_F277wF444w", True), ("F200wF277w_F277wF356w", True)],
+            "cmd": [("F356w_F150wF356w", True)],
         },
         {
             "z": (4.0, 5.0),
+            "md": app_mag_funcs,
             "ccd": [
-                "F814wF150w_F150wF277w",
-                "F200wF277w_F277wF444w",
-                "F356wF410m_F410mF444w",
+                ("F814wF150w_F150wF277w", True),
+                ("F200wF277w_F277wF444w", True),
+                ("F356wF410m_F410mF444w", True),
             ],
-            "cmd": ["F444w_F150wF444w"],
+            "cmd": [("F444w_F150wF444w", True)],
         },
         {
             "z": (5.0, 6.0),
-            "ccd": ["F115wF200w_F200wF444w", "F277wF356w_F356wF444w"],
-            "cmd": ["F444w_F115wF444w"],
+            "md": app_mag_funcs,
+            "ccd": [("F115wF200w_F200wF444w", True), ("F277wF356w_F356wF444w", True)],
+            "cmd": [("F444w_F115wF444w", True)],
         },
+        # Line excess to pick up h-alpha emitters
+        {"z": (1.03, 1.25), "cmd": [("F140m_F150wF140m", False)]},
+        {"z": (1.36, 1.59), "cmd": [("F162m_F150wF162m", False)]},
+        {"z": (1.67, 1.95), "cmd": [("F182m_F200wF182m", False)]},
+        {"z": (2.04, 2.35), "cmd": [("F210m_F200wF210m", False)]},
+        {"z": (2.68, 2.95), "cmd": [("F250m_F277wF250m", False)]},
+        {"z": (4.22, 4.81), "cmd": [("F360m_F356wF360m", False)]},
+        {"z": (4.98, 5.52), "cmd": [("F410m_F444wF410m", False)]},
+        {"z": (5.88, 6.23), "cmd": [("F460m_F444wF460m", False)]},
     ]
-    z_bins = np.array([sp["z"] for sp in cc_cmd_spaces_at_z])
+    z_bins = np.array([sp["z"] for sp in spaces_at_z])
 
-    # cmd = ["F162m_F160wF162m"]#H-alpha emitted at z~1.5 figure
+    def split(entries):
+        pairs = [(e, True) if isinstance(e, str) else e for e in entries]
+        return [n for n, _ in pairs], dict(pairs)
 
     spaces = []
     for zbin in range(len(z_bins)):
         z_min = z_bins[zbin][0]
         z_max = z_bins[zbin][1]
 
-        ccd = cc_cmd_spaces_at_z[zbin]["ccd"]
-        cmd = cc_cmd_spaces_at_z[zbin]["cmd"]
+        md, md_fit = split(spaces_at_z[zbin].get("md", []))
+        ccd, ccd_fit = split(spaces_at_z[zbin].get("ccd", []))
+        cmd, cmd_fit = split(spaces_at_z[zbin].get("cmd", []))
 
+        mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
         cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
 
@@ -350,8 +334,8 @@ def get_minerva_phot(
                 "data_vol_mpc3",
                 "lc_data",
                 *mag_namedtuples,
-                *ccd,
-                *cmd,
+                *ccd_namedtuples,
+                *cmd_namedtuples,
             ],
         )
 
@@ -397,10 +381,17 @@ def get_minerva_phot(
                 mag_selected[:, mag_idx], dmag=d_mag_1d
             )
 
-            frac_cat = frac_cats[mag_idx]
-
             mag_z_tuples.append(
-                space(f444w_idx, mag_idx, sig, bin_lo, bin_hi, N_1d, frac_cat, True)
+                space(
+                    f444w_idx,
+                    mag_idx,
+                    sig,
+                    bin_lo,
+                    bin_hi,
+                    N_1d,
+                    frac_cat,
+                    md_fit[space_name],
+                )
             )
 
         ccd_z_tuples = []
@@ -418,10 +409,17 @@ def get_minerva_phot(
                 color1, color2, dmag=d_mag_2d, gauss_sig=gauss_sig_2d
             )
 
-            frac_cat = np.min((frac_cats[a], frac_cats[b], frac_cats[c], frac_cats[d]))
-
             ccd_z_tuples.append(
-                space(f444w_idx, col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, True)
+                space(
+                    f444w_idx,
+                    col_idx,
+                    sig,
+                    bin_lo,
+                    bin_hi,
+                    N_2d,
+                    frac_cat,
+                    ccd_fit[space_name],
+                )
             )
 
         cmd_z_tuples = []
@@ -440,8 +438,6 @@ def get_minerva_phot(
 
             col_idx = [b, c]
 
-            frac_cat = np.min((frac_cats[mag_idx], frac_cats[b], frac_cats[c]))
-
             cmd_z_tuples.append(
                 space(
                     f444w_idx,
@@ -452,7 +448,7 @@ def get_minerva_phot(
                     bin_hi,
                     N_2d,
                     frac_cat,
-                    True,
+                    cmd_fit[space_name],
                 )
             )
 
@@ -472,7 +468,6 @@ def get_minerva_phot(
         z_best,
         mags,
         sels,
-        frac_cats,
         f444w_idx,
         mag_labels,
         spaces,
@@ -501,9 +496,6 @@ def get_minerva_phot_fitting_data(
     drn,
     ran_key,
     ssp_data,
-    d_mag_1d=0.1,
-    d_mag_2d=0.05,
-    gauss_sig_2d=3.0,
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
@@ -513,9 +505,6 @@ def get_minerva_phot_fitting_data(
         drn,
         ran_key,
         ssp_data,
-        d_mag_1d=d_mag_1d,
-        d_mag_2d=d_mag_2d,
-        gauss_sig_2d=gauss_sig_2d,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
@@ -618,8 +607,6 @@ PhotFilters = namedtuple(
         "f435w",
         "f606w",
         "f814w",
-        "f125w",
-        "f160w",
         "f090w",
         "f115w",
         "f140m",

@@ -51,8 +51,11 @@ Feniks = namedtuple(
 
 LH_SIG = 3.0
 LH_N_CENTROIDS = 30_000
-
 LH_D_Z = 0.3
+
+D_MAG_1d = 0.2
+D_MAG_2d = 0.2
+GAUSS_SIG_2d = 3.0
 
 
 def _power_law(x, A, B):
@@ -164,9 +167,9 @@ def get_feniks_data(
     drn,
     ran_key,
     ssp_data,
-    d_mag_1d=0.2,
-    d_mag_2d=0.1,
-    gauss_sig_2d=3.0,
+    d_mag_1d=D_MAG_1d,
+    d_mag_2d=D_MAG_2d,
+    gauss_sig_2d=GAUSS_SIG_2d,
     frac_cat=1.0,
     num_halos=100,
     phot=PHOT,
@@ -291,33 +294,12 @@ def get_feniks_data(
         r"$K_{UDS}$",
     ]
 
-    # feniks_mag_thresh = FeniksFilters(
-    #     MegaCam_uS=(21.4, 26.2),  # -0.9 5sig
-    #     HSC_G=(20.6, 26.5),  # -0.6 5sig
-    #     HSC_R=(19.8, 26.0),  # -0.7 5sig
-    #     HSC_I=(19.0, 25.5),  # -0.6 5sig
-    #     HSC_Z=(18.8, 25.2),  # -0.6 5sig
-    #     UDS_J=(18.0, 25.0),  # -0.6 5sig--> 24.5 --> 24.0
-    #     UDS_H=(17.5, 24.4),  # -0.6 5sig
-    #     UDS_K=(17.0, FENIKS_MAGK_THRESH),
-    # )
-    # feniks_mag_thresh = FeniksFilters(
-    #     MegaCam_uS=(21.4, 25.5),
-    #     HSC_G=(20.6, 26.0),
-    #     HSC_R=(19.8, 25.5),
-    #     HSC_I=(19.0, 25.0),
-    #     HSC_Z=(18.8, 24.7),
-    #     UDS_J=(18.0, 24.0),
-    #     UDS_H=(17.5, 24.0),
-    #     UDS_K=(17.0, FENIKS_MAGK_THRESH),
-    # )
-
     feniks_mag_thresh = FeniksFilters(
         MegaCam_uS=(21.4, 25.0),
-        HSC_G=(20.6, 25.5),
-        HSC_R=(19.8, 25.3),
-        HSC_I=(19.0, 25.0),
-        HSC_Z=(18.8, 24.5),
+        HSC_G=(20.6, 25.3),
+        HSC_R=(19.8, 24.8),
+        HSC_I=(19.0, 24.5),
+        HSC_Z=(18.8, 24.3),
         UDS_J=(18.0, 24.0),
         UDS_H=(17.5, 24.0),
         UDS_K=(17.0, FENIKS_MAGK_THRESH),
@@ -1176,9 +1158,9 @@ def get_feniks_fitting_data(
     feniks_drn,
     ran_key,
     ssp_data,
-    d_mag_1d=0.2,
-    d_mag_2d=0.1,
-    gauss_sig_2d=3.0,
+    d_mag_1d=D_MAG_1d,
+    d_mag_2d=D_MAG_2d,
+    gauss_sig_2d=GAUSS_SIG_2d,
     num_halos=100,
     phot=PHOT,
     zout=ZOUT,
