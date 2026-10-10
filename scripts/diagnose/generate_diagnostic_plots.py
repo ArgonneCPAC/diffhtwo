@@ -570,19 +570,19 @@ if __name__ == "__main__":
                 ["zJ_JH", "K_gr"],
             ]
             print("Generating SDSS/FENIKS color contour plots...")
-            # plot_cc_cm_grid(
-            #     ran_key,
-            #     param_collection_fit,
-            #     feniks.spaces,
-            #     feniks_fields,
-            #     feniks.filter_info.mag_thresh,
-            #     sdss.spaces,
-            #     sdss_fields,
-            #     sdss.filter_info.mag_thresh,
-            #     run_label,
-            #     fit_diagnostics_save_drn,
-            #     plt_show=False,
-            # )
+            plot_cc_cm_grid(
+                ran_key,
+                param_collection_fit,
+                feniks.spaces,
+                feniks_fields,
+                feniks.filter_info.mag_thresh,
+                sdss.spaces,
+                sdss_fields,
+                sdss.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
             plot_cc_cm_grid_raw(
                 ran_key,
                 param_collection_fit,
@@ -1145,11 +1145,11 @@ if __name__ == "__main__":
         if cfg["plots"]["plot_color_contours"]:
             print("Generating MINERVA color contour plots...")
             fields = [
-                ["F090wF150w_F150wF356w", "F356w_F150wF356w"],
-                ["F115wF200w_F200wF356w", "F356w_F115wF356w"],
-                ["F150wF277w_F277wF444w", "F356w_F150wF356w"],
-                ["F200wF277w_F277wF444w", "F444w_F150wF444w"],
-                ["F277wF356w_F356wF444w", "F444w_F115wF444w"],
+                ((1.0, 2.0), ("F090wF150w_F150wF356w", "F356w_F150wF356w")),
+                ((2.0, 3.0), ("F115wF200w_F200wF356w", "F356w_F115wF356w")),
+                ((3.0, 4.0), ("F150wF277w_F277wF444w", "F356w_F150wF356w")),
+                ((4.0, 5.0), ("F200wF277w_F277wF444w", "F444w_F150wF444w")),
+                ((5.0, 6.0), ("F277wF356w_F356wF444w", "F444w_F115wF444w")),
             ]
             plot_cc_cm_grid_raw_minerva(
                 ran_key,
@@ -1170,4 +1170,39 @@ if __name__ == "__main__":
                 run_label,
                 fit_diagnostics_save_drn,
                 plt_show=False,
+            )
+
+            emitter_spaces = [
+                ((1.03, 1.25), ["F140m_F150wF140m"]),
+                ((1.36, 1.59), ["F162m_F150wF162m"]),
+                ((1.67, 1.95), ["F182m_F200wF182m"]),
+                ((2.04, 2.35), ["F210m_F200wF210m"]),
+                ((2.68, 2.95), ["F250m_F277wF250m"]),
+                ((4.22, 4.81), ["F360m_F356wF360m"]),
+                ((4.98, 5.52), ["F410m_F444wF410m"]),
+                ((5.88, 6.23), ["F460m_F444wF460m"]),
+            ]
+            plot_cc_cm_grid_raw_minerva(
+                ran_key,
+                param_collection_fit,
+                minerva.spaces,
+                emitter_spaces,
+                minerva.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+                ncols=4,
+                tag="_emitters",
+            )
+            plot_cc_cm_grid_minerva(
+                ran_key,
+                param_collection_fit,
+                minerva.spaces,
+                emitter_spaces,
+                minerva.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+                ncols=4,
+                tag="_emitters",
             )
