@@ -24,9 +24,7 @@ from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_feniks, load_hizels, load_sdss
 from diffhtwo.experimental.optimizers import Np_photline_opt
 
-DIFFSTARPOP_GALACTICUS_exsitu = DiffstarPop_Params_Diffstarpopfits_mgash[
-    "galacticus_in_plus_ex_situ"
-]
+DIFFSTARPOP_PARAMS = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -57,7 +55,7 @@ if __name__ == "__main__":
     )
     if cfg["defaults"]["diffstarpop"]:
         param_collection_fit = param_collection_fit._replace(
-            diffstarpop_params=DIFFSTARPOP_GALACTICUS_exsitu
+            diffstarpop_params=DIFFSTARPOP_PARAMS
         )
     if cfg["defaults"]["spspop"]:
         param_collection_fit = param_collection_fit._replace(

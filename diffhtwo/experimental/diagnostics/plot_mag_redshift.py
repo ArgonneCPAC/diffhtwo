@@ -128,8 +128,8 @@ def compare_models_in_mag_z(
         wspace=0, hspace=0, bottom=0.075, left=0.075, right=0.99, top=0.925
     )
     labelsize = 12
-    ax[0][0].set_title("SDSS+FENIKS+HiZELS (" + run_label1 + ")")
-    ax[0][1].set_title("FENIKS (" + run_label2 + ")")
+    ax[0][0].set_title(run_label1)
+    ax[0][1].set_title("SDSS-only fit (" + run_label2 + ")")
     for f in range(0, n_bands):
         mag_diffsky1 = phot_info1.obs_mags[:, f]
         mag_diffsky2 = phot_info2.obs_mags[:, f]
@@ -332,8 +332,8 @@ def compare_models_in_mag_z2(
         wspace=0, hspace=0, bottom=0.075, left=0.075, right=0.99, top=0.925
     )
     labelsize = 12
-    ax[0][0].set_title("SDSS+FENIKS+HiZELS (" + run_label1 + ")")
-    ax[0][1].set_title("FENIKS (" + run_label2 + ")")
+    ax[0][0].set_title(run_label1)
+    ax[0][1].set_title("SDSS-only fit (" + run_label2 + ")")
     for f in range(0, n_bands):
         mag_diffsky1 = phot_info1.obs_mags[:, f]
         mag_diffsky2 = phot_info2.obs_mags[:, f]
@@ -493,8 +493,8 @@ def compare_models_in_mag_z_sfr(
         wspace=0, hspace=0, bottom=0.075, left=0.075, right=0.99, top=0.95
     )
     labelsize = 12
-    ax[0][0].set_title("SDSS+FENIKS+HiZELS (" + run_label1 + ")")
-    ax[0][1].set_title("FENIKS (" + run_label2 + ")")
+    ax[0][0].set_title(run_label1)
+    ax[0][1].set_title("SDSS-only fit (" + run_label2 + ")")
     for f in range(0, n_bands):
         mag_diffsky1 = phot_info1.obs_mags[:, f]
         mag_diffsky2 = phot_info2.obs_mags[:, f]

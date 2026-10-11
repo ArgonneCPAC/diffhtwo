@@ -5,8 +5,8 @@ from pathlib import Path
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
+from diffsky.param_utils.load_calib_params import load_param_collection
 import yaml
-from diffsky.data_loaders.hacc_utils import lc_mock
 from diffsky.diagnostics import plot_cosmos_merging as pcm
 from diffsky.experimental.diagnostics import check_smhm
 from diffsky.ssp_err_model.diagnostics import plot_ssp_err_model as psspem
@@ -70,6 +70,12 @@ from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_n_colors_mag,
     plot_n_mags,
 )
+from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
+from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
+from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
+from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
+    DiffstarPop_Params_Diffstarpopfits_mgash,
+)
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
 from diffhtwo.experimental.diagnostics.plot_sat import plot_merging_sat_colors
 from diffhtwo.experimental.diagnostics.plot_satquench import (
@@ -85,6 +91,11 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
     plot_smhm_ratio_cen_sat,
 )
 from diffhtwo.experimental.uv_luminosity import append_uv_luminosity_to_ssp_data
+
+DIFFSTARPOP_PARAMS = DiffstarPop_Params_Diffstarpopfits_mgash[
+    "galacticus_in_situ"
+]
+#['smdpl_dr1_nomerging', 'smdpl_dr1', 'tng', 'galacticus_in_situ', 'galacticus_in_plus_ex_situ']
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -110,25 +121,41 @@ if __name__ == "__main__":
 
     ssp_filename = cfg["ssp_file"]
     fit_diagnostics_save_drn = cfg["fit_diagnostics_save_drn"]
-    param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
-        cfg["model_drn"],
-        cfg["model_nickname"],
-    )
 
+    pf = f"{cfg["model_drn"]}/diffsky_{cfg["model_nickname"]}_param_collection.hdf5"
+    param_collection_fit = load_param_collection(pf)
+
+    if cfg["defaults"]["diffstarpop"]:
+        param_collection_fit = param_collection_fit._replace(
+            diffstarpop_params=DIFFSTARPOP_PARAMS
+        )
+    if cfg["defaults"]["spspop"]:
+        param_collection_fit = param_collection_fit._replace(
+            spspop_params=DEFAULT_SPSPOP_PARAMS
+        )
+    if cfg["defaults"]["ssperr"]:
+        param_collection_fit = param_collection_fit._replace(
+            ssperr_params=ZERO_SSPERR_PARAMS
+        )
+    if cfg["defaults"]["merging"]:
+        param_collection_fit = param_collection_fit._replace(
+            merging_params=DEFAULT_MERGE_PARAMS
+        )
+        
+        
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    run_label2 = "run321"
+    run_label2 = "run334"
     run_type2 = "diffstarpop+spspop+merging"
     drn_pc2 = (
         os.path.join(os.path.dirname(cfg["model_drn"].rstrip("/")), run_label2) + "/"
     )
-    param_collection2 = lc_mock.load_diffsky_param_collection_merging(
-        drn_pc2,
-        run_label2 + "_" + run_type2,
-    )
+    model_nickname2 = run_label2 + "_" + run_type2
+    pf2 = f"{drn_pc2}/diffsky_{model_nickname2}_param_collection.hdf5"
+    param_collection2 = load_param_collection(pf2)
 
     sky_area_degsq = cfg["sky_area_degsq"]
 
@@ -420,84 +447,84 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-        print("Generating h-alpha LF ms/q/burst plot...")
-        plot_halpha_ms_q_burst(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+        # print("Generating h-alpha LF ms/q/burst plot...")
+        # plot_halpha_ms_q_burst(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     plt_show=False,
+        # )
 
-        print("Generating h-alpha LF ssfr plot...")
-        plot_halpha_ssfr(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+        # print("Generating h-alpha LF ssfr plot...")
+        # plot_halpha_ssfr(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     plt_show=False,
+        # )
 
-        print("Generating h-alpha LF sfr plot...")
-        plot_halpha_sfr_single_z(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+        # print("Generating h-alpha LF sfr plot...")
+        # plot_halpha_sfr_single_z(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     plt_show=False,
+        # )
 
-        plot_halpha_sfr(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+        # plot_halpha_sfr(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     plt_show=False,
+        # )
 
-        print("Generating h-alpha LF in-situ/ex-situ plot...")
-        plot_halpha_insitu_exsitu(
-            ran_key,
-            hizels,
-            param_collection_fit,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            halpha_wave_aa,
-            hizels_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+        # print("Generating h-alpha LF in-situ/ex-situ plot...")
+        # plot_halpha_insitu_exsitu(
+        #     ran_key,
+        #     hizels,
+        #     param_collection_fit,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     halpha_wave_aa,
+        #     hizels_label,
+        #     fit_diagnostics_save_drn,
+        #     num_halos=num_halos,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     plt_show=False,
+        # )
 
     """
     Plot FENIKS
@@ -1118,11 +1145,11 @@ if __name__ == "__main__":
         if cfg["plots"]["plot_color_contours"]:
             print("Generating MINERVA color contour plots...")
             fields = [
-                ["F090wF150w_F150wF356w", "F356w_F150wF356w"],
-                ["F115wF200w_F200wF356w", "F356w_F115wF356w"],
-                ["F150wF277w_F277wF444w", "F356w_F150wF356w"],
-                ["F200wF277w_F277wF444w", "F444w_F150wF444w"],
-                ["F277wF356w_F356wF444w", "F444w_F115wF444w"],
+                ((1.0, 2.0), ("F090wF150w_F150wF356w", "F356w_F150wF356w")),
+                ((2.0, 3.0), ("F115wF200w_F200wF356w", "F356w_F115wF356w")),
+                ((3.0, 4.0), ("F150wF277w_F277wF444w", "F356w_F150wF356w")),
+                ((4.0, 5.0), ("F200wF277w_F277wF444w", "F444w_F150wF444w")),
+                ((5.0, 6.0), ("F277wF356w_F356wF444w", "F444w_F115wF444w")),
             ]
             plot_cc_cm_grid_raw_minerva(
                 ran_key,
@@ -1143,4 +1170,39 @@ if __name__ == "__main__":
                 run_label,
                 fit_diagnostics_save_drn,
                 plt_show=False,
+            )
+
+            emitter_spaces = [
+                ((1.03, 1.25), ["F140m_F150wF140m"]),
+                ((1.36, 1.59), ["F162m_F150wF162m"]),
+                ((1.67, 1.95), ["F182m_F200wF182m"]),
+                ((2.04, 2.35), ["F210m_F200wF210m"]),
+                ((2.68, 2.95), ["F250m_F277wF250m"]),
+                ((4.22, 4.81), ["F360m_F356wF360m"]),
+                ((4.98, 5.52), ["F410m_F444wF410m"]),
+                ((5.88, 6.23), ["F460m_F444wF460m"]),
+            ]
+            plot_cc_cm_grid_raw_minerva(
+                ran_key,
+                param_collection_fit,
+                minerva.spaces,
+                emitter_spaces,
+                minerva.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+                ncols=4,
+                tag="_emitters",
+            )
+            plot_cc_cm_grid_minerva(
+                ran_key,
+                param_collection_fit,
+                minerva.spaces,
+                emitter_spaces,
+                minerva.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+                ncols=4,
+                tag="_emitters",
             )

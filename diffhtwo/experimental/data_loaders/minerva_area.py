@@ -28,7 +28,7 @@ def _get_no_star_boolean(fn_mask_stars):
     return no_stars
 
 
-def get_minerva_area(drn, fields=["uds"], pix_scale=PIX_SCALE):
+def get_minerva_area(drn, fields=["uds", "cosmos"], pix_scale=PIX_SCALE):
     field_areas = {}
     for field in fields:
         field_img_drn = f"{drn}/{field}/images"
@@ -42,9 +42,19 @@ def get_minerva_area(drn, fields=["uds"], pix_scale=PIX_SCALE):
             for fn in listdir
             if any(f in fn for f in PhotFilters._fields)
         ]
-        fov = _get_filter_coverage_from_wht(fns_wht[0])
+
+        fov_filter = _get_filter_coverage_from_wht(fns_wht[0])
+        print(
+            f"{fns_wht[0].split('/')[-1]}: {fov_filter.sum()*(pix_scale**2)/(60**2)} arcminsq"
+        )
+        fov = fov_filter.copy()
+
         for fn_wht in fns_wht[1:]:
-            fov &= _get_filter_coverage_from_wht(fn_wht)
+            fov_filter = _get_filter_coverage_from_wht(fn_wht)
+            print(
+                f"{fn_wht.split('/')[-1]}: {fov_filter.sum()*(pix_scale**2)/(60**2)}  arcminsq"
+            )
+            fov &= fov_filter
 
         n_pix_coverage = (fov & no_stars).sum()
         area_arcsecsq = n_pix_coverage * pix_scale**2

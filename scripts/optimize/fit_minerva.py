@@ -178,14 +178,14 @@ if __name__ == "__main__":
         alpha=0.7,
         label="phot",
     )
-    ax_loss.plot(
-        STEPS,
-        LOSS_HALPHA_HIST,
-        c="#c87820",
-        linestyle="--",
-        alpha=0.7,
-        label="halpha",
-    )
+    # ax_loss.plot(
+    #     STEPS,
+    #     LOSS_HALPHA_HIST,
+    #     c="#c87820",
+    #     linestyle="--",
+    #     alpha=0.7,
+    #     label="halpha",
+    # )
 
     ax_loss.legend()
     ax_loss.set_ylabel("Poisson Negative Log-Likelihood")

@@ -20,7 +20,6 @@ COSMO = FlatLambdaCDM(
 # FENIKS_AREA_DEG2 is Area with combined coverage in the following bands:
 # ["MegaCam_uS", HSC_G", "HSC_R", "HSC_I", "HSC_Z", "UDS_J", "UDS_H", "UDS_K"]
 FENIKS_AREA_DEG2 = 0.5801314485383459
-# FENIKS_AREA_DEG2 = 0.6081027540413089 #without MegaCam_uS
 FENIKS_Z_MIN = 0.2
 FENIKS_Z_MAX = 2.5
 FENIKS_MAGK_THRESH = 24.0  # tot mag
@@ -29,13 +28,29 @@ SDSS_Z_MIN = 0.02
 SDSS_Z_MAX = 0.2
 SDSS_MAGR_THRESH = 17.5  # model mag
 
-# needs to be total survey area minus the use_phot==0 area
-MINERVA_UDS_AREA_DEG2 = 234 / 3600
-MINERVA_COSMOS_AREA_DEG2 = 144 / 3600
-MINERVA_EGS_AREA_DEG2 = 96 / 3600
-MINERVA_AREA_DEG2 = (
-    MINERVA_UDS_AREA_DEG2 + MINERVA_COSMOS_AREA_DEG2 + MINERVA_EGS_AREA_DEG2
-)
+# UDS+COSMOS joint coverage in the following bands minus bright stars:
+# [
+#     "f435w",
+#     "f606w",
+#     "f814w",
+#     "f090w",
+#     "f115w",
+#     "f140m",
+#     "f150w",
+#     "f162m",
+#     "f182m",
+#     "f200w",
+#     "f210m",
+#     "f250m",
+#     "f277w",
+#     "f300m",
+#     "f356w",
+#     "f360m",
+#     "f410m",
+#     "f444w",
+#     "f460m",
+# ]
+MINERVA_AREA_DEG2 = 0.0761904075308642
 
 FilterInfo = namedtuple("FilterInfo", ["mag_thresh", "tcurves"])
 DatasetLH = namedtuple(

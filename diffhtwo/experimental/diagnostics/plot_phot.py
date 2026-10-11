@@ -647,6 +647,7 @@ def plot_app_mag_funcs(
         mag_sels = dataset.mag_sels
         parent_cut_idx = dataset.parent_cut_idx
         data_sky_area_degsq = dataset.data_sky_area_degsq
+        mag_thresh = dataset.filter_info.mag_thresh
         n_bands = mags.shape[1]
 
         z_min = zbins[zbin][0]
@@ -678,7 +679,7 @@ def plot_app_mag_funcs(
             ran_key,
             param_collection,
             lc_data,
-            dataset.filter_info.mag_thresh,
+            mag_thresh,
         )
 
         shift_dex = 0.0
@@ -688,8 +689,8 @@ def plot_app_mag_funcs(
             sel = mag_sels[:, i] * z_mask
             mag_band_z = mags[sel][:, i]
             bins = np.arange(
-                mag_band_z.min(),
-                mag_band_z.max() + dmag,
+                mag_thresh[i][0],
+                mag_thresh[i][1],
                 dmag,
             )
             bin_centers = (bins[1:] + bins[:-1]) / 2
@@ -881,12 +882,16 @@ def plot_app_mag_funcs_minerva(
     redshift = minerva_phot.redshift
     mags = minerva_phot.mags
     sels = minerva_phot.sels
-    frac_cats = minerva_phot.frac_cats
     parent_cut_idx = minerva_phot.parent_cut_idx
     mags_labels = minerva_phot.mags_labels
     data_sky_area_degsq = minerva_phot.data_sky_area_degsq
 
-    n_z_bins = len(zbins)
+    idx = [
+        i
+        for i, sp in enumerate(minerva_phot.spaces)
+        if any("_" not in f for f in sp._fields[4:])
+    ]
+    n_z_bins = len(idx)
 
     fig, ax = plt.subplots(
         1, n_z_bins, figsize=(fig_width, fig_height), constrained_layout=True
@@ -894,12 +899,12 @@ def plot_app_mag_funcs_minerva(
     ax = np.atleast_1d(ax)
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.85))
 
-    for zbin in range(len(zbins)):
+    for col, zbin in enumerate(idx):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
         z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
 
-        ax[zbin].set_title(str(z_min) + " < z < " + str(z_max), y=1)
+        ax[col].set_title(str(z_min) + " < z < " + str(z_max), y=1)
 
         z_mask = (redshift > z_min) & (redshift < z_max)
 
@@ -970,7 +975,7 @@ def plot_app_mag_funcs_minerva(
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
                 y_data = np.log10(n_data) + shift_dex
-                ax[zbin].scatter(
+                ax[col].scatter(
                     bin_centers,
                     y_data,
                     color=colors[i],
@@ -986,13 +991,12 @@ def plot_app_mag_funcs_minerva(
                 weights=gal_weight
                 * mag_weight[:, mag_idx]
                 * mag_weight[:, parent_cut_idx]
-                * (1 / lc_data.lc_tot_vol_mpc3)
-                * frac_cats[mag_idx],
+                * (1 / lc_data.lc_tot_vol_mpc3),
                 bins=bins,
             )
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
-                ax[zbin].plot(
+                ax[col].plot(
                     bin_centers,
                     np.log10(n_diffsky) + shift_dex,
                     color=colors[i],
@@ -1003,9 +1007,9 @@ def plot_app_mag_funcs_minerva(
             band_colors_fitted.append(colors[i])
             mags_labels_fitted.append(mags_labels[mag_idx])
 
-        ax[zbin].set_xticks(np.arange(10, 30, 2))
-        ax[zbin].minorticks_on()
-        ax[zbin].tick_params(
+        ax[col].set_xticks(np.arange(10, 30, 2))
+        ax[col].minorticks_on()
+        ax[col].tick_params(
             which="major",
             direction="in",
             top=True,
@@ -1014,7 +1018,7 @@ def plot_app_mag_funcs_minerva(
             width=1,
             labelsize=labelsize,
         )
-        ax[zbin].tick_params(
+        ax[col].tick_params(
             which="minor",
             direction="in",
             top=True,
@@ -1025,8 +1029,8 @@ def plot_app_mag_funcs_minerva(
         )
 
         x, y = np.concatenate(xs), np.concatenate(ys)
-        ax[zbin].set_xlim(x.min() - dmag, x.max() + dmag)
-        ax[zbin].set_ylim(y.min() - ypad, y.max() + ypad)
+        ax[col].set_xlim(x.min() - dmag, x.max() + dmag)
+        ax[col].set_ylim(y.min() - ypad, y.max() + ypad)
 
     ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
 
