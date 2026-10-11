@@ -1,3 +1,4 @@
+import os
 import re
 from collections import namedtuple
 from difflib import get_close_matches
@@ -20,6 +21,7 @@ from ..defaults import (
 from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
 from . import N_utils
+from .minerva_area import get_minerva_area_arcminsq
 from .N_utils import get_N_1d, get_N_2d
 
 BASE_PATH = Path(__file__).resolve().parent.parent
@@ -35,6 +37,8 @@ ZOUT = "minerva_uds_cosmos_zout.fits"
 TRANSLATE = "MINERVA-UDS_n3.0_v1.2_ACS+WEBB_Kf444w_SUPER_zpiter_CATALOG.larson.eazypy.zphot.translate"
 INFO = "FILTER.RES.latest.info"
 TCURVES = "FILTER.RES.latest"
+
+AREA_FILE = "minerva_space_areas_w_f444w_arcminsq.dat"
 
 D_MAG_1d = 0.2
 D_MAG_2d = 0.2
@@ -54,6 +58,89 @@ MinervaPhot = namedtuple(
         "data_sky_area_degsq",
     ],
 )
+
+app_mag_funcs = [
+    ("F435w", True),
+    ("F606w", True),
+    ("F814w", True),
+    ("F090w", True),
+    ("F115w", True),
+    ("F150w", True),
+    ("F200w", True),
+    ("F277w", True),
+    ("F356w", True),
+    ("F444w", True),
+]
+SPACES_AT_Z = [
+    {
+        "z": (1.0, 2.0),
+        "md": app_mag_funcs,
+        "ccd": [("F090wF150w_F150wF356w", True)],
+        "cmd": [("F356w_F150wF356w", True)],
+    },
+    {
+        "z": (2.0, 3.0),
+        "md": app_mag_funcs,
+        "ccd": [("F115wF200w_F200wF356w", True), ("F150wF200w_F200wF277w", True)],
+        "cmd": [("F356w_F115wF356w", True)],
+    },
+    {
+        "z": (3.0, 4.0),
+        "md": app_mag_funcs,
+        "ccd": [("F150wF277w_F277wF444w", True), ("F200wF277w_F277wF356w", True)],
+        "cmd": [("F356w_F150wF356w", True)],
+    },
+    {
+        "z": (4.0, 5.0),
+        "md": app_mag_funcs,
+        "ccd": [
+            ("F814wF150w_F150wF277w", True),
+            ("F200wF277w_F277wF444w", True),
+            ("F356wF410m_F410mF444w", True),
+        ],
+        "cmd": [("F444w_F150wF444w", True)],
+    },
+    {
+        "z": (5.0, 6.0),
+        "md": app_mag_funcs,
+        "ccd": [("F115wF200w_F200wF444w", True), ("F277wF356w_F356wF444w", True)],
+        "cmd": [("F444w_F115wF444w", True)],
+    },
+    # Line excess to pick up h-alpha emitters
+    {"z": (1.03, 1.25), "cmd": [("F140m_F150wF140m", False)]},
+    {"z": (1.36, 1.59), "cmd": [("F162m_F150wF162m", False)]},
+    {"z": (1.67, 1.95), "cmd": [("F182m_F200wF182m", False)]},
+    {"z": (2.04, 2.35), "cmd": [("F210m_F200wF210m", False)]},
+    {"z": (2.68, 2.95), "cmd": [("F250m_F277wF250m", False)]},
+    {"z": (4.22, 4.81), "cmd": [("F360m_F356wF360m", False)]},
+    {"z": (4.98, 5.52), "cmd": [("F410m_F444wF410m", False)]},
+    {"z": (5.88, 6.23), "cmd": [("F460m_F444wF460m", False)]},
+]
+
+
+def _get_space_area_arcminsq(img_drn, space, area_file):
+    areas = {}
+    if os.path.exists(area_file):
+        with open(area_file) as f:
+            areas = {
+                sp: float(area)
+                for sp, area in (line.split() for line in f if line.strip())
+            }
+
+    if space not in areas:
+        filters = sorted(set(re.findall(r"f\d{3}[wm]", space.lower())))
+        areas[space] = sum(
+            get_minerva_area_arcminsq(img_drn, space_filters=filters).values()
+        )
+        with open(area_file, "a") as f:
+            f.write(f"{space} {areas[space]}\n")
+
+    return areas[space]
+
+
+def _split(entries):
+    pairs = [(e, True) if isinstance(e, str) else e for e in entries]
+    return [n for n, _ in pairs], dict(pairs)
 
 
 def _get_mag_ab(phot_table, col_name, ZP=28.9):
@@ -155,7 +242,6 @@ def get_minerva_phot(
     d_mag_1d=D_MAG_1d,
     d_mag_2d=D_MAG_2d,
     gauss_sig_2d=GAUSS_SIG_2d,
-    frac_cat=1.0,
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
@@ -169,7 +255,7 @@ def get_minerva_phot(
     phot = Table.read(drn / phot)
     zout = Table.read(drn / zout)
 
-    spec_avail = zout["z_spec"] != -99.0  # goes in frac_cat?
+    spec_avail = zout["z_spec"] != -99.0
     z_best = zout["z_ml"].copy()
     z_best[spec_avail] = zout["z_spec"][spec_avail]
     z_best = np.float32(z_best)
@@ -201,10 +287,15 @@ def get_minerva_phot(
         f460m=(19.0, 27.0),
     )
 
+    f444w_sel = ~phot["f_f444w"].mask
+
     f444w_mag = _get_mag_ab(phot, "f_f444w")
-    (f444w_idx,) = get_filt_indx("F444w", PhotFilters)
+    f444w_sel &= np.isfinite(f444w_mag)
+
     f444w_mag_thresh = getattr(minerva_mag_thresh, "f444w")
-    f444w_sel = (f444w_mag > f444w_mag_thresh[0]) & (f444w_mag < f444w_mag_thresh[1])
+    f444w_sel &= (f444w_mag > f444w_mag_thresh[0]) & (f444w_mag < f444w_mag_thresh[1])
+
+    (f444w_idx,) = get_filt_indx("F444w", PhotFilters)
 
     tcurves = []
     mag_per_band = []
@@ -217,26 +308,22 @@ def get_minerva_phot(
         )
         tcurves.append(tcurve)
 
-        # get magnitudes
+        # get magnitudes and thresh
         col_name = "f_" + minerva_filter
         mag = _get_mag_ab(phot, col_name)
-
-        # n_gals = phot[col_name].mask.size
+        mag_limit = getattr(minerva_mag_thresh, minerva_filter)
 
         # originally masked in the phot cat due to missing coverage, for instance
         sel = ~phot[col_name].mask
 
-        # based on removing masked gals (no coverage, etc.)
-        # frac_cat = sel.sum() / n_gals
-        # frac_cat_per_band.append(frac_cat)
-
         # masked due to converting flux to mag for -ve flux of droputs, for instance
-        sel *= np.isfinite(mag)
+        sel &= np.isfinite(mag)
 
         # mag thresh selection
-        mag_limit = getattr(minerva_mag_thresh, minerva_filter)
-        sel *= (mag > mag_limit[0]) & (mag < mag_limit[1])
-        sel *= f444w_sel
+        sel &= (mag > mag_limit[0]) & (mag < mag_limit[1])
+
+        # merge with parent f444w_sel
+        sel &= f444w_sel
 
         mag_per_band.append(mag)
         sel_per_band.append(sel)
@@ -245,82 +332,19 @@ def get_minerva_phot(
 
     mags = np.vstack(mag_per_band).T
     sels = np.vstack(sel_per_band).T
-    # frac_cats = np.array(frac_cat_per_band)
 
     filter_info = FilterInfo(minerva_mag_thresh, tcurves)
 
-    app_mag_funcs = [
-        "F435w",
-        "F606w",
-        "F814w",
-        "F090w",
-        "F115w",
-        "F150w",
-        "F200w",
-        "F277w",
-        "F356w",
-        "F444w",
-    ]
-
-    spaces_at_z = [
-        {
-            "z": (1.0, 2.0),
-            "md": app_mag_funcs,
-            "ccd": [("F090wF150w_F150wF356w", True)],
-            "cmd": [("F356w_F150wF356w", True)],
-        },
-        {
-            "z": (2.0, 3.0),
-            "md": app_mag_funcs,
-            "ccd": [("F115wF200w_F200wF356w", True), ("F150wF200w_F200wF277w", True)],
-            "cmd": [("F356w_F115wF356w", True)],
-        },
-        {
-            "z": (3.0, 4.0),
-            "md": app_mag_funcs,
-            "ccd": [("F150wF277w_F277wF444w", True), ("F200wF277w_F277wF356w", True)],
-            "cmd": [("F356w_F150wF356w", True)],
-        },
-        {
-            "z": (4.0, 5.0),
-            "md": app_mag_funcs,
-            "ccd": [
-                ("F814wF150w_F150wF277w", True),
-                ("F200wF277w_F277wF444w", True),
-                ("F356wF410m_F410mF444w", True),
-            ],
-            "cmd": [("F444w_F150wF444w", True)],
-        },
-        {
-            "z": (5.0, 6.0),
-            "md": app_mag_funcs,
-            "ccd": [("F115wF200w_F200wF444w", True), ("F277wF356w_F356wF444w", True)],
-            "cmd": [("F444w_F115wF444w", True)],
-        },
-        # Line excess to pick up h-alpha emitters
-        {"z": (1.03, 1.25), "cmd": [("F140m_F150wF140m", False)]},
-        {"z": (1.36, 1.59), "cmd": [("F162m_F150wF162m", False)]},
-        {"z": (1.67, 1.95), "cmd": [("F182m_F200wF182m", False)]},
-        {"z": (2.04, 2.35), "cmd": [("F210m_F200wF210m", False)]},
-        {"z": (2.68, 2.95), "cmd": [("F250m_F277wF250m", False)]},
-        {"z": (4.22, 4.81), "cmd": [("F360m_F356wF360m", False)]},
-        {"z": (4.98, 5.52), "cmd": [("F410m_F444wF410m", False)]},
-        {"z": (5.88, 6.23), "cmd": [("F460m_F444wF460m", False)]},
-    ]
-    z_bins = np.array([sp["z"] for sp in spaces_at_z])
-
-    def split(entries):
-        pairs = [(e, True) if isinstance(e, str) else e for e in entries]
-        return [n for n, _ in pairs], dict(pairs)
+    z_bins = np.array([sp["z"] for sp in SPACES_AT_Z])
 
     spaces = []
     for zbin in range(len(z_bins)):
         z_min = z_bins[zbin][0]
         z_max = z_bins[zbin][1]
 
-        md, md_fit = split(spaces_at_z[zbin].get("md", []))
-        ccd, ccd_fit = split(spaces_at_z[zbin].get("ccd", []))
-        cmd, cmd_fit = split(spaces_at_z[zbin].get("cmd", []))
+        md, md_fit = _split(SPACES_AT_Z[zbin].get("md", []))
+        ccd, ccd_fit = _split(SPACES_AT_Z[zbin].get("ccd", []))
+        cmd, cmd_fit = _split(SPACES_AT_Z[zbin].get("cmd", []))
 
         mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
@@ -331,15 +355,12 @@ def get_minerva_phot(
             [
                 "z_min",
                 "z_max",
-                "data_vol_mpc3",
                 "lc_data",
                 *mag_namedtuples,
                 *ccd_namedtuples,
                 *cmd_namedtuples,
             ],
         )
-
-        data_vol_mpc3 = zbin_volume(MINERVA_AREA_DEG2, zlow=z_min, zhigh=z_max).value
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -374,6 +395,14 @@ def get_minerva_phot(
         for space_name, space in mag_namedtuples.items():
             (mag_idx,) = get_filt_indx(space_name, PhotFilters)
 
+            space_area_arcminsq = _get_space_area_arcminsq(
+                drn, space_name, drn / AREA_FILE
+            )
+            space_area_degsq = space_area_arcminsq / 3600
+            space_vol_mpc3 = zbin_volume(
+                space_area_degsq, zlow=z_min, zhigh=z_max
+            ).value
+
             sel = sels[:, mag_idx] * z_sel
             mag_selected = mags[sel]
 
@@ -389,7 +418,7 @@ def get_minerva_phot(
                     bin_lo,
                     bin_hi,
                     N_1d,
-                    frac_cat,
+                    space_vol_mpc3,
                     md_fit[space_name],
                 )
             )
@@ -397,6 +426,14 @@ def get_minerva_phot(
         ccd_z_tuples = []
         for space_name, space in ccd_namedtuples.items():
             col_idx = get_filt_indx(space_name, PhotFilters)
+
+            space_area_arcminsq = _get_space_area_arcminsq(
+                drn, space_name, drn / AREA_FILE
+            )
+            space_area_degsq = space_area_arcminsq / 3600
+            space_vol_mpc3 = zbin_volume(
+                space_area_degsq, zlow=z_min, zhigh=z_max
+            ).value
 
             a, b, c, d = col_idx
             sel = sels[:, a] * sels[:, b] * sels[:, c] * sels[:, d] * z_sel
@@ -417,7 +454,7 @@ def get_minerva_phot(
                     bin_lo,
                     bin_hi,
                     N_2d,
-                    frac_cat,
+                    space_vol_mpc3,
                     ccd_fit[space_name],
                 )
             )
@@ -425,6 +462,14 @@ def get_minerva_phot(
         cmd_z_tuples = []
         for space_name, space in cmd_namedtuples.items():
             mag_idx, b, c = get_filt_indx(space_name, PhotFilters)
+
+            space_area_arcminsq = _get_space_area_arcminsq(
+                drn, space_name, drn / AREA_FILE
+            )
+            space_area_degsq = space_area_arcminsq / 3600
+            space_vol_mpc3 = zbin_volume(
+                space_area_degsq, zlow=z_min, zhigh=z_max
+            ).value
 
             sel = sels[:, mag_idx] * sels[:, b] * sels[:, c] * z_sel
             mag_selected = mags[sel]
@@ -447,7 +492,7 @@ def get_minerva_phot(
                     bin_lo,
                     bin_hi,
                     N_2d,
-                    frac_cat,
+                    space_vol_mpc3,
                     cmd_fit[space_name],
                 )
             )
@@ -456,7 +501,6 @@ def get_minerva_phot(
             Spaces(
                 z_min,
                 z_max,
-                data_vol_mpc3,
                 lc_data,
                 *mag_z_tuples,
                 *ccd_z_tuples,

@@ -5,8 +5,6 @@ import os
 
 from astropy.io import fits
 
-from .load_minerva import PhotFilters
-
 PIX_SCALE = 0.04  # arcsec per pixel
 FN_MASK_STARS = {
     "uds": "MINERVA-UDS_40mas_mask_stars_n3.0_v1.2.fits",
@@ -28,7 +26,18 @@ def _get_no_star_boolean(fn_mask_stars):
     return no_stars
 
 
-def get_minerva_area(drn, fields=["uds", "cosmos"], pix_scale=PIX_SCALE):
+def get_minerva_area_arcminsq(
+    drn,
+    fields=["uds", "cosmos"],
+    space_filters=["f435w", "f444w"],
+    parent_filter="f444w",
+    pix_scale=PIX_SCALE,
+):
+    filters = (
+        space_filters
+        if parent_filter in space_filters
+        else space_filters + [parent_filter]
+    )
     field_areas = {}
     for field in fields:
         field_img_drn = f"{drn}/{field}/images"
@@ -40,7 +49,7 @@ def get_minerva_area(drn, fields=["uds", "cosmos"], pix_scale=PIX_SCALE):
         fns_wht = [
             field_img_drn + "/" + fn
             for fn in listdir
-            if any(f in fn for f in PhotFilters._fields)
+            if any(("-" + f + "-") in fn or ("-" + f + "_") in fn for f in filters)
         ]
 
         fov_filter = _get_filter_coverage_from_wht(fns_wht[0])

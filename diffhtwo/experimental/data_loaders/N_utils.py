@@ -65,7 +65,7 @@ def get_mag_space(
     z_sel,
     filters_namedtuple,
     mag_sels,
-    frac_cats,
+    space_vol_mpc3,
     parent_cut_idx,
     dmag=0.2,
     fit=True,
@@ -76,10 +76,8 @@ def get_mag_space(
     sel = z_sel * mag_sels[:, mag_idx]
     N_1d, sig, bin_lo, bin_hi = get_N_1d(mag[sel], dmag=dmag)
 
-    frac_cat = frac_cats[mag_idx]
-
     return AppMagFuncSpace(
-        parent_cut_idx, mag_idx, sig, bin_lo, bin_hi, N_1d, frac_cat, fit
+        parent_cut_idx, mag_idx, sig, bin_lo, bin_hi, N_1d, space_vol_mpc3, fit
     )
 
 
@@ -91,7 +89,7 @@ def get_colorcolor_space(
     z_sel,
     filters_namedtuple,
     mag_sels,
-    frac_cats,
+    space_vol_mpc3,
     parent_cut_idx,
     dmag=0.1,
     sig_scale=0.5,
@@ -107,16 +105,12 @@ def get_colorcolor_space(
         sel *= mag_sels[:, idx]
         col_idx.append(idx)
 
-    frac_cat = 1.0
-    for idx in set(col_idx):
-        frac_cat *= frac_cats[idx]
-
     N_2d, sig, bin_lo, bin_hi = get_N_2d(
         color1[sel], color2[sel], dmag=dmag, sig_scale=sig_scale, gauss_sig=gauss_sig
     )
 
     return ColorColorSpace(
-        parent_cut_idx, col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, fit
+        parent_cut_idx, col_idx, sig, bin_lo, bin_hi, N_2d, space_vol_mpc3, fit
     )
 
 
@@ -129,7 +123,7 @@ def get_mag_color_space(
     z_sel,
     filters_namedtuple,
     mag_sels,
-    frac_cats,
+    space_vol_mpc3,
     parent_cut_idx,
     dmag=0.1,
     sig_scale=0.5,
@@ -147,14 +141,10 @@ def get_mag_color_space(
         sel *= mag_sels[:, idx]
         col_idx.append(idx)
 
-    frac_cat = 1.0
-    for idx in {mag_idx, *col_idx}:
-        frac_cat *= frac_cats[idx]
-
     N_2d, sig, bin_lo, bin_hi = get_N_2d(
         mag[sel], color[sel], dmag=dmag, sig_scale=sig_scale, gauss_sig=gauss_sig
     )
 
     return MagColorSpace(
-        parent_cut_idx, mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, frac_cat, fit
+        parent_cut_idx, mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, space_vol_mpc3, fit
     )

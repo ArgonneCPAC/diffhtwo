@@ -5,12 +5,18 @@ from pathlib import Path
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
-from diffsky.param_utils.load_calib_params import load_param_collection
 import yaml
 from diffsky.diagnostics import plot_cosmos_merging as pcm
 from diffsky.experimental.diagnostics import check_smhm
+from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
+from diffsky.param_utils.load_calib_params import load_param_collection
+from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
+from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
 from diffsky.ssp_err_model.diagnostics import plot_ssp_err_model as psspem
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
+from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
+    DiffstarPop_Params_Diffstarpopfits_mgash,
+)
 from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
@@ -70,12 +76,6 @@ from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_n_colors_mag,
     plot_n_mags,
 )
-from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
-from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
-from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
-from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
-    DiffstarPop_Params_Diffstarpopfits_mgash,
-)
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
 from diffhtwo.experimental.diagnostics.plot_sat import plot_merging_sat_colors
 from diffhtwo.experimental.diagnostics.plot_satquench import (
@@ -122,7 +122,7 @@ if __name__ == "__main__":
     ssp_filename = cfg["ssp_file"]
     fit_diagnostics_save_drn = cfg["fit_diagnostics_save_drn"]
 
-    pf = f"{cfg["model_drn"]}/diffsky_{cfg["model_nickname"]}_param_collection.hdf5"
+    pf = f"{cfg['model_drn']}/diffsky_{cfg['model_nickname']}_param_collection.hdf5"
     param_collection_fit = load_param_collection(pf)
 
     if cfg["defaults"]["diffstarpop"]:
@@ -141,8 +141,7 @@ if __name__ == "__main__":
         param_collection_fit = param_collection_fit._replace(
             merging_params=DEFAULT_MERGE_PARAMS
         )
-        
-        
+           
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
     with open(args.config) as f:
@@ -172,11 +171,13 @@ if __name__ == "__main__":
     halpha_wave_aa = ssp_data.ssp_emline_wave[0]
 
     ran_key = jran.key(0)
-
+    minerva_d_mag_1d = 0.5
+    d_mag_1d = 0.5
     feniks = load_feniks.get_feniks_data(
         feniks_drn,
         ran_key,
         ssp_data,
+        d_mag_1d=d_mag_1d,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
@@ -185,6 +186,7 @@ if __name__ == "__main__":
         sdss_drn,
         ran_key,
         ssp_data,
+        d_mag_1d=d_mag_1d,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
@@ -545,17 +547,14 @@ if __name__ == "__main__":
             )
 
             plot_app_mag_funcs(
-                sdss,
-                feniks,
-                run_label,
-                param_collection_fit,
                 ran_key,
-                sdss_feniks_zbins,
-                ssp_data,
+                param_collection_fit,
+                feniks.spaces,
+                feniks.filter_info.mag_thresh,
+                sdss.spaces,
+                sdss.filter_info.mag_thresh,
+                run_label,
                 fit_diagnostics_save_drn,
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                num_halos=num_halos,
                 plt_show=False,
             )
 
@@ -1124,22 +1123,18 @@ if __name__ == "__main__":
             minerva_drn,
             ran_key,
             ssp_data,
+            d_mag_1d=minerva_d_mag_1d,
             num_halos=num_halos,
         )
         if cfg["plots"]["plot_app_mag_funcs"]:
             print("Generating MINERVA app mag funcs plot...")
+
             plot_app_mag_funcs_minerva(
                 minerva,
                 run_label,
                 param_collection_fit,
                 ran_key,
-                ssp_data,
                 fit_diagnostics_save_drn,
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                logmp_cutoff=lgmp_min,
-                num_halos=num_halos,
-                apply_igm=True,
                 plt_show=False,
             )
         if cfg["plots"]["plot_color_contours"]:

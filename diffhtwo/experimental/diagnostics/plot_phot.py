@@ -9,6 +9,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 from ..data_loaders.load_minerva import PhotFilters, get_filt_indx
+from ..kernels.N_phot import N_colors_mags
 from ..kernels.phot_kern import get_colors_mags, mag_kern
 from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
@@ -588,22 +589,14 @@ def plot_n_mags(
 
 
 def plot_app_mag_funcs(
-    sdss_dataset,
-    feniks_dataset,
-    run_label,
-    param_collection,
     ran_key,
-    zbins,
-    ssp_data,
+    param_collection,
+    feniks_data,
+    feniks_mag_thresh,
+    sdss_data,
+    sdss_mag_thresh,
+    run_label,
     savedir,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
-    num_halos=5000,
-    lc_sky_area_degsq=1000,
-    n_z_phot_table=30,
-    dmag=0.5,
-    cosmo_params=DEFAULT_COSMOLOGY,
-    fb=FB,
     plt_show=True,
 ):
     band_colors = [
@@ -617,6 +610,9 @@ def plot_app_mag_funcs(
         "#9B1D20",
     ]
     bands = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$", r"$J$", r"$H$", r"$K$"]
+    fields = ["u", "g", "r", "i", "z", "J", "H", "K"]
+    sdss_fields = fields[:5]
+    feniks_fields = fields
 
     fig_width = 7.1
     fig_height = 2.6
@@ -628,121 +624,55 @@ def plot_app_mag_funcs(
     lw = 0.75
     s = 2.5
     ypad = 0.2
+    d_shift_dex = 0.2
 
-    n_z_bins = len(zbins)
+    sources = [("SDSS", sdss_data[0], sdss_fields, sdss_mag_thresh)]
+    for data in feniks_data:
+        sources.append(("FENIKS", data, feniks_fields, feniks_mag_thresh))
 
     fig, ax = plt.subplots(
-        1, n_z_bins, figsize=(fig_width, fig_height), constrained_layout=True
+        1, len(sources), figsize=(fig_width, fig_height), constrained_layout=True
     )
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.92))
 
-    for zbin in range(len(zbins)):
-        if zbin == 0:
-            dataset = sdss_dataset
+    for col, (survey, data, band_fields, mag_thresh) in enumerate(sources):
+        model = N_colors_mags(ran_key, param_collection, data, mag_thresh)
+        a = ax[col]
+
+        z_min, z_max = float(model.z_min), float(model.z_max)
+        if survey == "SDSS":
+            z_min_label, z_max_label = f"{z_min:.2f}", f"{z_max:.1f}"
         else:
-            dataset = feniks_dataset
+            z_min_label, z_max_label = f"{z_min:.1f}", f"{z_max:.1f}"
+        a.set_title(f"{z_min_label} < z < {z_max_label}\n{survey}", fontsize=fontsize)
 
-        redshift = dataset.redshift
-        mags = dataset.mags
-        mag_sels = dataset.mag_sels
-        parent_cut_idx = dataset.parent_cut_idx
-        data_sky_area_degsq = dataset.data_sky_area_degsq
-        mag_thresh = dataset.filter_info.mag_thresh
-        n_bands = mags.shape[1]
-
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
-        z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
-
-        survey = "SDSS" if zbin == 0 else "FENIKS"
-        ax[zbin].set_title(f"{z_min} < z < {z_max}\n{survey}", fontsize=fontsize)
-
-        z_mask = (redshift > z_min) & (redshift < z_max)
-        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
-
-        z_phot_table = 10 ** jnp.linspace(
-            np.log10(z_min), np.log10(z_max), n_z_phot_table
-        )
-        lc_data = generate_lc_data(
-            ran_key,
-            num_halos,
-            z_min,
-            z_max,
-            lgmp_min,
-            lgmp_max,
-            lc_sky_area_degsq,
-            ssp_data,
-            dataset.filter_info.tcurves,
-            z_phot_table,
-        )
-        obs_mags, gal_weight, mag_weight, phot_kern_results = mag_kern(
-            ran_key,
-            param_collection,
-            lc_data,
-            mag_thresh,
-        )
-
-        shift_dex = 0.0
-        d_shift_dex = 0.2
         xs, ys = [], []
-        for i in range(n_bands):
-            sel = mag_sels[:, i] * z_mask
-            mag_band_z = mags[sel][:, i]
-            bins = np.arange(
-                mag_thresh[i][0],
-                mag_thresh[i][1],
-                dmag,
-            )
-            bin_centers = (bins[1:] + bins[:-1]) / 2
+        for i, field in enumerate(band_fields):
+            space = getattr(model, field)
+            shift_dex = i * d_shift_dex
+            bin_lo = space.bin_lo.ravel()
+            bin_hi = space.bin_hi.ravel()
+            bin_centers = (bin_lo + bin_hi) / 2
+            dmag = bin_hi[0] - bin_lo[0]
 
-            oversample_factor = 1
-            bins_diffsky = np.linspace(
-                bins[0], bins[-1], (len(bins) - 1) * oversample_factor + 1
-            )
-            bin_diffsky_centers = (bins_diffsky[1:] + bins_diffsky[:-1]) / 2
+            n_data = space.N_data / space.vol_mpc3
+            n_model = space.N_model / model.lc_data.lc_tot_vol_mpc3
 
-            n_data, bin_edges = np.histogram(
-                mag_band_z,
-                weights=np.ones_like(mag_band_z) * (1 / data_vol_mpc3),
-                bins=bins,
-            )
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
                 y_data = np.log10(n_data) + shift_dex
-                ax[zbin].scatter(
-                    bin_centers,
-                    y_data,
-                    c=band_colors[i],
-                    alpha=alpha,
-                    s=s,
-                )
+                y_model = np.log10(n_model) + shift_dex
+
+            a.scatter(bin_centers, y_data, c=band_colors[i], alpha=alpha, s=s)
+            a.plot(bin_centers, y_model, c=band_colors[i], alpha=alpha, lw=lw)
+
             finite = np.isfinite(y_data)
             xs.append(bin_centers[finite])
             ys.append(y_data[finite])
 
-            n_diffsky, _ = np.histogram(
-                obs_mags[:, i],
-                weights=gal_weight
-                * mag_weight[:, parent_cut_idx]
-                * mag_weight[:, i]
-                * (1 / lc_data.lc_tot_vol_mpc3),
-                bins=bins_diffsky,
-            )
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=RuntimeWarning)
-                ax[zbin].plot(
-                    bin_diffsky_centers,
-                    np.log10(n_diffsky) + shift_dex,
-                    c=band_colors[i],
-                    alpha=alpha,
-                    label=bands[i],
-                    lw=lw,
-                )
-            shift_dex += d_shift_dex
-
-        ax[zbin].set_xticks(np.arange(10, 30, 2))
-        ax[zbin].minorticks_on()
-        ax[zbin].tick_params(
+        a.set_xticks(np.arange(10, 30, 2))
+        a.minorticks_on()
+        a.tick_params(
             which="major",
             direction="in",
             top=True,
@@ -751,7 +681,7 @@ def plot_app_mag_funcs(
             width=1,
             labelsize=labelsize,
         )
-        ax[zbin].tick_params(
+        a.tick_params(
             which="minor",
             direction="in",
             top=True,
@@ -762,8 +692,8 @@ def plot_app_mag_funcs(
         )
 
         x, y = np.concatenate(xs), np.concatenate(ys)
-        ax[zbin].set_xlim(x.min() - dmag, x.max() + dmag)
-        ax[zbin].set_ylim(y.min() - ypad, y.max() + ypad)
+        a.set_xlim(x.min() - dmag, x.max() + dmag)
+        a.set_ylim(y.min() - ypad, y.max() + ypad)
 
     ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
 
@@ -814,10 +744,7 @@ def plot_app_mag_funcs(
     )
 
     fig.supxlabel("apparent magnitude [AB]")
-    fig.savefig(
-        savedir + "/" + run_label + "_app_mag_funcs.png",
-        dpi=400,
-    )
+    fig.savefig(savedir + "/" + run_label + "_app_mag_funcs.png", dpi=400)
     if plt_show:
         plt.show()
     plt.close()
@@ -848,22 +775,7 @@ def plot_app_mag_funcs_minerva(
     run_label,
     param_collection,
     ran_key,
-    ssp_data,
     savedir,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
-    logmp_cutoff=10.0,
-    num_halos=5000,
-    apply_igm=True,
-    igm_drn=IGM_DRN,
-    igm_bn=IGM_BN,
-    igm_filters_namedtuple=PhotFilters,
-    igm_filter_prefix="minerva_",
-    lc_sky_area_degsq=1000,
-    n_z_phot_table=30,
-    dmag=0.5,
-    cosmo_params=DEFAULT_COSMOLOGY,
-    fb=FB,
     plt_show=True,
 ):
     fig_width = 7.1
@@ -878,138 +790,67 @@ def plot_app_mag_funcs_minerva(
     d_shift_dex = 0.3
     ypad = 0.2
 
-    zbins = minerva_phot.zbins
-    redshift = minerva_phot.redshift
-    mags = minerva_phot.mags
-    sels = minerva_phot.sels
-    parent_cut_idx = minerva_phot.parent_cut_idx
     mags_labels = minerva_phot.mags_labels
-    data_sky_area_degsq = minerva_phot.data_sky_area_degsq
+    mag_thresh = minerva_phot.filter_info.mag_thresh
 
-    idx = [
-        i
-        for i, sp in enumerate(minerva_phot.spaces)
-        if any("_" not in f for f in sp._fields[4:])
-    ]
-    n_z_bins = len(idx)
+    sources = []
+    for z_data in minerva_phot.spaces:
+        fields = [
+            f
+            for f in z_data._fields
+            if f not in {"z_min", "z_max", "lc_data"} and "_" not in f
+        ]
+        if fields:
+            sources.append((z_data, fields))
 
     fig, ax = plt.subplots(
-        1, n_z_bins, figsize=(fig_width, fig_height), constrained_layout=True
+        1, len(sources), figsize=(fig_width, fig_height), constrained_layout=True
     )
     ax = np.atleast_1d(ax)
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.85))
 
-    for col, zbin in enumerate(idx):
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
-        z_min, z_max = np.round(z_min, 2), np.round(z_max, 2)
+    for col, (z_data, fields) in enumerate(sources):
+        model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
+        a = ax[col]
 
-        ax[col].set_title(str(z_min) + " < z < " + str(z_max), y=1)
+        z_min, z_max = float(model.z_min), float(model.z_max)
+        a.set_title(f"{z_min:.1f} < z < {z_max:.1f}", y=1)
 
-        z_mask = (redshift > z_min) & (redshift < z_max)
-
-        data_vol_mpc3 = zbin_volume(data_sky_area_degsq, zlow=z_min, zhigh=z_max).value
-
-        z_phot_table = 10 ** jnp.linspace(
-            np.log10(z_min), np.log10(z_max), n_z_phot_table
-        )
-        lc_args = (
-            ran_key,
-            num_halos,
-            z_min,
-            z_max,
-            lgmp_min,
-            lgmp_max,
-            lc_sky_area_degsq,
-            ssp_data,
-            minerva_phot.filter_info.tcurves,
-            z_phot_table,
-        )
-
-        lc_data = generate_lc_data(
-            *lc_args,
-            apply_igm=apply_igm,
-            igm_drn=igm_drn,
-            igm_bn=igm_bn,
-            igm_filters_namedtuple=igm_filters_namedtuple,
-            igm_filter_prefix=igm_filter_prefix,
-            logmp_cutoff=lgmp_min,
-        )
-
-        obs_mags, gal_weight, mag_weight, phot_kern_results = mag_kern(
-            ran_key,
-            param_collection,
-            lc_data,
-            minerva_phot.filter_info.mag_thresh,
-        )
-
-        shift_dex = 0.0
-        xs, ys = [], []
-
-        fields = minerva_phot.spaces[zbin]._fields[4:]
-        mag_filters = [f for f in fields if "_" not in f]
-
-        n_filters = len(mag_filters)
-        colors = minerva_colors(n_filters)
-
+        colors = minerva_colors(len(fields))
         band_colors_fitted = []
         mags_labels_fitted = []
-        for i in range(n_filters):
-            (mag_idx,) = get_filt_indx(mag_filters[i], PhotFilters)
 
-            sel = sels[:, mag_idx] * z_mask
-            mag_band_z = mags[sel][:, mag_idx]
+        xs, ys = [], []
+        for i, field in enumerate(fields):
+            space = getattr(model, field)
+            shift_dex = i * d_shift_dex
+            bin_lo = space.bin_lo.ravel()
+            bin_hi = space.bin_hi.ravel()
+            bin_centers = (bin_lo + bin_hi) / 2
+            dmag = bin_hi[0] - bin_lo[0]
 
-            bins = np.arange(
-                mag_band_z.min(),
-                mag_band_z.max() + dmag,
-                dmag,
-            )
-            bin_centers = (bins[1:] + bins[:-1]) / 2
+            n_data = space.N_data / space.vol_mpc3
+            n_model = space.N_model / model.lc_data.lc_tot_vol_mpc3
 
-            n_data, _ = np.histogram(
-                mag_band_z,
-                weights=np.ones_like(mag_band_z) * (1 / data_vol_mpc3),
-                bins=bins,
-            )
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
                 y_data = np.log10(n_data) + shift_dex
-                ax[col].scatter(
-                    bin_centers,
-                    y_data,
-                    color=colors[i],
-                    alpha=alpha,
-                    s=s,
-                )
+                y_model = np.log10(n_model) + shift_dex
+
+            a.scatter(bin_centers, y_data, color=colors[i], alpha=alpha, s=s)
+            a.plot(bin_centers, y_model, color=colors[i], alpha=alpha, lw=lw)
+
             finite = np.isfinite(y_data)
             xs.append(bin_centers[finite])
             ys.append(y_data[finite])
 
-            n_diffsky, _ = np.histogram(
-                obs_mags[:, mag_idx],
-                weights=gal_weight
-                * mag_weight[:, mag_idx]
-                * mag_weight[:, parent_cut_idx]
-                * (1 / lc_data.lc_tot_vol_mpc3),
-                bins=bins,
-            )
-            with warnings.catch_warnings():
-                warnings.filterwarnings("ignore", category=RuntimeWarning)
-                ax[col].plot(
-                    bin_centers,
-                    np.log10(n_diffsky) + shift_dex,
-                    color=colors[i],
-                    alpha=alpha,
-                    lw=lw,
-                )
-            shift_dex += d_shift_dex
+            (mag_idx,) = get_filt_indx(field, PhotFilters)
             band_colors_fitted.append(colors[i])
             mags_labels_fitted.append(mags_labels[mag_idx])
 
-        ax[col].set_xticks(np.arange(10, 30, 2))
-        ax[col].minorticks_on()
-        ax[col].tick_params(
+        a.set_xticks(np.arange(10, 30, 2))
+        a.minorticks_on()
+        a.tick_params(
             which="major",
             direction="in",
             top=True,
@@ -1018,7 +859,7 @@ def plot_app_mag_funcs_minerva(
             width=1,
             labelsize=labelsize,
         )
-        ax[col].tick_params(
+        a.tick_params(
             which="minor",
             direction="in",
             top=True,
@@ -1029,8 +870,8 @@ def plot_app_mag_funcs_minerva(
         )
 
         x, y = np.concatenate(xs), np.concatenate(ys)
-        ax[col].set_xlim(x.min() - dmag, x.max() + dmag)
-        ax[col].set_ylim(y.min() - ypad, y.max() + ypad)
+        a.set_xlim(x.min() - dmag, x.max() + dmag)
+        a.set_ylim(y.min() - ypad, y.max() + ypad)
 
     ax[0].set_ylabel("log$_{10}$ (n [Mpc$^{-3}$])", fontsize=fontsize)
 
@@ -1099,10 +940,7 @@ def plot_app_mag_funcs_minerva(
     leg2.set_bbox_to_anchor((x0 + w1 + gap, y), transform=fig.transFigure)
 
     fig.supxlabel("apparent magnitude [AB]")
-    fig.savefig(
-        savedir + "/" + run_label + "_minerva_app_mag_funcs.png",
-        dpi=400,
-    )
+    fig.savefig(savedir + "/" + run_label + "_minerva_app_mag_funcs.png", dpi=400)
     if plt_show:
         plt.show()
     plt.close()
