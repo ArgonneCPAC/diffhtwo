@@ -92,10 +92,8 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
 )
 from diffhtwo.experimental.uv_luminosity import append_uv_luminosity_to_ssp_data
 
-DIFFSTARPOP_PARAMS = DiffstarPop_Params_Diffstarpopfits_mgash[
-    "galacticus_in_situ"
-]
-#['smdpl_dr1_nomerging', 'smdpl_dr1', 'tng', 'galacticus_in_situ', 'galacticus_in_plus_ex_situ']
+DIFFSTARPOP_PARAMS = DiffstarPop_Params_Diffstarpopfits_mgash["galacticus_in_situ"]
+# ['smdpl_dr1_nomerging', 'smdpl_dr1', 'tng', 'galacticus_in_situ', 'galacticus_in_plus_ex_situ']
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
@@ -141,7 +139,7 @@ if __name__ == "__main__":
         param_collection_fit = param_collection_fit._replace(
             merging_params=DEFAULT_MERGE_PARAMS
         )
-           
+
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
     with open(args.config) as f:
