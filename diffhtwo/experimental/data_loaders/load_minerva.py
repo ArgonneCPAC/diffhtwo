@@ -221,7 +221,7 @@ def get_minerva_phot(
         col_name = "f_" + minerva_filter
         mag = _get_mag_ab(phot, col_name)
 
-        n_gals = phot[col_name].mask.size
+        # n_gals = phot[col_name].mask.size
 
         # originally masked in the phot cat due to missing coverage, for instance
         sel = ~phot[col_name].mask
@@ -552,9 +552,7 @@ def get_minerva_halpha(
 
         z_min = halpha["z_phot"].min()
         z_max = halpha["z_phot"].max()
-        data_vol_mpc3 = zbin_volume(
-            MINERVA_UDS_AREA_DEG2, zlow=z_min, zhigh=z_max
-        ).value
+        data_vol_mpc3 = zbin_volume(MINERVA_AREA_DEG2, zlow=z_min, zhigh=z_max).value
 
         lgLHa = jnp.log10(
             abs(halpha["L_Ha"].data)
