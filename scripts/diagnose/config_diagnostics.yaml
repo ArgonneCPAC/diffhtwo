@@ -7,6 +7,7 @@ sdss_drn: /Users/kumail/diffdir/sdss
 feniks_drn: /Users/kumail/diffdir/feniks
 hizels_drn: /Users/kumail/diffdir/hizels
 minerva_drn: /Users/kumail/minerva/cats
+minerva_halpha_drn: /Users/kumail/minerva/halpha
 
 cosmos20_drn: /Users/kumail/diffdir/COSMOS20
 dsps_drn: /Users/kumail/diffdir/COSMOS20/portal.nersc.gov/project/hacc/aphearin/DSPS_data
@@ -17,11 +18,12 @@ fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 
-plot_sdss: True
-plot_feniks: True
+plot_sdss: False
+plot_feniks: False
 plot_hizels: False
 
 plot_minerva: False
+plot_minerva_halpha: True
 
 num_halos : 5000
 sky_area_degsq: 4.
@@ -40,7 +42,7 @@ defaults:
 plots:
   plot_app_mag_funcs: False
   plot_exsitu_frac_z0: False
-  plot_color_contours: True
+  plot_color_contours: False
   plot_mag_z: False
   
   plot_smhm: False

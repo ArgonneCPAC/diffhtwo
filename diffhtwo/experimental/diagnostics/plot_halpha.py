@@ -37,7 +37,6 @@ minerva_halpha_colors = [
 def plot_halpha_minerva(
     ran_key,
     halpha_drn,
-    drn,
     param_collection,
     ssp_data,
     halpha_wave_aa,
@@ -51,7 +50,6 @@ def plot_halpha_minerva(
     line_wave_table = jnp.array([halpha_wave_aa])
     minerva_halpha = get_minerva_halpha(
         halpha_drn,
-        drn,
         ran_key,
         ssp_data,
         num_halos=num_halos,
@@ -65,8 +63,9 @@ def plot_halpha_minerva(
     legendsize = 8
     labelsize = 14
     alpha = 1
-
-    for z in range(n_z_bins):
+    shift_dex = 0.0
+    i = 0
+    for z in reversed(range(n_z_bins)):
         z_data = minerva_halpha[z]
         z_min = np.round(z_data.z_min, 2)
         z_max = np.round(z_data.z_max, 2)
@@ -89,7 +88,7 @@ def plot_halpha_minerva(
 
         ax.scatter(
             bin_centers,
-            np.log10(n_data),
+            np.log10(n_data) + shift_dex,
             c=minerva_halpha_colors[z],
             marker="s",
             s=8,
@@ -97,12 +96,14 @@ def plot_halpha_minerva(
         )
         ax.plot(
             bin_centers,
-            np.log10(n_model),
+            np.log10(n_model) + shift_dex,
             c=minerva_halpha_colors[z],
             lw=1.5,
             alpha=alpha,
             label=label,
         )
+        shift_dex += 0.2 * 1.25**i
+        i += 1
     ax.minorticks_on()
     ax.tick_params(
         which="major",
@@ -122,15 +123,35 @@ def plot_halpha_minerva(
         width=0.8,
         labelsize=10,
     )
+    handles, labels = ax.get_legend_handles_labels()
     ax.legend(
+        handles[::-1],
+        labels[::-1],
         loc="lower center",
         bbox_to_anchor=(0.5, 1.01),
         frameon=False,
         ncol=2,
         fontsize=legendsize,
     )
-    ax.set_ylim(-6, -2)
+    ax.set_ylim(-5.5, 1.0)
     ax.set_xlim(38.1, 44.1)
+
+    ax.annotate(
+        "",
+        xy=(0.9, 0.94),
+        xytext=(0.9, 0.8),
+        xycoords="axes fraction",
+        arrowprops=dict(arrowstyle="->", lw=0.75, color="k"),
+    )
+    ax.text(
+        0.86,
+        0.87,
+        "shift by\n +0.2 dex",
+        transform=ax.transAxes,
+        ha="right",
+        va="center",
+        fontsize=legendsize,
+    )
 
     ax.set_xlabel("log$_{10}$ (L$_{H\u03b1}$ [erg/s])", fontsize=labelsize)
     ax.set_ylabel("log$_{10}($\u03d5 [Mpc$^{-3}$])", fontsize=labelsize)

@@ -107,14 +107,14 @@ SPACES_AT_Z = [
         "cmd": [("F444w_F115wF444w", True)],
     },
     # Line excess to pick up h-alpha emitters
-    {"z": (1.03, 1.25), "cmd": [("F140m_F150wF140m", False)]},
-    {"z": (1.36, 1.59), "cmd": [("F162m_F150wF162m", False)]},
-    {"z": (1.67, 1.95), "cmd": [("F182m_F200wF182m", False)]},
-    {"z": (2.04, 2.35), "cmd": [("F210m_F200wF210m", False)]},
-    {"z": (2.68, 2.95), "cmd": [("F250m_F277wF250m", False)]},
-    {"z": (4.22, 4.81), "cmd": [("F360m_F356wF360m", False)]},
-    {"z": (4.98, 5.52), "cmd": [("F410m_F444wF410m", False)]},
-    {"z": (5.88, 6.23), "cmd": [("F460m_F444wF460m", False)]},
+    # {"z": (1.03, 1.25), "cmd": [("F140m_F150wF140m", False)]},
+    # {"z": (1.36, 1.59), "cmd": [("F162m_F150wF162m", False)]},
+    # {"z": (1.67, 1.95), "cmd": [("F182m_F200wF182m", False)]},
+    # {"z": (2.04, 2.35), "cmd": [("F210m_F200wF210m", False)]},
+    # {"z": (2.68, 2.95), "cmd": [("F250m_F277wF250m", False)]},
+    # {"z": (4.22, 4.81), "cmd": [("F360m_F356wF360m", False)]},
+    # {"z": (4.98, 5.52), "cmd": [("F410m_F444wF410m", False)]},
+    # {"z": (5.88, 6.23), "cmd": [("F460m_F444wF460m", False)]},
 ]
 
 
@@ -561,7 +561,6 @@ def get_minerva_phot_fitting_data(
 
 def get_minerva_halpha(
     halpha_drn,
-    drn,
     ran_key,
     ssp_data,
     num_halos=150,
@@ -569,9 +568,10 @@ def get_minerva_halpha(
     lgmp_max=15.0,
     lc_sky_area_degsq=100,
     n_z_phot_table=15,
+    estimated_area_arcminsq=390,
 ):
     halpha_drn = Path(halpha_drn)
-    drn = Path(drn)
+    estimated_area_degsq = estimated_area_arcminsq / 3600
 
     # Transmission curves
     tcurves = []
@@ -587,16 +587,16 @@ def get_minerva_halpha(
     )
     lfs = []
     for f in HalphaFilters._fields:
-        halpha = Table.read(halpha_drn / f"Ha_table_{f}_minerva-uds_power.fits")
-        # cosmos_halpha = Table.read(
-        #     halpha_drn / f"Ha_table_{f}_minerva-cosmos_power.fits"
-        # )
-        # egs_halpha = Table.read(halpha_drn / f"Ha_table_{f}_minerva-egs_power.fits")
-        # halpha = vstack([uds_halpha, cosmos_halpha, egs_halpha])
+        uds_halpha = Table.read(halpha_drn / f"Ha_table_{f}_minerva-uds_power.fits")
+        cosmos_halpha = Table.read(
+            halpha_drn / f"Ha_table_{f}_minerva-cosmos_power_err.fits"
+        )
+        halpha = vstack([uds_halpha, cosmos_halpha])
 
         z_min = halpha["z_phot"].min()
         z_max = halpha["z_phot"].max()
-        data_vol_mpc3 = zbin_volume(MINERVA_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+
+        data_vol_mpc3 = zbin_volume(estimated_area_degsq, zlow=z_min, zhigh=z_max).value
 
         lgLHa = jnp.log10(
             abs(halpha["L_Ha"].data)

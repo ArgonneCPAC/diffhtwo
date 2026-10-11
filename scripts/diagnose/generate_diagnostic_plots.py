@@ -54,6 +54,7 @@ from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
     plot_halpha_insitu_exsitu,
+    plot_halpha_minerva,
     plot_halpha_ms_q_burst,
     plot_halpha_sfr,
     plot_halpha_sfr_single_z,
@@ -111,6 +112,7 @@ if __name__ == "__main__":
     feniks_drn = cfg["feniks_drn"]
     hizels_drn = Path(cfg["hizels_drn"])
     minerva_drn = cfg["minerva_drn"]
+    minerva_halpha_drn = cfg["minerva_halpha_drn"]
 
     um_drn = cfg["um_drn"]
     frac_ex_situ_lit_drn = cfg["frac_ex_situ_lit_drn"]
@@ -1199,3 +1201,18 @@ if __name__ == "__main__":
                 ncols=4,
                 tag="_emitters",
             )
+    if cfg["plot_minerva_halpha"]:
+        print("Generating MINERVA halpha plot...")
+        plot_halpha_minerva(
+            ran_key,
+            minerva_halpha_drn,
+            param_collection_fit,
+            ssp_data,
+            halpha_wave_aa,
+            run_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            plt_show=False,
+        )
