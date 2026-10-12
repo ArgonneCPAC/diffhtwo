@@ -655,7 +655,7 @@ def plot_app_mag_funcs(
             bin_centers = (bin_lo + bin_hi) / 2
             dmag = bin_hi[0] - bin_lo[0]
 
-            n_data = space.N_data / space.vol_mpc3
+            n_data = space.N_data / space.vol_mpc3_data
             n_model = space.N_model / model.lc_data.lc_tot_vol_mpc3
 
             with warnings.catch_warnings():
@@ -829,7 +829,7 @@ def plot_app_mag_funcs_minerva(
             bin_centers = (bin_lo + bin_hi) / 2
             dmag = bin_hi[0] - bin_lo[0]
 
-            n_data = space.N_data / space.vol_mpc3
+            n_data = space.N_data / space.vol_mpc3_data
             n_model = space.N_model / model.lc_data.lc_tot_vol_mpc3
 
             with warnings.catch_warnings():

@@ -134,7 +134,7 @@ def plot_halpha_minerva(
         fontsize=legendsize,
     )
     ax.set_ylim(-5.5, 1.0)
-    ax.set_xlim(38.1, 44.1)
+    ax.set_xlim(38.0, 44.3)
 
     ax.annotate(
         "",
@@ -146,7 +146,7 @@ def plot_halpha_minerva(
     ax.text(
         0.86,
         0.87,
-        "shift by\n +0.2 dex",
+        "shift by\n arb. dex",
         transform=ax.transAxes,
         ha="right",
         va="center",

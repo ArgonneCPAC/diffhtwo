@@ -115,7 +115,6 @@ if __name__ == "__main__":
         # load halpha data
         minerva_halpha = load_minerva.get_minerva_halpha(
             minerva_halpha_drn,
-            minerva_phot_drn,
             ran_key,
             ssp_data,
         )
