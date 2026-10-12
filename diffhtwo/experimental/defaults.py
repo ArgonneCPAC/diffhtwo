@@ -98,7 +98,7 @@ ColorColor = namedtuple(
         "bin_lo",
         "bin_hi",
         "N_data",
-        "frac_cat",
+        "vol_mpc3_data",
         "fit",
     ],
 )
@@ -113,7 +113,7 @@ MagColor = namedtuple(
         "bin_lo",
         "bin_hi",
         "N_data",
-        "frac_cat",
+        "vol_mpc3_data",
         "fit",
     ],
 )
@@ -127,7 +127,7 @@ AppMagFunc = namedtuple(
         "bin_lo",
         "bin_hi",
         "N_data",
-        "frac_cat",
+        "vol_mpc3_data",
         "fit",
     ],
 )

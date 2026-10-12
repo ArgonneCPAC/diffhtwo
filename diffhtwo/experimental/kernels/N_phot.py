@@ -22,7 +22,7 @@ def N_colors_mags(
         z_data.lc_data,
         mag_thresh,
     )
-    fields = z_data._fields[4:]
+    fields = [f for f in z_data._fields if f not in {"z_min", "z_max", "lc_data"}]
     mag_thresh = jnp.array(mag_thresh)
     for f in range(len(fields)):
         space = getattr(z_data, fields[f])
@@ -54,8 +54,6 @@ def N_colors_mags(
                     space.bin_hi,
                 )
 
-                N_model = space.frac_cat * N_model
-
                 NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
                 new = NewTuple(*space, N_model)
                 z_data = z_data._replace(**{fields[f]: new})
@@ -77,8 +75,6 @@ def N_colors_mags(
                     space.bin_lo,
                     space.bin_hi,
                 )
-
-                N_model = space.frac_cat * N_model
 
                 NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
                 new = NewTuple(*space, N_model)
@@ -112,8 +108,6 @@ def N_colors_mags(
                 space.bin_lo,
                 space.bin_hi,
             )
-
-            N_model = space.frac_cat * N_model
 
             NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
             new = NewTuple(*space, N_model)

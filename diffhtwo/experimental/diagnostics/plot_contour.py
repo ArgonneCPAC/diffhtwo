@@ -88,7 +88,7 @@ def plot_cc_cm_grid_raw(
         for row, field in enumerate(fields):
             space = getattr(model, field)
             panels.append((row, col, space))
-            n_data.append(space.N_data / model.data_vol_mpc3)
+            n_data.append(space.N_data / space.vol_mpc3_data)
             n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
 
     data_vals = np.concatenate([np.ravel(n) for n in n_data])
@@ -242,7 +242,7 @@ def plot_cc_cm_grid(
             qm = plot_density(
                 space.bin_lo,
                 space.bin_hi,
-                space.N_data / model.data_vol_mpc3,
+                space.N_data / space.vol_mpc3_data,
                 ax[row][col],
                 xlabel,
                 ylabel,
@@ -313,7 +313,7 @@ def plot_color_contours(
 
     for z_data in data:
         model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
-        fields = [f for f in model._fields[4:] if "_" in f]
+        fields = [f for f in model._fields[3:] if "_" in f]
 
         for field in fields:
             space = getattr(model, field)
@@ -332,7 +332,7 @@ def plot_color_contours(
             plot_density(
                 space.bin_lo,
                 space.bin_hi,
-                space.N_data / model.data_vol_mpc3,
+                space.N_data / space.vol_mpc3_data,
                 ax,
                 xlabel,
                 ylabel,
@@ -430,7 +430,7 @@ def plot_cc_cm_grid_minerva(
             qm = plot_density(
                 space.bin_lo,
                 space.bin_hi,
-                space.N_data / model.data_vol_mpc3,
+                space.N_data / space.vol_mpc3_data,
                 a,
                 xlabel,
                 ylabel,
@@ -519,7 +519,7 @@ def plot_cc_cm_grid_raw_minerva(
                 f"{model.z_min} < z < {model.z_max}" if (ncols or row == 0) else None
             )
             panels.append((r, c, space, title))
-            n_data.append(space.N_data / model.data_vol_mpc3)
+            n_data.append(space.N_data / space.vol_mpc3_data)
             n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
 
     data_vals = np.concatenate([np.ravel(n) for n in n_data])

@@ -18,14 +18,16 @@ def get_phot_loss_2d_multiz(ran_key, param_collection, data, mag_thresh):
             z_data,
             mag_thresh,
         )
-        space_names = z_data_model._fields[4:]
+        space_names = [
+            f for f in z_data_model._fields if f not in {"z_min", "z_max", "lc_data"}
+        ]
         for space_name in space_names:
             space = getattr(z_data_model, space_name)
             phot_loss_2d += lax.cond(
                 space.fit,
                 lambda sp=space: poisson_loss(
                     sp.N_model / z_data_model.lc_data.lc_tot_vol_mpc3,
-                    sp.N_data / z_data_model.data_vol_mpc3,
+                    sp.N_data / sp.vol_mpc3_data,
                 ),
                 lambda: 0.0,
             )
