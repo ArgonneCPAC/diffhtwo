@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
-from ..kernels.sfr_tau import get_logsfr_100Myr
+from ..kernels.sfr_tau import get_logsfr_tau
 from ..tab_blue_orange_cmap import make_cmap
 from ..utils import weighted_percentiles
 from .plot_utils import make_thresholded_reduce_C_function, percentile_norm
@@ -119,7 +119,7 @@ def plot_sfms_hexbin(
             lgmp_max=lgmp_max,
         )
 
-        logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)
+        logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
         logsm_obs = phot_data.logsm_obs
         logmp_obs = lc_data.logmp_obs
 

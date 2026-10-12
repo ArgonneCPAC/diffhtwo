@@ -5,7 +5,7 @@ from matplotlib.lines import Line2D
 
 from ..kernels.fq import get_fq_hm, get_fq_sm
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
-from ..kernels.sfr_tau import get_logsfr_100Myr
+from ..kernels.sfr_tau import get_logsfr_tau
 
 # from scipy.interpolate import interp1d
 
@@ -92,7 +92,7 @@ def plot_fq(
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
         )
-        logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)
+        logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
 
         """log (sSFR) < -11"""
         # sm

@@ -39,7 +39,7 @@ from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
 )
 from diffhtwo.experimental.diagnostics.plot_burstpop import (
     make_fburstpop_comparison_plot,
-    plot_lgfburst_mh_z,
+    plot_lgfburst_smooth,
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_color_redshift import plot_color_z
@@ -370,16 +370,18 @@ if __name__ == "__main__":
         )
     if cfg["plots"]["plot_fburst_mh_z"]:
         print("Generating lgfburst plot...")
-        plot_lgfburst_mh_z(
+        plot_lgfburst_smooth(
             ran_key,
             param_collection_fit,
             0.02,
-            2.5,
+            6.0,
             ssp_data,
             feniks.filter_info.tcurves,
-            "sdss_feniks",
+            run_label,
             fit_diagnostics_save_drn,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
 
@@ -419,7 +421,6 @@ if __name__ == "__main__":
     Plot HiZELS
     """
     if cfg["plot_hizels"]:
-        feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
         hizels_drn = Path(hizels_drn)
         hizels_label = "hizels_" + run_label
         hizels = load_hizels.get_hizels_data(

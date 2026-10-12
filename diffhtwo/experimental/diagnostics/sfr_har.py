@@ -7,7 +7,7 @@ from diffsky.experimental.mc_phot import mc_lc_phot
 from jax import random as jran
 from jax import vmap
 
-from ..kernels.sfr_tau import get_logsfr_100Myr
+from ..kernels.sfr_tau import get_logsfr_tau
 from ..tab_blue_orange_cmap import make_cmap
 
 cmap = make_cmap()
@@ -72,7 +72,7 @@ def plot_sfr_har(
     )
 
     logsm_obs = phot_info.logsm_obs
-    logsfr_100Myr = get_logsfr_100Myr(phot_info, lc_data, ssp_data)
+    logsfr_100Myr = get_logsfr_tau(phot_info, lc_data, ssp_data)
     logssfr_100Myr = logsfr_100Myr - logsm_obs
 
     # logsdmhdt_obs = logsdmhdt_obs[phot_info.p_merge < 0.9]

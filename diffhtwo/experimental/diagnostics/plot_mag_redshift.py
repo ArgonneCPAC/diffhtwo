@@ -6,7 +6,7 @@ from diffsky.experimental.mc_phot import mc_lc_phot
 from jax import random as jran
 from matplotlib.ticker import MaxNLocator
 
-from ..kernels.sfr_tau import get_logsfr_100Myr
+from ..kernels.sfr_tau import get_logsfr_tau
 from ..tab_blue_orange_cmap import make_cmap
 
 cmap = make_cmap()
@@ -87,14 +87,14 @@ def compare_models_in_mag_z(
         sed_key, lc_data, mc_merge, param_collection=param_collection2
     )
 
-    logsfr_100Myr1 = get_logsfr_100Myr(phot_info1, lc_data, ssp_data)
+    logsfr_100Myr1 = get_logsfr_tau(phot_info1, lc_data, ssp_data)
     logsm_obs1 = phot_info1.logsm_obs
     logssfr_obs1 = logsfr_100Myr1 - logsm_obs1
     mc_is_q1, mc_is_ms1, mc_is_burst1 = _get_mc_is(
         param_collection1, phot_randoms1, logsm_obs1, logssfr_obs1
     )
 
-    logsfr_100Myr2 = get_logsfr_100Myr(phot_info2, lc_data, ssp_data)
+    logsfr_100Myr2 = get_logsfr_tau(phot_info2, lc_data, ssp_data)
     logsm_obs2 = phot_info2.logsm_obs
     logssfr_obs2 = logsfr_100Myr2 - logsm_obs2
     mc_is_q2, mc_is_ms2, mc_is_burst2 = _get_mc_is(
@@ -297,14 +297,14 @@ def compare_models_in_mag_z2(
         sed_key, lc_data, mc_merge, param_collection=param_collection2
     )
 
-    logsfr_100Myr1 = get_logsfr_100Myr(phot_info1, lc_data, ssp_data)
+    logsfr_100Myr1 = get_logsfr_tau(phot_info1, lc_data, ssp_data)
     logsm_obs1 = phot_info1.logsm_obs
     logssfr_obs1 = logsfr_100Myr1 - logsm_obs1
     mc_is_q1, mc_is_ms1, mc_is_burst1 = _get_mc_is(
         param_collection1, phot_randoms1, logsm_obs1, logssfr_obs1
     )
 
-    logsfr_100Myr2 = get_logsfr_100Myr(phot_info2, lc_data, ssp_data)
+    logsfr_100Myr2 = get_logsfr_tau(phot_info2, lc_data, ssp_data)
     logsm_obs2 = phot_info2.logsm_obs
     logssfr_obs2 = logsfr_100Myr2 - logsm_obs2
     mc_is_q2, mc_is_ms2, mc_is_burst2 = _get_mc_is(
@@ -457,12 +457,12 @@ def compare_models_in_mag_z_sfr(
     phot_info1, phot_randoms1, merging_randoms1 = mc_lc_phot(
         sed_key, lc_data, mc_merge, param_collection=param_collection1
     )
-    logsfr_100Myr1 = get_logsfr_100Myr(phot_info1, lc_data, ssp_data)
+    logsfr_100Myr1 = get_logsfr_tau(phot_info1, lc_data, ssp_data)
 
     phot_info2, phot_randoms2, merging_randoms2 = mc_lc_phot(
         sed_key, lc_data, mc_merge, param_collection=param_collection2
     )
-    logsfr_100Myr2 = get_logsfr_100Myr(phot_info2, lc_data, ssp_data)
+    logsfr_100Myr2 = get_logsfr_tau(phot_info2, lc_data, ssp_data)
 
     # vmin = min(logsfr_100Myr1.min(), logsfr_100Myr2.min())
     # vmax = max(logsfr_100Myr1.max(), logsfr_100Myr2.max())

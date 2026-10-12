@@ -18,9 +18,9 @@ fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 
-plot_sdss: True
-plot_feniks: True
-plot_hizels: True
+plot_sdss: False
+plot_feniks: False
+plot_hizels: False
 
 plot_minerva: False
 plot_minerva_halpha: False
@@ -31,7 +31,7 @@ sky_area_degsq: 4.
 lgmp_min: 10.5
 lgmp_max: 15.0
 
-logHa_flux_limit: -16.0
+logHa_flux_limit: -15.8
 
 defaults:
   diffstarpop: False
@@ -40,10 +40,12 @@ defaults:
   merging: False
 
 plots:
-  plot_app_mag_funcs: True
-  plot_exsitu_frac_z0: True
-  plot_color_contours: True
-  plot_mag_z: True
+  plot_app_mag_funcs: False
+  plot_exsitu_frac_z0: False
+  plot_color_contours: False
+  plot_mag_z: False
+
+  plot_fburst_mh_z: False
   
   plot_smhm: False
   plot_sfms: False
@@ -54,7 +56,7 @@ plots:
   plot_color_pdfs: False
   plot_colors_mags: False
 
-  plot_halpha_uv_ratio: False
+  plot_halpha_uv_ratio: True
   plot_exsitu_frac: False
   plot_hod: False
   plot_mags: False
@@ -67,6 +69,5 @@ plots:
   plot_uvj: False
   plot_avpop: False
   plot_burstpop: False
-  plot_fburst_mh_z: False
   plot_satquench_model: False
   plot_satquench: False

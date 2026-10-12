@@ -1,14 +1,14 @@
 import numpy as np
 
 from ..fq import get_fq_hm, get_fq_sm
-from ..sfr_tau import get_logsfr_100Myr
+from ..sfr_tau import get_logsfr_tau
 
 
 def test_fq_sm_hm(feniks_lc_phot_data, fake_subset_ssp_data):
     lc_data, phot_data, gal_weight = feniks_lc_phot_data
     ssp_data, emline_wave_aa = fake_subset_ssp_data
 
-    logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)
+    logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
     d_sm = 0.5
     d_hm = 0.5
 

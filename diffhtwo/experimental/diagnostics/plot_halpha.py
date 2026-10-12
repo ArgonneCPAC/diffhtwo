@@ -9,7 +9,7 @@ from ..data_loaders.load_hizels import LOGHA_FLUX_LIMIT_NONE
 from ..data_loaders.load_minerva import get_minerva_halpha
 from ..kernels.line_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
 from ..kernels.N_line import N_linelum2
-from ..kernels.sfr_tau import get_logsfr_100Myr
+from ..kernels.sfr_tau import get_logsfr_tau
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 plt.rcParams["mathtext.fontset"] = "stix"
@@ -570,7 +570,7 @@ def plot_halpha_ssfr(
             lw=lw,
         )
         logsm_obs = phot_kern_results.logsm_obs
-        logsfr_10Myr = get_logsfr_100Myr(
+        logsfr_10Myr = get_logsfr_tau(
             phot_kern_results, lc_data, ssp_data, tau_gyr=0.01
         )
 
@@ -720,7 +720,7 @@ def plot_halpha_sfr(
             lw=lw,
         )
 
-        logsfr_10Myr = get_logsfr_100Myr(
+        logsfr_10Myr = get_logsfr_tau(
             phot_kern_results, lc_data, ssp_data, tau_gyr=0.01
         )
 
@@ -867,7 +867,7 @@ def plot_halpha_sfr_single_z(
         lw=lw,
     )
 
-    logsfr_10Myr = get_logsfr_100Myr(phot_kern_results, lc_data, ssp_data, tau_gyr=0.01)
+    logsfr_10Myr = get_logsfr_tau(phot_kern_results, lc_data, ssp_data, tau_gyr=0.01)
 
     for s in range(0, len(sfr_bin_edges) - 1):
         sfr_label = "logsfr_obs: " + str(
