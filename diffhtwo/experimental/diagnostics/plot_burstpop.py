@@ -8,7 +8,7 @@ from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLL
 from scipy.ndimage import gaussian_filter
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
-from ..kernels.sfr_tau import get_logsfr_100Myr
+from ..kernels.sfr_tau import get_logsfr_tau
 
 DEFAULT_FBURSTPOP_PARAMS = (
     DEFAULT_PARAM_COLLECTION.spspop_params.burstpop_params.fburstpop_params
@@ -132,7 +132,7 @@ def plot_lgfburst_smooth(
     elif plot == "cen+sat":
         sel = np.isfinite(lc_data.is_central)
 
-    logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)
+    logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
     logsm_obs = phot_data.logsm_obs
     logssfr_100 = logsfr_100Myr - logsm_obs
 
@@ -162,15 +162,7 @@ def plot_lgfburst_smooth(
     fontsize = 10
     labelsize = 9
     vmin, vmax = -6, -1.5
-    xticks = [0.02, 0.5, 1.0, 1.5, 2.0, 2.5]
-    xticklabels = ["0.02", "0.5", "1.0", "1.5", "2.0", "2.5"]
-
-    sm_yticks = [8, 9, 10, 11, 12]
-    sm_yticklabels = ["8", "9", "10", "11", "12"]
     sm_limits = (8, 12)
-
-    # hm_yticks = [10, 11, 12, 13, 14, 15]
-    # hm_yticklabels = ["10", "11", "12", "13", "14", "15"]
     hm_limits = (lgmp_min, lgmp_max)
 
     """Plot fburst w/ halo mass and redshift"""
@@ -195,24 +187,9 @@ def plot_lgfburst_smooth(
     ax[0].pcolormesh(
         xe, ye, img.T, cmap="coolwarm_r", vmin=vmin, vmax=vmax, rasterized=True
     )
-    # ax[0].hexbin(
-    #     lc_data.z_obs[sel],
-    #     lc_data.logmp_obs[sel],
-    #     C=C,
-    #     reduce_C_function=_lgfburst_weighted,
-    #     cmap="coolwarm_r",
-    #     vmin=vmin,
-    #     vmax=vmax,
-    #     mincnt=mincnt,
-    #     extent=(z_min, z_max, hm_limits[0], hm_limits[1]),
-    #     gridsize=gridsize,
-    #     rasterized=True,
-    # )
 
     ax[0].set_ylabel(r"log$_{10}$ (M$_{h}$ [M${_\odot}$])", fontsize=fontsize)
     ax[0].set_ylim(hm_limits)
-    # ax[0].set_yticks(hm_yticks)
-    # ax[0].set_yticklabels(hm_yticklabels)
 
     """Plot fburst w/ stellar mass and redshift"""
     x, y = lc_data.z_obs[sel], logsm_obs[sel]
@@ -237,27 +214,11 @@ def plot_lgfburst_smooth(
         xe, ye, img.T, cmap="coolwarm_r", vmin=vmin, vmax=vmax, rasterized=True
     )
 
-    # hb1 = ax[1].hexbin(
-    #     lc_data.z_obs[sel],
-    #     logsm_obs[sel],
-    #     C=C,
-    #     reduce_C_function=_lgfburst_weighted,
-    #     cmap="coolwarm_r",
-    #     vmin=vmin,
-    #     vmax=vmax,
-    #     mincnt=mincnt,
-    #     extent=(z_min, z_max, sm_limits[0], sm_limits[1]),
-    #     gridsize=gridsize,
-    #     rasterized=True,
-    # )
-
     # cbar = fig.colorbar(hb1, ax=ax[1], label="log$_{10}$ (burst fraction)")
     # cbar.ax.tick_params(labelsize=labelsize, direction="in")
 
     ax[1].set_ylabel(r"log$_{10}$ (M$_{*}$ [M${_\odot}$])", fontsize=fontsize)
     ax[1].set_ylim(sm_limits)
-    # ax[1].set_yticks(sm_yticks)
-    # ax[1].set_yticklabels(sm_yticklabels)
 
     for i in range(0, 2):
         ax[i].minorticks_on()
@@ -279,8 +240,6 @@ def plot_lgfburst_smooth(
             width=0.8,
             labelsize=labelsize,
         )
-        # ax[i].set_xticks(xticks)
-        # ax[i].set_xticklabels(xticklabels)
         ax[i].set_xlim(z_min, z_max)
         ax[i].set_xlabel("redshift", fontsize=fontsize)
 
@@ -340,7 +299,7 @@ def plot_lgfburst_hexbin(
     elif plot == "cen+sat":
         sel = np.isfinite(lc_data.is_central)
 
-    logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)
+    logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
     logsm_obs = phot_data.logsm_obs
     logssfr_100 = logsfr_100Myr - logsm_obs
 

@@ -308,20 +308,6 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-        plot_smhm_median(
-            ran_key,
-            param_collection_fit,
-            zbins,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
-
     if cfg["plots"]["plot_fq"]:
         print("Generating fq plots...")
         plot_fq(

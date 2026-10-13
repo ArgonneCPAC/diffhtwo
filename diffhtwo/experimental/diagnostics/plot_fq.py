@@ -91,6 +91,7 @@ def plot_fq(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
+            mc_merge=1,
         )
         logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
 
@@ -254,7 +255,7 @@ def plot_fq(
                 Muzzin13["Qfrac"],
                 c="deepskyblue",
                 alpha=alpha,
-                label="Muzzin+13",
+                label="Muzzin+13 (COSMOS/UVISTA UVJ)",
             )
             ax[0][zbin].fill_between(
                 Muzzin13["Mstar"],

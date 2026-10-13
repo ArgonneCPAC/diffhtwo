@@ -18,7 +18,7 @@ plt.rc("font", family="serif", serif=["Times New Roman"])
 cmap = make_cmap()
 ex_situ_frac_color = "#3E7CB1"
 
-LOGSM_OBS_MIN, LOGSM_OBS_MAX = 7.0, 12.5
+LOGSM_OBS_MIN, LOGSM_OBS_MAX = 8.0, 12.5
 
 COLORS_Z = ["#2d0b52", "#0491a1", "#a1d661", "#ee6920", "#8a0f17"]
 
@@ -298,8 +298,8 @@ def plot_smhm(
 
         ax[zbin].set_xlim(lgmp_min, lgmp_max)
         ax[zbin].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
-        ax[zbin].set_xticks([11, 12, 13, 14])
-        ax[zbin].set_yticks([7, 8, 9, 10, 11, 12])
+        ax[zbin].set_xticks(np.arange(lgmp_min, lgmp_max + 1, 1))
+        ax[zbin].set_yticks(np.arange(LOGSM_OBS_MIN, LOGSM_OBS_MAX + 1, 1))
 
         ax[zbin].tick_params(
             which="major",
@@ -542,16 +542,20 @@ def plot_smhm_hexbin(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
+            mc_merge=1,
         )
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
+        unmerged = phot_data.p_merge < 0.5
 
-        reduce_C_function = make_thresholded_reduce_C_function(gal_weight)
+        reduce_C_function = make_thresholded_reduce_C_function(
+            gal_weight[unmerged], threshold=1e-8
+        )
 
         hb = ax[zbin].hexbin(
-            logmp_obs,
-            logsm_obs,
-            C=gal_weight,
+            logmp_obs[unmerged],
+            logsm_obs[unmerged],
+            C=gal_weight[unmerged],
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,
@@ -563,7 +567,7 @@ def plot_smhm_hexbin(
         logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
         logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
         _, logsm_obs_weighted_median, _ = _get_logsm_obs_weighted_median(
-            logmp_bins, logmp_obs, logsm_obs, gal_weight
+            logmp_bins, logmp_obs[unmerged], logsm_obs[unmerged], gal_weight[unmerged]
         )
         ax[zbin].plot(
             logmp_bin_centers,
@@ -593,10 +597,11 @@ def plot_smhm_hexbin(
             labelsize=labelsize,
         )
         ax[zbin].set_xlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
+
+        ax[zbin].set_xticks(np.arange(lgmp_min, lgmp_max + 1, 1))
+        ax[zbin].set_yticks(np.arange(LOGSM_OBS_MIN, LOGSM_OBS_MAX + 1, 1))
         ax[zbin].set_xlim(lgmp_min, lgmp_max)
         ax[zbin].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
-        ax[zbin].set_xticks([11, 12, 13, 14])
-        ax[zbin].set_yticks([7, 8, 9, 10, 11, 12])
 
     ax[0].set_ylabel(r"log$_{10}$ (M$_{*}$ [M$_{\odot}$])", fontsize=fontsize)
 
@@ -759,7 +764,6 @@ def plot_smhm_cen_sat(
     for i in range(0, 3):
         ax[i].set_xlim(lgmp_min, lgmp_max)
         ax[i].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
-        ax[i].set_xticks([11, 12, 13, 14, 15])
 
         ax[i].tick_params(
             which="major",
@@ -1181,7 +1185,6 @@ def plot_smhm_ratio_cen_sat(
     for i in range(0, 3):
         ax[i].set_xlim(lgmp_min, lgmp_max)
         ax[i].set_ylim(-3.2, -1.2)
-        ax[i].set_xticks([11, 12, 13, 14, 15])
 
         ax[i].tick_params(
             which="major",

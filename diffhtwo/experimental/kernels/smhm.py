@@ -212,6 +212,7 @@ def median_smhm_and_exsitu_frac(
         tcurves,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
+        mc_merge=1,
     )
 
     logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
@@ -247,11 +248,12 @@ def median_smhm_and_exsitu_frac(
     )
 
     # sat post-merging (as sats don't accrete but only lose stellar mass, so no ex-situ)
+    unmerged = phot_data.p_merge < 0.5
     _, logsm_obs_weighted_median_sat, _ = _get_logsm_obs_weighted_median(
         logmp_bins,
-        lc_data.logmp_obs[lc_data.is_central != 1],
-        phot_data.logsm_obs[lc_data.is_central != 1],
-        gal_weight[lc_data.is_central != 1],
+        lc_data.logmp_obs[(lc_data.is_central != 1) & unmerged],
+        phot_data.logsm_obs[(lc_data.is_central != 1) & unmerged],
+        gal_weight[(lc_data.is_central != 1) & unmerged],
     )
 
     ex_situ_frac_median = get_ex_situ_frac_median_v_hm(
