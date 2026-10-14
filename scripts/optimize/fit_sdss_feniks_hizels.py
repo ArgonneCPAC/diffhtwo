@@ -11,6 +11,9 @@ import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
 from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
+from diffsky.param_utils.diffsky_param_wrapper_merging import (
+    check_param_collection_is_ok,
+)
 from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
 from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
 from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
@@ -166,6 +169,7 @@ if __name__ == "__main__":
         jax.clear_caches()
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
+        assert check_param_collection_is_ok(param_collection_fit)
         lc_mock.write_diffsky_param_collection_merging(
             fit_save_drn,
             cfg["fit_runid"] + "_" + cfg["fit_type"],

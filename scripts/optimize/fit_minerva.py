@@ -8,7 +8,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
-from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
+from diffsky.param_utils.diffsky_param_wrapper_merging import (
+    DEFAULT_PARAM_COLLECTION,
+    check_param_collection_is_ok,
+)
 from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
@@ -135,6 +138,7 @@ if __name__ == "__main__":
         jax.clear_caches()
 
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
+        assert check_param_collection_is_ok(param_collection_fit)
         lc_mock.write_diffsky_param_collection_merging(
             fit_save_drn,
             cfg["fit_runid"] + "_" + cfg["fit_type"],

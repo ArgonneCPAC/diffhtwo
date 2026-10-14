@@ -88,7 +88,6 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
     plot_smhm,
     plot_smhm_cen_sat,
     plot_smhm_hexbin,
-    plot_smhm_median,
     plot_smhm_ratio_cen_sat,
 )
 from diffhtwo.experimental.uv_luminosity import append_uv_luminosity_to_ssp_data
