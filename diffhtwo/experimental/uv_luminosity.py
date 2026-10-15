@@ -18,7 +18,7 @@ L_SUN_CGS = jnp.array(3.828e33, dtype="float64")
 C = 299792458.0
 
 # rest UV wavelength for continuum calculation in Angstroms
-UV_WAVELENGTH_AA = 1500 + 1.713
+UV_WAVELENGTH_AA = 1600 + 1.713
 UV_FREQUENCY_HZ = C / (UV_WAVELENGTH_AA * 1e-10)
 
 _A = (None, None, 0)
@@ -43,7 +43,7 @@ def precompute_uv_luminosity(ssp_data):
 @jjit
 def append_uv_luminosity_to_ssp_data(ssp_data):
     emline_wave_dict = ssp_data.ssp_emline_wave._asdict()
-    emline_wave_dict["UV"] = 1500.00
+    emline_wave_dict["UV"] = UV_WAVELENGTH_AA
     EmLineWave = namedtuple("EmLineWave", emline_wave_dict.keys())
     emline_wave_with_uv = EmLineWave(**emline_wave_dict)
 

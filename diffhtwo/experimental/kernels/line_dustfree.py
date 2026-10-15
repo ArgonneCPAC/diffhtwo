@@ -21,7 +21,7 @@ def linelum_gal_dustfree(
     merging_params,
     cosmo_params=DEFAULT_COSMOLOGY,
     fb=FB,
-    mc_merge=0,
+    mc_merge=1,
 ):
     upid = jnp.where(lc_data.is_central == 1, -1, lc_data.halo_indx)
     lgmu_infall = lc_data.logmp_infall - lc_data.logmhost_infall
@@ -115,4 +115,4 @@ def linelum_gal_dustfree(
         lc_data.halo_indx,
     )
 
-    return dustfree_linelum_gal
+    return dustfree_linelum_gal, phot_kern_results
