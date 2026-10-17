@@ -18,6 +18,9 @@ LOGHUV_MIN, LOGHUV_MAX = -3.5, -0.5
 LOGMP_OBS_MIN, LOGMP_OBS_MAX = 10.0, 13.0
 LOGSM_OBS_MIN, LOGSM_OBS_MAX = 7.0, 12.5
 
+# copied from astropy import units as u: d = (10 * u.pc).to(u.cm).value
+D_10pc_in_cm = 3.085677581491367e19
+
 
 def plot_uvlf(
     ran_key,
@@ -73,9 +76,8 @@ def plot_uvlf(
     )
     unmerged = phot_data.p_merge < 0.5
 
-    L_uv = dustfree_linelum_gal[:, 1]  # erg/s
-    d = 10 * 3.0856775814913673e18  # cm?
-    f_nu = L_uv / UV_FREQUENCY_HZ / (4 * np.pi * d**2)
+    L_uv = dustfree_linelum_gal[:, 1]  # UV Luminosity in erg/s
+    f_nu = L_uv / UV_FREQUENCY_HZ / (4 * np.pi * D_10pc_in_cm**2)
     M_uv = -2.5 * np.log10(f_nu) - 48.6
 
     labelsize = 11

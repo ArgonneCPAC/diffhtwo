@@ -9,7 +9,7 @@ from ..lc_phot_kern import mc_phot_kern_merging_wrapper
 def test_cat_weight(feniks, feniks_lc_data):
     ran_key = jran.key(0)
 
-    phot_kern_results = mc_phot_kern_merging_wrapper(
+    phot_kern_results, phot_randoms, merging_randoms = mc_phot_kern_merging_wrapper(
         ran_key,
         DEFAULT_PARAM_COLLECTION,
         feniks_lc_data,
