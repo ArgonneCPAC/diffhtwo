@@ -1,7 +1,11 @@
 import jax.numpy as jnp
-from diffsky.experimental.kernels import mc_randoms, phot_kernels, phot_kernels_in_situ
-from diffsky.experimental.kernels import ssp_weight_kernels as sspwk
 from diffsky.merging import compute_x_tot_from_x_in_situ, merging_model
+from diffsky.sed_models.ou26.kernels import (
+    mc_randoms,
+    phot_kernels,
+    phot_kernels_in_situ,
+)
+from diffsky.sed_models.ou26.kernels import ssp_weight_kernels as sspwk
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit

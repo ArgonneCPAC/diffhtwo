@@ -1,6 +1,6 @@
 import numpy as np
 from diffsky.experimental.mc_lightcone_generators import mc_lc_photdata
-from diffsky.experimental.mc_phot import mc_lc_phot
+from diffsky.sed_models.ou26.lc_phot import mc_lc_phot
 from jax import random as jran
 from scipy.stats import binned_statistic
 
