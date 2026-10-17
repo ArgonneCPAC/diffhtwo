@@ -1,5 +1,5 @@
 import jax.numpy as jnp
-from diffsky.experimental.kernels import photline_kernels as plk
+from diffsky.sed_models.ou26.kernels import photline_kernels as plk
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
