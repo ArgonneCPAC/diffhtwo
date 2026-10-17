@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run348
-model_nickname: run348_ssperrpop
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run348/diagnostic_plots/ssperrpop
+model_drn: /Users/kumail/diffdir/fits/run346_ou26
+model_nickname: run346_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run346_ou26/diagnostic_plots/diffstarpop+spspop+merging
 
 
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -18,8 +18,8 @@ fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 
-plot_sdss: False
-plot_feniks: False
+plot_sdss: True
+plot_feniks: True
 plot_hizels: True
 
 plot_minerva: False
@@ -40,10 +40,10 @@ defaults:
   merging: False
 
 plots:
-  plot_app_mag_funcs: False
-  plot_exsitu_frac_z0: False
-  plot_color_contours: False
-  plot_mag_z: False
+  plot_app_mag_funcs: True
+  plot_exsitu_frac_z0: True
+  plot_color_contours: True
+  plot_mag_z: True
 
   plot_fburst_mh_z: False
   
