@@ -107,7 +107,13 @@ def plot_sfms_hexbin(
 
     for zbin in range(n_z_bins):
         z_min, z_max = zbins[zbin][0], zbins[zbin][1]
-        lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+        (
+            lc_data,
+            phot_data,
+            gal_weight,
+            phot_randoms,
+            merging_randoms,
+        ) = multiband_lc_phot_kern(
             ran_key,
             param_collection,
             z_min,

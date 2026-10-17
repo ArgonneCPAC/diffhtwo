@@ -202,7 +202,13 @@ def median_smhm_and_exsitu_frac(
     lgmp_max=15.0,
     d_mh=0.15,
 ):
-    lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_data,
+        gal_weight,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         param_collection,
         z_min,

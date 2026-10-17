@@ -25,7 +25,13 @@ def plot_ex_situ_frac_z0(
 ):
     z_min, z_max = 0.02, 0.05
 
-    lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_data,
+        gal_weight,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         param_collection,
         z_min,

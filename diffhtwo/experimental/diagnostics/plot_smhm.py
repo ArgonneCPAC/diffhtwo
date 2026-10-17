@@ -417,7 +417,13 @@ def plot_smhm_median(
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
         z_med = str(np.median(zbins[zbin]))
-        lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+        (
+            lc_data,
+            phot_data,
+            gal_weight,
+            phot_randoms,
+            merging_randoms,
+        ) = multiband_lc_phot_kern(
             ran_key,
             param_collection,
             z_min,
@@ -532,7 +538,13 @@ def plot_smhm_hexbin(
         z_max = zbins[zbin][1]
         z_med = str(np.median(zbins[zbin]))
         ax[zbin].set_title(r"$z = $" + z_med)
-        lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+        (
+            lc_data,
+            phot_data,
+            gal_weight,
+            phot_randoms,
+            merging_randoms,
+        ) = multiband_lc_phot_kern(
             ran_key,
             param_collection,
             z_min,

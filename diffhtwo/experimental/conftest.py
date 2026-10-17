@@ -177,7 +177,13 @@ def feniks_lc_phot_data(ran_key, fake_subset_ssp_data, feniks):
     lgmp_min = 10.0
     lgmp_max = 15.0
 
-    lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_data,
+        gal_weight,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         DEFAULT_PARAM_COLLECTION,
         z_min,

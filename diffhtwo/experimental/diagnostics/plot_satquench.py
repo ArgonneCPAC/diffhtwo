@@ -35,7 +35,13 @@ def generate_sat_plots(
     num_halos=1000,
     plt_show=True,
 ):
-    lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_kern_results,
+        weights,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         param_collection,
         z_min,

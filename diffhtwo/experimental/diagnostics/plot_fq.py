@@ -81,7 +81,13 @@ def plot_fq(
             round_figures = 2
         ax[0, zbin].set_title(r"$z = $" + str(np.round(z_med, round_figures)))
 
-        lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+        (
+            lc_data,
+            phot_data,
+            gal_weight,
+            phot_randoms,
+            merging_randoms,
+        ) = multiband_lc_phot_kern(
             ran_key,
             param_collection,
             z_min,

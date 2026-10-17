@@ -113,7 +113,13 @@ def plot_lgfburst_smooth(
     plot="cen+sat",
     plt_show=True,
 ):
-    lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_data,
+        gal_weight,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         param_collection,
         z_min,
@@ -280,7 +286,13 @@ def plot_lgfburst_hexbin(
     plot="cen+sat",
     plt_show=True,
 ):
-    lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_data,
+        gal_weight,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         param_collection,
         z_min,

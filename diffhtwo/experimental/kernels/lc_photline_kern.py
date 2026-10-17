@@ -20,6 +20,7 @@ def lc_photline_kern(
     lgmp_max=15.0,
     lc_sky_area_degsq=1000,
     n_z_phot_table=15,
+    mc_merge=0,
 ):
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -44,6 +45,7 @@ def lc_photline_kern(
         param_collection,
         lc_data,
         line_wave_table,
+        mc_merge=mc_merge,
     )
     (phot_kern_results, phot_randoms, photline_kern_results) = _res
 

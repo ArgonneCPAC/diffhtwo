@@ -115,4 +115,4 @@ def linelum_gal_dustfree(
         lc_data.halo_indx,
     )
 
-    return dustfree_linelum_gal, phot_kern_results
+    return dustfree_linelum_gal, dustfree_linelum_gal_in_situ, phot_kern_results
