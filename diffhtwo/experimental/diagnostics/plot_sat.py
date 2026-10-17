@@ -21,7 +21,13 @@ def plot_merging_sat_colors(
     p_merge_thresh=0.5,
     plt_show=True,
 ):
-    lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_kern_results,
+        weights,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         param_collection,
         z_min,

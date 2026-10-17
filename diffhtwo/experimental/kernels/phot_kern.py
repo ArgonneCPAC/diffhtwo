@@ -53,7 +53,7 @@ def mag_kern(
     fb=FB,
     mc_merge=0,
 ):
-    phot_kern_results = mc_phot_kern_merging_wrapper(
+    phot_kern_results, phot_randoms, merging_randoms = mc_phot_kern_merging_wrapper(
         ran_key,
         param_collection,
         lc_data,

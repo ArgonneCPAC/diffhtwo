@@ -5,7 +5,7 @@ from matplotlib.lines import Line2D
 
 from ..kernels.fq import get_fq_hm, get_fq_sm
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
-from ..kernels.sfr_tau import get_logsfr_100Myr
+from ..kernels.sfr_tau import get_logsfr_tau
 
 # from scipy.interpolate import interp1d
 
@@ -81,7 +81,13 @@ def plot_fq(
             round_figures = 2
         ax[0, zbin].set_title(r"$z = $" + str(np.round(z_med, round_figures)))
 
-        lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+        (
+            lc_data,
+            phot_data,
+            gal_weight,
+            phot_randoms,
+            merging_randoms,
+        ) = multiband_lc_phot_kern(
             ran_key,
             param_collection,
             z_min,
@@ -91,8 +97,9 @@ def plot_fq(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
+            mc_merge=1,
         )
-        logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)
+        logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
 
         """log (sSFR) < -11"""
         # sm
@@ -254,7 +261,7 @@ def plot_fq(
                 Muzzin13["Qfrac"],
                 c="deepskyblue",
                 alpha=alpha,
-                label="Muzzin+13",
+                label="Muzzin+13 (COSMOS/UVISTA UVJ)",
             )
             ax[0][zbin].fill_between(
                 Muzzin13["Mstar"],

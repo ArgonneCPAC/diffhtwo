@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
-from ..kernels.sfr_tau import get_logsfr_100Myr
+from ..kernels.sfr_tau import get_logsfr_tau
 from ..tab_blue_orange_cmap import make_cmap
 from ..utils import weighted_percentiles
 from .plot_utils import make_thresholded_reduce_C_function, percentile_norm
@@ -107,7 +107,13 @@ def plot_sfms_hexbin(
 
     for zbin in range(n_z_bins):
         z_min, z_max = zbins[zbin][0], zbins[zbin][1]
-        lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+        (
+            lc_data,
+            phot_data,
+            gal_weight,
+            phot_randoms,
+            merging_randoms,
+        ) = multiband_lc_phot_kern(
             ran_key,
             param_collection,
             z_min,
@@ -117,13 +123,17 @@ def plot_sfms_hexbin(
             tcurves,
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
+            mc_merge=1,
         )
 
-        logsfr_100Myr = get_logsfr_100Myr(phot_data, lc_data, ssp_data)
+        logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
         logsm_obs = phot_data.logsm_obs
         logmp_obs = lc_data.logmp_obs
+        unmerged = phot_data.p_merge < 0.5
 
-        reduce_C_function = make_thresholded_reduce_C_function(gal_weight)
+        reduce_C_function = make_thresholded_reduce_C_function(
+            gal_weight[unmerged], threshold=1e-6
+        )
 
         z_med = np.median(zbins[zbin])
         logsfms_leja22 = get_leja22_sfms_at_z(z_med, logsm_arr)
@@ -131,9 +141,9 @@ def plot_sfms_hexbin(
 
         # -- row 0: SFR vs stellar mass --
         hb_sm = ax[0, zbin].hexbin(
-            logsm_obs,
-            logsfr_100Myr,
-            C=gal_weight,
+            logsm_obs[unmerged],
+            logsfr_100Myr[unmerged],
+            C=gal_weight[unmerged],
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,
@@ -141,18 +151,6 @@ def plot_sfms_hexbin(
         )
         hb_sm_row.append(hb_sm)
 
-        # logsm_bin_centers, logsfr_weighted_median = _get_logsfr_obs_weighted_median(
-        #     logsm_obs, logsfr_100Myr, gal_weight, t_obs, t_q
-        # )
-        # ax[0, zbin].scatter(
-        #     logsm_bin_centers,
-        #     logsfr_weighted_median,
-        #     linewidths=1.0,
-        #     s=10,
-        #     facecolors="none",
-        #     edgecolors="k",
-        #     label="median star-forming",
-        # )
         ax[0, zbin].plot(
             logsm_arr,
             logsfms_leja22,
@@ -179,9 +177,9 @@ def plot_sfms_hexbin(
 
         # -- row 1: SFR vs halo mass --
         hb_halo = ax[1, zbin].hexbin(
-            logmp_obs,
-            logsfr_100Myr,
-            C=gal_weight,
+            logmp_obs[unmerged],
+            logsfr_100Myr[unmerged],
+            C=gal_weight[unmerged],
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,
@@ -189,17 +187,6 @@ def plot_sfms_hexbin(
         )
         hb_halo_row.append(hb_halo)
 
-        # logmp_bin_centers, logsfr_weighted_median = _get_logsfr_obs_weighted_median(
-        #     logmp_obs, logsfr_100Myr, gal_weight, t_obs, t_q
-        # )
-        # ax[1, zbin].scatter(
-        #     logmp_bin_centers,
-        #     logsfr_weighted_median,
-        #     linewidths=1.0,
-        #     s=10,
-        #     facecolors="none",
-        #     edgecolors="k",
-        # )
         ax[1, zbin].set_ylim(ylim)
         ax[1, zbin].set_xticks(np.arange(xlim_halo[0], xlim_halo[1] + 1, 1))
         ax[1, zbin].set_xlim(xlim_halo)
@@ -228,8 +215,8 @@ def plot_sfms_hexbin(
             )
 
     # compute shared per-row norm from the already-plotted data, then apply in place
-    norm_sm = percentile_norm([h.get_array() for h in hb_sm_row])
-    norm_halo = percentile_norm([h.get_array() for h in hb_halo_row])
+    norm_sm = percentile_norm([h.get_array() for h in hb_sm_row], lo=0.01, hi=99)
+    norm_halo = percentile_norm([h.get_array() for h in hb_halo_row], lo=0.01, hi=99)
     for h in hb_sm_row:
         h.set_norm(norm_sm)
     for h in hb_halo_row:

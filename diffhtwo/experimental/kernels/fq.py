@@ -19,9 +19,11 @@ def get_fq_sm(
     elif type == "sat":
         sel = lc_data.is_central != 1
 
-    logsm_obs = logsm_obs[sel]
-    logsfr_obs = logsfr_obs[sel]
-    gal_weight = gal_weight[sel]
+    unmerged = phot_data.p_merge < 0.5
+
+    logsm_obs = logsm_obs[sel & unmerged]
+    logsfr_obs = logsfr_obs[sel & unmerged]
+    gal_weight = gal_weight[sel & unmerged]
 
     logssfr_obs = logsfr_obs - logsm_obs
 
@@ -67,10 +69,12 @@ def get_fq_hm(
     elif type == "sat":
         sel = lc_data.is_central != 1
 
-    logmp_obs = lc_data.logmp_obs[sel]
-    logsm_obs = logsm_obs[sel]
-    logsfr_obs = logsfr_obs[sel]
-    gal_weight = gal_weight[sel]
+    unmerged = phot_data.p_merge < 0.5
+
+    logmp_obs = lc_data.logmp_obs[sel & unmerged]
+    logsm_obs = logsm_obs[sel & unmerged]
+    logsfr_obs = logsfr_obs[sel & unmerged]
+    gal_weight = gal_weight[sel & unmerged]
 
     logssfr_obs = logsfr_obs - logsm_obs
 

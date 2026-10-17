@@ -37,12 +37,12 @@ def multiband_lc_phot_kern(
         z_phot_table,
     )
 
-    phot_data = mc_phot_kern_merging_wrapper(
+    phot_data, phot_randoms, merging_randoms = mc_phot_kern_merging_wrapper(
         ran_key, param_collection, lc_data, mc_merge=mc_merge
     )
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
-    return lc_data, phot_data, gal_weight
+    return lc_data, phot_data, gal_weight, phot_randoms, merging_randoms
 
 
 @jjit
@@ -74,4 +74,4 @@ def mc_phot_kern_merging_wrapper(
         lc_data.halo_indx,
         mc_merge,
     )
-    return phot_data
+    return phot_data, phot_randoms, merging_randoms

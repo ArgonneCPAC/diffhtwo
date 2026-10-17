@@ -28,7 +28,13 @@ def plot_insitu_sm_obs(
     fig.suptitle(z_min_label + " < z < " + z_max_label)
 
     """fit"""
-    lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_kern_results,
+        weights,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         param_collection,
         z_min,
@@ -63,7 +69,13 @@ def plot_insitu_sm_obs(
     )
 
     """default"""
-    lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_kern_results,
+        weights,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         DEFAULT_PARAM_COLLECTION,
         z_min,
@@ -137,7 +149,13 @@ def plot_sm_obs(
     fig.suptitle(z_min_label + " < z < " + z_max_label)
 
     """fit"""
-    lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_kern_results,
+        weights,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         param_collection,
         z_min,
@@ -172,7 +190,13 @@ def plot_sm_obs(
     )
 
     """default"""
-    lc_data, phot_kern_results, weights = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_kern_results,
+        weights,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         DEFAULT_PARAM_COLLECTION,
         z_min,

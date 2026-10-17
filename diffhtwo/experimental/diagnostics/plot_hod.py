@@ -54,7 +54,13 @@ def plot_hod_sm_thresh(
     num_halos=1000,
     plt_show=True,
 ):
-    lc_data, phot_data, gal_weight = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_data,
+        gal_weight,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         param_collection,
         z_min,

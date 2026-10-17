@@ -39,7 +39,7 @@ from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
 )
 from diffhtwo.experimental.diagnostics.plot_burstpop import (
     make_fburstpop_comparison_plot,
-    plot_lgfburst_mh_z,
+    plot_lgfburst_smooth,
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_color_redshift import plot_color_z
@@ -88,7 +88,6 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
     plot_smhm,
     plot_smhm_cen_sat,
     plot_smhm_hexbin,
-    plot_smhm_median,
     plot_smhm_ratio_cen_sat,
 )
 from diffhtwo.experimental.uv_luminosity import append_uv_luminosity_to_ssp_data
@@ -308,20 +307,6 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-        plot_smhm_median(
-            ran_key,
-            param_collection_fit,
-            zbins,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
-
     if cfg["plots"]["plot_fq"]:
         print("Generating fq plots...")
         plot_fq(
@@ -370,16 +355,18 @@ if __name__ == "__main__":
         )
     if cfg["plots"]["plot_fburst_mh_z"]:
         print("Generating lgfburst plot...")
-        plot_lgfburst_mh_z(
+        plot_lgfburst_smooth(
             ran_key,
             param_collection_fit,
             0.02,
-            2.5,
+            6.0,
             ssp_data,
             feniks.filter_info.tcurves,
-            "sdss_feniks",
+            run_label,
             fit_diagnostics_save_drn,
             num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             plt_show=False,
         )
 
@@ -391,26 +378,31 @@ if __name__ == "__main__":
         line_wave_table = jnp.array(ssp_data.ssp_emline_wave)
         plot_halpha_uv_ratio(
             ran_key,
-            zbins,
+            0.2,
+            6.0,
             param_collection_fit,
             line_wave_table,
             ssp_data,
             feniks.filter_info.tcurves,
             run_label,
             fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             num_halos=num_halos,
             plt_show=False,
         )
         plot_halpha_uv_ratio_mass_z(
             ran_key,
-            0.02,
-            3,
+            0.2,
+            6.0,
             param_collection_fit,
             line_wave_table,
             ssp_data,
             feniks.filter_info.tcurves,
             run_label,
             fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
             num_halos=num_halos,
             plt_show=False,
         )
@@ -419,7 +411,6 @@ if __name__ == "__main__":
     Plot HiZELS
     """
     if cfg["plot_hizels"]:
-        feniks = load_feniks.get_feniks_data(feniks_drn, ran_key, ssp_data)
         hizels_drn = Path(hizels_drn)
         hizels_label = "hizels_" + run_label
         hizels = load_hizels.get_hizels_data(

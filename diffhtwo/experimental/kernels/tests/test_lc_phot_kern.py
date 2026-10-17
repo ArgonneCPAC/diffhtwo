@@ -17,7 +17,13 @@ def test_lc_phot_kern(fake_subset_ssp_data, feniks_tcurves):
     num_halos = 100
 
     assert check_param_collection_is_ok(DEFAULT_PARAM_COLLECTION)
-    lc_data, phot_kern_results, gal_weight = multiband_lc_phot_kern(
+    (
+        lc_data,
+        phot_kern_results,
+        gal_weight,
+        phot_randoms,
+        merging_randoms,
+    ) = multiband_lc_phot_kern(
         ran_key,
         DEFAULT_PARAM_COLLECTION,
         z_min,
@@ -32,7 +38,7 @@ def test_lc_phot_kern(fake_subset_ssp_data, feniks_tcurves):
     assert (gal_weight >= 0).all()
     assert np.isfinite(phot_kern_results.obs_mags).all()
 
-    phot_kern_results2 = mc_phot_kern_merging_wrapper(
+    phot_kern_results2, phot_randoms, merging_randoms = mc_phot_kern_merging_wrapper(
         ran_key,
         DEFAULT_PARAM_COLLECTION,
         lc_data,

@@ -44,7 +44,7 @@ def compute_logsfr_tau(ssp_weights, lg_age_gyr, logsm_obs, tau_gyr=0.1):
     return safe_log10(sfr)
 
 
-def get_logsfr_100Myr(phot_data, lc_data, ssp_data, tau_gyr=0.1):
+def get_logsfr_tau(phot_data, lc_data, ssp_data, tau_gyr=0.1):
     mstar_in_situ = 10**phot_data.logsm_obs_in_situ
     ssp_weights_in_situ = phot_data.ssp_weights
 
