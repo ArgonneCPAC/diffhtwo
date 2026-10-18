@@ -1,5 +1,5 @@
 import numpy as np
-from diffsky.experimental.mc_lightcone_generators import mc_lc_photdata
+from diffsky.lc_generators.lc_data_phot import mc_lc_data_phot
 from diffsky.sed_models.ou26.lc_phot import mc_lc_phot
 from jax import random as jran
 from scipy.stats import binned_statistic
@@ -133,7 +133,7 @@ def mc_median_smhm(
         tcurves,
         z_phot_table,
     )
-    lc_data = mc_lc_photdata(*args)
+    lc_data = mc_lc_data_phot(*args)
     ran_key, sed_key = jran.split(ran_key, 2)
 
     phot_info, phot_randoms, merging_randoms = mc_lc_phot(

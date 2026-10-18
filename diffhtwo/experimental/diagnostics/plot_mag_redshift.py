@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from diffsky.burstpop import freqburst_mono
-from diffsky.experimental.mc_lightcone_generators import mc_lc_photdata
+from diffsky.lc_generators.lc_data_phot import mc_lc_data_phot
 from diffsky.sed_models.ou26.lc_phot import mc_lc_phot
 from jax import random as jran
 from matplotlib.ticker import MaxNLocator
@@ -75,7 +75,7 @@ def compare_models_in_mag_z(
         tcurves,
         z_phot_table,
     )
-    lc_data = mc_lc_photdata(*args)
+    lc_data = mc_lc_data_phot(*args)
 
     z_obs = lc_data.z_obs
     ran_key, sed_key = jran.split(ran_key, 2)
@@ -285,7 +285,7 @@ def compare_models_in_mag_z2(
         tcurves,
         z_phot_table,
     )
-    lc_data = mc_lc_photdata(*args)
+    lc_data = mc_lc_data_phot(*args)
 
     z_obs = lc_data.z_obs
     ran_key, sed_key = jran.split(ran_key, 2)
@@ -449,7 +449,7 @@ def compare_models_in_mag_z_sfr(
         tcurves,
         z_phot_table,
     )
-    lc_data = mc_lc_photdata(*args)
+    lc_data = mc_lc_data_phot(*args)
 
     z_obs = lc_data.z_obs
     ran_key, sed_key = jran.split(ran_key, 2)
