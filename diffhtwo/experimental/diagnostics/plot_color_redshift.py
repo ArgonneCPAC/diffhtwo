@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from diffsky.experimental.mc_lightcone_generators import mc_lc_photdata
-from diffsky.experimental.mc_phot import mc_lc_phot
+from diffsky.lc_generators.lc_data_phot import mc_lc_data_phot
+from diffsky.sed_models.ou26.lc_phot import mc_lc_phot
 from jax import random as jran
 from matplotlib import colors
 
@@ -52,7 +52,7 @@ def plot_color_z(
         tcurves,
         z_phot_table,
     )
-    lc_data = mc_lc_photdata(*args)
+    lc_data = mc_lc_data_phot(*args)
     ran_key, sed_key = jran.split(ran_key, 2)
     phot_info, __, __ = mc_lc_phot(
         sed_key, lc_data, mc_merge, param_collection=param_collection

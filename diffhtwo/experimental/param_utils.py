@@ -1,9 +1,9 @@
 import jax.numpy as jnp
 import numpy as np
-from diffsky.experimental.scatter import DEFAULT_SCATTER_U_PARAMS
 from diffsky.merging.merging_model import DEFAULT_MERGE_U_PARAMS
 from diffsky.param_utils import diffsky_param_wrapper_merging as dpwm
 from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_U_PARAMS
+from diffsky.sed_models.ou26.scatter import DEFAULT_SCATTER_U_PARAMS
 from diffsky.ssp_err_model.defaults import ZERO_SSPERR_U_PARAMS
 from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_U_PARAMS
 from dsps.metallicity.umzr import DEFAULT_MZR_U_PARAMS

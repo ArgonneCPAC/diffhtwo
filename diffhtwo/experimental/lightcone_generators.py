@@ -1,6 +1,6 @@
 from collections import namedtuple
 
-from diffsky.experimental.lc_generators import lc_data_phot as lcdp
+from diffsky.lc_generators import lc_data_phot as lcdp
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
 from .kernels import igm

@@ -2,8 +2,8 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
 from diffmah import mah_halopop
-from diffsky.experimental.mc_lightcone_generators import mc_lc_photdata
-from diffsky.experimental.mc_phot import mc_lc_phot
+from diffsky.lc_generators.lc_data_phot import mc_lc_data_phot
+from diffsky.sed_models.ou26.lc_phot import mc_lc_phot
 from jax import random as jran
 from jax import vmap
 
@@ -60,7 +60,7 @@ def plot_sfr_har(
         tcurves,
         z_phot_table,
     )
-    lc_data = mc_lc_photdata(*args)
+    lc_data = mc_lc_data_phot(*args)
     logmp_obs = lc_data.logmp_obs
     logdmhdt_obs = np.log10(get_dmhdt_obs(lc_data))
     logsdmhdt_obs = logdmhdt_obs - logmp_obs
