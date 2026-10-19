@@ -38,16 +38,16 @@ def get_halpha_LF_q_ms_burst(
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
     )
-    phot_kern_results, phot_randoms, spec_kern_results, lc_data = _res
+    phot_data, phot_randoms, photline_data, lc_data = _res
 
-    linelum_gal = spec_kern_results.linelum_gal
-    linelum_gal_in_situ = spec_kern_results.linelum_gal_in_situ
+    linelum_gal = photline_data.linelum_gal
+    linelum_gal_in_situ = photline_data.linelum_gal_in_situ
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
     # p_merge = phot_kern_results.p_merge
 
     # get mc_is for q, ms, and burst
     mc_is_q, mc_is_ms, mc_is_burst = get_mc_is(
-        param_collection, phot_randoms, phot_kern_results
+        param_collection, phot_randoms, phot_data
     )
 
     # composite in-situ
@@ -93,8 +93,8 @@ def get_halpha_LF_q_ms_burst(
         lg_halpha_LF_ms,
         lg_halpha_LF_burst,
         lg_halpha_LF_in_situ,
-        phot_kern_results,
-        spec_kern_results,
+        phot_data,
+        photline_data,
         lg_halpha_Lbin_edges,
         lc_data,
     )
