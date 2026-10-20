@@ -16,12 +16,21 @@ def N_colors_mags(
     z_data,
     mag_thresh,
 ):
-    obs_mags_weighted, gal_weight, mag_weight, phot_kern_results = mag_kern(
+    gal_weight, mag_weight_ms, mag_weight_q, mag_weight_bursty, phot_data = mag_kern(
         ran_key,
         param_collection,
         z_data.lc_data,
         mag_thresh,
     )
+
+    obs_mags_ms = phot_data.obs_mags_ms
+    obs_mags_q = phot_data.obs_mags_q
+    obs_mags_bursty = phot_data.obs_mags_bursty
+
+    weight_q = phot_data.frac_q
+    weight_ms = (1 - weight_q) * (1 - phot_data.burstiness_info_ms.p_burst)
+    weight_bursty = (1 - weight_q) * phot_data.burstiness_info_ms.p_burst
+
     fields = [f for f in z_data._fields if f not in {"z_min", "z_max", "lc_data"}]
     mag_thresh = jnp.array(mag_thresh)
     for f in range(len(fields)):
@@ -34,25 +43,63 @@ def N_colors_mags(
                 col_idx = space.col_idx
                 mag_idx = space.mag_idx
 
-                mag = obs_mags_weighted[:, mag_idx]
-                obs_color = (
-                    obs_mags_weighted[:, col_idx[0]] - obs_mags_weighted[:, col_idx[1]]
+                # ms
+                mag_ms = obs_mags_ms[:, mag_idx]
+                obs_color_ms = obs_mags_ms[:, col_idx[0]] - obs_mags_ms[:, col_idx[1]]
+                mag_weight_space_ms = (
+                    mag_weight_ms[:, parent_cut_idx]
+                    * mag_weight_ms[:, mag_idx]
+                    * mag_weight_ms[:, col_idx[0]]
+                    * mag_weight_ms[:, col_idx[1]]
                 )
-                mag_weight_space = (
-                    mag_weight[:, parent_cut_idx]
-                    * mag_weight[:, mag_idx]
-                    * mag_weight[:, col_idx[0]]
-                    * mag_weight[:, col_idx[1]]
-                )
-                obs_mag_color = jnp.vstack((mag, obs_color)).T
-
-                N_model = diffndhist_lomem.tw_ndhist_weighted(
-                    obs_mag_color,
+                obs_mag_color_ms = jnp.vstack((mag_ms, obs_color_ms)).T
+                N_model_ms = diffndhist_lomem.tw_ndhist_weighted(
+                    obs_mag_color_ms,
                     space.sig,
-                    gal_weight * mag_weight_space,
+                    gal_weight * weight_ms * mag_weight_space_ms,
                     space.bin_lo,
                     space.bin_hi,
                 )
+
+                # q
+                mag_q = obs_mags_q[:, mag_idx]
+                obs_color_q = obs_mags_q[:, col_idx[0]] - obs_mags_q[:, col_idx[1]]
+                mag_weight_space_q = (
+                    mag_weight_q[:, parent_cut_idx]
+                    * mag_weight_q[:, mag_idx]
+                    * mag_weight_q[:, col_idx[0]]
+                    * mag_weight_q[:, col_idx[1]]
+                )
+                obs_mag_color_q = jnp.vstack((mag_q, obs_color_q)).T
+                N_model_q = diffndhist_lomem.tw_ndhist_weighted(
+                    obs_mag_color_q,
+                    space.sig,
+                    gal_weight * weight_q * mag_weight_space_q,
+                    space.bin_lo,
+                    space.bin_hi,
+                )
+
+                # bursty
+                mag_bursty = obs_mags_bursty[:, mag_idx]
+                obs_color_bursty = (
+                    obs_mags_bursty[:, col_idx[0]] - obs_mags_bursty[:, col_idx[1]]
+                )
+                mag_weight_space_bursty = (
+                    mag_weight_bursty[:, parent_cut_idx]
+                    * mag_weight_bursty[:, mag_idx]
+                    * mag_weight_bursty[:, col_idx[0]]
+                    * mag_weight_bursty[:, col_idx[1]]
+                )
+                obs_mag_color_bursty = jnp.vstack((mag_bursty, obs_color_bursty)).T
+                N_model_bursty = diffndhist_lomem.tw_ndhist_weighted(
+                    obs_mag_color_bursty,
+                    space.sig,
+                    gal_weight * weight_bursty * mag_weight_space_bursty,
+                    space.bin_lo,
+                    space.bin_hi,
+                )
+
+                N_model = N_model_ms + N_model_q + N_model_bursty
 
                 NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
                 new = NewTuple(*space, N_model)
@@ -61,20 +108,56 @@ def N_colors_mags(
                 # Apparent Magnitude space
                 parent_cut_idx = space.parent_cut_idx
                 mag_idx = space.mag_idx
-                obs_mag = obs_mags_weighted[:, mag_idx]
-                obs_mag = obs_mag.reshape(obs_mag.size, 1)
 
-                mag_weight_space = (
-                    mag_weight[:, mag_idx] * mag_weight[:, parent_cut_idx]
+                # ms
+                obs_mag_ms = obs_mags_ms[:, mag_idx]
+                obs_mag_ms = obs_mag_ms.reshape(obs_mag_ms.size, 1)
+
+                mag_weight_space_ms = (
+                    mag_weight_ms[:, mag_idx] * mag_weight_ms[:, parent_cut_idx]
                 )
 
-                N_model = diffndhist_lomem.tw_ndhist_weighted(
-                    obs_mag,
+                N_model_ms = diffndhist_lomem.tw_ndhist_weighted(
+                    obs_mag_ms,
                     space.sig,
-                    gal_weight * mag_weight_space,
+                    gal_weight * weight_ms * mag_weight_space_ms,
                     space.bin_lo,
                     space.bin_hi,
                 )
+
+                # q
+                obs_mag_q = obs_mags_q[:, mag_idx]
+                obs_mag_q = obs_mag_q.reshape(obs_mag_q.size, 1)
+
+                mag_weight_space_q = (
+                    mag_weight_q[:, mag_idx] * mag_weight_q[:, parent_cut_idx]
+                )
+
+                N_model_q = diffndhist_lomem.tw_ndhist_weighted(
+                    obs_mag_q,
+                    space.sig,
+                    gal_weight * weight_q * mag_weight_space_q,
+                    space.bin_lo,
+                    space.bin_hi,
+                )
+
+                # bursty
+                obs_mag_bursty = obs_mags_bursty[:, mag_idx]
+                obs_mag_bursty = obs_mag_bursty.reshape(obs_mag_bursty.size, 1)
+
+                mag_weight_space_bursty = (
+                    mag_weight_bursty[:, mag_idx] * mag_weight_bursty[:, parent_cut_idx]
+                )
+
+                N_model_bursty = diffndhist_lomem.tw_ndhist_weighted(
+                    obs_mag_bursty,
+                    space.sig,
+                    gal_weight * weight_bursty * mag_weight_space_bursty,
+                    space.bin_lo,
+                    space.bin_hi,
+                )
+
+                N_model = N_model_ms + N_model_q + N_model_bursty
 
                 NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
                 new = NewTuple(*space, N_model)
@@ -84,30 +167,81 @@ def N_colors_mags(
             # Color-Color space
             parent_cut_idx = space.parent_cut_idx
             col_idx = space.col_idx
-            obs_colors = []
-            for c in range(0, len(col_idx) - 1, 2):
-                obs_color = (
-                    obs_mags_weighted[:, col_idx[c]]
-                    - obs_mags_weighted[:, col_idx[c + 1]]
-                )
-                obs_colors.append(obs_color)
-            obs_colors = jnp.array(obs_colors).T
 
-            mag_weight_space = (
-                mag_weight[:, parent_cut_idx]
-                * mag_weight[:, col_idx[0]]
-                * mag_weight[:, col_idx[1]]
-                * mag_weight[:, col_idx[2]]
-                * mag_weight[:, col_idx[3]]
+            # ms
+            obs_colors_ms = []
+            for c in range(0, len(col_idx) - 1, 2):
+                obs_color_ms = (
+                    obs_mags_ms[:, col_idx[c]] - obs_mags_ms[:, col_idx[c + 1]]
+                )
+                obs_colors_ms.append(obs_color_ms)
+            obs_colors_ms = jnp.array(obs_colors_ms).T
+
+            mag_weight_space_ms = (
+                mag_weight_ms[:, parent_cut_idx]
+                * mag_weight_ms[:, col_idx[0]]
+                * mag_weight_ms[:, col_idx[1]]
+                * mag_weight_ms[:, col_idx[2]]
+                * mag_weight_ms[:, col_idx[3]]
             )
 
-            N_model = diffndhist_lomem.tw_ndhist_weighted(
-                obs_colors,
+            N_model_ms = diffndhist_lomem.tw_ndhist_weighted(
+                obs_colors_ms,
                 space.sig,
-                gal_weight * mag_weight_space,
+                gal_weight * weight_ms * mag_weight_space_ms,
                 space.bin_lo,
                 space.bin_hi,
             )
+
+            # q
+            obs_colors_q = []
+            for c in range(0, len(col_idx) - 1, 2):
+                obs_color_q = obs_mags_q[:, col_idx[c]] - obs_mags_q[:, col_idx[c + 1]]
+                obs_colors_q.append(obs_color_q)
+            obs_colors_q = jnp.array(obs_colors_q).T
+
+            mag_weight_space_q = (
+                mag_weight_q[:, parent_cut_idx]
+                * mag_weight_q[:, col_idx[0]]
+                * mag_weight_q[:, col_idx[1]]
+                * mag_weight_q[:, col_idx[2]]
+                * mag_weight_q[:, col_idx[3]]
+            )
+
+            N_model_q = diffndhist_lomem.tw_ndhist_weighted(
+                obs_colors_q,
+                space.sig,
+                gal_weight * weight_q * mag_weight_space_q,
+                space.bin_lo,
+                space.bin_hi,
+            )
+
+            # bursty
+            obs_colors_bursty = []
+            for c in range(0, len(col_idx) - 1, 2):
+                obs_color_bursty = (
+                    obs_mags_bursty[:, col_idx[c]] - obs_mags_bursty[:, col_idx[c + 1]]
+                )
+                obs_colors_bursty.append(obs_color_bursty)
+            obs_colors_bursty = jnp.array(obs_colors_bursty).T
+
+            mag_weight_space_bursty = (
+                mag_weight_bursty[:, parent_cut_idx]
+                * mag_weight_bursty[:, col_idx[0]]
+                * mag_weight_bursty[:, col_idx[1]]
+                * mag_weight_bursty[:, col_idx[2]]
+                * mag_weight_bursty[:, col_idx[3]]
+            )
+
+            N_model_bursty = diffndhist_lomem.tw_ndhist_weighted(
+                obs_colors_bursty,
+                space.sig,
+                gal_weight * weight_bursty * mag_weight_space_bursty,
+                space.bin_lo,
+                space.bin_hi,
+            )
+
+            N_model = N_model_ms + N_model_q + N_model_bursty
 
             NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
             new = NewTuple(*space, N_model)

@@ -47,9 +47,9 @@ def lc_photline_kern(
         line_wave_table,
         mc_merge=mc_merge,
     )
-    (phot_kern_results, phot_randoms, photline_kern_results) = _res
+    (phot_data, phot_randoms, photline_data) = _res
 
-    return phot_kern_results, phot_randoms, photline_kern_results, lc_data
+    return phot_data, phot_randoms, photline_data, lc_data
 
 
 @jjit
@@ -84,6 +84,6 @@ def mc_photline_kern_merging_wrapper(
         mc_merge,
     )
 
-    (phot_kern_results, phot_randoms, photline_kern_results) = _res
+    (phot_data, phot_randoms, photline_data) = _res
 
-    return phot_kern_results, phot_randoms, photline_kern_results
+    return phot_data, phot_randoms, photline_data

@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run346_ou26
-model_nickname: run346_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run346_ou26/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run353
+model_nickname: run353_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run353/diagnostic_plots/diffstarpop+spspop+merging
 
 
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -26,12 +26,12 @@ plot_minerva: False
 plot_minerva_halpha: False
 
 num_halos : 5000
-sky_area_degsq: 10.
+sky_area_degsq: 4.
 
-lgmp_min: 11.0
+lgmp_min: 10.0
 lgmp_max: 15.0
 
-logHa_flux_limit: -16.0
+logHa_flux_limit: -16.5
 
 defaults:
   diffstarpop: False
