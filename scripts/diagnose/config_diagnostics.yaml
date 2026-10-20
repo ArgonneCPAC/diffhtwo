@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run346_obs_mags_gd
-model_nickname: run346_ou26_gd_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run346_obs_mags_gd/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run353
+model_nickname: run353_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run353/diagnostic_plots/diffstarpop+spspop+merging
 
 
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -20,18 +20,18 @@ um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 
 plot_sdss: True
 plot_feniks: True
-plot_hizels: False
+plot_hizels: True
 
 plot_minerva: False
 plot_minerva_halpha: False
 
 num_halos : 5000
-sky_area_degsq: 10.
+sky_area_degsq: 4.
 
-lgmp_min: 11.0
+lgmp_min: 10.0
 lgmp_max: 15.0
 
-logHa_flux_limit: -16.0
+logHa_flux_limit: -16.5
 
 defaults:
   diffstarpop: False
@@ -41,9 +41,9 @@ defaults:
 
 plots:
   plot_app_mag_funcs: True
-  plot_exsitu_frac_z0: False
-  plot_color_contours: False
-  plot_mag_z: False
+  plot_exsitu_frac_z0: True
+  plot_color_contours: True
+  plot_mag_z: True
 
   plot_fburst_mh_z: False
   
