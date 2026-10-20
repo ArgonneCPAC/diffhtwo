@@ -18,6 +18,7 @@ from ..defaults import (
     Lf,
     MagColor,
 )
+from ..kernels.line_emitter import compute_Sigma_excess
 from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
 from . import N_utils
@@ -247,7 +248,7 @@ def get_minerva_phot(
     lgmp_max=15.0,
     apply_igm=True,
     lc_sky_area_degsq=100,
-    n_z_phot_table=30,
+    n_z_phot_table=15,
     phot=PHOT,
     zout=ZOUT,
 ):

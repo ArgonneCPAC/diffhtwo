@@ -26,7 +26,7 @@ plot_minerva: False
 plot_minerva_halpha: False
 
 num_halos : 5000
-sky_area_degsq: 4.
+sky_area_degsq: 1.
 
 lgmp_min: 10.0
 lgmp_max: 15.0
