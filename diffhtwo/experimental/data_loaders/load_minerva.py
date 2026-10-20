@@ -483,7 +483,7 @@ def get_minerva_phot(
             sel = sels[:, mag_idx] & sels[:, b] & sels[:, c] & z_sel
             if "m" in space_name:
                 emitter_sel = pick_line_emitters(
-                    mags[:, mag_idx], mags[:, b], mags_err[:, mag_idx], mags_err[:, b]
+                    mags[:, b], mags[:, mag_idx], mags_err[:, b], mags_err[:, mag_idx]
                 )
                 sel &= emitter_sel
             mag_selected = mags[sel]

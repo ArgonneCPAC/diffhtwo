@@ -1,7 +1,4 @@
-import matplotlib.lines as mlines
-import matplotlib.patches as mpatches
 import matplotlib.pyplot as plt
-import numpy as np
 
 from ..data_loaders.load_minerva import PhotFilters, get_filt_indx, pick_line_emitters
 from .plot_contour import parse_color_labels
@@ -21,7 +18,8 @@ def plot_line_emitters_minerva(
     minerva,
     space_idx,
     savedir,
-    figsize=(7.1, 3.4),
+    Sigma_thresh=3.0,
+    figsize=(7.1, 3.8),
     xlim=(20, 28),
     ylim=(-1, 2),
     plt_show=True,
@@ -50,7 +48,9 @@ def plot_line_emitters_minerva(
 
         sel = minerva.sels[:, mag_idx] & minerva.sels[:, b]
         z_sel = (minerva.redshift > z_min) & (minerva.redshift < z_max)
-        emitter_sel = pick_line_emitters(BB, MB, BB_err, MB_err, Sigma_thresh=3.0)
+        emitter_sel = pick_line_emitters(
+            BB, MB, BB_err, MB_err, Sigma_thresh=Sigma_thresh
+        )
 
         excess_color = BB - MB
         ax[row][col].scatter(
@@ -69,6 +69,7 @@ def plot_line_emitters_minerva(
             marker="s",
             facecolor="none",
             edgecolor="purple",
+            linewidths=0.5,
             label="emitters",
         )
         ax[row][col].set_xlim(xlim)
@@ -99,8 +100,18 @@ def plot_line_emitters_minerva(
         if col == 4:
             row += 1
             col = 0
-    ax[-1].legend()
-    plt.show()
+
+    handles, labels = ax[0][0].get_legend_handles_labels()
+    leg = fig.legend(
+        handles,
+        labels,
+        loc="outside upper center",
+        ncol=2,
+        fontsize=labelsize,
+        frameon=False,
+    )
+    leg.legend_handles[0].set_sizes([20])
+    leg.legend_handles[1].set_sizes([40])
 
     fig.savefig(f"{savedir}/minerva_line_emitters.png", dpi=600)
     if plt_show:

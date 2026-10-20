@@ -1137,26 +1137,26 @@ if __name__ == "__main__":
                 ((4.0, 5.0), ("F200wF277w_F277wF444w", "F444w_F150wF444w")),
                 ((5.0, 6.0), ("F277wF356w_F356wF444w", "F444w_F115wF444w")),
             ]
-            plot_cc_cm_grid_raw_minerva(
-                ran_key,
-                param_collection_fit,
-                minerva.spaces,
-                fields,
-                minerva.filter_info.mag_thresh,
-                run_label,
-                fit_diagnostics_save_drn,
-                plt_show=False,
-            )
-            plot_cc_cm_grid_minerva(
-                ran_key,
-                param_collection_fit,
-                minerva.spaces,
-                fields,
-                minerva.filter_info.mag_thresh,
-                run_label,
-                fit_diagnostics_save_drn,
-                plt_show=False,
-            )
+            # plot_cc_cm_grid_raw_minerva(
+            #     ran_key,
+            #     param_collection_fit,
+            #     minerva.spaces,
+            #     fields,
+            #     minerva.filter_info.mag_thresh,
+            #     run_label,
+            #     fit_diagnostics_save_drn,
+            #     plt_show=False,
+            # )
+            # plot_cc_cm_grid_minerva(
+            #     ran_key,
+            #     param_collection_fit,
+            #     minerva.spaces,
+            #     fields,
+            #     minerva.filter_info.mag_thresh,
+            #     run_label,
+            #     fit_diagnostics_save_drn,
+            #     plt_show=False,
+            # )
 
             emitter_spaces = [
                 ((1.03, 1.25), ["F140m_F150wF140m"]),
