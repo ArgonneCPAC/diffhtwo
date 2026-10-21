@@ -110,15 +110,52 @@ SPACES_AT_Z = [
         "ccd": [("F115wF200w_F200wF444w", True), ("F277wF356w_F356wF444w", True)],
         "cmd": [("F444w_F115wF444w", True)],
     },
+]
+
+SPACES_AT_Z_W_LINES = [
+    {
+        "z": (1.0, 2.0),
+        "md": app_mag_funcs,
+        "ccd": [("F090wF150w_F150wF356w", True)],
+        "cmd": [("F356w_F150wF356w", True)],
+    },
+    {
+        "z": (2.0, 3.0),
+        "md": app_mag_funcs,
+        "ccd": [("F115wF200w_F200wF356w", True), ("F150wF200w_F200wF277w", True)],
+        "cmd": [("F356w_F115wF356w", True)],
+    },
+    {
+        "z": (3.0, 4.0),
+        "md": app_mag_funcs,
+        "ccd": [("F150wF277w_F277wF444w", True), ("F200wF277w_F277wF356w", True)],
+        "cmd": [("F356w_F150wF356w", True)],
+    },
+    {
+        "z": (4.0, 5.0),
+        "md": app_mag_funcs,
+        "ccd": [
+            ("F814wF150w_F150wF277w", True),
+            ("F200wF277w_F277wF444w", True),
+            ("F356wF410m_F410mF444w", True),
+        ],
+        "cmd": [("F444w_F150wF444w", True)],
+    },
+    {
+        "z": (5.0, 6.0),
+        "md": app_mag_funcs,
+        "ccd": [("F115wF200w_F200wF444w", True), ("F277wF356w_F356wF444w", True)],
+        "cmd": [("F444w_F115wF444w", True)],
+    },
     # Line excess to pick up h-alpha emitters
-    # {"z": (1.03, 1.25), "cmd": [("F140m_F150wF140m", True)]},
-    # {"z": (1.36, 1.59), "cmd": [("F162m_F150wF162m", True)]},
-    # {"z": (1.67, 1.95), "cmd": [("F182m_F200wF182m", True)]},
-    # {"z": (2.04, 2.35), "cmd": [("F210m_F200wF210m", True)]},
-    # {"z": (2.68, 2.95), "cmd": [("F250m_F277wF250m", True)]},
-    # {"z": (4.22, 4.81), "cmd": [("F360m_F356wF360m", True)]},
-    # {"z": (4.98, 5.52), "cmd": [("F410m_F444wF410m", True)]},
-    # {"z": (5.88, 6.23), "cmd": [("F460m_F444wF460m", True)]},
+    {"z": (1.03, 1.25), "cmd": [("F140m_F150wF140m", True)]},
+    {"z": (1.36, 1.59), "cmd": [("F162m_F150wF162m", True)]},
+    {"z": (1.67, 1.95), "cmd": [("F182m_F200wF182m", True)]},
+    {"z": (2.04, 2.35), "cmd": [("F210m_F200wF210m", True)]},
+    {"z": (2.68, 2.95), "cmd": [("F250m_F277wF250m", True)]},
+    {"z": (4.22, 4.81), "cmd": [("F360m_F356wF360m", True)]},
+    {"z": (4.98, 5.52), "cmd": [("F410m_F444wF410m", True)]},
+    {"z": (5.88, 6.23), "cmd": [("F460m_F444wF460m", True)]},
 ]
 
 
@@ -246,6 +283,7 @@ def get_minerva_phot(
     drn,
     ran_key,
     ssp_data,
+    spaces_at_z=SPACES_AT_Z,
     d_mag_1d=D_MAG_1d,
     d_mag_2d=D_MAG_2d,
     gauss_sig_2d=GAUSS_SIG_2d,
@@ -344,16 +382,16 @@ def get_minerva_phot(
 
     filter_info = FilterInfo(minerva_mag_thresh, tcurves)
 
-    z_bins = np.array([sp["z"] for sp in SPACES_AT_Z])
+    z_bins = np.array([sp["z"] for sp in spaces_at_z])
 
     spaces = []
     for zbin in range(len(z_bins)):
         z_min = z_bins[zbin][0]
         z_max = z_bins[zbin][1]
 
-        md, md_fit = _split(SPACES_AT_Z[zbin].get("md", []))
-        ccd, ccd_fit = _split(SPACES_AT_Z[zbin].get("ccd", []))
-        cmd, cmd_fit = _split(SPACES_AT_Z[zbin].get("cmd", []))
+        md, md_fit = _split(spaces_at_z[zbin].get("md", []))
+        ccd, ccd_fit = _split(spaces_at_z[zbin].get("ccd", []))
+        cmd, cmd_fit = _split(spaces_at_z[zbin].get("cmd", []))
 
         mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
@@ -555,6 +593,7 @@ def get_minerva_phot_fitting_data(
     drn,
     ran_key,
     ssp_data,
+    spaces_at_z=SPACES_AT_Z,
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
@@ -564,6 +603,7 @@ def get_minerva_phot_fitting_data(
         drn,
         ran_key,
         ssp_data,
+        spaces_at_z=spaces_at_z,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,

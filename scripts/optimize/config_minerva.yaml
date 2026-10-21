@@ -23,6 +23,8 @@ lgmp_max: 15.0
 
 apply_igm: True
 
+space_type: "phot"
+
 epoch:
   n_it: 1
   n_steps: 2
