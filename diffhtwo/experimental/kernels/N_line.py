@@ -67,9 +67,9 @@ def N_linelum(
         Lbin_hi,
     )
 
-    N_linelum = N_linelum_ms + N_linelum_q + N_linelum_bursty
+    N_linelum_composite = N_linelum_ms + N_linelum_q + N_linelum_bursty
 
-    return N_linelum
+    return N_linelum_composite
 
 
 @jjit
@@ -126,6 +126,6 @@ def N_linelum2(
         z_data.lf_data.bin_hi,
     )
 
-    N_linelum = N_linelum_ms + N_linelum_q + N_linelum_bursty
+    N_linelum_composite = N_linelum_ms + N_linelum_q + N_linelum_bursty
 
-    return N_linelum
+    return N_linelum_composite

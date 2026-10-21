@@ -373,17 +373,19 @@ if __name__ == "__main__":
 
     if cfg["plots"]["plot_halpha_uv_ratio"]:
         print("Generating H-alpha-to-UV ratio plot...")
-        ssp_data = load_ssp_templates(fn=ssp_filename)
-        ssp_data = append_uv_luminosity_to_ssp_data(ssp_data)
-        ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563", "UV"])
-        line_wave_table = jnp.array(ssp_data.ssp_emline_wave)
+        ssp_data_ha_uv = load_ssp_templates(fn=ssp_filename)
+        ssp_data_ha_uv = append_uv_luminosity_to_ssp_data(ssp_data_ha_uv)
+        ssp_data_ha_uv = lemi.get_subset_emline_data(
+            ssp_data_ha_uv, ["Ba_alpha_6563", "UV"]
+        )
+        line_wave_table_ha_uv = jnp.array(ssp_data_ha_uv.ssp_emline_wave)
         plot_halpha_uv_ratio(
             ran_key,
             0.2,
             6.0,
             param_collection_fit,
-            line_wave_table,
-            ssp_data,
+            line_wave_table_ha_uv,
+            ssp_data_ha_uv,
             feniks.filter_info.tcurves,
             run_label,
             fit_diagnostics_save_drn,
@@ -397,8 +399,8 @@ if __name__ == "__main__":
             0.2,
             6.0,
             param_collection_fit,
-            line_wave_table,
-            ssp_data,
+            line_wave_table_ha_uv,
+            ssp_data_ha_uv,
             feniks.filter_info.tcurves,
             run_label,
             fit_diagnostics_save_drn,
@@ -1195,9 +1197,9 @@ if __name__ == "__main__":
             )
         if cfg["plots"]["plot_uvlf"]:
             print("Generating UVLF plot...")
-            ssp_data = load_ssp_templates(fn=ssp_filename)
-            ssp_data = append_uv_luminosity_to_ssp_data(ssp_data)
-            ssp_data_uv = lemi.get_subset_emline_data(ssp_data, ["UV"])
+            ssp_data_uv = load_ssp_templates(fn=ssp_filename)
+            ssp_data_uv = append_uv_luminosity_to_ssp_data(ssp_data_uv)
+            ssp_data_uv = lemi.get_subset_emline_data(ssp_data_uv, ["UV"])
             line_wave_table_uv = jnp.array(ssp_data_uv.ssp_emline_wave)
             plot_uvlf(
                 ran_key,

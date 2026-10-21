@@ -38,7 +38,7 @@ def plot_halpha_minerva(
     ran_key,
     halpha_drn,
     param_collection,
-    ssp_data,
+    ssp_data_halpha,
     halpha_wave_aa,
     run_label,
     savedir,
@@ -51,7 +51,7 @@ def plot_halpha_minerva(
     minerva_halpha = get_minerva_halpha(
         halpha_drn,
         ran_key,
-        ssp_data,
+        ssp_data_halpha,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
