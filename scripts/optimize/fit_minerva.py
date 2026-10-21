@@ -22,6 +22,10 @@ from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_minerva
+from diffhtwo.experimental.data_loaders.load_minerva import (
+    SPACES_AT_Z,
+    SPACES_AT_Z_W_LINES,
+)
 from diffhtwo.experimental.optimizers.Np_minerva_opt import fit_minerva_phot
 
 DIFFSTARPOP_PARAMS = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
@@ -106,6 +110,14 @@ if __name__ == "__main__":
     initial_pts = []
     start = time.time()
     ran_key = jran.key(0)
+
+    if cfg["space_type"] == "phot":
+        space_type = SPACES_AT_Z
+    elif cfg["space_type"] == "phot+line":
+        space_type = SPACES_AT_Z_W_LINES
+    else:
+        print("space_type can only be phot or phot+line")
+
     for epoch in range(0, cfg["epoch"]["n_it"]):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
 
@@ -114,6 +126,7 @@ if __name__ == "__main__":
             minerva_phot_drn,
             ran_key,
             ssp_data,
+            spaces_at_z=space_type,
             num_halos=cfg["phot"]["num_halos"],
             lgmp_min=cfg["lgmp_min"],
             lgmp_max=cfg["lgmp_max"],
