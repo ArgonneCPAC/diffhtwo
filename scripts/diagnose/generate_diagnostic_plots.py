@@ -90,6 +90,7 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
     plot_smhm_hexbin,
     plot_smhm_ratio_cen_sat,
 )
+from diffhtwo.experimental.diagnostics.plot_uvlf import plot_uvlf
 from diffhtwo.experimental.uv_luminosity import append_uv_luminosity_to_ssp_data
 
 DIFFSTARPOP_PARAMS = DiffstarPop_Params_Diffstarpopfits_mgash["galacticus_in_situ"]
@@ -1191,6 +1192,26 @@ if __name__ == "__main__":
                 plt_show=False,
                 ncols=4,
                 tag="_emitters",
+            )
+        if cfg["plots"]["plot_uvlf"]:
+            print("Generating UVLF plot...")
+            ssp_data = load_ssp_templates(fn=ssp_filename)
+            ssp_data = append_uv_luminosity_to_ssp_data(ssp_data)
+            ssp_data_uv = lemi.get_subset_emline_data(ssp_data, ["UV"])
+            line_wave_table_uv = jnp.array(ssp_data_uv.ssp_emline_wave)
+            plot_uvlf(
+                ran_key,
+                param_collection_fit,
+                line_wave_table_uv,
+                ssp_data_uv,
+                minerva.filter_info.tcurves,
+                run_label,
+                fit_diagnostics_save_drn,
+                cfg["bouwens21_drn"],
+                lgmp_min=lgmp_min,
+                lgmp_max=lgmp_max,
+                num_halos=num_halos,
+                plt_show=False,
             )
     if cfg["plot_minerva_halpha"]:
         print("Generating MINERVA halpha plot...")

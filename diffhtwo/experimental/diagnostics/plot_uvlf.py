@@ -25,8 +25,8 @@ D_10pc_in_cm = 3.085677581491367e19
 def plot_uvlf(
     ran_key,
     param_collection,
-    line_wave_table,
-    ssp_data,
+    line_wave_table_uv,
+    ssp_data_uv,
     tcurves,
     run_label,
     savedir,
@@ -56,7 +56,7 @@ def plot_uvlf(
         lgmp_min,
         lgmp_max,
         lc_sky_area_degsq,
-        ssp_data,
+        ssp_data_uv,
         tcurves,
         z_phot_table,
     )
@@ -65,8 +65,8 @@ def plot_uvlf(
     dustfree_linelum_gal, phot_data = linelum_gal_dustfree(
         ran_key,
         lc_data,
-        ssp_data,
-        line_wave_table,
+        ssp_data_uv,
+        line_wave_table_uv,
         param_collection.diffstarpop_params,
         param_collection.mzr_params,
         param_collection.spspop_params,
@@ -76,7 +76,7 @@ def plot_uvlf(
     )
     unmerged = phot_data.p_merge < 0.5
 
-    L_uv = dustfree_linelum_gal[:, 1]  # UV Luminosity in erg/s
+    L_uv = dustfree_linelum_gal[:, 0]  # UV Luminosity in erg/s
     f_nu = L_uv / UV_FREQUENCY_HZ / (4 * np.pi * D_10pc_in_cm**2)
     M_uv = -2.5 * np.log10(f_nu) - 48.6
 
