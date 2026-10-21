@@ -18,6 +18,7 @@ from ..defaults import (
     Lf,
     MagColor,
 )
+from ..kernels.line_emitter import compute_Sigma_excess
 from ..lc_utils import zbin_volume
 from ..lightcone_generators import generate_lc_data
 from . import N_utils
@@ -44,11 +45,14 @@ D_MAG_1d = 0.2
 D_MAG_2d = 0.2
 GAUSS_SIG_2d = 3.0
 
+ZP = 28.9
+
 MinervaPhot = namedtuple(
     "MinervaPhot",
     [
         "redshift",
         "mags",
+        "mags_err",
         "sels",
         "parent_cut_idx",
         "mags_labels",
@@ -143,12 +147,15 @@ def _split(entries):
     return [n for n, _ in pairs], dict(pairs)
 
 
-def _get_mag_ab(phot_table, col_name, ZP=28.9):
+def _get_mag_ab(phot_table, col_name, ZP=ZP):
     with np.errstate(invalid="ignore"):
-        flux = phot_table[col_name].data.data
+        flux = phot_table["f_" + col_name].data.data
         mag_ab = -2.5 * np.log10(flux) + ZP
 
-    return mag_ab
+        error = phot_table["e_" + col_name].data.data
+        error_ab = (2.5 / np.log(10)) * error / flux
+
+    return mag_ab, error_ab
 
 
 def _get_tcurve(filter_number, filter_info_filename, tcurves_filename):
@@ -247,7 +254,7 @@ def get_minerva_phot(
     lgmp_max=15.0,
     apply_igm=True,
     lc_sky_area_degsq=100,
-    n_z_phot_table=30,
+    n_z_phot_table=15,
     phot=PHOT,
     zout=ZOUT,
 ):
@@ -289,7 +296,7 @@ def get_minerva_phot(
 
     f444w_sel = ~phot["f_f444w"].mask
 
-    f444w_mag = _get_mag_ab(phot, "f_f444w")
+    f444w_mag, f444w_mag_err = _get_mag_ab(phot, "f444w")
     f444w_sel &= np.isfinite(f444w_mag)
 
     f444w_mag_thresh = getattr(minerva_mag_thresh, "f444w")
@@ -299,6 +306,7 @@ def get_minerva_phot(
 
     tcurves = []
     mag_per_band = []
+    mag_err_per_band = []
     mag_labels = []
     sel_per_band = []
     tcurves = []
@@ -309,12 +317,11 @@ def get_minerva_phot(
         tcurves.append(tcurve)
 
         # get magnitudes and thresh
-        col_name = "f_" + minerva_filter
-        mag = _get_mag_ab(phot, col_name)
+        mag, mag_err = _get_mag_ab(phot, minerva_filter)
         mag_limit = getattr(minerva_mag_thresh, minerva_filter)
 
         # originally masked in the phot cat due to missing coverage, for instance
-        sel = ~phot[col_name].mask
+        sel = ~phot["f_" + minerva_filter].mask
 
         # masked due to converting flux to mag for -ve flux of droputs, for instance
         sel &= np.isfinite(mag)
@@ -326,11 +333,13 @@ def get_minerva_phot(
         sel &= f444w_sel
 
         mag_per_band.append(mag)
+        mag_err_per_band.append(mag_err)
         sel_per_band.append(sel)
 
         mag_labels.append(minerva_filter)
 
     mags = np.vstack(mag_per_band).T
+    mags_err = np.vstack(mag_err_per_band).T
     sels = np.vstack(sel_per_band).T
 
     filter_info = FilterInfo(minerva_mag_thresh, tcurves)
@@ -403,7 +412,7 @@ def get_minerva_phot(
                 space_area_degsq, zlow=z_min, zhigh=z_max
             ).value
 
-            sel = sels[:, mag_idx] * z_sel
+            sel = sels[:, mag_idx] & z_sel
             mag_selected = mags[sel]
 
             N_1d, sig, bin_lo, bin_hi = get_N_1d(
@@ -436,7 +445,7 @@ def get_minerva_phot(
             ).value
 
             a, b, c, d = col_idx
-            sel = sels[:, a] * sels[:, b] * sels[:, c] * sels[:, d] * z_sel
+            sel = sels[:, a] & sels[:, b] & sels[:, c] & sels[:, d] & z_sel
             mag_selected = mags[sel]
 
             color1 = mag_selected[:, a] - mag_selected[:, b]
@@ -471,7 +480,12 @@ def get_minerva_phot(
                 space_area_degsq, zlow=z_min, zhigh=z_max
             ).value
 
-            sel = sels[:, mag_idx] * sels[:, b] * sels[:, c] * z_sel
+            sel = sels[:, mag_idx] & sels[:, b] & sels[:, c] & z_sel
+            if "m" in space_name:
+                emitter_sel = pick_line_emitters(
+                    mags[:, b], mags[:, mag_idx], mags_err[:, b], mags_err[:, mag_idx]
+                )
+                sel &= emitter_sel
             mag_selected = mags[sel]
 
             mag = mag_selected[:, mag_idx]
@@ -511,6 +525,7 @@ def get_minerva_phot(
     return MinervaPhot(
         z_best,
         mags,
+        mags_err,
         sels,
         f444w_idx,
         mag_labels,
@@ -557,6 +572,12 @@ def get_minerva_phot_fitting_data(
     fields = [f for f in minerva_phot._fields if f != "mags_labels"]
     MinervaPhotFit = namedtuple("MinervaPhotFit", fields)
     return MinervaPhotFit(*(getattr(minerva_phot, f) for f in fields))
+
+
+def pick_line_emitters(BB, NB, BB_err, NB_err, Sigma_thresh=3.0, ZP=ZP):
+    Sigma = compute_Sigma_excess(BB, NB, BB_err, NB_err, ZP)
+    emitter_sel = Sigma > Sigma_thresh
+    return emitter_sel
 
 
 def get_minerva_halpha(

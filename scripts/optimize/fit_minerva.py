@@ -12,6 +12,10 @@ from diffsky.param_utils.diffsky_param_wrapper_merging import (
     DEFAULT_PARAM_COLLECTION,
     check_param_collection_is_ok,
 )
+from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
+from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
+    DiffstarPop_Params_Diffstarpopfits_mgash,
+)
 from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
@@ -20,6 +24,7 @@ from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_minerva
 from diffhtwo.experimental.optimizers.Np_minerva_opt import fit_minerva
 
+DIFFSTARPOP_PARAMS = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--config", default="config_minerva.yaml")
@@ -49,7 +54,7 @@ if __name__ == "__main__":
     )
     if cfg["defaults"]["diffstarpop"]:
         param_collection_fit = param_collection_fit._replace(
-            diffstarpop_params=DEFAULT_PARAM_COLLECTION.diffstarpop_params
+            diffstarpop_params=DIFFSTARPOP_PARAMS
         )
     if cfg["defaults"]["spspop"]:
         param_collection_fit = param_collection_fit._replace(
@@ -57,7 +62,7 @@ if __name__ == "__main__":
         )
     if cfg["defaults"]["ssperr"]:
         param_collection_fit = param_collection_fit._replace(
-            ssperr_params=DEFAULT_PARAM_COLLECTION.ssperr_params
+            ssperr_params=ZERO_SSPERR_PARAMS
         )
     if cfg["defaults"]["merging"]:
         param_collection_fit = param_collection_fit._replace(
