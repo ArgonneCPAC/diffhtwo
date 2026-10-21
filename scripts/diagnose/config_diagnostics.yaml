@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run350
-model_nickname: run350_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run350/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run355
+model_nickname: run355_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run355/diagnostic_plots/diffstarpop+spspop+merging
 
 
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -23,7 +23,7 @@ plot_feniks: False
 plot_hizels: False
 
 plot_minerva: True
-plot_minerva_halpha: False
+plot_minerva_halpha: True
 
 num_halos : 5000
 sky_area_degsq: 1.
@@ -40,7 +40,7 @@ defaults:
   merging: False
 
 plots:
-  plot_app_mag_funcs: False
+  plot_app_mag_funcs: True
   plot_exsitu_frac_z0: False
   plot_color_contours: True
   plot_mag_z: False
