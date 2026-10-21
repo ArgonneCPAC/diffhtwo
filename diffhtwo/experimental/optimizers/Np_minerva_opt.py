@@ -21,6 +21,40 @@ _loss_and_grad_emline_kern_multiz = jjit(value_and_grad(_loss_emline_kern_multiz
 
 
 @partial(jjit, static_argnames=["n_steps", "step_size"])
+def fit_minerva_phot(
+    u_theta_init,
+    trainable,
+    ran_key,
+    minerva_phot,
+    n_steps=2,
+    step_size=0.1,
+):
+    opt_init, opt_update, get_params = jax_opt.adam(step_size)
+    opt_state = opt_init(u_theta_init)
+
+    def _opt_update(opt_state, i):
+        u_theta = get_params(opt_state)
+        loss, grads = _loss_and_grad_phot_kern_2d_multiz(u_theta, ran_key, minerva_phot)
+
+        # set grads for untrainable params to 0.0
+        grads = tuple(
+            jnp.where(train, grad, 0.0) for grad, train in zip(grads, trainable)
+        )
+
+        opt_state = opt_update(i, grads, opt_state)
+        return opt_state, loss
+
+    (
+        opt_state,
+        loss_hist,
+    ) = lax.scan(_opt_update, opt_state, jnp.arange(n_steps))
+
+    u_theta_fit = get_params(opt_state)
+
+    return loss_hist, u_theta_fit
+
+
+@partial(jjit, static_argnames=["n_steps", "step_size"])
 def fit_minerva(
     u_theta_init,
     trainable,

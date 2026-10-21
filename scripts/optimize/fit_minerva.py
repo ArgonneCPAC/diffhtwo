@@ -22,7 +22,7 @@ from jax import random as jran
 
 from diffhtwo.experimental import param_utils as pu
 from diffhtwo.experimental.data_loaders import load_minerva
-from diffhtwo.experimental.optimizers.Np_minerva_opt import fit_minerva
+from diffhtwo.experimental.optimizers.Np_minerva_opt import fit_minerva_phot
 
 DIFFSTARPOP_PARAMS = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
 if __name__ == "__main__":
@@ -120,24 +120,13 @@ if __name__ == "__main__":
             apply_igm=cfg["apply_igm"],
         )
 
-        # load halpha data
-        minerva_halpha = load_minerva.get_minerva_halpha(
-            minerva_halpha_drn,
-            ran_key,
-            ssp_data,
-        )
-
-        (loss_hist, loss_phot_hist, loss_halpha_hist, u_theta_fit) = fit_minerva(
+        loss_hist, u_theta_fit = fit_minerva_phot(
             u_theta_fit,
             trainable_params,
             ran_key,
             minerva_phot,
-            minerva_halpha,
-            halpha_wave_aa,
             n_steps=cfg["epoch"]["n_steps"],
             step_size=cfg["epoch"]["step_size"],
-            w_phot=cfg["w_phot"],
-            w_halpha=cfg["w_halpha"],
         )
 
         jax.clear_caches()
@@ -152,8 +141,6 @@ if __name__ == "__main__":
         if epoch == 0:
             STEPS = np.arange(1, cfg["epoch"]["n_steps"] + 1, 1)
             LOSS_HIST = loss_hist
-            LOSS_PHOT_HIST = loss_phot_hist
-            LOSS_HALPHA_HIST = loss_halpha_hist
 
             initial_pts.append((STEPS[0], LOSS_HIST[0]))
         else:
@@ -161,8 +148,6 @@ if __name__ == "__main__":
             initial_pts.append((steps[0], loss_hist[0]))
             STEPS = np.concatenate((STEPS, steps))
             LOSS_HIST = np.concatenate((LOSS_HIST, loss_hist))
-            LOSS_PHOT_HIST = np.concatenate((LOSS_PHOT_HIST, loss_phot_hist))
-            LOSS_HALPHA_HIST = np.concatenate((LOSS_HALPHA_HIST, loss_halpha_hist))
 
     end = time.time()
     elapsed = end - start
@@ -178,22 +163,6 @@ if __name__ == "__main__":
     ax_loss.scatter(start_step, start_loss, s=50, c="k")
 
     ax_loss.plot(STEPS, LOSS_HIST, c="k", label="total")
-    ax_loss.plot(
-        STEPS,
-        LOSS_PHOT_HIST,
-        c="#0a7a80",
-        linestyle="--",
-        alpha=0.7,
-        label="phot",
-    )
-    # ax_loss.plot(
-    #     STEPS,
-    #     LOSS_HALPHA_HIST,
-    #     c="#c87820",
-    #     linestyle="--",
-    #     alpha=0.7,
-    #     label="halpha",
-    # )
 
     ax_loss.legend()
     ax_loss.set_ylabel("Poisson Negative Log-Likelihood")
