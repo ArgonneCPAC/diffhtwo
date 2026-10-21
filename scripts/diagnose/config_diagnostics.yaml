@@ -16,6 +16,7 @@ um_drn: /Users/kumail/diffdir/umachine-dr1-smhm
 frac_ex_situ_lit_drn: /Users/kumail/diffdir/ex_situ_frac_lit
 fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
+bouwens21_drn: /Users/kumail/diffdir/Bouwens+21_uvlf
 
 
 plot_sdss: False
@@ -40,10 +41,12 @@ defaults:
   merging: False
 
 plots:
-  plot_app_mag_funcs: True
+  plot_app_mag_funcs: False
   plot_exsitu_frac_z0: False
-  plot_color_contours: True
+  plot_color_contours: False
   plot_mag_z: False
+
+  plot_uvlf: True
 
   plot_fburst_mh_z: False
   
