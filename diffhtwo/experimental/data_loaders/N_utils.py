@@ -65,7 +65,10 @@ def get_mag_space(
     z_sel,
     filters_namedtuple,
     mag_sels,
-    space_vol_mpc3,
+    vol_mpc3_data,
+    z_min,
+    z_max,
+    vol_mpc3_model,
     parent_cut_idx,
     dmag=0.2,
     fit=True,
@@ -77,7 +80,17 @@ def get_mag_space(
     N_1d, sig, bin_lo, bin_hi = get_N_1d(mag[sel], dmag=dmag)
 
     return AppMagFuncSpace(
-        parent_cut_idx, mag_idx, sig, bin_lo, bin_hi, N_1d, space_vol_mpc3, fit
+        parent_cut_idx,
+        mag_idx,
+        sig,
+        bin_lo,
+        bin_hi,
+        N_1d,
+        vol_mpc3_data,
+        fit,
+        z_min,
+        z_max,
+        vol_mpc3_model,
     )
 
 
@@ -89,7 +102,10 @@ def get_colorcolor_space(
     z_sel,
     filters_namedtuple,
     mag_sels,
-    space_vol_mpc3,
+    vol_mpc3_data,
+    z_min,
+    z_max,
+    vol_mpc3_model,
     parent_cut_idx,
     dmag=0.1,
     sig_scale=0.5,
@@ -110,7 +126,17 @@ def get_colorcolor_space(
     )
 
     return ColorColorSpace(
-        parent_cut_idx, col_idx, sig, bin_lo, bin_hi, N_2d, space_vol_mpc3, fit
+        parent_cut_idx,
+        col_idx,
+        sig,
+        bin_lo,
+        bin_hi,
+        N_2d,
+        vol_mpc3_data,
+        fit,
+        z_min,
+        z_max,
+        vol_mpc3_model,
     )
 
 
@@ -123,7 +149,10 @@ def get_mag_color_space(
     z_sel,
     filters_namedtuple,
     mag_sels,
-    space_vol_mpc3,
+    vol_mpc3_data,
+    z_min,
+    z_max,
+    vol_mpc3_model,
     parent_cut_idx,
     dmag=0.1,
     sig_scale=0.5,
@@ -146,5 +175,16 @@ def get_mag_color_space(
     )
 
     return MagColorSpace(
-        parent_cut_idx, mag_idx, col_idx, sig, bin_lo, bin_hi, N_2d, space_vol_mpc3, fit
+        parent_cut_idx,
+        mag_idx,
+        col_idx,
+        sig,
+        bin_lo,
+        bin_hi,
+        N_2d,
+        vol_mpc3_data,
+        fit,
+        z_min,
+        z_max,
+        vol_mpc3_model,
     )

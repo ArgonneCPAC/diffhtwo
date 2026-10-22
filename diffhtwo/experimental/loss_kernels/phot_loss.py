@@ -26,7 +26,7 @@ def get_phot_loss_2d_multiz(ran_key, param_collection, data, mag_thresh):
             phot_loss_2d += lax.cond(
                 space.fit,
                 lambda sp=space: poisson_loss(
-                    sp.N_model / z_data_model.lc_data.lc_tot_vol_mpc3,
+                    sp.N_model / sp.vol_mpc3_model,
                     sp.N_data / sp.vol_mpc3_data,
                 ),
                 lambda: 0.0,

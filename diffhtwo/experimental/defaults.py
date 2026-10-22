@@ -100,6 +100,9 @@ ColorColor = namedtuple(
         "N_data",
         "vol_mpc3_data",
         "fit",
+        "zlo",
+        "zhi",
+        "vol_mpc3_model",
     ],
 )
 
@@ -115,6 +118,9 @@ MagColor = namedtuple(
         "N_data",
         "vol_mpc3_data",
         "fit",
+        "zlo",
+        "zhi",
+        "vol_mpc3_model",
     ],
 )
 
@@ -129,6 +135,9 @@ AppMagFunc = namedtuple(
         "N_data",
         "vol_mpc3_data",
         "fit",
+        "zlo",
+        "zhi",
+        "vol_mpc3_model",
     ],
 )
 

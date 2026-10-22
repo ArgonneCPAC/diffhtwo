@@ -8,6 +8,7 @@ import h5py
 import jax.numpy as jnp
 import numpy as np
 from astropy.table import Table, vstack
+from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders import load_transmission_curve
 
 from ..defaults import (
@@ -19,7 +20,7 @@ from ..defaults import (
     MagColor,
 )
 from ..kernels.line_emitter import compute_Sigma_excess
-from ..lc_utils import zbin_volume
+from ..lc_utils import zbin_vol
 from ..lightcone_generators import generate_lc_data
 from . import N_utils
 from .minerva_area import get_minerva_area_arcminsq
@@ -78,84 +79,118 @@ app_mag_funcs = [
 SPACES_AT_Z = [
     {
         "z": (1.0, 2.0),
-        "md": app_mag_funcs,
-        "ccd": [("F090wF150w_F150wF356w", True)],
-        "cmd": [("F356w_F150wF356w", True)],
+        "md": [
+            ("F435w", True, (1.0, 2.0)),
+            ("F606w", True, (1.0, 2.0)),
+            ("F814w", True, (1.0, 2.0)),
+            ("F090w", True, (1.0, 2.0)),
+            ("F115w", True, (1.0, 2.0)),
+            ("F150w", True, (1.0, 2.0)),
+            ("F200w", True, (1.0, 2.0)),
+            ("F277w", True, (1.0, 2.0)),
+            ("F356w", True, (1.0, 2.0)),
+            ("F444w", True, (1.0, 2.0)),
+        ],
+        "ccd": [("F090wF150w_F150wF356w", True, (1.0, 2.0))],
+        "cmd": [
+            ("F356w_F150wF356w", True, (1.0, 2.0)),
+            ("F140m_F150wF140m", True, (1.03, 1.25)),
+            ("F162m_F150wF162m", True, (1.36, 1.59)),
+            ("F182m_F200wF182m", True, (1.67, 1.95)),
+        ],
     },
     {
         "z": (2.0, 3.0),
-        "md": app_mag_funcs,
-        "ccd": [("F115wF200w_F200wF356w", True), ("F150wF200w_F200wF277w", True)],
-        "cmd": [("F356w_F115wF356w", True)],
+        "md": [
+            ("F435w", True, (2.0, 3.0)),
+            ("F606w", True, (2.0, 3.0)),
+            ("F814w", True, (2.0, 3.0)),
+            ("F090w", True, (2.0, 3.0)),
+            ("F115w", True, (2.0, 3.0)),
+            ("F150w", True, (2.0, 3.0)),
+            ("F200w", True, (2.0, 3.0)),
+            ("F277w", True, (2.0, 3.0)),
+            ("F356w", True, (2.0, 3.0)),
+            ("F444w", True, (2.0, 3.0)),
+        ],
+        "ccd": [
+            ("F115wF200w_F200wF356w", True, (2.0, 3.0)),
+            ("F150wF200w_F200wF277w", True, (2.0, 3.0)),
+        ],
+        "cmd": [
+            ("F356w_F115wF356w", True, (2.0, 3.0)),
+            ("F210m_F200wF210m", True, (2.04, 2.35)),
+            ("F250m_F277wF250m", True, (2.68, 2.95)),
+        ],
     },
     {
         "z": (3.0, 4.0),
-        "md": app_mag_funcs,
-        "ccd": [("F150wF277w_F277wF444w", True), ("F200wF277w_F277wF356w", True)],
-        "cmd": [("F356w_F150wF356w", True)],
+        "md": [
+            ("F435w", True, (3.0, 4.0)),
+            ("F606w", True, (3.0, 4.0)),
+            ("F814w", True, (3.0, 4.0)),
+            ("F090w", True, (3.0, 4.0)),
+            ("F115w", True, (3.0, 4.0)),
+            ("F150w", True, (3.0, 4.0)),
+            ("F200w", True, (3.0, 4.0)),
+            ("F277w", True, (3.0, 4.0)),
+            ("F356w", True, (3.0, 4.0)),
+            ("F444w", True, (3.0, 4.0)),
+        ],
+        "ccd": [
+            ("F150wF277w_F277wF444w", True, (3.0, 4.0)),
+            ("F200wF277w_F277wF356w", True, (3.0, 4.0)),
+        ],
+        "cmd": [("F356w_F150wF356w", True, (3.0, 4.0))],
     },
     {
         "z": (4.0, 5.0),
-        "md": app_mag_funcs,
-        "ccd": [
-            ("F814wF150w_F150wF277w", True),
-            ("F200wF277w_F277wF444w", True),
-            ("F356wF410m_F410mF444w", True),
+        "md": [
+            ("F435w", True, (4.0, 5.0)),
+            ("F606w", True, (4.0, 5.0)),
+            ("F814w", True, (4.0, 5.0)),
+            ("F090w", True, (4.0, 5.0)),
+            ("F115w", True, (4.0, 5.0)),
+            ("F150w", True, (4.0, 5.0)),
+            ("F200w", True, (4.0, 5.0)),
+            ("F277w", True, (4.0, 5.0)),
+            ("F356w", True, (4.0, 5.0)),
+            ("F444w", True, (4.0, 5.0)),
         ],
-        "cmd": [("F444w_F150wF444w", True)],
-    },
-    {
-        "z": (5.0, 6.0),
-        "md": app_mag_funcs,
-        "ccd": [("F115wF200w_F200wF444w", True), ("F277wF356w_F356wF444w", True)],
-        "cmd": [("F444w_F115wF444w", True)],
-    },
-]
-
-SPACES_AT_Z_W_LINES = [
-    {
-        "z": (1.0, 2.0),
-        "md": app_mag_funcs,
-        "ccd": [("F090wF150w_F150wF356w", True)],
-        "cmd": [("F356w_F150wF356w", True)],
-    },
-    {
-        "z": (2.0, 3.0),
-        "md": app_mag_funcs,
-        "ccd": [("F115wF200w_F200wF356w", True), ("F150wF200w_F200wF277w", True)],
-        "cmd": [("F356w_F115wF356w", True)],
-    },
-    {
-        "z": (3.0, 4.0),
-        "md": app_mag_funcs,
-        "ccd": [("F150wF277w_F277wF444w", True), ("F200wF277w_F277wF356w", True)],
-        "cmd": [("F356w_F150wF356w", True)],
-    },
-    {
-        "z": (4.0, 5.0),
-        "md": app_mag_funcs,
         "ccd": [
-            ("F814wF150w_F150wF277w", True),
-            ("F200wF277w_F277wF444w", True),
-            ("F356wF410m_F410mF444w", True),
+            ("F814wF150w_F150wF277w", True, (4.0, 5.0)),
+            ("F200wF277w_F277wF444w", True, (4.0, 5.0)),
+            ("F356wF410m_F410mF444w", True, (4.0, 5.0)),
         ],
-        "cmd": [("F444w_F150wF444w", True)],
+        "cmd": [
+            ("F444w_F150wF444w", True, (4.0, 5.0)),
+            ("F360m_F356wF360m", True, (4.22, 4.81)),
+        ],
     },
     {
-        "z": (5.0, 6.0),
-        "md": app_mag_funcs,
-        "ccd": [("F115wF200w_F200wF444w", True), ("F277wF356w_F356wF444w", True)],
-        "cmd": [("F444w_F115wF444w", True)],
+        "z": (5.0, 6.5),
+        "md": [
+            ("F435w", True, (5.0, 6.5)),
+            ("F606w", True, (5.0, 6.5)),
+            ("F814w", True, (5.0, 6.5)),
+            ("F090w", True, (5.0, 6.5)),
+            ("F115w", True, (5.0, 6.5)),
+            ("F150w", True, (5.0, 6.5)),
+            ("F200w", True, (5.0, 6.5)),
+            ("F277w", True, (5.0, 6.5)),
+            ("F356w", True, (5.0, 6.5)),
+            ("F444w", True, (5.0, 6.5)),
+        ],
+        "ccd": [
+            ("F115wF200w_F200wF444w", True, (5.0, 6.5)),
+            ("F277wF356w_F356wF444w", True, (5.0, 6.5)),
+        ],
+        "cmd": [
+            ("F444w_F115wF444w", True, (5.0, 6.5)),
+            ("F410m_F444wF410m", True, (5.0, 5.52)),
+            ("F460m_F444wF460m", True, (5.88, 6.23)),
+        ],
     },
-    # Line excess to pick up h-alpha emitters
-    {"z": (1.03, 1.25), "cmd": [("F140m_F150wF140m", True)]},
-    {"z": (1.36, 1.59), "cmd": [("F162m_F150wF162m", True)]},
-    {"z": (1.67, 1.95), "cmd": [("F182m_F200wF182m", True)]},
-    {"z": (2.04, 2.35), "cmd": [("F210m_F200wF210m", True)]},
-    {"z": (2.68, 2.95), "cmd": [("F250m_F277wF250m", True)]},
-    {"z": (4.22, 4.81), "cmd": [("F360m_F356wF360m", True)]},
-    {"z": (4.98, 5.52), "cmd": [("F410m_F444wF410m", True)]},
-    {"z": (5.88, 6.23), "cmd": [("F460m_F444wF460m", True)]},
 ]
 
 
@@ -180,8 +215,10 @@ def _get_space_area_arcminsq(img_drn, space, area_file):
 
 
 def _split(entries):
-    pairs = [(e, True) if isinstance(e, str) else e for e in entries]
-    return [n for n, _ in pairs], dict(pairs)
+    names = [name for name, _, _ in entries]
+    fits = {name: fit for name, fit, _ in entries}
+    zs = {name: z for name, _, z in entries}
+    return names, fits, zs
 
 
 def _get_mag_ab(phot_table, col_name, ZP=ZP):
@@ -283,7 +320,7 @@ def get_minerva_phot(
     drn,
     ran_key,
     ssp_data,
-    spaces_at_z=SPACES_AT_Z_W_LINES,
+    spaces_at_z=SPACES_AT_Z,
     d_mag_1d=D_MAG_1d,
     d_mag_2d=D_MAG_2d,
     gauss_sig_2d=GAUSS_SIG_2d,
@@ -292,9 +329,10 @@ def get_minerva_phot(
     lgmp_max=15.0,
     apply_igm=True,
     lc_sky_area_degsq=100,
-    n_z_phot_table=15,
+    n_z_phot_table=25,
     phot=PHOT,
     zout=ZOUT,
+    cosmo_params=DEFAULT_COSMOLOGY,
 ):
     drn = Path(drn)
     phot = Table.read(drn / phot)
@@ -389,9 +427,9 @@ def get_minerva_phot(
         z_min = z_bins[zbin][0]
         z_max = z_bins[zbin][1]
 
-        md, md_fit = _split(spaces_at_z[zbin].get("md", []))
-        ccd, ccd_fit = _split(spaces_at_z[zbin].get("ccd", []))
-        cmd, cmd_fit = _split(spaces_at_z[zbin].get("cmd", []))
+        md, md_fit, md_z = _split(spaces_at_z[zbin].get("md", []))
+        ccd, ccd_fit, ccd_z = _split(spaces_at_z[zbin].get("ccd", []))
+        cmd, cmd_fit, cmd_z = _split(spaces_at_z[zbin].get("cmd", []))
 
         mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
@@ -434,21 +472,21 @@ def get_minerva_phot(
             igm_filters_namedtuple=PhotFilters,
             igm_filter_prefix="minerva_",
             logmp_cutoff=lgmp_min,
+            cosmo_params=cosmo_params,
         )
-
-        z_sel = (z_best > z_min) & (z_best <= z_max)
 
         mag_z_tuples = []
         for space_name, space in mag_namedtuples.items():
             (mag_idx,) = get_filt_indx(space_name, PhotFilters)
+            zlo, zhi = md_z[space_name]
+            z_sel = (z_best > zlo) & (z_best <= zhi)
 
             space_area_arcminsq = _get_space_area_arcminsq(
                 drn, space_name, drn / AREA_FILE
             )
             space_area_degsq = space_area_arcminsq / 3600
-            space_vol_mpc3 = zbin_volume(
-                space_area_degsq, zlow=z_min, zhigh=z_max
-            ).value
+            vol_mpc3_data = zbin_vol(space_area_degsq, zlo, zhi, cosmo_params)
+            vol_mpc3_model = zbin_vol(lc_sky_area_degsq, zlo, zhi, cosmo_params)
 
             sel = sels[:, mag_idx] & z_sel
             mag_selected = mags[sel]
@@ -465,22 +503,26 @@ def get_minerva_phot(
                     bin_lo,
                     bin_hi,
                     N_1d,
-                    space_vol_mpc3,
+                    vol_mpc3_data,
                     md_fit[space_name],
+                    zlo,
+                    zhi,
+                    vol_mpc3_model,
                 )
             )
 
         ccd_z_tuples = []
         for space_name, space in ccd_namedtuples.items():
             col_idx = get_filt_indx(space_name, PhotFilters)
+            zlo, zhi = ccd_z[space_name]
+            z_sel = (z_best > zlo) & (z_best <= zhi)
 
             space_area_arcminsq = _get_space_area_arcminsq(
                 drn, space_name, drn / AREA_FILE
             )
             space_area_degsq = space_area_arcminsq / 3600
-            space_vol_mpc3 = zbin_volume(
-                space_area_degsq, zlow=z_min, zhigh=z_max
-            ).value
+            vol_mpc3_data = zbin_vol(space_area_degsq, zlo, zhi, cosmo_params)
+            vol_mpc3_model = zbin_vol(lc_sky_area_degsq, zlo, zhi, cosmo_params)
 
             a, b, c, d = col_idx
             sel = sels[:, a] & sels[:, b] & sels[:, c] & sels[:, d] & z_sel
@@ -501,22 +543,26 @@ def get_minerva_phot(
                     bin_lo,
                     bin_hi,
                     N_2d,
-                    space_vol_mpc3,
+                    vol_mpc3_data,
                     ccd_fit[space_name],
+                    zlo,
+                    zhi,
+                    vol_mpc3_model,
                 )
             )
 
         cmd_z_tuples = []
         for space_name, space in cmd_namedtuples.items():
             mag_idx, b, c = get_filt_indx(space_name, PhotFilters)
+            zlo, zhi = cmd_z[space_name]
+            z_sel = (z_best > zlo) & (z_best <= zhi)
 
             space_area_arcminsq = _get_space_area_arcminsq(
                 drn, space_name, drn / AREA_FILE
             )
             space_area_degsq = space_area_arcminsq / 3600
-            space_vol_mpc3 = zbin_volume(
-                space_area_degsq, zlow=z_min, zhigh=z_max
-            ).value
+            vol_mpc3_data = zbin_vol(space_area_degsq, zlo, zhi, cosmo_params)
+            vol_mpc3_model = zbin_vol(lc_sky_area_degsq, zlo, zhi, cosmo_params)
 
             sel = sels[:, mag_idx] & sels[:, b] & sels[:, c] & z_sel
             if "m" in space_name:
@@ -544,8 +590,11 @@ def get_minerva_phot(
                     bin_lo,
                     bin_hi,
                     N_2d,
-                    space_vol_mpc3,
+                    vol_mpc3_data,
                     cmd_fit[space_name],
+                    zlo,
+                    zhi,
+                    vol_mpc3_model,
                 )
             )
 
@@ -593,7 +642,7 @@ def get_minerva_phot_fitting_data(
     drn,
     ran_key,
     ssp_data,
-    spaces_at_z=SPACES_AT_Z_W_LINES,
+    spaces_at_z=SPACES_AT_Z,
     num_halos=150,
     lgmp_min=10.0,
     lgmp_max=15.0,
@@ -630,6 +679,7 @@ def get_minerva_halpha(
     lc_sky_area_degsq=100,
     n_z_phot_table=15,
     estimated_area_arcminsq=390,
+    cosmo_params=DEFAULT_COSMOLOGY,
 ):
     halpha_drn = Path(halpha_drn)
     estimated_area_degsq = estimated_area_arcminsq / 3600
@@ -657,7 +707,7 @@ def get_minerva_halpha(
         z_min = halpha["z_phot"].min()
         z_max = halpha["z_phot"].max()
 
-        data_vol_mpc3 = zbin_volume(estimated_area_degsq, zlow=z_min, zhigh=z_max).value
+        data_vol_mpc3 = zbin_vol(estimated_area_degsq, z_min, z_max, cosmo_params)
 
         lgLHa = jnp.log10(
             abs(halpha["L_Ha"].data)

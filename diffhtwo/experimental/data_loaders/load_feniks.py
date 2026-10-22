@@ -6,6 +6,7 @@ import jax.numpy as jnp
 import numpy as np
 from astropy.io import ascii
 from diffsky import diffndhist_lomem
+from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders.defaults import TransmissionCurve
 from scipy import optimize
 
@@ -17,7 +18,7 @@ from ..defaults import (
     FilterInfo,
 )
 from ..latin_hypercube import latin_hypercube as lh
-from ..lc_utils import zbin_volume
+from ..lc_utils import zbin_vol
 from ..lightcone_generators import generate_lc_data
 from ..utils import add_random_rows, load_feniks_tcurve
 from . import N_utils
@@ -178,6 +179,7 @@ def get_feniks_data(
     n_z_phot_table=30,
     add_random_rows_for_testing=False,
     testing=False,
+    cosmo_params=DEFAULT_COSMOLOGY,
 ):
     drn_path = Path(drn)
     phot = ascii.read(drn_path / phot)
@@ -415,7 +417,8 @@ def get_feniks_data(
     zbin = 0
     z_min = zbins[zbin][0]
     z_max = zbins[zbin][1]
-    space_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+    vol_mpc3_data = zbin_vol(FENIKS_AREA_DEG2, z_min, z_max, cosmo_params)
+    vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
 
     z_phot_table = 10 ** jnp.linspace(
         jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -447,7 +450,10 @@ def get_feniks_data(
         uds_H_tot,
         uds_K_tot,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         K_idx,
         dmag=d_mag_1d,
     )
@@ -461,7 +467,10 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         K_idx,
         dmag=d_mag_2d,
         gauss_sig=gauss_sig_2d,
@@ -478,7 +487,10 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         K_idx,
         dmag=d_mag_2d,
         gauss_sig=gauss_sig_2d,
@@ -495,7 +507,10 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         K_idx,
         dmag=d_mag_2d,
         gauss_sig=gauss_sig_2d,
@@ -512,7 +527,10 @@ def get_feniks_data(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         K_idx,
         dmag=d_mag_2d,
         gauss_sig=gauss_sig_2d,
@@ -563,7 +581,8 @@ def get_feniks_data(
         zbin = 1
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
-        space_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+        vol_mpc3_data = zbin_vol(FENIKS_AREA_DEG2, z_min, z_max, cosmo_params)
+        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -596,7 +615,10 @@ def get_feniks_data(
             uds_H_tot,
             uds_K_tot,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_1d,
         )
@@ -610,7 +632,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -627,7 +652,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -644,7 +672,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -661,7 +692,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -711,7 +745,8 @@ def get_feniks_data(
         zbin = 2
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
-        space_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+        vol_mpc3_data = zbin_vol(FENIKS_AREA_DEG2, z_min, z_max, cosmo_params)
+        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -744,7 +779,10 @@ def get_feniks_data(
             uds_H_tot,
             uds_K_tot,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_1d,
         )
@@ -758,7 +796,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -775,7 +816,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -792,7 +836,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -809,7 +856,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -867,7 +917,8 @@ def get_feniks_data(
         zbin = 3
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
-        space_vol_mpc3 = zbin_volume(FENIKS_AREA_DEG2, zlow=z_min, zhigh=z_max).value
+        vol_mpc3_data = zbin_vol(FENIKS_AREA_DEG2, z_min, z_max, cosmo_params)
+        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -900,7 +951,10 @@ def get_feniks_data(
             uds_H_tot,
             uds_K_tot,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_1d,
         )
@@ -914,7 +968,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -930,7 +987,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -947,7 +1007,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -964,7 +1027,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -981,7 +1047,10 @@ def get_feniks_data(
             z_sel,
             FeniksFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             K_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -1036,7 +1105,10 @@ def _get_mag_spaces_at_z(
     uds_H_tot,
     uds_K_tot,
     mag_sels,
-    space_vol_mpc3,
+    vol_mpc3_data,
+    z_min,
+    z_max,
+    vol_mpc3_model,
     parent_cut_idx,
     dmag=D_MAG_1d,
 ):
@@ -1047,7 +1119,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -1059,7 +1134,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -1071,7 +1149,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -1083,7 +1164,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -1095,7 +1179,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -1107,7 +1194,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -1119,7 +1209,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -1131,7 +1224,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         FeniksFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,

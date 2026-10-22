@@ -656,7 +656,7 @@ def plot_app_mag_funcs(
             dmag = bin_hi[0] - bin_lo[0]
 
             n_data = space.N_data / space.vol_mpc3_data
-            n_model = space.N_model / model.lc_data.lc_tot_vol_mpc3
+            n_model = space.N_model / space.vol_mpc3_model
 
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
@@ -830,7 +830,7 @@ def plot_app_mag_funcs_minerva(
             dmag = bin_hi[0] - bin_lo[0]
 
             n_data = space.N_data / space.vol_mpc3_data
-            n_model = space.N_model / model.lc_data.lc_tot_vol_mpc3
+            n_model = space.N_model / space.vol_mpc3_model
 
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=RuntimeWarning)
