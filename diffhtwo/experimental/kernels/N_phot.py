@@ -22,6 +22,7 @@ def N_colors_mags(
         z_data.lc_data,
         mag_thresh,
     )
+    z_obs = z_data.lc_data.z_obs
 
     obs_mags_ms = phot_data.obs_mags_ms
     obs_mags_q = phot_data.obs_mags_q
@@ -32,7 +33,6 @@ def N_colors_mags(
     weight_bursty = (1 - weight_q) * phot_data.burstiness_info_ms.p_burst
 
     fields = [f for f in z_data._fields if f not in {"z_min", "z_max", "lc_data"}]
-    mag_thresh = jnp.array(mag_thresh)
     for f in range(len(fields)):
         space = getattr(z_data, fields[f])
 
@@ -42,6 +42,9 @@ def N_colors_mags(
                 parent_cut_idx = space.parent_cut_idx
                 col_idx = space.col_idx
                 mag_idx = space.mag_idx
+                z_sel = ((z_obs > space.zlo) & (z_obs <= space.zhi)).astype(
+                    gal_weight.dtype
+                )
 
                 # ms
                 mag_ms = obs_mags_ms[:, mag_idx]
@@ -56,7 +59,7 @@ def N_colors_mags(
                 N_model_ms = diffndhist_lomem.tw_ndhist_weighted(
                     obs_mag_color_ms,
                     space.sig,
-                    gal_weight * weight_ms * mag_weight_space_ms,
+                    gal_weight * z_sel * weight_ms * mag_weight_space_ms,
                     space.bin_lo,
                     space.bin_hi,
                 )
@@ -74,7 +77,7 @@ def N_colors_mags(
                 N_model_q = diffndhist_lomem.tw_ndhist_weighted(
                     obs_mag_color_q,
                     space.sig,
-                    gal_weight * weight_q * mag_weight_space_q,
+                    gal_weight * z_sel * weight_q * mag_weight_space_q,
                     space.bin_lo,
                     space.bin_hi,
                 )
@@ -94,7 +97,7 @@ def N_colors_mags(
                 N_model_bursty = diffndhist_lomem.tw_ndhist_weighted(
                     obs_mag_color_bursty,
                     space.sig,
-                    gal_weight * weight_bursty * mag_weight_space_bursty,
+                    gal_weight * z_sel * weight_bursty * mag_weight_space_bursty,
                     space.bin_lo,
                     space.bin_hi,
                 )
@@ -108,6 +111,9 @@ def N_colors_mags(
                 # Apparent Magnitude space
                 parent_cut_idx = space.parent_cut_idx
                 mag_idx = space.mag_idx
+                z_sel = ((z_obs > space.zlo) & (z_obs <= space.zhi)).astype(
+                    gal_weight.dtype
+                )
 
                 # ms
                 obs_mag_ms = obs_mags_ms[:, mag_idx]
@@ -120,7 +126,7 @@ def N_colors_mags(
                 N_model_ms = diffndhist_lomem.tw_ndhist_weighted(
                     obs_mag_ms,
                     space.sig,
-                    gal_weight * weight_ms * mag_weight_space_ms,
+                    gal_weight * z_sel * weight_ms * mag_weight_space_ms,
                     space.bin_lo,
                     space.bin_hi,
                 )
@@ -136,7 +142,7 @@ def N_colors_mags(
                 N_model_q = diffndhist_lomem.tw_ndhist_weighted(
                     obs_mag_q,
                     space.sig,
-                    gal_weight * weight_q * mag_weight_space_q,
+                    gal_weight * z_sel * weight_q * mag_weight_space_q,
                     space.bin_lo,
                     space.bin_hi,
                 )
@@ -152,7 +158,7 @@ def N_colors_mags(
                 N_model_bursty = diffndhist_lomem.tw_ndhist_weighted(
                     obs_mag_bursty,
                     space.sig,
-                    gal_weight * weight_bursty * mag_weight_space_bursty,
+                    gal_weight * z_sel * weight_bursty * mag_weight_space_bursty,
                     space.bin_lo,
                     space.bin_hi,
                 )
@@ -167,6 +173,9 @@ def N_colors_mags(
             # Color-Color space
             parent_cut_idx = space.parent_cut_idx
             col_idx = space.col_idx
+            z_sel = ((z_obs > space.zlo) & (z_obs <= space.zhi)).astype(
+                gal_weight.dtype
+            )
 
             # ms
             obs_colors_ms = []
@@ -188,7 +197,7 @@ def N_colors_mags(
             N_model_ms = diffndhist_lomem.tw_ndhist_weighted(
                 obs_colors_ms,
                 space.sig,
-                gal_weight * weight_ms * mag_weight_space_ms,
+                gal_weight * z_sel * weight_ms * mag_weight_space_ms,
                 space.bin_lo,
                 space.bin_hi,
             )
@@ -211,7 +220,7 @@ def N_colors_mags(
             N_model_q = diffndhist_lomem.tw_ndhist_weighted(
                 obs_colors_q,
                 space.sig,
-                gal_weight * weight_q * mag_weight_space_q,
+                gal_weight * z_sel * weight_q * mag_weight_space_q,
                 space.bin_lo,
                 space.bin_hi,
             )
@@ -236,7 +245,7 @@ def N_colors_mags(
             N_model_bursty = diffndhist_lomem.tw_ndhist_weighted(
                 obs_colors_bursty,
                 space.sig,
-                gal_weight * weight_bursty * mag_weight_space_bursty,
+                gal_weight * z_sel * weight_bursty * mag_weight_space_bursty,
                 space.bin_lo,
                 space.bin_hi,
             )
