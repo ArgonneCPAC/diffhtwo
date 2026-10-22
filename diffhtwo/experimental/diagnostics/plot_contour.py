@@ -40,6 +40,14 @@ dusk = ListedColormap(
 )
 
 
+def _find_parent(spaces, field, z):
+    for sp in spaces:
+        s = getattr(sp, field, None)
+        if s is not None and np.allclose((s.zlo, s.zhi), z):
+            return sp
+    raise KeyError((field, z))
+
+
 def plot_density_raw(bin_lo, bin_hi, n, ax, xlabel, ylabel, cmap=dusk, norm=None):
     w = (bin_hi - bin_lo)[0]
     ix, iy = np.round((bin_lo - bin_lo.min(0)) / w).astype(int).T
@@ -313,12 +321,14 @@ def plot_color_contours(
 
     for z_data in data:
         model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
-        fields = [f for f in model._fields[3:] if "_" in f]
+        fields = [
+            f
+            for f in model._fields
+            if f not in {"z_min", "z_max", "lc_data"} and "_" in f
+        ]
 
         for field in fields:
             space = getattr(model, field)
-            if isinstance(space, list):
-                continue
 
             name = type(space).__name__
             xlabel, ylabel = parse_color_labels(name)
@@ -327,7 +337,7 @@ def plot_color_contours(
             fig.get_layout_engine().set(
                 h_pad=0.0, wspace=0.05, hspace=0.05, rect=(0, 0, 1, 0.92)
             )
-            ax.set_title(f"{model.z_min} < z < {model.z_max}", fontsize=fontsize)
+            ax.set_title(f"{space.zlo} < z < {space.zhi}", fontsize=fontsize)
 
             plot_density(
                 space.bin_lo,
@@ -375,7 +385,7 @@ def plot_color_contours(
             )
 
             fig.savefig(
-                f"{savedir}/{run_label}_{name}_{model.z_min}-{model.z_max}.png",
+                f"{savedir}/{run_label}_{name}_{space.zlo}-{space.zhi}.png",
                 dpi=600,
             )
             if plt_show:
@@ -399,7 +409,6 @@ def plot_cc_cm_grid_minerva(
     labelsize = 9
     fontsize = 10
 
-    by_z = {(sp.z_min, sp.z_max): sp for sp in spaces}
     if ncols:
         nrows, n_cols = -(-len(fields) // ncols), ncols
     else:
@@ -414,18 +423,21 @@ def plot_cc_cm_grid_minerva(
     for a in ax.ravel():
         a.axis("off")
 
+    models = {}
     for i, (z, z_fields) in enumerate(fields):
-        model = N_colors_mags(ran_key, param_collection, by_z[z], mag_thresh)
-
         for row, field in enumerate(z_fields):
-            space = getattr(model, field)
+            parent = _find_parent(spaces, field, z)
+            key = (parent.z_min, parent.z_max)
+            if key not in models:
+                models[key] = N_colors_mags(
+                    ran_key, param_collection, parent, mag_thresh
+                )
+            space = getattr(models[key], field)
             r, c = divmod(i, ncols) if ncols else (row, i)
             a = ax[r][c]
             a.axis("on")
             if ncols or row == 0:
-                a.set_title(
-                    f"{model.z_min} < z < {model.z_max}", fontsize=fontsize, y=0.99
-                )
+                a.set_title(f"{z[0]} < z < {z[1]}", fontsize=fontsize, y=0.99)
             xlabel, ylabel = parse_color_labels(type(space).__name__)
             qm = plot_density(
                 space.bin_lo,
@@ -503,21 +515,24 @@ def plot_cc_cm_grid_raw_minerva(
     labelsize = 9
     fontsize = 10
 
-    by_z = {(sp.z_min, sp.z_max): sp for sp in spaces}
     if ncols:
         nrows, n_cols = -(-len(fields) // ncols), ncols
     else:
         nrows, n_cols = max(len(f) for _, f in fields), len(fields)
 
+    models = {}
     panels, n_data, n_model = [], [], []
     for i, (z, z_fields) in enumerate(fields):
-        model = N_colors_mags(ran_key, param_collection, by_z[z], mag_thresh)
         for row, field in enumerate(z_fields):
-            space = getattr(model, field)
+            parent = _find_parent(spaces, field, z)
+            key = (parent.z_min, parent.z_max)
+            if key not in models:
+                models[key] = N_colors_mags(
+                    ran_key, param_collection, parent, mag_thresh
+                )
+            space = getattr(models[key], field)
             r, c = divmod(i, ncols) if ncols else (row, i)
-            title = (
-                f"{model.z_min} < z < {model.z_max}" if (ncols or row == 0) else None
-            )
+            title = f"{z[0]} < z < {z[1]}" if (ncols or row == 0) else None
             panels.append((r, c, space, title))
             n_data.append(space.N_data / space.vol_mpc3_data)
             n_model.append(space.N_model / space.vol_mpc3_model)
