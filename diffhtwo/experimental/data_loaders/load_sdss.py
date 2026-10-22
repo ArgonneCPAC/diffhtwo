@@ -4,6 +4,7 @@ import jax.numpy as jnp
 import numpy as np
 from diffsky import diffndhist_lomem
 from DisCoWebS.data_loader import sdss_loader as sdl
+from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders import load_transmission_curve
 
 from ..defaults import (
@@ -13,7 +14,7 @@ from ..defaults import (
     FilterInfo,
 )
 from ..latin_hypercube import latin_hypercube as lh
-from ..lc_utils import zbin_volume
+from ..lc_utils import zbin_vol
 from ..lightcone_generators import generate_lc_data
 from . import N_utils
 
@@ -173,6 +174,7 @@ def get_sdss_data(
     lgmp_max=15.0,
     lc_sky_area_degsq=100,
     n_z_phot_table=30,
+    cosmo_params=DEFAULT_COSMOLOGY,
 ):
     sdss_mag_thresh = SdssFilters(
         sdss_u=(15.0, 19.0),
@@ -271,7 +273,8 @@ def get_sdss_data(
     for zbin in range(0, len(zbins)):
         z_min = zbins[zbin][0]
         z_max = zbins[zbin][1]
-        space_vol_mpc3 = zbin_volume(sdss_area_deg2, zlow=z_min, zhigh=z_max).value
+        vol_mpc3_data = zbin_vol(sdss_area_deg2, z_min, z_max, cosmo_params)
+        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -300,7 +303,10 @@ def get_sdss_data(
             sdss_i,
             sdss_z,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             r_idx,
             dmag=d_mag_1d,
         )
@@ -314,7 +320,10 @@ def get_sdss_data(
             z_sel,
             SdssFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             r_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -330,7 +339,10 @@ def get_sdss_data(
             z_sel,
             SdssFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             r_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -347,7 +359,10 @@ def get_sdss_data(
             z_sel,
             SdssFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             r_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -364,7 +379,10 @@ def get_sdss_data(
             z_sel,
             SdssFilters,
             mag_sels,
-            space_vol_mpc3,
+            vol_mpc3_data,
+            z_min,
+            z_max,
+            vol_mpc3_model,
             r_idx,
             dmag=d_mag_2d,
             gauss_sig=gauss_sig_2d,
@@ -445,7 +463,10 @@ def _get_mag_spaces_at_z(
     sdss_i,
     sdss_z,
     mag_sels,
-    space_vol_mpc3,
+    vol_mpc3_data,
+    z_min,
+    z_max,
+    vol_mpc3_model,
     parent_cut_idx,
     dmag=0.1,
 ):
@@ -457,7 +478,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         SdssFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -471,7 +495,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         SdssFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -485,7 +512,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         SdssFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -499,7 +529,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         SdssFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
@@ -513,7 +546,10 @@ def _get_mag_spaces_at_z(
         z_sel,
         SdssFilters,
         mag_sels,
-        space_vol_mpc3,
+        vol_mpc3_data,
+        z_min,
+        z_max,
+        vol_mpc3_model,
         parent_cut_idx,
         dmag=dmag,
         fit=True,
