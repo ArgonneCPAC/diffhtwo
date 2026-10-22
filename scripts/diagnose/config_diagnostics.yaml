@@ -24,7 +24,7 @@ plot_feniks: False
 plot_hizels: False
 
 plot_minerva: True
-plot_minerva_halpha: True
+plot_minerva_halpha: False
 
 num_halos : 5000
 sky_area_degsq: 1.
@@ -43,10 +43,10 @@ defaults:
 plots:
   plot_app_mag_funcs: True
   plot_exsitu_frac_z0: False
-  plot_color_contours: True
+  plot_color_contours: False
   plot_mag_z: False
 
-  plot_uvlf: True
+  plot_uvlf: False
 
   plot_fburst_mh_z: False
   

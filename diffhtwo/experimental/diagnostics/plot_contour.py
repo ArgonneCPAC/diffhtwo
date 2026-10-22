@@ -89,7 +89,7 @@ def plot_cc_cm_grid_raw(
             space = getattr(model, field)
             panels.append((row, col, space))
             n_data.append(space.N_data / space.vol_mpc3_data)
-            n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
+            n_model.append(space.N_model / space.vol_mpc3_model)
 
     data_vals = np.concatenate([np.ravel(n) for n in n_data])
     vmin, vmax = data_vals.min(), data_vals.max()
@@ -248,7 +248,7 @@ def plot_cc_cm_grid(
                 ylabel,
                 dusk,
                 fontsize=fontsize,
-                n_model=space.N_model / model.lc_data.lc_tot_vol_mpc3,
+                n_model=space.N_model / space.vol_mpc3_model,
             )
             ax[row][col].minorticks_on()
             for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
@@ -338,7 +338,7 @@ def plot_color_contours(
                 ylabel,
                 dusk,
                 fontsize=fontsize,
-                n_model=space.N_model / model.lc_data.lc_tot_vol_mpc3,
+                n_model=space.N_model / space.vol_mpc3_model,
             )
 
             ax.minorticks_on()
@@ -436,7 +436,7 @@ def plot_cc_cm_grid_minerva(
                 ylabel,
                 dusk,
                 fontsize=fontsize,
-                n_model=space.N_model / model.lc_data.lc_tot_vol_mpc3,
+                n_model=space.N_model / space.vol_mpc3_model,
             )
 
             a.minorticks_on()
@@ -520,7 +520,7 @@ def plot_cc_cm_grid_raw_minerva(
             )
             panels.append((r, c, space, title))
             n_data.append(space.N_data / space.vol_mpc3_data)
-            n_model.append(space.N_model / model.lc_data.lc_tot_vol_mpc3)
+            n_model.append(space.N_model / space.vol_mpc3_model)
 
     data_vals = np.concatenate([np.ravel(n) for n in n_data])
     norm = LogNorm(data_vals.min(), data_vals.max())
