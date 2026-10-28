@@ -380,7 +380,7 @@ if __name__ == "__main__":
             ran_key,
             param_collection_fit,
             0.02,
-            2.0,
+            6.0,
             ssp_data,
             feniks.filter_info.tcurves,
             run_label,
@@ -1250,3 +1250,22 @@ if __name__ == "__main__":
             lgmp_max=lgmp_max,
             plt_show=False,
         )
+
+        if cfg["plots"]["plot_halpha_mstar"]:
+            print("Generating H-alpha Mstar plot...")
+            zbins_ha_mstar = [(1.5, 2.5), (2.5, 3.5), (3.5, 4.5), (4.5, 5.5)]
+
+            plot_halpha_mstar(
+                ran_key,
+                param_collection_fit,
+                zbins_ha_mstar,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                halpha_wave_aa,
+                num_halos * int(len(zbins_ha_mstar) / 2),
+                run_label,
+                fit_diagnostics_save_drn,
+                lgmp_min=lgmp_min,
+                lgmp_max=lgmp_max,
+                plt_show=False,
+            )

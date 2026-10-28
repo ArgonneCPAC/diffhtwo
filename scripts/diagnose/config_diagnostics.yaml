@@ -52,9 +52,9 @@ plots:
 
   plot_fburst_mh_z: False
   
-  plot_smhm: True
+  plot_smhm: False
   plot_sfms: False
-  plot_fq: False
+  plot_fq: True
 
   plot_color_z: False
   
