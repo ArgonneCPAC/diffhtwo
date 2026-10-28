@@ -41,9 +41,9 @@ defaults:
   merging: False
 
 plots:
-  plot_app_mag_funcs: True
+  plot_app_mag_funcs: False
   plot_exsitu_frac_z0: False
-  plot_color_contours: True
+  plot_color_contours: False
   plot_mag_z: False
 
   plot_uvlf: False
@@ -52,7 +52,7 @@ plots:
 
   plot_fburst_mh_z: False
   
-  plot_smhm: False
+  plot_smhm: True
   plot_sfms: False
   plot_fq: False
 

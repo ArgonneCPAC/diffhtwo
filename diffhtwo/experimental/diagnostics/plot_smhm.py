@@ -515,6 +515,7 @@ def plot_smhm_hexbin(
     lgmp_max=15.0,
     d_mh=0.15,
     cmap=cmap,
+    gridsize=(70, 60),
     plt_show=True,
 ):
     n_z_bins = len(zbins)
@@ -527,7 +528,6 @@ def plot_smhm_hexbin(
         constrained_layout=True,
         gridspec_kw={"wspace": 0, "hspace": 0},
     )
-    gridsize = (70, 60)
 
     hbs = []
     all_counts = []
@@ -558,16 +558,19 @@ def plot_smhm_hexbin(
         )
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
-        unmerged = phot_data.p_merge < 0.5
+        p_merge = phot_data.p_merge
+        merge_weight = gal_weight * (1 - p_merge)
+
+        unmerged = p_merge < 0.5
 
         reduce_C_function = make_thresholded_reduce_C_function(
-            gal_weight[unmerged], threshold=1e-8
+            merge_weight[unmerged], threshold=1e-8
         )
 
         hb = ax[zbin].hexbin(
             logmp_obs[unmerged],
             logsm_obs[unmerged],
-            C=gal_weight[unmerged],
+            C=merge_weight[unmerged],
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,
@@ -579,7 +582,10 @@ def plot_smhm_hexbin(
         logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
         logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
         _, logsm_obs_weighted_median, _ = _get_logsm_obs_weighted_median(
-            logmp_bins, logmp_obs[unmerged], logsm_obs[unmerged], gal_weight[unmerged]
+            logmp_bins,
+            logmp_obs[unmerged],
+            logsm_obs[unmerged],
+            merge_weight[unmerged],
         )
         ax[zbin].plot(
             logmp_bin_centers,
