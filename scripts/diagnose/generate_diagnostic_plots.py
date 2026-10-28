@@ -60,6 +60,7 @@ from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha_sfr_single_z,
     plot_halpha_ssfr,
 )
+from diffhtwo.experimental.diagnostics.plot_halpha_mass import plot_halpha_mstar
 from diffhtwo.experimental.diagnostics.plot_halpha_uv_ratio import (
     plot_halpha_uv_ratio,
     plot_halpha_uv_ratio_mass_z,
@@ -234,6 +235,25 @@ if __name__ == "__main__":
             label1="fit",
         )
 
+    if cfg["plots"]["plot_halpha_mstar"]:
+        print("Generating H-alpha Mstar plot...")
+        zbins_ha_mstar = [(0.3, 0.5), (0.7, 0.9), (1.3, 1.7), (2.0, 2.5)]
+
+        plot_halpha_mstar(
+            ran_key,
+            param_collection_fit,
+            zbins_ha_mstar,
+            ssp_data,
+            sdss.filter_info.tcurves,
+            halpha_wave_aa,
+            num_halos * int(len(zbins_ha_mstar) / 2),
+            run_label,
+            fit_diagnostics_save_drn,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            plt_show=False,
+        )
+
     if cfg["plots"]["plot_exsitu_frac_z0"]:
         print("Generating ex_situ_frac_z0 plot...")
         plot_ex_situ_frac_z0(
@@ -360,7 +380,7 @@ if __name__ == "__main__":
             ran_key,
             param_collection_fit,
             0.02,
-            6.0,
+            2.0,
             ssp_data,
             feniks.filter_info.tcurves,
             run_label,
