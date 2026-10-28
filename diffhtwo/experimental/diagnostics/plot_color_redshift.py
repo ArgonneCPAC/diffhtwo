@@ -36,6 +36,12 @@ def plot_color_z(
     gridsize=100,
     plt_show=True,
 ):
+    """
+    TODO:
+        This plot currently does not use the same appropriate mag cuts in model and data:
+            - Use mag_sels to get joint magcut for each panel in data
+            - Do the corresponfing for model using mag_thresh
+    """
     ran_key, lc_halo_key = jran.split(ran_key, 2)
     z_phot_table = np.linspace(z_min, z_max, 25)
     tcurves = dataset.filter_info.tcurves
@@ -83,7 +89,7 @@ def plot_color_z(
     fig.subplots_adjust(wspace=0, hspace=0, bottom=0.075, left=0.1, right=0.99, top=1)
 
     hbd_list, hb0_list, hb1_list, hb2_list, hb3_list = [], [], [], [], []
-    for f in range(0, n_colors):
+    for f in range(n_colors):
         ax[f][0].set_ylabel(dim_labels[f], fontsize=labelsize)
         color = phot_info.obs_mags[:, f] - phot_info.obs_mags[:, f + 1]
         data_col = dataset.dataset[:, f]
