@@ -1,12 +1,10 @@
 from collections import namedtuple
-from functools import partial
 
 import jax.numpy as jnp
 from diffsky import diffndhist_lomem
-from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from .phot_kern import get_colors_mags, mag_kern
+from .phot_kern import mag_kern
 
 
 @jjit
