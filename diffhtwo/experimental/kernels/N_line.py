@@ -33,9 +33,9 @@ def N_linelum(
     Lbin_lo = lg_Lbin_edges[:-1]
     Lbin_hi = lg_Lbin_edges[1:]
 
-    weight_q = phot_data.frac_q
-    weight_ms = (1 - weight_q) * (1 - phot_data.burstiness_info_ms.p_burst)
-    weight_bursty = (1 - weight_q) * phot_data.burstiness_info_ms.p_burst
+    weight_q = phot_data.weights_q
+    weight_ms = phot_data.weights_ms
+    weight_bursty = phot_data.weights_bursty
 
     # ms
     lg_linelum_ms = jnp.log10(photline_data.linelum_ms)
@@ -92,9 +92,9 @@ def N_linelum2(
 
     gal_weight = z_data.lc_data.cen_weight * z_data.lc_data.sat_weight
 
-    weight_q = phot_data.frac_q
-    weight_ms = (1 - weight_q) * (1 - phot_data.burstiness_info_ms.p_burst)
-    weight_bursty = (1 - weight_q) * phot_data.burstiness_info_ms.p_burst
+    weight_q = phot_data.weights_q
+    weight_ms = phot_data.weights_ms
+    weight_bursty = phot_data.weights_bursty
 
     # ms
     lg_linelum_ms = jnp.log10(photline_data.linelum_ms)
