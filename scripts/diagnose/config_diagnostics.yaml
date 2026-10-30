@@ -1,4 +1,4 @@
-model_drn: /Users/kumail/diffdir/fits/run354_merge_bugfix
+model_drn: /Users/kumail/diffdir/fits/run354
 model_nickname: run354_diffstarpop+spspop+merging
 fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run354_merge_bugfix/diagnostic_plots/diffstarpop+spspop+merging
 
