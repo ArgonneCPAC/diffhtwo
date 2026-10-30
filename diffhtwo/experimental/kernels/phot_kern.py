@@ -1,45 +1,9 @@
-from functools import partial
-
-import jax.numpy as jnp
-from diffsky import diffndhist_lomem
 from diffstar.defaults import FB
 from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
 from .cat_weight import compute_mag_weight
-from .gehrels_err import get_n_data_err
 from .lc_phot_kern import mc_phot_kern_merging_wrapper
-
-
-@jjit
-def get_colors_mags(
-    ran_key,
-    param_collection,
-    lc_data,
-    col_idx,
-    mag_idx,
-    mag_thresh,
-):
-    mags, gal_weight, mag_weight, phot_kern_results = mag_kern(
-        ran_key,
-        param_collection,
-        lc_data,
-        mag_thresh,
-    )
-    # collect colors and mags
-    n_gals, n_bands = mags.shape
-
-    obs_color_mag = mags[:, col_idx[0][0]] - mags[:, col_idx[0][1]]
-    for c in range(1, len(col_idx)):
-        obs_color_mag_curr = mags[:, col_idx[c][0]] - mags[:, col_idx[c][1]]
-        obs_color_mag = jnp.vstack((obs_color_mag, obs_color_mag_curr))
-
-    # beyond colors, additional lh dimensions holding apparent magnitudes
-    for m in range(0, len(mag_idx)):
-        obs_color_mag = jnp.vstack((obs_color_mag, mags[:, mag_idx[m]]))
-
-    obs_color_mag = obs_color_mag.T
-    return obs_color_mag, gal_weight, mag_weight, phot_kern_results
 
 
 @jjit
@@ -64,56 +28,3 @@ def mag_kern(
     mag_weight_bursty = compute_mag_weight(phot_data.obs_mags_bursty, mag_thresh)
 
     return gal_weight, mag_weight_ms, mag_weight_q, mag_weight_bursty, phot_data
-
-
-@partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
-def n_colors_mags_lh(
-    ran_key,
-    param_collection,
-    lc_data,
-    mag_columns,
-    mag_thresh_column,
-    mag_thresh,
-    lh_centroids,
-    d_centroids,
-    redshift_as_last_dimension_in_lh=False,
-    cosmo_params=DEFAULT_COSMOLOGY,
-):
-    obs_color_mag, gal_weight, mag_weight, phot_kern_results = get_colors_mags(
-        ran_key,
-        param_collection,
-        lc_data,
-        mag_columns,
-        mag_thresh_column,
-        mag_thresh,
-    )
-
-    # calculate number density in LH bins
-    sig = jnp.zeros(lh_centroids.shape) + (d_centroids / 2)
-    lh_centroids_lo = lh_centroids - (d_centroids / 2)
-    lh_centroids_hi = lh_centroids + (d_centroids / 2)
-
-    if redshift_as_last_dimension_in_lh:
-        z_obs = lc_data.z_obs.reshape(lc_data.z_obs.size, 1)
-        obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
-
-        N = diffndhist_lomem.tw_ndhist_weighted(
-            obs_color_mag,
-            sig,
-            gal_weight,
-            lh_centroids_lo,
-            lh_centroids_hi,
-        )
-        lg_n, lg_n_avg_err = get_n_data_err(N, lc_data.lh_vol_mpc3)
-
-    else:
-        N = diffndhist_lomem.tw_ndhist_weighted(
-            obs_color_mag,
-            sig,
-            gal_weight,
-            lh_centroids_lo,
-            lh_centroids_hi,
-        )
-        lg_n, lg_n_avg_err = get_n_data_err(N, lc_data.lc_tot_vol_mpc3)
-
-    return lg_n, lg_n_avg_err
