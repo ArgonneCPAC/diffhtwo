@@ -74,9 +74,6 @@ from diffhtwo.experimental.diagnostics.plot_mag_redshift import (
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
     plot_app_mag_funcs_minerva,
-    plot_color_pdfs,
-    plot_n_colors_mag,
-    plot_n_mags,
 )
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
 from diffhtwo.experimental.diagnostics.plot_sat import plot_merging_sat_colors
@@ -725,51 +722,6 @@ if __name__ == "__main__":
                     plt_show=False,
                 )
 
-            if cfg["plots"]["plot_color_pdfs"]:
-                print(
-                    f"Generating FENIKS color PDFs for {zbin+1}/{len(feniks_zbins)} z-bin..."
-                )
-                plot_color_pdfs(
-                    feniks,
-                    feniks_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
-            if cfg["plots"]["plot_colors_mags"]:
-                print(
-                    f"Generating FENIKS photometry plots for {zbin+1}/{len(feniks_zbins)} z-bin..."
-                )
-                plot_n_colors_mag(
-                    feniks,
-                    feniks_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
-            if cfg["plots"]["plot_mags"]:
-                plot_n_mags(
-                    feniks,
-                    feniks_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
             if cfg["plots"]["plot_ssperr"]:
                 print(
                     f"Generating FENIKS ssp error plot for {zbin+1}/{len(feniks_zbins)} z-bin..."
@@ -1020,51 +972,6 @@ if __name__ == "__main__":
                     fit_diagnostics_save_drn,
                     num_halos=num_halos,
                     plt_show=False,
-                )
-
-            if cfg["plots"]["plot_color_pdfs"]:
-                print(
-                    f"Generating SDSS color PDFs for {zbin+1}/{len(sdss_zbins)} z-bin..."
-                )
-                plot_color_pdfs(
-                    sdss,
-                    sdss_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
-            if cfg["plots"]["plot_colors_mags"]:
-                print(
-                    f"Generating SDSS photometry plots for {zbin+1}/{len(sdss_zbins)} z-bin..."
-                )
-                plot_n_colors_mag(
-                    sdss,
-                    sdss_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
-            if cfg["plots"]["plot_mags"]:
-                plot_n_mags(
-                    sdss,
-                    sdss_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_ssperr"]:
