@@ -80,7 +80,7 @@ def get_ex_situ_frac_median_v_sm(
     return ex_situ_frac_median
 
 
-def _get_logsm_obs_weighted_median(logmp_bins, logmp_obs, logsm_obs, gal_weight):
+def _get_logsm_obs_weighted_median(logmp_bins, logmp_obs, logsm_obs, weight):
     logsm_obs_weighted_l16 = []
     logsm_obs_weighted_median = []
     logsm_obs_weighted_u84 = []
@@ -88,9 +88,7 @@ def _get_logsm_obs_weighted_median(logmp_bins, logmp_obs, logsm_obs, gal_weight)
         in_bin = (logmp_obs > logmp_bins[b]) & (logmp_obs <= logmp_bins[b + 1])
 
         if in_bin.sum() > 0:
-            l16, median, u84 = weighted_percentiles(
-                logsm_obs[in_bin], gal_weight[in_bin]
-            )
+            l16, median, u84 = weighted_percentiles(logsm_obs[in_bin], weight[in_bin])
             logsm_obs_weighted_l16.append(l16)
             logsm_obs_weighted_median.append(median)
             logsm_obs_weighted_u84.append(u84)
@@ -220,17 +218,22 @@ def median_smhm_and_exsitu_frac(
         lgmp_max=lgmp_max,
         mc_merge=1,
     )
+    merge_weight = gal_weight * (1 - phot_data.p_merge)
 
     logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
     logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
 
     # cen+sat in+ex-situ
     _, logsm_obs_weighted_median, _ = _get_logsm_obs_weighted_median(
-        logmp_bins, lc_data.logmp_obs, phot_data.logsm_obs, gal_weight
+        logmp_bins, lc_data.logmp_obs, phot_data.logsm_obs, merge_weight
     )
 
     # cen in-situ
-    _, logsm_obs_weighted_median_cen_in_situ, _ = _get_logsm_obs_weighted_median(
+    (
+        _,
+        logsm_obs_weighted_median_cen_in_situ,
+        _,
+    ) = _get_logsm_obs_weighted_median(
         logmp_bins,
         lc_data.logmp_obs[lc_data.is_central == 1],
         phot_data.logsm_obs_in_situ[lc_data.is_central == 1],
@@ -242,24 +245,28 @@ def median_smhm_and_exsitu_frac(
         logmp_bins,
         lc_data.logmp_obs[lc_data.is_central == 1],
         phot_data.logsm_obs[lc_data.is_central == 1],
-        gal_weight[lc_data.is_central == 1],
+        merge_weight[lc_data.is_central == 1],
     )
 
     # sat in-situ
-    _, logsm_obs_weighted_median_sat_in_situ, _ = _get_logsm_obs_weighted_median(
+    (
+        _,
+        logsm_obs_weighted_median_sat_in_situ,
+        _,
+    ) = _get_logsm_obs_weighted_median(
         logmp_bins,
         lc_data.logmp_obs[lc_data.is_central != 1],
         phot_data.logsm_obs_in_situ[lc_data.is_central != 1],
         gal_weight[lc_data.is_central != 1],
     )
 
-    # sat post-merging (as sats don't accrete but only lose stellar mass, so no ex-situ)
+    # sat in+ex-situ [sat post-merging (as sats don't accrete but only lose stellar mass, so no ex-situ)]
     unmerged = phot_data.p_merge < 0.5
     _, logsm_obs_weighted_median_sat, _ = _get_logsm_obs_weighted_median(
         logmp_bins,
         lc_data.logmp_obs[(lc_data.is_central != 1) & unmerged],
         phot_data.logsm_obs[(lc_data.is_central != 1) & unmerged],
-        gal_weight[(lc_data.is_central != 1) & unmerged],
+        merge_weight[(lc_data.is_central != 1) & unmerged],
     )
 
     ex_situ_frac_median = get_ex_situ_frac_median_v_hm(

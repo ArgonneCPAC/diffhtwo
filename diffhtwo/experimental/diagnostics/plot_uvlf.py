@@ -1,8 +1,11 @@
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
+from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
+from ..kernels.lc_photline_kern import mc_photline_kern_merging_wrapper
 from ..kernels.line_dustfree import linelum_gal_dustfree
+from ..lc_utils import zbin_vol
 from ..lightcone_generators import generate_lc_data
 from ..tab_blue_orange_cmap import make_cmap
 from ..uv_luminosity import UV_FREQUENCY_HZ
@@ -22,6 +25,18 @@ LOGSM_OBS_MIN, LOGSM_OBS_MAX = 7.0, 12.5
 D_10pc_in_cm = 3.085677581491367e19
 
 
+def _compute_M_UV_from_L_UV(L_UV, D_10pc_in_cm=D_10pc_in_cm):
+    """
+    Input:
+        L_UV: UV Luminosity in erg/s
+    """
+
+    f_nu = L_UV / UV_FREQUENCY_HZ / (4 * np.pi * D_10pc_in_cm**2)
+    M_UV = -2.5 * np.log10(f_nu) - 48.6
+
+    return M_UV
+
+
 def plot_uvlf(
     ran_key,
     param_collection,
@@ -38,6 +53,8 @@ def plot_uvlf(
     num_halos=1000,
     bin_width=0.5,
     plt_show=True,
+    cosmo_params=DEFAULT_COSMOLOGY,
+    mc_merge=1,
 ):
     z_min, z_max = 1.5, 6.5
     zbin_edges = np.arange(z_min, z_max + 1, 1)
@@ -59,10 +76,12 @@ def plot_uvlf(
         ssp_data_uv,
         tcurves,
         z_phot_table,
+        cosmo_params=cosmo_params,
     )
     gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
-    dustfree_linelum_gal, phot_data = linelum_gal_dustfree(
+    # Dust-free
+    dustfree_linelum_gal, dustfree_phot_data = linelum_gal_dustfree(
         ran_key,
         lc_data,
         ssp_data_uv,
@@ -73,22 +92,28 @@ def plot_uvlf(
         param_collection.scatter_params,
         param_collection.ssperr_params,
         param_collection.merging_params,
+        mc_merge=mc_merge,
     )
-    unmerged = phot_data.p_merge < 0.5
+    dustfree_unmerged = dustfree_phot_data.p_merge < 0.5
+    dustfree_M_uv = _compute_M_UV_from_L_UV(dustfree_linelum_gal[:, 0])
 
-    L_uv = dustfree_linelum_gal[:, 0]  # UV Luminosity in erg/s
-    f_nu = L_uv / UV_FREQUENCY_HZ / (4 * np.pi * D_10pc_in_cm**2)
-    M_uv = -2.5 * np.log10(f_nu) - 48.6
+    # Dust-obscured
+    phot_data, phot_randoms, photline_data = mc_photline_kern_merging_wrapper(
+        ran_key,
+        param_collection,
+        lc_data,
+        line_wave_table_uv,
+        mc_merge=mc_merge,
+    )
+    M_uv = _compute_M_UV_from_L_UV(photline_data.linelum_gal[:, 0])
+    unmerged = phot_data.p_merge < 0.5
 
     labelsize = 11
     legendsize = 8
     alpha = 0.6
-
     colors = minerva_colors(n_zbins)
-
     bin_edges = np.arange(-23, -15, bin_width)
     bin_centers = 0.5 * (bin_edges[1:] + bin_edges[:-1])
-
     fig, ax = plt.subplots(1, figsize=(3.5, 3.5), constrained_layout=True)
 
     for zbin in range(n_zbins):
@@ -105,25 +130,39 @@ def plot_uvlf(
             ms=4,
         )
 
-        z_mask = (lc_data.z_obs > zbin_edges[zbin]) & (
-            lc_data.z_obs < zbin_edges[zbin + 1]
-        )
-        z_med = "z=" + str(np.median([zbin_edges[zbin], zbin_edges[zbin + 1]]))
+        z_min_current = zbin_edges[zbin]
+        z_max_current = zbin_edges[zbin + 1]
 
-        phi, _ = np.histogram(
-            M_uv[unmerged & z_mask],
-            weights=gal_weight[unmerged & z_mask]
-            * (1 / lc_data.lc_tot_vol_mpc3)
+        z_mask = (lc_data.z_obs > z_min_current) & (lc_data.z_obs < z_max_current)
+
+        z_med = "z=" + str(np.median([z_min_current, z_max_current]))
+
+        lc_tot_vol_mpc3 = zbin_vol(
+            lc_data.sky_area_degsq, z_min_current, z_max_current, cosmo_params
+        )
+        dustfree_phi, _ = np.histogram(
+            dustfree_M_uv[dustfree_unmerged & z_mask],
+            weights=gal_weight[dustfree_unmerged & z_mask]
+            * (1 / lc_tot_vol_mpc3)
             * (1 / bin_width),
             bins=bin_edges,
         )
         ax.plot(
             bin_centers,
-            phi,
+            dustfree_phi,
             color=colors[zbin],
             alpha=alpha,
             label=z_med,
         )
+
+        phi, _ = np.histogram(
+            M_uv[unmerged & z_mask],
+            weights=gal_weight[unmerged & z_mask]
+            * (1 / lc_tot_vol_mpc3)
+            * (1 / bin_width),
+            bins=bin_edges,
+        )
+        ax.plot(bin_centers, phi, color=colors[zbin], alpha=alpha, ls="--")
 
     ax.set_yscale("log")
     # ax.set_ylim(-5.0, -2.0)

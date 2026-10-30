@@ -19,11 +19,14 @@ def get_fq_sm(
     elif type == "sat":
         sel = lc_data.is_central != 1
 
-    unmerged = phot_data.p_merge < 0.5
+    p_merge = phot_data.p_merge
+    merge_weight = gal_weight * (1 - p_merge)
+
+    unmerged = p_merge < 0.5
 
     logsm_obs = logsm_obs[sel & unmerged]
     logsfr_obs = logsfr_obs[sel & unmerged]
-    gal_weight = gal_weight[sel & unmerged]
+    merge_weight = merge_weight[sel & unmerged]
 
     logssfr_obs = logsfr_obs - logsm_obs
 
@@ -40,8 +43,8 @@ def get_fq_sm(
     for b in range(0, len(logsm_bins) - 1):
         in_bin = (logsm_obs >= logsm_bins[b]) & (logsm_obs < logsm_bins[b + 1])
 
-        if gal_weight[in_bin].sum() > 0.0:
-            f_q = gal_weight[quenched & in_bin].sum() / gal_weight[in_bin].sum()
+        if merge_weight[in_bin].sum() > 0.0:
+            f_q = merge_weight[quenched & in_bin].sum() / merge_weight[in_bin].sum()
         else:
             f_q = 0.0
         fq_list.append(f_q)
@@ -69,12 +72,15 @@ def get_fq_hm(
     elif type == "sat":
         sel = lc_data.is_central != 1
 
-    unmerged = phot_data.p_merge < 0.5
+    p_merge = phot_data.p_merge
+    merge_weight = gal_weight * (1 - p_merge)
+
+    unmerged = p_merge < 0.5
 
     logmp_obs = lc_data.logmp_obs[sel & unmerged]
     logsm_obs = logsm_obs[sel & unmerged]
     logsfr_obs = logsfr_obs[sel & unmerged]
-    gal_weight = gal_weight[sel & unmerged]
+    merge_weight = merge_weight[sel & unmerged]
 
     logssfr_obs = logsfr_obs - logsm_obs
 
@@ -91,7 +97,7 @@ def get_fq_hm(
     for b in range(len(logmp_bins) - 1):
         in_bin = (logmp_obs >= logmp_bins[b]) & (logmp_obs < logmp_bins[b + 1])
 
-        f_q = gal_weight[quenched & in_bin].sum() / gal_weight[in_bin].sum()
+        f_q = merge_weight[quenched & in_bin].sum() / merge_weight[in_bin].sum()
         fq_list.append(f_q)
 
     f_q_arr = np.array(fq_list)

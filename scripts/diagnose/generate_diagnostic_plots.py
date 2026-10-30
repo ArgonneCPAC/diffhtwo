@@ -74,9 +74,6 @@ from diffhtwo.experimental.diagnostics.plot_mag_redshift import (
 from diffhtwo.experimental.diagnostics.plot_phot import (
     plot_app_mag_funcs,
     plot_app_mag_funcs_minerva,
-    plot_color_pdfs,
-    plot_n_colors_mag,
-    plot_n_mags,
 )
 from diffhtwo.experimental.diagnostics.plot_restframe_colors import plot_uvj
 from diffhtwo.experimental.diagnostics.plot_sat import plot_merging_sat_colors
@@ -235,25 +232,6 @@ if __name__ == "__main__":
             label1="fit",
         )
 
-    if cfg["plots"]["plot_halpha_mstar"]:
-        print("Generating H-alpha Mstar plot...")
-        zbins_ha_mstar = [(0.3, 0.5), (0.7, 0.9), (1.3, 1.7), (2.0, 2.5)]
-
-        plot_halpha_mstar(
-            ran_key,
-            param_collection_fit,
-            zbins_ha_mstar,
-            ssp_data,
-            sdss.filter_info.tcurves,
-            halpha_wave_aa,
-            num_halos * int(len(zbins_ha_mstar) / 2),
-            run_label,
-            fit_diagnostics_save_drn,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
-
     if cfg["plots"]["plot_exsitu_frac_z0"]:
         print("Generating ex_situ_frac_z0 plot...")
         plot_ex_situ_frac_z0(
@@ -380,7 +358,7 @@ if __name__ == "__main__":
             ran_key,
             param_collection_fit,
             0.02,
-            2.0,
+            6.0,
             ssp_data,
             feniks.filter_info.tcurves,
             run_label,
@@ -541,6 +519,24 @@ if __name__ == "__main__":
         #     lgmp_max=lgmp_max,
         #     plt_show=False,
         # )
+        if cfg["plots"]["plot_halpha_mstar"]:
+            print("Generating H-alpha Mstar plot...")
+            zbins_ha_mstar = [(0.3, 0.5), (0.7, 0.9), (1.3, 1.7), (2.0, 2.5)]
+
+            plot_halpha_mstar(
+                ran_key,
+                param_collection_fit,
+                zbins_ha_mstar,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                halpha_wave_aa,
+                num_halos * int(len(zbins_ha_mstar) / 2),
+                run_label,
+                fit_diagnostics_save_drn,
+                lgmp_min=lgmp_min,
+                lgmp_max=lgmp_max,
+                plt_show=False,
+            )
 
     """
     Plot FENIKS
@@ -724,51 +720,6 @@ if __name__ == "__main__":
                     fit_diagnostics_save_drn,
                     num_halos=num_halos,
                     plt_show=False,
-                )
-
-            if cfg["plots"]["plot_color_pdfs"]:
-                print(
-                    f"Generating FENIKS color PDFs for {zbin+1}/{len(feniks_zbins)} z-bin..."
-                )
-                plot_color_pdfs(
-                    feniks,
-                    feniks_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
-            if cfg["plots"]["plot_colors_mags"]:
-                print(
-                    f"Generating FENIKS photometry plots for {zbin+1}/{len(feniks_zbins)} z-bin..."
-                )
-                plot_n_colors_mag(
-                    feniks,
-                    feniks_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
-            if cfg["plots"]["plot_mags"]:
-                plot_n_mags(
-                    feniks,
-                    feniks_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
                 )
 
             if cfg["plots"]["plot_ssperr"]:
@@ -1023,51 +974,6 @@ if __name__ == "__main__":
                     plt_show=False,
                 )
 
-            if cfg["plots"]["plot_color_pdfs"]:
-                print(
-                    f"Generating SDSS color PDFs for {zbin+1}/{len(sdss_zbins)} z-bin..."
-                )
-                plot_color_pdfs(
-                    sdss,
-                    sdss_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
-            if cfg["plots"]["plot_colors_mags"]:
-                print(
-                    f"Generating SDSS photometry plots for {zbin+1}/{len(sdss_zbins)} z-bin..."
-                )
-                plot_n_colors_mag(
-                    sdss,
-                    sdss_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
-            if cfg["plots"]["plot_mags"]:
-                plot_n_mags(
-                    sdss,
-                    sdss_label,
-                    param_collection_fit,
-                    ran_key,
-                    z_min,
-                    z_max,
-                    ssp_data,
-                    fit_diagnostics_save_drn,
-                    num_halos=num_halos,
-                )
-
             if cfg["plots"]["plot_ssperr"]:
                 print(
                     f"Generating SDSS ssp error plot for {zbin+1}/{len(sdss_zbins)} z-bin..."
@@ -1132,6 +1038,10 @@ if __name__ == "__main__":
                     num_halos=num_halos,
                     plt_show=False,
                 )
+
+    """
+    Plot MINERVA
+    """
     if cfg["plot_minerva"]:
         minerva = load_minerva.get_minerva_phot(
             minerva_drn,
@@ -1235,18 +1145,37 @@ if __name__ == "__main__":
                 num_halos=num_halos,
                 plt_show=False,
             )
-    if cfg["plot_minerva_halpha"]:
-        print("Generating MINERVA halpha plot...")
-        plot_halpha_minerva(
-            ran_key,
-            minerva_halpha_drn,
-            param_collection_fit,
-            ssp_data,
-            halpha_wave_aa,
-            run_label,
-            fit_diagnostics_save_drn,
-            num_halos=num_halos,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+
+        if cfg["plots"]["plot_halpha_lf"]:
+            print("Generating MINERVA halpha plot...")
+            plot_halpha_minerva(
+                ran_key,
+                minerva_halpha_drn,
+                param_collection_fit,
+                ssp_data,
+                halpha_wave_aa,
+                run_label,
+                fit_diagnostics_save_drn,
+                num_halos=num_halos,
+                lgmp_min=lgmp_min,
+                lgmp_max=lgmp_max,
+                plt_show=False,
+            )
+
+        if cfg["plots"]["plot_halpha_mstar"]:
+            print("Generating H-alpha Mstar plot...")
+            zbins_ha_mstar = [(1.5, 2.5), (2.5, 3.5), (3.5, 4.5), (4.5, 5.5)]
+            plot_halpha_mstar(
+                ran_key,
+                param_collection_fit,
+                zbins_ha_mstar,
+                ssp_data,
+                sdss.filter_info.tcurves,
+                halpha_wave_aa,
+                num_halos * int(len(zbins_ha_mstar) / 2),
+                run_label,
+                fit_diagnostics_save_drn,
+                lgmp_min=lgmp_min,
+                lgmp_max=lgmp_max,
+                plt_show=False,
+            )

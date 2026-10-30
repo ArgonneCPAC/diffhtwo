@@ -97,20 +97,29 @@ def linelum_gal_dustfree(
         lc_data.halo_indx,
         mc_merge,
     )
-    mstar_in_situ, mstar_obs, flux_in_situ, flux_obs, flux_obs_weighted, p_merge = _res
+    (
+        mstar_in_situ,
+        mstar_obs,
+        flux_in_situ,
+        flux_obs,
+        flux_obs_ms,
+        flux_obs_q,
+        flux_obs_bursty,
+        p_merge,
+    ) = _res
 
-    args = (
+    phot_kern_results = phot_kernels._update_phot_kern_results_with_merging(
         phot_kern_results,
         mstar_in_situ,
         mstar_obs,
         flux_in_situ,
         flux_obs,
-        flux_obs_weighted,
+        flux_obs_ms,
+        flux_obs_q,
+        flux_obs_bursty,
         p_merge,
         merging_randoms.uran_pmerge,
     )
-    func = phot_kernels._update_phot_kern_results_with_merging
-    phot_kern_results = func(*args)
 
     dustfree_linelum_gal = compute_x_tot_from_x_in_situ(
         dustfree_linelum_gal_in_situ,

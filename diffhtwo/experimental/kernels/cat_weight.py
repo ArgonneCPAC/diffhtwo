@@ -4,22 +4,6 @@ from jax import jit as jjit
 
 
 @jjit
-def compute_cat_weight(gal_weight, obs_mags_weighted, mag_thresh, frac_cat=1.0):
-    mag_thresh = jnp.array(mag_thresh)
-    mag_weight = _bright_end_weight(
-        obs_mags_weighted[:, 0], mag_thresh[0][0]
-    ) * _faint_end_weight(obs_mags_weighted[:, 0], mag_thresh[0][1])
-
-    n_gals, n_bands = obs_mags_weighted.shape
-    for band in range(1, n_bands):
-        mag_weight *= _bright_end_weight(
-            obs_mags_weighted[:, band], mag_thresh[band][0]
-        ) * _faint_end_weight(obs_mags_weighted[:, band], mag_thresh[band][1])
-
-    return gal_weight * mag_weight * frac_cat
-
-
-@jjit
 def compute_mag_weight(obs_mags_weighted, mag_thresh):
     mag_thresh = jnp.array(mag_thresh)
 

@@ -6,8 +6,6 @@ from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from .kernels import igm
 from .lc_utils import zbin_vol
 
-N_SFH_TABLE = 100
-
 
 def generate_lc_data(
     ran_key,

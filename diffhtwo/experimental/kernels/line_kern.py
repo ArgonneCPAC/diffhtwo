@@ -20,6 +20,7 @@ def get_halpha_LF_q_ms_burst(
     num_halos=100,
     sky_area_degsq=10000,
     n_z_phot_table=15,
+    mc_merge=1,
 ):
     z_min = halpha_LF_z - (halpha_LF_delta_z / 2)
     z_max = halpha_LF_z + (halpha_LF_delta_z / 2)
@@ -37,49 +38,50 @@ def get_halpha_LF_q_ms_burst(
         line_wave_table,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
+        mc_merge=mc_merge,
     )
     phot_data, phot_randoms, photline_data, lc_data = _res
+    gal_weight = lc_data.cen_weight * lc_data.sat_weight
 
     linelum_gal = photline_data.linelum_gal
     linelum_gal_in_situ = photline_data.linelum_gal_in_situ
-    gal_weight = lc_data.cen_weight * lc_data.sat_weight
-    # p_merge = phot_kern_results.p_merge
 
     # get mc_is for q, ms, and burst
     mc_is_q, mc_is_ms, mc_is_burst = get_mc_is(
         param_collection, phot_randoms, phot_data
     )
 
-    # composite in-situ
+    # in-situ
     lg_halpha_LF_in_situ = get_lf_from_linelum(
         linelum_gal_in_situ, gal_weight, lg_halpha_Lbin_edges, lc_data
     )
 
-    # composite
+    # in+ex-situ
+    unmerged = phot_data.p_merge < 0.5
     lg_halpha_LF = get_lf_from_linelum(
-        linelum_gal, gal_weight, lg_halpha_Lbin_edges, lc_data
+        linelum_gal[unmerged], gal_weight[unmerged], lg_halpha_Lbin_edges, lc_data
     )
 
     # q
     lg_halpha_LF_q = get_lf_from_linelum(
-        linelum_gal[mc_is_q],
-        gal_weight[mc_is_q],
+        linelum_gal[mc_is_q & unmerged],
+        gal_weight[mc_is_q & unmerged],
         lg_halpha_Lbin_edges,
         lc_data,
     )
 
     # ms
     lg_halpha_LF_ms = get_lf_from_linelum(
-        linelum_gal[mc_is_ms],
-        gal_weight[mc_is_ms],
+        linelum_gal[mc_is_ms & unmerged],
+        gal_weight[mc_is_ms & unmerged],
         lg_halpha_Lbin_edges,
         lc_data,
     )
 
     # burst
     lg_halpha_LF_burst = get_lf_from_linelum(
-        linelum_gal[mc_is_burst],
-        gal_weight[mc_is_burst],
+        linelum_gal[mc_is_burst & unmerged],
+        gal_weight[mc_is_burst & unmerged],
         lg_halpha_Lbin_edges,
         lc_data,
     )

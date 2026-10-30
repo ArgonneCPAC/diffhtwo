@@ -5,7 +5,8 @@ from matplotlib.colors import LinearSegmentedColormap
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
 from ..kernels.sfr_tau import get_logsfr_tau
 from ..tab_blue_orange_cmap import make_cmap
-from ..utils import weighted_percentiles
+
+# from ..utils import weighted_percentiles
 from .plot_utils import make_thresholded_reduce_C_function, percentile_norm
 
 cmap = make_cmap()
@@ -34,42 +35,42 @@ calm_colors = [
 calm_cmap = LinearSegmentedColormap.from_list("calm_sage", calm_colors, N=256)
 
 
-def _get_logsfr_obs_weighted_mean(logsm_obs, logsfr_obs, gal_weight):
-    logsm_bins = np.arange(logsm_obs.min(), logsm_obs.max() + 0.25, 0.25)
-    logsm_bin_centers = (logsm_bins[:-1] + logsm_bins[1:]) / 2
+# def _get_logsfr_obs_weighted_mean(logsm_obs, logsfr_obs, gal_weight):
+#     logsm_bins = np.arange(logsm_obs.min(), logsm_obs.max() + 0.25, 0.25)
+#     logsm_bin_centers = (logsm_bins[:-1] + logsm_bins[1:]) / 2
 
-    logsfr_obs_weighted_mean = []
-    for b in range(0, len(logsm_bins) - 1):
-        in_bin = (logsm_obs > logsm_bins[b]) & (logsm_obs <= logsm_bins[b + 1])
-        logsfr_obs_weighted_mean.append(
-            np.nansum(logsfr_obs[in_bin] * gal_weight[in_bin])
-            / np.nansum(gal_weight[in_bin])
-        )
-    logsfr_obs_weighted_mean = np.array(logsfr_obs_weighted_mean)
+#     logsfr_obs_weighted_mean = []
+#     for b in range(0, len(logsm_bins) - 1):
+#         in_bin = (logsm_obs > logsm_bins[b]) & (logsm_obs <= logsm_bins[b + 1])
+#         logsfr_obs_weighted_mean.append(
+#             np.nansum(logsfr_obs[in_bin] * gal_weight[in_bin])
+#             / np.nansum(gal_weight[in_bin])
+#         )
+#     logsfr_obs_weighted_mean = np.array(logsfr_obs_weighted_mean)
 
-    return logsm_bin_centers, logsfr_obs_weighted_mean
+#     return logsm_bin_centers, logsfr_obs_weighted_mean
 
 
-def _get_logsfr_obs_weighted_median(logm_obs, logsfr_obs, gal_weight, t_obs, t_q):
-    sf = t_q > t_obs
+# def _get_logsfr_obs_weighted_median(logm_obs, logsfr_obs, gal_weight, t_obs, t_q):
+#     sf = t_q > t_obs
 
-    logm_bins = np.arange(logm_obs.min(), logm_obs.max() + 0.25, 0.25)
-    logm_bin_centers = (logm_bins[:-1] + logm_bins[1:]) / 2
+#     logm_bins = np.arange(logm_obs.min(), logm_obs.max() + 0.25, 0.25)
+#     logm_bin_centers = (logm_bins[:-1] + logm_bins[1:]) / 2
 
-    logsfr_obs_weighted_median = []
-    for b in range(0, len(logm_bins) - 1):
-        in_bin = (logm_obs > logm_bins[b]) & (logm_obs <= logm_bins[b + 1])
-        sel = in_bin & sf
+#     logsfr_obs_weighted_median = []
+#     for b in range(0, len(logm_bins) - 1):
+#         in_bin = (logm_obs > logm_bins[b]) & (logm_obs <= logm_bins[b + 1])
+#         sel = in_bin & sf
 
-        if sel.sum() > 0:
-            l16, median, u84 = weighted_percentiles(logsfr_obs[sel], gal_weight[sel])
-            logsfr_obs_weighted_median.append(median)
-        else:
-            logsfr_obs_weighted_median.append(np.nan)
+#         if sel.sum() > 0:
+#             l16, median, u84 = weighted_percentiles(logsfr_obs[sel], gal_weight[sel])
+#             logsfr_obs_weighted_median.append(median)
+#         else:
+#             logsfr_obs_weighted_median.append(np.nan)
 
-    logsfr_obs_weighted_median = np.array(logsfr_obs_weighted_median)
+#     logsfr_obs_weighted_median = np.array(logsfr_obs_weighted_median)
 
-    return logm_bin_centers, logsfr_obs_weighted_median
+#     return logm_bin_centers, logsfr_obs_weighted_median
 
 
 def plot_sfms_hexbin(
@@ -129,10 +130,13 @@ def plot_sfms_hexbin(
         logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
         logsm_obs = phot_data.logsm_obs
         logmp_obs = lc_data.logmp_obs
-        unmerged = phot_data.p_merge < 0.5
+        p_merge = phot_data.p_merge
+        merge_weight = gal_weight * (1 - p_merge)
+
+        unmerged = p_merge < 0.5
 
         reduce_C_function = make_thresholded_reduce_C_function(
-            gal_weight[unmerged], threshold=1e-6
+            merge_weight[unmerged], threshold=1e-6
         )
 
         z_med = np.median(zbins[zbin])
@@ -143,7 +147,7 @@ def plot_sfms_hexbin(
         hb_sm = ax[0, zbin].hexbin(
             logsm_obs[unmerged],
             logsfr_100Myr[unmerged],
-            C=gal_weight[unmerged],
+            C=merge_weight[unmerged],
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,
@@ -179,7 +183,7 @@ def plot_sfms_hexbin(
         hb_halo = ax[1, zbin].hexbin(
             logmp_obs[unmerged],
             logsfr_100Myr[unmerged],
-            C=gal_weight[unmerged],
+            C=merge_weight[unmerged],
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,

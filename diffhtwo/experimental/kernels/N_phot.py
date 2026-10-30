@@ -1,12 +1,10 @@
 from collections import namedtuple
-from functools import partial
 
 import jax.numpy as jnp
 from diffsky import diffndhist_lomem
-from dsps.cosmology import DEFAULT_COSMOLOGY
 from jax import jit as jjit
 
-from .phot_kern import get_colors_mags, mag_kern
+from .phot_kern import mag_kern
 
 
 @jjit
@@ -28,9 +26,9 @@ def N_colors_mags(
     obs_mags_q = phot_data.obs_mags_q
     obs_mags_bursty = phot_data.obs_mags_bursty
 
-    weight_q = phot_data.frac_q
-    weight_ms = (1 - weight_q) * (1 - phot_data.burstiness_info_ms.p_burst)
-    weight_bursty = (1 - weight_q) * phot_data.burstiness_info_ms.p_burst
+    weight_ms = phot_data.weights_ms
+    weight_q = phot_data.weights_q
+    weight_bursty = phot_data.weights_bursty
 
     fields = [f for f in z_data._fields if f not in {"z_min", "z_max", "lc_data"}]
     for f in range(len(fields)):
@@ -257,50 +255,3 @@ def N_colors_mags(
             z_data = z_data._replace(**{fields[f]: new})
 
     return z_data
-
-
-@partial(jjit, static_argnames=["redshift_as_last_dimension_in_lh"])
-def N_colors_mags_lh(
-    ran_key,
-    meta_data,
-    fitting_data,
-    param_collection,
-    redshift_as_last_dimension_in_lh=True,
-    cosmo_params=DEFAULT_COSMOLOGY,
-):
-    obs_color_mag, weights, mag_weight, phot_kern_results = get_colors_mags(
-        ran_key,
-        param_collection,
-        fitting_data.lc_data,
-        meta_data.col_idx,
-        meta_data.mag_idx,
-        meta_data.mag_thresh,
-    )
-
-    # calculate number density in LH bins
-    sig = jnp.zeros(fitting_data.lh_centroids.shape) + (fitting_data.d_centroids / 2)
-    lh_centroids_lo = fitting_data.lh_centroids - (fitting_data.d_centroids / 2)
-    lh_centroids_hi = fitting_data.lh_centroids + (fitting_data.d_centroids / 2)
-
-    if redshift_as_last_dimension_in_lh:
-        z_obs = fitting_data.lc_data.z_obs.reshape(fitting_data.lc_data.z_obs.size, 1)
-        obs_color_mag = jnp.hstack((obs_color_mag, z_obs))
-
-        N = diffndhist_lomem.tw_ndhist_weighted(
-            obs_color_mag,
-            sig,
-            weights,
-            lh_centroids_lo,
-            lh_centroids_hi,
-        )
-
-    else:
-        N = diffndhist_lomem.tw_ndhist_weighted(
-            obs_color_mag,
-            sig,
-            weights,
-            lh_centroids_lo,
-            lh_centroids_hi,
-        )
-
-    return N
