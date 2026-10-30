@@ -14,10 +14,7 @@ from jax import lax, value_and_grad, vmap
 from jax.example_libraries import optimizers as jax_opt
 
 from ..loss_kernels.emline_loss import _loss_emline_kern_multi_line_multi_z
-from ..loss_kernels.phot_loss import (
-    _loss_phot_kern,
-    _loss_phot_kern_2d_multiz,
-)
+from ..loss_kernels.phot_loss import _loss_phot_kern_2d_multiz
 
 _L_pk = (
     None,
