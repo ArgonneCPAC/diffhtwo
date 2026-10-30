@@ -97,7 +97,7 @@ def linelum_gal_dustfree(
         lc_data.halo_indx,
         mc_merge,
     )
-    mstar_in_situ, mstar_obs, flux_in_situ, flux_obs, flux_obs_weighted, p_merge = _res
+    mstar_in_situ, mstar_obs, flux_in_situ, flux_obs, p_merge = _res
 
     args = (
         phot_kern_results,
@@ -105,7 +105,6 @@ def linelum_gal_dustfree(
         mstar_obs,
         flux_in_situ,
         flux_obs,
-        flux_obs_weighted,
         p_merge,
         merging_randoms.uran_pmerge,
     )

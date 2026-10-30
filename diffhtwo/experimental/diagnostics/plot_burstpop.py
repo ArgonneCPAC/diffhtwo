@@ -85,10 +85,10 @@ def _lgfburst_weighted(arr):
     m_star = 10 ** arr[:, 0]
     f_burst = 10 ** arr[:, 1]
     p_burst = arr[:, 2]
-    gal_weight = arr[:, 3]
+    weight = arr[:, 3]
 
-    m_star_burst = np.sum(m_star * f_burst * p_burst * gal_weight)
-    m_star_tot = np.sum(m_star * gal_weight)
+    m_star_burst = np.sum(m_star * f_burst * p_burst * weight)
+    m_star_tot = np.sum(m_star * weight)
 
     lgfburst = np.log10(m_star_burst / m_star_tot)
 
@@ -130,6 +130,7 @@ def plot_lgfburst_smooth(
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
     )
+    merge_weight = gal_weight * (1 - phot_data.p_merge)
 
     if plot == "cen":
         sel = lc_data.is_central == 1
@@ -152,7 +153,7 @@ def plot_lgfburst_smooth(
             logsm_obs[sel],
             phot_data.lgfburst[sel],
             p_burst[sel],
-            gal_weight[sel],
+            merge_weight[sel],
         ]
     )
     fig_width = 7.1
@@ -303,6 +304,7 @@ def plot_lgfburst_hexbin(
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
     )
+    merge_weight = gal_weight * (1 - phot_data.p_merge)
 
     if plot == "cen":
         sel = lc_data.is_central == 1
@@ -325,7 +327,7 @@ def plot_lgfburst_hexbin(
             logsm_obs[sel],
             phot_data.lgfburst[sel],
             p_burst[sel],
-            gal_weight[sel],
+            merge_weight[sel],
         ]
     )
     fig_width = 7.1
