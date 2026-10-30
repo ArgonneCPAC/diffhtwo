@@ -28,9 +28,9 @@ def N_colors_mags(
     obs_mags_q = phot_data.obs_mags_q
     obs_mags_bursty = phot_data.obs_mags_bursty
 
-    weight_q = phot_data.frac_q
-    weight_ms = (1 - weight_q) * (1 - phot_data.burstiness_info_ms.p_burst)
-    weight_bursty = (1 - weight_q) * phot_data.burstiness_info_ms.p_burst
+    weight_ms = phot_data.weights_ms
+    weight_q = phot_data.weights_q
+    weight_bursty = phot_data.weights_bursty
 
     fields = [f for f in z_data._fields if f not in {"z_min", "z_max", "lc_data"}]
     for f in range(len(fields)):
