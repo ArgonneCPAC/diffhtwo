@@ -1,18 +1,12 @@
 import warnings
 from pathlib import Path
 
-import jax.numpy as jnp
 import numpy as np
-from diffstar.defaults import FB
-from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 from ..data_loaders.load_minerva import PhotFilters, get_filt_indx
 from ..kernels.N_phot import N_colors_mags
-from ..kernels.phot_kern import get_colors_mags, mag_kern
-from ..lc_utils import zbin_volume
-from ..lightcone_generators import generate_lc_data
 
 blue = "#1E90FF"  # DodgerBlue
 orange = "#FF8C00"  # DarkOrange
