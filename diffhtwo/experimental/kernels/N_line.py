@@ -116,7 +116,7 @@ def N_linelum2(
         z_data.lf_data.bin_hi,
     )
 
-    # ms
+    # bursty
     lg_linelum_bursty = jnp.log10(photline_data.linelum_bursty)
     N_linelum_bursty = diffndhist_lomem.tw_ndhist_weighted(
         lg_linelum_bursty,
