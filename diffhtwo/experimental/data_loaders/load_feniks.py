@@ -18,10 +18,17 @@ from ..defaults import (
     FilterInfo,
 )
 from ..latin_hypercube import latin_hypercube as lh
-from ..lc_utils import zbin_vol
 from ..lightcone_generators import generate_lc_data
 from ..utils import add_random_rows, load_feniks_tcurve
-from . import N_utils
+from .space_utils import (
+    AppMagFunc,
+    ColorColor,
+    MagColor,
+    get_ccd_spaces_at_z,
+    get_cmd_spaces_at_z,
+    get_mag_spaces_at_z,
+    split_space_entries,
+)
 
 BASE_PATH = Path(__file__).resolve().parent.parent
 FENIKS_FILTERS_PATH = BASE_PATH / "data" / "feniks_filters"
@@ -56,6 +63,92 @@ LH_D_Z = 0.3
 D_MAG_1d = 0.2
 D_MAG_2d = 0.2
 GAUSS_SIG_2d = 3.0
+zbins = np.array(
+    [
+        [0.4, 0.7],
+        [0.7, 1.0],
+        [1.0, 1.5],
+        [1.5, 2.0],
+    ]
+)
+SPACES_AT_Z = [
+    {
+        "z": (0.4, 0.7),
+        "md": [
+            ("U", True, (0.4, 0.7)),
+            ("G", True, (0.4, 0.7)),
+            ("R", True, (0.4, 0.7)),
+            ("I", True, (0.4, 0.7)),
+            ("Z", True, (0.4, 0.7)),
+            ("J", True, (0.4, 0.7)),
+            ("H", True, (0.4, 0.7)),
+            ("K", True, (0.4, 0.7)),
+        ],
+        "ccd": [("Gr_ri", True, (0.4, 0.7))],
+        "cmd": [
+            ("K_ri", True, (0.4, 0.7)),
+            ("K_gr", True, (0.4, 0.7)),
+            ("K_JH", True, (0.4, 0.7)),
+        ],
+    },
+    {
+        "z": (0.7, 1.0),
+        "md": [
+            ("U", True, (0.7, 1.0)),
+            ("G", True, (0.7, 1.0)),
+            ("R", True, (0.7, 1.0)),
+            ("I", True, (0.7, 1.0)),
+            ("Z", True, (0.7, 1.0)),
+            ("J", True, (0.7, 1.0)),
+            ("H", True, (0.7, 1.0)),
+            ("K", True, (0.7, 1.0)),
+        ],
+        "ccd": [("rz_zJ", True, (0.7, 1.0))],
+        "cmd": [
+            ("K_ug", True, (0.7, 1.0)),
+            ("K_rz", True, (0.7, 1.0)),
+            ("K_JH", True, (0.7, 1.0)),
+        ],
+    },
+    {
+        "z": (1.0, 1.5),
+        "md": [
+            ("U", True, (1.0, 1.5)),
+            ("G", True, (1.0, 1.5)),
+            ("R", True, (1.0, 1.5)),
+            ("I", True, (1.0, 1.5)),
+            ("Z", True, (1.0, 1.5)),
+            ("J", True, (1.0, 1.5)),
+            ("H", True, (1.0, 1.5)),
+            ("K", True, (1.0, 1.5)),
+        ],
+        "ccd": [("rz_zJ", True, (1.0, 1.5))],
+        "cmd": [
+            ("K_ug", True, (1.0, 1.5)),
+            ("K_rz", True, (1.0, 1.5)),
+            ("K_JH", True, (1.0, 1.5)),
+        ],
+    },
+    {
+        "z": (1.5, 2.0),
+        "md": [
+            ("U", True, (1.5, 2.0)),
+            ("G", True, (1.5, 2.0)),
+            ("R", True, (1.5, 2.0)),
+            ("I", True, (1.5, 2.0)),
+            ("Z", True, (1.5, 2.0)),
+            ("J", True, (1.5, 2.0)),
+            ("H", True, (1.5, 2.0)),
+            ("K", True, (1.5, 2.0)),
+        ],
+        "ccd": [("ZJ_JH", True, (1.5, 2.0)), ("Ug_gr", True, (1.5, 2.0))],
+        "cmd": [
+            ("K_ug", True, (1.5, 2.0)),
+            ("K_gr", True, (1.5, 2.0)),
+            ("K_JH", True, (1.5, 2.0)),
+        ],
+    },
+]
 
 
 def _power_law(x, A, B):
@@ -167,6 +260,7 @@ def get_feniks_data(
     drn,
     ran_key,
     ssp_data,
+    spaces_at_z=SPACES_AT_Z,
     d_mag_1d=D_MAG_1d,
     d_mag_2d=D_MAG_2d,
     gauss_sig_2d=GAUSS_SIG_2d,
@@ -310,7 +404,7 @@ def get_feniks_data(
     mag_sel_per_band = []
 
     K_mag_thresh = getattr(feniks_mag_thresh, "UDS_K")
-    K_idx = N_utils.filter_name_to_idx("UDS_K", FeniksFilters)
+    K_idx = FeniksFilters._fields.index("UDS_K")
     K_mag_sel = (mags[:, K_idx] > K_mag_thresh[0]) & (mags[:, K_idx] < K_mag_thresh[1])
     for f in range(len(FeniksFilters._fields)):
         feniks_filter = FeniksFilters._fields[f]
@@ -381,208 +475,30 @@ def get_feniks_data(
     ]
 
     ##############################################################################
-    # prepare 2D and 1D color spaces in z-bins for fitting
-    zbins = np.array(
-        [
-            [0.4, 0.7],
-            [0.7, 1.0],
-            [1.0, 1.5],
-            [1.5, 2.0],
-        ]
-    )
     spaces = []
-    ##############################################################################
-    # Z1 spaces:
+    z_bins = np.array([sp["z"] for sp in spaces_at_z])
+    for zbin in range(len(z_bins)):
+        z_min, z_max = z_bins[zbin]
 
-    Z1 = namedtuple(
-        "Z1",
-        [
-            "z_min",
-            "z_max",
-            "lc_data",
-            "u",
-            "g",
-            "r",
-            "i",
-            "z",
-            "J",
-            "H",
-            "K",
-            "gr_ri",
-            "K_ri",
-            "K_gr",
-            "K_JH",
-        ],
-    )
-    zbin = 0
-    z_min = zbins[zbin][0]
-    z_max = zbins[zbin][1]
-    vol_mpc3_data = zbin_vol(FENIKS_AREA_DEG2, z_min, z_max, cosmo_params)
-    vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
+        md, md_fit, md_z = split_space_entries(spaces_at_z[zbin].get("md", []))
+        ccd, ccd_fit, ccd_z = split_space_entries(spaces_at_z[zbin].get("ccd", []))
+        cmd, cmd_fit, cmd_z = split_space_entries(spaces_at_z[zbin].get("cmd", []))
 
-    z_phot_table = 10 ** jnp.linspace(
-        jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-    )
-    lc_args = (
-        ran_key,
-        num_halos,
-        z_min,
-        z_max,
-        lgmp_min,
-        lgmp_max,
-        lc_sky_area_degsq,
-        ssp_data,
-        tcurves,
-        z_phot_table,
-    )
+        mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
+        ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
+        cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
 
-    lc_data = generate_lc_data(*lc_args)
-
-    z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-    u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
-        z_sel,
-        megacam_uS_tot,
-        hsc_g_tot,
-        hsc_r_tot,
-        hsc_i_tot,
-        hsc_z_tot,
-        uds_J_tot,
-        uds_H_tot,
-        uds_K_tot,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        K_idx,
-        dmag=d_mag_1d,
-    )
-
-    # 2D (g - r, r - i)
-    gr_ri = N_utils.get_colorcolor_space(
-        "Gr_ri",
-        hsc_gr,
-        hsc_ri,
-        ["HSC_G", "HSC_R", "HSC_R", "HSC_I"],
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        K_idx,
-        dmag=d_mag_2d,
-        gauss_sig=gauss_sig_2d,
-        fit=True,
-    )
-
-    # 2D (K, r - i)
-    K_ri = N_utils.get_mag_color_space(
-        "K_ri",
-        uds_K_tot,
-        hsc_ri,
-        "UDS_K",
-        ["HSC_R", "HSC_I"],
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        K_idx,
-        dmag=d_mag_2d,
-        gauss_sig=gauss_sig_2d,
-        fit=True,
-    )
-
-    # 2D (K, g - r)
-    K_gr = N_utils.get_mag_color_space(
-        "K_gr",
-        uds_K_tot,
-        hsc_gr,
-        "UDS_K",
-        ["HSC_G", "HSC_R"],
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        K_idx,
-        dmag=d_mag_2d,
-        gauss_sig=gauss_sig_2d,
-        fit=True,
-    )
-
-    # 2D (K, J - H)
-    K_JH = N_utils.get_mag_color_space(
-        "K_JH",
-        uds_K_tot,
-        uds_JH,
-        "UDS_K",
-        ["UDS_J", "UDS_H"],
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        K_idx,
-        dmag=d_mag_2d,
-        gauss_sig=gauss_sig_2d,
-        fit=True,
-    )
-
-    z1 = Z1(
-        z_min,
-        z_max,
-        lc_data,
-        u,
-        g,
-        r,
-        i,
-        z,
-        j,
-        h,
-        k,
-        gr_ri,
-        K_ri,
-        K_gr,
-        K_JH,
-    )
-    spaces.append(z1)
-
-    ##############################################################################
-    if testing is False:
-        Z2a = namedtuple(
-            "Z2a",
+        Spaces = namedtuple(
+            "Spaces",
             [
                 "z_min",
                 "z_max",
                 "lc_data",
-                "u",
-                "g",
-                "r",
-                "i",
-                "z",
-                "J",
-                "H",
-                "K",
-                "rz_zJ",
-                "K_ug",
-                "K_rz",
-                "K_JH",
+                *mag_namedtuples,
+                *ccd_namedtuples,
+                *cmd_namedtuples,
             ],
         )
-        zbin = 1
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
-        vol_mpc3_data = zbin_vol(FENIKS_AREA_DEG2, z_min, z_max, cosmo_params)
-        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -602,480 +518,60 @@ def get_feniks_data(
 
         lc_data = generate_lc_data(*lc_args)
 
-        z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-
-        u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
-            z_sel,
-            megacam_uS_tot,
-            hsc_g_tot,
-            hsc_r_tot,
-            hsc_i_tot,
-            hsc_z_tot,
-            uds_J_tot,
-            uds_H_tot,
-            uds_K_tot,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_1d,
-        )
-
-        # 2D (r - z, z - J)
-        rz_zJ = N_utils.get_colorcolor_space(
-            "Rz_zJ",
-            hsc_rz,
-            hsc_uds_zJ,
-            ["HSC_R", "HSC_Z", "HSC_Z", "UDS_J"],
-            z_sel,
+        mag_z_tuples = get_mag_spaces_at_z(
+            mag_namedtuples,
             FeniksFilters,
+            md_z,
+            md_fit,
+            z_best,
             mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
+            mags,
             K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (K, u - g)
-        K_ug = N_utils.get_mag_color_space(
-            "K_ug",
-            uds_K_tot,
-            megacam_hsc_uSg,
-            "UDS_K",
-            ["MegaCam_uS", "HSC_G"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (K, r - z)
-        K_rz = N_utils.get_mag_color_space(
-            "K_rz",
-            uds_K_tot,
-            hsc_rz,
-            "UDS_K",
-            ["HSC_R", "HSC_Z"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (K, J - H)
-        K_JH = N_utils.get_mag_color_space(
-            "K_JH",
-            uds_K_tot,
-            uds_JH,
-            "UDS_K",
-            ["UDS_J", "UDS_H"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        z2a = Z2a(
-            z_min,
-            z_max,
-            lc_data,
-            u,
-            g,
-            r,
-            i,
-            z,
-            j,
-            h,
-            k,
-            rz_zJ,
-            K_ug,
-            K_rz,
-            K_JH,
-        )
-        spaces.append(z2a)
-
-        ##############################################################################
-        Z2b = namedtuple(
-            "Z2b",
-            [
-                "z_min",
-                "z_max",
-                "lc_data",
-                "u",
-                "g",
-                "r",
-                "i",
-                "z",
-                "J",
-                "H",
-                "K",
-                "rz_zJ",
-                "K_ug",
-                "K_rz",
-                "K_JH",
-            ],
-        )
-        zbin = 2
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
-        vol_mpc3_data = zbin_vol(FENIKS_AREA_DEG2, z_min, z_max, cosmo_params)
-        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
-
-        z_phot_table = 10 ** jnp.linspace(
-            jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-        )
-        lc_args = (
-            ran_key,
-            num_halos,
-            z_min,
-            z_max,
-            lgmp_min,
-            lgmp_max,
+            d_mag_1d,
             lc_sky_area_degsq,
-            ssp_data,
-            tcurves,
-            z_phot_table,
+            data_sky_area_degsq=FENIKS_AREA_DEG2,
         )
 
-        lc_data = generate_lc_data(*lc_args)
-
-        z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-
-        u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
-            z_sel,
-            megacam_uS_tot,
-            hsc_g_tot,
-            hsc_r_tot,
-            hsc_i_tot,
-            hsc_z_tot,
-            uds_J_tot,
-            uds_H_tot,
-            uds_K_tot,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_1d,
-        )
-
-        # 2D (r - z, z - J)
-        rz_zJ = N_utils.get_colorcolor_space(
-            "Rz_zJ",
-            hsc_rz,
-            hsc_uds_zJ,
-            ["HSC_R", "HSC_Z", "HSC_Z", "UDS_J"],
-            z_sel,
+        ccd_z_tuples = get_ccd_spaces_at_z(
+            ccd_namedtuples,
             FeniksFilters,
+            ccd_z,
+            ccd_fit,
+            z_best,
             mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
+            mags,
             K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (K, u - g)
-        K_ug = N_utils.get_mag_color_space(
-            "K_ug",
-            uds_K_tot,
-            megacam_hsc_uSg,
-            "UDS_K",
-            ["MegaCam_uS", "HSC_G"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (K, r - z)
-        K_rz = N_utils.get_mag_color_space(
-            "K_rz",
-            uds_K_tot,
-            hsc_rz,
-            "UDS_K",
-            ["HSC_R", "HSC_Z"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (K, J - H)
-        K_JH = N_utils.get_mag_color_space(
-            "K_JH",
-            uds_K_tot,
-            uds_JH,
-            "UDS_K",
-            ["UDS_J", "UDS_H"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        z2b = Z2b(
-            z_min,
-            z_max,
-            lc_data,
-            u,
-            g,
-            r,
-            i,
-            z,
-            j,
-            h,
-            k,
-            rz_zJ,
-            K_ug,
-            K_rz,
-            K_JH,
-        )
-        spaces.append(z2b)
-
-        ##############################################################################
-        # Z3 spaces:
-        # 2D (z - J, J - H)
-        # 2D (u - g, g - r)
-        # 2D (K, u - g)
-        # 2D (K, g - r)
-        # 2D (K, J − H): residual quenching scatter at fixed stellar mass
-
-        Z3 = namedtuple(
-            "Z3",
-            [
-                "z_min",
-                "z_max",
-                "lc_data",
-                "u",
-                "g",
-                "r",
-                "i",
-                "z",
-                "J",
-                "H",
-                "K",
-                "zJ_JH",
-                "ug_gr",
-                "K_ug",
-                "K_gr",
-                "K_JH",
-            ],
-        )
-        zbin = 3
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
-        vol_mpc3_data = zbin_vol(FENIKS_AREA_DEG2, z_min, z_max, cosmo_params)
-        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
-
-        z_phot_table = 10 ** jnp.linspace(
-            jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
-        )
-        lc_args = (
-            ran_key,
-            num_halos,
-            z_min,
-            z_max,
-            lgmp_min,
-            lgmp_max,
+            d_mag_2d,
+            gauss_sig_2d,
             lc_sky_area_degsq,
-            ssp_data,
-            tcurves,
-            z_phot_table,
+            data_sky_area_degsq=FENIKS_AREA_DEG2,
         )
 
-        lc_data = generate_lc_data(*lc_args)
-
-        z_sel = (zout["z_phot"] > z_min) & (zout["z_phot"] <= z_max)
-
-        u, g, r, i, z, j, h, k = _get_mag_spaces_at_z(
-            z_sel,
-            megacam_uS_tot,
-            hsc_g_tot,
-            hsc_r_tot,
-            hsc_i_tot,
-            hsc_z_tot,
-            uds_J_tot,
-            uds_H_tot,
-            uds_K_tot,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_1d,
-        )
-
-        # 2D (z - J, J - H)
-        zJ_JH = N_utils.get_colorcolor_space(
-            "ZJ_JH",
-            hsc_uds_zJ,
-            uds_JH,
-            ["HSC_Z", "UDS_J", "UDS_J", "UDS_H"],
-            z_sel,
+        cmd_z_tuples = get_cmd_spaces_at_z(
+            cmd_namedtuples,
             FeniksFilters,
+            cmd_z,
+            cmd_fit,
+            z_best,
             mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
+            mags,
             K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
+            d_mag_2d,
+            gauss_sig_2d,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=FENIKS_AREA_DEG2,
         )
 
-        # 2D (u - g, g - r)
-        ug_gr = N_utils.get_colorcolor_space(
-            "Ug_gr",
-            megacam_hsc_uSg,
-            hsc_gr,
-            ["MegaCam_uS", "HSC_G", "HSC_G", "HSC_R"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
+        spaces.append(
+            Spaces(
+                z_min,
+                z_max,
+                lc_data,
+                *mag_z_tuples,
+                *ccd_z_tuples,
+                *cmd_z_tuples,
+            )
         )
-
-        # 2D (K, u - g)
-        K_ug = N_utils.get_mag_color_space(
-            "K_ug",
-            uds_K_tot,
-            megacam_hsc_uSg,
-            "UDS_K",
-            ["MegaCam_uS", "HSC_G"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (K, g - r)
-        K_gr = N_utils.get_mag_color_space(
-            "K_gr",
-            uds_K_tot,
-            hsc_gr,
-            "UDS_K",
-            ["HSC_G", "HSC_R"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (K, J - H)
-        K_JH = N_utils.get_mag_color_space(
-            "K_JH",
-            uds_K_tot,
-            uds_JH,
-            "UDS_K",
-            ["UDS_J", "UDS_H"],
-            z_sel,
-            FeniksFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            K_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        z3 = Z3(
-            z_min,
-            z_max,
-            lc_data,
-            u,
-            g,
-            r,
-            i,
-            z,
-            j,
-            h,
-            k,
-            zJ_JH,
-            ug_gr,
-            K_ug,
-            K_gr,
-            K_JH,
-        )
-        spaces.append(z3)
 
     return Feniks(
         z_best,
@@ -1092,148 +588,6 @@ def get_feniks_data(
         mag_idx_lh_dim,
         dataset_dim_labels,
     )
-
-
-def _get_mag_spaces_at_z(
-    z_sel,
-    megacam_uS_tot,
-    hsc_g_tot,
-    hsc_r_tot,
-    hsc_i_tot,
-    hsc_z_tot,
-    uds_J_tot,
-    uds_H_tot,
-    uds_K_tot,
-    mag_sels,
-    vol_mpc3_data,
-    z_min,
-    z_max,
-    vol_mpc3_model,
-    parent_cut_idx,
-    dmag=D_MAG_1d,
-):
-    u = N_utils.get_mag_space(
-        "U",
-        megacam_uS_tot,
-        "MegaCam_uS",
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-    g = N_utils.get_mag_space(
-        "G",
-        hsc_g_tot,
-        "HSC_G",
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-    r = N_utils.get_mag_space(
-        "R",
-        hsc_r_tot,
-        "HSC_R",
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-    i = N_utils.get_mag_space(
-        "I",
-        hsc_i_tot,
-        "HSC_I",
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-    z = N_utils.get_mag_space(
-        "Z",
-        hsc_z_tot,
-        "HSC_Z",
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-    j = N_utils.get_mag_space(
-        "J",
-        uds_J_tot,
-        "UDS_J",
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-    h = N_utils.get_mag_space(
-        "H",
-        uds_H_tot,
-        "UDS_H",
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-    k = N_utils.get_mag_space(
-        "K",
-        uds_K_tot,
-        "UDS_K",
-        z_sel,
-        FeniksFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-
-    return u, g, r, i, z, j, h, k
 
 
 def get_feniks_fitting_data(
