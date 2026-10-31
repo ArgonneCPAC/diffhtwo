@@ -49,6 +49,8 @@ jobs:
           pip install --no-deps git+https://github.com/ArgonneCPAC/diffsky.git
           pip uninstall diffhalos --yes
           pip install --no-deps git+https://github.com/ArgonneCPAC/diffhalos.git@main
+          pip uninstall DisCoWebS --yes
+          pip install --no-deps git+https://github.com/ArgonneCPAC/DisCoWebS.git@main
 
           python -m pip install --no-build-isolation --no-deps -e .
 
