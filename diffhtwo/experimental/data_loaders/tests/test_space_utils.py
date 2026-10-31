@@ -1,7 +1,29 @@
+import numpy as np
+
 from ..load_feniks import FeniksFilters
 from ..load_minerva import MinervaFilters
 from ..load_sdss import SdssFilters
-from ..space_utils import get_filt_indx
+from ..space_utils import get_filt_indx, get_N_1d, get_N_2d
+
+
+def test_get_N_data(feniks, u_idx=0, g_idx=1, r_idx=2, K_idx=-1):
+    sel = feniks.mag_sels[:, K_idx]
+    mag_selected = feniks.mags[sel]
+
+    N_1d, sig, bin_lo, bin_hi = get_N_1d(mag_selected[:, K_idx])
+    assert np.isfinite(N_1d).all()
+    assert np.isfinite(sig).all()
+    assert np.isfinite(bin_lo).all()
+    assert np.isfinite(bin_hi).all()
+
+    color1 = mag_selected[:, u_idx] - mag_selected[:, g_idx]
+    color2 = mag_selected[:, g_idx] - mag_selected[:, r_idx]
+
+    N_2d, sig, bin_lo, bin_hi = get_N_2d(color1, color2)
+    assert np.isfinite(N_2d).all()
+    assert np.isfinite(sig).all()
+    assert np.isfinite(bin_lo).all()
+    assert np.isfinite(bin_hi).all()
 
 
 def test_get_filt_indx():
