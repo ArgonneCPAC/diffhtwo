@@ -1,5 +1,5 @@
 from ..load_feniks import FeniksFilters
-from ..load_minerva import PhotFilters
+from ..load_minerva import MinervaFilters
 from ..load_sdss import SdssFilters
 from ..space_utils import get_filt_indx
 
@@ -35,25 +35,25 @@ def test_get_filt_indx():
     assert get_filt_indx("K_ug", FeniksFilters) == [7, 0, 1]
 
     # minerva
-    (f435w_idx,) = get_filt_indx("f435w", PhotFilters)
-    (f606w_idx,) = get_filt_indx("f606w", PhotFilters)
-    (f814w_idx,) = get_filt_indx("f814w", PhotFilters)
-    (f090w_idx,) = get_filt_indx("f090w", PhotFilters)
-    (f115w_idx,) = get_filt_indx("f115w", PhotFilters)
-    (f140m_idx,) = get_filt_indx("f140m", PhotFilters)
-    (f150w_idx,) = get_filt_indx("f150w", PhotFilters)
-    (f162m_idx,) = get_filt_indx("f162m", PhotFilters)
-    (f182m_idx,) = get_filt_indx("f182m", PhotFilters)
-    (f200w_idx,) = get_filt_indx("f200w", PhotFilters)
-    (f210m_idx,) = get_filt_indx("f210m", PhotFilters)
-    (f250m_idx,) = get_filt_indx("f250m", PhotFilters)
-    (f277w_idx,) = get_filt_indx("f277w", PhotFilters)
-    (f300m_idx,) = get_filt_indx("f300m", PhotFilters)
-    (f356w_idx,) = get_filt_indx("f356w", PhotFilters)
-    (f360m_idx,) = get_filt_indx("f360m", PhotFilters)
-    (f410m_idx,) = get_filt_indx("f410m", PhotFilters)
-    (f444w_idx,) = get_filt_indx("f444w", PhotFilters)
-    (f460m_idx,) = get_filt_indx("f460m", PhotFilters)
+    (f435w_idx,) = get_filt_indx("f435w", MinervaFilters)
+    (f606w_idx,) = get_filt_indx("f606w", MinervaFilters)
+    (f814w_idx,) = get_filt_indx("f814w", MinervaFilters)
+    (f090w_idx,) = get_filt_indx("f090w", MinervaFilters)
+    (f115w_idx,) = get_filt_indx("f115w", MinervaFilters)
+    (f140m_idx,) = get_filt_indx("f140m", MinervaFilters)
+    (f150w_idx,) = get_filt_indx("f150w", MinervaFilters)
+    (f162m_idx,) = get_filt_indx("f162m", MinervaFilters)
+    (f182m_idx,) = get_filt_indx("f182m", MinervaFilters)
+    (f200w_idx,) = get_filt_indx("f200w", MinervaFilters)
+    (f210m_idx,) = get_filt_indx("f210m", MinervaFilters)
+    (f250m_idx,) = get_filt_indx("f250m", MinervaFilters)
+    (f277w_idx,) = get_filt_indx("f277w", MinervaFilters)
+    (f300m_idx,) = get_filt_indx("f300m", MinervaFilters)
+    (f356w_idx,) = get_filt_indx("f356w", MinervaFilters)
+    (f360m_idx,) = get_filt_indx("f360m", MinervaFilters)
+    (f410m_idx,) = get_filt_indx("f410m", MinervaFilters)
+    (f444w_idx,) = get_filt_indx("f444w", MinervaFilters)
+    (f460m_idx,) = get_filt_indx("f460m", MinervaFilters)
 
     assert (
         f435w_idx,
@@ -77,5 +77,5 @@ def test_get_filt_indx():
         f460m_idx,
     ) == tuple(range(19))
 
-    assert get_filt_indx("F090wF150w_F150wF356w", PhotFilters) == [3, 6, 6, 14]
-    assert get_filt_indx("F182m_F200wF182m", PhotFilters) == [8, 9, 8]
+    assert get_filt_indx("F090wF150w_F150wF356w", MinervaFilters) == [3, 6, 6, 14]
+    assert get_filt_indx("F182m_F200wF182m", MinervaFilters) == [8, 9, 8]
