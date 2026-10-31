@@ -1,6 +1,10 @@
 import matplotlib.pyplot as plt
 
-from ..data_loaders.load_minerva import PhotFilters, get_filt_indx, pick_line_emitters
+from ..data_loaders.load_minerva import (
+    MinervaFilters,
+    get_filt_indx,
+    pick_line_emitters,
+)
 from .plot_contour import parse_color_labels
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
@@ -38,7 +42,7 @@ def plot_line_emitters_minerva(
         print(space)
         xlabel, ylabel = parse_color_labels(space)
         z_min, z_max = minerva.spaces[idx].z_min, minerva.spaces[idx].z_max
-        mag_idx, b, c = get_filt_indx(space, PhotFilters)
+        mag_idx, b, c = get_filt_indx(space, MinervaFilters)
 
         MB = minerva.mags[:, mag_idx]
         BB = minerva.mags[:, b]

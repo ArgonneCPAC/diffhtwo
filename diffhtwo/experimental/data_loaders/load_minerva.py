@@ -264,7 +264,7 @@ def write_eazy_filters_to_h5(
     tcurves_fn = drn / tcurves_fn
 
     translate = dict(line.split() for line in open(translate_fn))
-    for minerva_filter in PhotFilters._fields:
+    for minerva_filter in MinervaFilters._fields:
         col_name = "f_" + minerva_filter
 
         # get tcurve
@@ -345,7 +345,7 @@ def get_minerva_phot(
     zout = zout[use_phot]
     z_best = z_best[use_phot].data
 
-    minerva_mag_thresh = PhotFilters(
+    minerva_mag_thresh = MinervaFilters(
         f435w=(20.0, 27.5),
         f606w=(20.0, 27.5),
         f814w=(19.0, 27.5),
@@ -375,7 +375,7 @@ def get_minerva_phot(
     f444w_mag_thresh = getattr(minerva_mag_thresh, "f444w")
     f444w_sel &= (f444w_mag > f444w_mag_thresh[0]) & (f444w_mag < f444w_mag_thresh[1])
 
-    f444w_idx = PhotFilters._fields.index("f444w")
+    f444w_idx = MinervaFilters._fields.index("f444w")
 
     tcurves = []
     mag_per_band = []
@@ -383,7 +383,7 @@ def get_minerva_phot(
     mag_labels = []
     sel_per_band = []
     tcurves = []
-    for minerva_filter in PhotFilters._fields:
+    for minerva_filter in MinervaFilters._fields:
         tcurve = load_transmission_curve(
             bn_pat=minerva_filter + "*", drn=MINERVA_FILTERS_PATH
         )
@@ -466,7 +466,7 @@ def get_minerva_phot(
             apply_igm=apply_igm,
             igm_drn=IGM_DRN,
             igm_bn=IGM_BN,
-            igm_filters_namedtuple=PhotFilters,
+            igm_filters_namedtuple=MinervaFilters,
             igm_filter_prefix="minerva_",
             logmp_cutoff=lgmp_min,
             cosmo_params=cosmo_params,
@@ -474,7 +474,7 @@ def get_minerva_phot(
 
         mag_z_tuples = get_mag_spaces_at_z(
             mag_namedtuples,
-            PhotFilters,
+            MinervaFilters,
             md_z,
             md_fit,
             z_best,
@@ -490,7 +490,7 @@ def get_minerva_phot(
 
         ccd_z_tuples = get_ccd_spaces_at_z(
             ccd_namedtuples,
-            PhotFilters,
+            MinervaFilters,
             ccd_z,
             ccd_fit,
             z_best,
@@ -507,7 +507,7 @@ def get_minerva_phot(
 
         cmd_z_tuples = get_cmd_spaces_at_z(
             cmd_namedtuples,
-            PhotFilters,
+            MinervaFilters,
             cmd_z,
             cmd_fit,
             z_best,
@@ -659,8 +659,8 @@ HalphaFilters = namedtuple(
 )
 
 
-PhotFilters = namedtuple(
-    "PhotFilters",
+MinervaFilters = namedtuple(
+    "MinervaFilters",
     [
         "f435w",
         "f606w",
