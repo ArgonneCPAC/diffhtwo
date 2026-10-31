@@ -1,33 +1,20 @@
 import numpy as np
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
-from jax import random as jran
 
-from ..phot_kern import mag_kern
+from ..N_phot import add_N_model_to_spaces
 
 
-def test_mag_kern(feniks):
-    ran_key = jran.key(0)
+def test_add_N_model_to_spaces(ran_key, feniks):
+    z_data = feniks.spaces[0]
+    spaces = [f for f in z_data._fields if f not in {"z_min", "z_max", "lc_data"}]
 
-    gal_weight, mag_weight_ms, mag_weight_q, mag_weight_bursty, phot_data = mag_kern(
+    z_data_w_model = add_N_model_to_spaces(
         ran_key,
         DEFAULT_PARAM_COLLECTION,
-        feniks.spaces[0].lc_data,
+        z_data,
         feniks.filter_info.mag_thresh,
     )
 
-    assert np.isfinite(gal_weight).all()
-
-    assert np.isfinite(mag_weight_ms).all()
-    assert np.isfinite(mag_weight_q).all()
-    assert np.isfinite(mag_weight_bursty).all()
-
-    assert np.isfinite(phot_data.obs_mags_ms).all()
-    assert np.isfinite(phot_data.obs_mags_q).all()
-    assert np.isfinite(phot_data.obs_mags_bursty).all()
-
-    assert np.isfinite(phot_data.weights_ms).all()
-    assert np.isfinite(phot_data.weights_q).all()
-    assert np.isfinite(phot_data.weights_bursty).all()
-
-    assert np.isfinite(phot_data.obs_mags).all()
-    assert np.isfinite(phot_data.obs_mags_in_situ).all()
+    for space_name in spaces:
+        space = getattr(z_data_w_model, space_name)
+        assert np.isfinite(space.N_model).all()

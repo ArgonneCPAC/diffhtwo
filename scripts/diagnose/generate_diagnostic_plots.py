@@ -232,6 +232,27 @@ if __name__ == "__main__":
             label1="fit",
         )
 
+    if cfg["plots"]["plot_uvlf"]:
+        print("Generating UVLF plot...")
+        ssp_data_uv = load_ssp_templates(fn=ssp_filename)
+        ssp_data_uv = append_uv_luminosity_to_ssp_data(ssp_data_uv)
+        ssp_data_uv = lemi.get_subset_emline_data(ssp_data_uv, ["UV"])
+        line_wave_table_uv = jnp.array(ssp_data_uv.ssp_emline_wave)
+        plot_uvlf(
+            ran_key,
+            param_collection_fit,
+            line_wave_table_uv,
+            ssp_data_uv,
+            sdss.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            cfg["bouwens21_drn"],
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            num_halos=num_halos * 2,
+            plt_show=False,
+        )
+
     if cfg["plots"]["plot_exsitu_frac_z0"]:
         print("Generating ex_situ_frac_z0 plot...")
         plot_ex_situ_frac_z0(
@@ -1124,26 +1145,6 @@ if __name__ == "__main__":
                 plt_show=False,
                 ncols=4,
                 tag="_emitters",
-            )
-        if cfg["plots"]["plot_uvlf"]:
-            print("Generating UVLF plot...")
-            ssp_data_uv = load_ssp_templates(fn=ssp_filename)
-            ssp_data_uv = append_uv_luminosity_to_ssp_data(ssp_data_uv)
-            ssp_data_uv = lemi.get_subset_emline_data(ssp_data_uv, ["UV"])
-            line_wave_table_uv = jnp.array(ssp_data_uv.ssp_emline_wave)
-            plot_uvlf(
-                ran_key,
-                param_collection_fit,
-                line_wave_table_uv,
-                ssp_data_uv,
-                minerva.filter_info.tcurves,
-                run_label,
-                fit_diagnostics_save_drn,
-                cfg["bouwens21_drn"],
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                num_halos=num_halos,
-                plt_show=False,
             )
 
         if cfg["plots"]["plot_halpha_lf"]:

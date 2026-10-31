@@ -7,7 +7,7 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap, ListedColormap, LogNorm
 from scipy.ndimage import gaussian_filter
 
-from ..kernels.N_phot import N_colors_mags
+from ..kernels.N_phot import add_N_model_to_spaces
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 plt.rc(
@@ -91,7 +91,7 @@ def plot_cc_cm_grid_raw(
     n_data = []
     n_model = []
     for col, (data, fields, mag_thresh) in enumerate(sources):
-        model = N_colors_mags(ran_key, param_collection, data, mag_thresh)
+        model = add_N_model_to_spaces(ran_key, param_collection, data, mag_thresh)
         models.append(model)
         for row, field in enumerate(fields):
             space = getattr(model, field)
@@ -240,7 +240,7 @@ def plot_cc_cm_grid(
     )
 
     for col, (data, fields, mag_thresh) in enumerate(sources):
-        model = N_colors_mags(ran_key, param_collection, data, mag_thresh)
+        model = add_N_model_to_spaces(ran_key, param_collection, data, mag_thresh)
         ax[0][col].set_title(
             f"{model.z_min} < z < {model.z_max}", fontsize=fontsize, y=0.99
         )
@@ -320,7 +320,7 @@ def plot_color_contours(
     fontsize = 10
 
     for z_data in data:
-        model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
+        model = add_N_model_to_spaces(ran_key, param_collection, z_data, mag_thresh)
         fields = [
             f
             for f in model._fields
@@ -429,7 +429,7 @@ def plot_cc_cm_grid_minerva(
             parent = _find_parent(spaces, field, z)
             key = (parent.z_min, parent.z_max)
             if key not in models:
-                models[key] = N_colors_mags(
+                models[key] = add_N_model_to_spaces(
                     ran_key, param_collection, parent, mag_thresh
                 )
             space = getattr(models[key], field)
@@ -527,7 +527,7 @@ def plot_cc_cm_grid_raw_minerva(
             parent = _find_parent(spaces, field, z)
             key = (parent.z_min, parent.z_max)
             if key not in models:
-                models[key] = N_colors_mags(
+                models[key] = add_N_model_to_spaces(
                     ran_key, param_collection, parent, mag_thresh
                 )
             space = getattr(models[key], field)

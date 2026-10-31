@@ -7,16 +7,18 @@ from DisCoWebS.data_loader import sdss_loader as sdl
 from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 from dsps.data_loaders import load_transmission_curve
 
-from ..defaults import (
-    SDSS_MAGR_THRESH,
-    SDSS_Z_MAX,
-    SDSS_Z_MIN,
-    FilterInfo,
-)
+from ..defaults import SDSS_MAGR_THRESH, SDSS_Z_MAX, SDSS_Z_MIN, FilterInfo
 from ..latin_hypercube import latin_hypercube as lh
-from ..lc_utils import zbin_vol
 from ..lightcone_generators import generate_lc_data
-from . import N_utils
+from .space_utils import (
+    AppMagFunc,
+    ColorColor,
+    MagColor,
+    get_ccd_spaces_at_z,
+    get_cmd_spaces_at_z,
+    get_mag_spaces_at_z,
+    split_space_entries,
+)
 
 Sdss = namedtuple(
     "Sdss",
@@ -44,6 +46,33 @@ LH_D_Z = 0.025
 
 F_HOLES = 0.003531  # hole fraction with rmax=0.3 degrees
 
+SPACES_AT_Z = [
+    {
+        "z": (0.02, 0.1),
+        "md": [
+            ("u", True, (0.02, 0.1)),
+            ("g", True, (0.02, 0.1)),
+            ("r", True, (0.02, 0.1)),
+            ("i", True, (0.02, 0.1)),
+            ("z", True, (0.02, 0.1)),
+        ],
+        "ccd": [("Ur_ri", True, (0.02, 0.1)), ("Gr_ri", True, (0.02, 0.1))],
+        "cmd": [("R_ur", True, (0.02, 0.1)), ("R_ri", True, (0.02, 0.1))],
+    },
+    {
+        "z": (0.1, 0.2),
+        "md": [
+            ("u", True, (0.1, 0.2)),
+            ("g", True, (0.1, 0.2)),
+            ("r", True, (0.1, 0.2)),
+            ("i", True, (0.1, 0.2)),
+            ("z", True, (0.1, 0.2)),
+        ],
+        "ccd": [("Ur_ri", True, (0.1, 0.2)), ("Gr_ri", True, (0.1, 0.2))],
+        "cmd": [("R_ur", True, (0.1, 0.2)), ("R_ri", True, (0.1, 0.2))],
+    },
+]
+
 
 def apply_ra_dec_cut(
     sdss, ra_min=120, ra_max=240, dec_min=0, dec_max=60, f_holes=F_HOLES
@@ -62,7 +91,7 @@ def apply_ra_dec_cut(
 def load_sdss_cuts_applied(drn, sdss_mag_thresh):
     sdss = sdl.load_sdss_cat(drn, apply_cuts=False)
 
-    sdss, sdss_area_deg2 = apply_ra_dec_cut(sdss)
+    sdss, sdss_area_degsq = apply_ra_dec_cut(sdss)
 
     mag_sel_u = (
         (sdss["modelMag_u"] > sdss_mag_thresh.sdss_u[0])
@@ -95,9 +124,9 @@ def load_sdss_cuts_applied(drn, sdss_mag_thresh):
     mag_sels = [mag_sel_u, mag_sel_g, mag_sel_r, mag_sel_i, mag_sel_z]
     mag_sels = np.vstack(mag_sels).T
 
-    r_idx = N_utils.filter_name_to_idx("sdss_r", SdssFilters)
+    r_idx = SdssFilters._fields.index("sdss_r")
 
-    return sdss, mag_sels, sdss_area_deg2, r_idx
+    return sdss, mag_sels, sdss_area_degsq, r_idx
 
 
 def compute_sky_area_deg2(ra_min, ra_max, dec_min, dec_max):
@@ -166,6 +195,7 @@ def get_sdss_data(
     drn,
     ran_key,
     ssp_data,
+    spaces_at_z=SPACES_AT_Z,
     d_mag_1d=0.1,
     d_mag_2d=0.05,
     gauss_sig_2d=3.0,
@@ -183,7 +213,9 @@ def get_sdss_data(
         sdss_i=(12.5, 17.5),
         sdss_z=(12.5, 17.5),
     )
-    sdss, mag_sels, sdss_area_deg2, r_idx = load_sdss_cuts_applied(drn, sdss_mag_thresh)
+    sdss, mag_sels, sdss_area_degsq, r_idx = load_sdss_cuts_applied(
+        drn, sdss_mag_thresh
+    )
 
     tcurves = []
     for bn_pat in SdssFilters._fields:
@@ -210,7 +242,7 @@ def get_sdss_data(
     # derive colors from mags
     sdss_ug = sdss_u - sdss_g
     sdss_gr = sdss_g - sdss_r
-    sdss_ur = sdss_u - sdss_r
+    # sdss_ur = sdss_u - sdss_r
     sdss_ri = sdss_r - sdss_i
     sdss_iz = sdss_i - sdss_z
 
@@ -243,38 +275,30 @@ def get_sdss_data(
     mag_idx_lh_dim = [2]  # r
 
     ##############################################################################
-    # prepare 2D and 1D color spaces in coarse z-bins for fitting
-    zbins = np.array(
-        [
-            [0.02, 0.1],
-            [0.1, 0.2],
-        ]
-    )
-    ##############################################################################
-    Spaces = namedtuple(
-        "Spaces",
-        [
-            "z_min",
-            "z_max",
-            "lc_data",
-            "u",
-            "g",
-            "r",
-            "i",
-            "z",
-            "ur_ri",
-            "gr_ri",
-            "r_ur",
-            "r_ri",
-        ],
-    )
-
     spaces = []
-    for zbin in range(0, len(zbins)):
-        z_min = zbins[zbin][0]
-        z_max = zbins[zbin][1]
-        vol_mpc3_data = zbin_vol(sdss_area_deg2, z_min, z_max, cosmo_params)
-        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, z_min, z_max, cosmo_params)
+    z_bins = np.array([sp["z"] for sp in spaces_at_z])
+    for zbin in range(len(z_bins)):
+        z_min, z_max = z_bins[zbin]
+
+        md, md_fit, md_z = split_space_entries(spaces_at_z[zbin].get("md", []))
+        ccd, ccd_fit, ccd_z = split_space_entries(spaces_at_z[zbin].get("ccd", []))
+        cmd, cmd_fit, cmd_z = split_space_entries(spaces_at_z[zbin].get("cmd", []))
+
+        mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
+        ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
+        cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
+
+        Spaces = namedtuple(
+            "Spaces",
+            [
+                "z_min",
+                "z_max",
+                "lc_data",
+                *mag_namedtuples,
+                *ccd_namedtuples,
+                *cmd_namedtuples,
+            ],
+        )
 
         z_phot_table = 10 ** jnp.linspace(
             jnp.log10(z_min), jnp.log10(z_max), n_z_phot_table
@@ -294,99 +318,48 @@ def get_sdss_data(
 
         lc_data = generate_lc_data(*lc_args)
 
-        z_sel = (redshift > z_min) & (redshift <= z_max)
-        mag_u, mag_g, mag_r, mag_i, mag_z = _get_mag_spaces_at_z(
-            z_sel,
-            sdss_u,
-            sdss_g,
-            sdss_r,
-            sdss_i,
-            sdss_z,
+        mag_z_tuples = get_mag_spaces_at_z(
+            mag_namedtuples,
+            SdssFilters,
+            md_z,
+            md_fit,
+            redshift,
             mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
+            mags,
             r_idx,
-            dmag=d_mag_1d,
+            d_mag_1d,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=sdss_area_degsq,
         )
 
-        # 2D (u - r, r - i)
-        ur_ri = N_utils.get_colorcolor_space(
-            "Ur_ri",
-            sdss_ur,
-            sdss_ri,
-            ["sdss_u", "sdss_r", "sdss_r", "sdss_i"],
-            z_sel,
+        ccd_z_tuples = get_ccd_spaces_at_z(
+            ccd_namedtuples,
             SdssFilters,
+            ccd_z,
+            ccd_fit,
+            redshift,
             mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
+            mags,
             r_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
+            d_mag_2d,
+            gauss_sig_2d,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=sdss_area_degsq,
         )
 
-        # 2D (g - r, r - i)
-        gr_ri = N_utils.get_colorcolor_space(
-            "Gr_ri",
-            sdss_gr,
-            sdss_ri,
-            ["sdss_g", "sdss_r", "sdss_r", "sdss_i"],
-            z_sel,
+        cmd_z_tuples = get_cmd_spaces_at_z(
+            cmd_namedtuples,
             SdssFilters,
+            cmd_z,
+            cmd_fit,
+            redshift,
             mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
+            mags,
             r_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (r, u - r)
-        r_ur = N_utils.get_mag_color_space(
-            "R_ur",
-            sdss_r,
-            sdss_ur,
-            "sdss_r",
-            ["sdss_u", "sdss_r"],
-            z_sel,
-            SdssFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            r_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
-        )
-
-        # 2D (r, r - i)
-        r_ri = N_utils.get_mag_color_space(
-            "R_ri",
-            sdss_r,
-            sdss_ri,
-            "sdss_r",
-            ["sdss_r", "sdss_i"],
-            z_sel,
-            SdssFilters,
-            mag_sels,
-            vol_mpc3_data,
-            z_min,
-            z_max,
-            vol_mpc3_model,
-            r_idx,
-            dmag=d_mag_2d,
-            gauss_sig=gauss_sig_2d,
-            fit=True,
+            d_mag_2d,
+            gauss_sig_2d,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=sdss_area_degsq,
         )
 
         spaces.append(
@@ -394,18 +367,11 @@ def get_sdss_data(
                 z_min,
                 z_max,
                 lc_data,
-                mag_u,
-                mag_g,
-                mag_r,
-                mag_i,
-                mag_z,
-                ur_ri,
-                gr_ri,
-                r_ur,
-                r_ri,
+                *mag_z_tuples,
+                *ccd_z_tuples,
+                *cmd_z_tuples,
             )
         )
-
     ##############################################################################
 
     return Sdss(
@@ -414,10 +380,10 @@ def get_sdss_data(
         mag_sels,
         mag_labels,
         spaces,
-        zbins,
+        z_bins,
         filter_info,
         r_idx,
-        sdss_area_deg2,
+        sdss_area_degsq,
         dataset,
         col_idx_lh_dim,
         mag_idx_lh_dim,
@@ -453,109 +419,6 @@ def get_sdss_fitting_data(
         **{f: getattr(sdss, f) for f in SdssFitting._fields}
     )
     return sdss_fitting_data
-
-
-def _get_mag_spaces_at_z(
-    z_sel,
-    sdss_u,
-    sdss_g,
-    sdss_r,
-    sdss_i,
-    sdss_z,
-    mag_sels,
-    vol_mpc3_data,
-    z_min,
-    z_max,
-    vol_mpc3_model,
-    parent_cut_idx,
-    dmag=0.1,
-):
-    # 1D (u)
-    u = N_utils.get_mag_space(
-        "U",
-        sdss_u,
-        "sdss_u",
-        z_sel,
-        SdssFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-
-    # 1D (g)
-    g = N_utils.get_mag_space(
-        "G",
-        sdss_g,
-        "sdss_g",
-        z_sel,
-        SdssFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-
-    # 1D (r)
-    r = N_utils.get_mag_space(
-        "R",
-        sdss_r,
-        "sdss_r",
-        z_sel,
-        SdssFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-
-    # 1D (i)
-    i = N_utils.get_mag_space(
-        "I",
-        sdss_i,
-        "sdss_i",
-        z_sel,
-        SdssFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-
-    # 1D (z)
-    z = N_utils.get_mag_space(
-        "Z",
-        sdss_z,
-        "sdss_z",
-        z_sel,
-        SdssFilters,
-        mag_sels,
-        vol_mpc3_data,
-        z_min,
-        z_max,
-        vol_mpc3_model,
-        parent_cut_idx,
-        dmag=dmag,
-        fit=True,
-    )
-
-    return u, g, r, i, z
 
 
 SdssFilters = namedtuple(

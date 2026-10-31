@@ -3,7 +3,7 @@ from pathlib import Path
 import numpy as np
 from dsps.data_loaders import load_transmission_curve
 
-from ...data_loaders.load_minerva import MINERVA_FILTERS_PATH, PhotFilters
+from ...data_loaders.load_minerva import MINERVA_FILTERS_PATH, MinervaFilters
 from ...lightcone_generators import generate_lc_data
 
 BASE_PATH = Path(__file__).resolve().parent.parent.parent
@@ -23,7 +23,7 @@ def test_igm_attn_ssp_mag_table(ran_key, fake_subset_ssp_data):
     z_phot_table = np.linspace(z_min, z_max, 15)
 
     tcurves = []
-    for minerva_filter in PhotFilters._fields:
+    for minerva_filter in MinervaFilters._fields:
         tcurve = load_transmission_curve(
             bn_pat=minerva_filter + "*", drn=MINERVA_FILTERS_PATH
         )
@@ -43,7 +43,7 @@ def test_igm_attn_ssp_mag_table(ran_key, fake_subset_ssp_data):
         apply_igm=True,
         igm_drn=IGM_DRN,
         igm_bn=IGM_BN,
-        igm_filters_namedtuple=PhotFilters,
+        igm_filters_namedtuple=MinervaFilters,
         igm_filter_prefix="minerva_",
         logmp_cutoff=lgmp_min,
     )

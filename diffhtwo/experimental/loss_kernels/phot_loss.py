@@ -1,7 +1,7 @@
 from jax import jit as jjit
 from jax import lax
 
-from ..kernels.N_phot import N_colors_mags
+from ..kernels.N_phot import add_N_model_to_spaces
 from ..param_utils import get_param_collection_from_u_theta
 from .loss_functions import poisson_loss
 
@@ -12,7 +12,7 @@ def get_phot_loss_2d_multiz(ran_key, param_collection, data, mag_thresh):
     n_z_bins = len(data)
     for z in range(n_z_bins):
         z_data = data[z]
-        z_data_model = N_colors_mags(
+        z_data_model = add_N_model_to_spaces(
             ran_key,
             param_collection,
             z_data,

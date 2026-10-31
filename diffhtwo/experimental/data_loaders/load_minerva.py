@@ -13,18 +13,22 @@ from dsps.data_loaders import load_transmission_curve
 
 from ..defaults import (
     MINERVA_AREA_DEG2,
-    AppMagFunc,
-    ColorColor,
     FilterInfo,
-    Lf,
-    MagColor,
 )
-from ..kernels.line_emitter import compute_Sigma_excess
 from ..lc_utils import zbin_vol
 from ..lightcone_generators import generate_lc_data
-from . import N_utils
 from .minerva_area import get_minerva_area_arcminsq
-from .N_utils import get_N_1d, get_N_2d
+from .space_utils import (
+    AppMagFunc,
+    ColorColor,
+    Lf,
+    MagColor,
+    get_ccd_spaces_at_z,
+    get_cmd_spaces_at_z,
+    get_mag_spaces_at_z,
+    get_N_1d,
+    split_space_entries,
+)
 
 BASE_PATH = Path(__file__).resolve().parent.parent
 
@@ -194,7 +198,7 @@ SPACES_AT_Z = [
 ]
 
 
-def _get_space_area_arcminsq(img_drn, space, area_file):
+def get_minerva_space_area_arcminsq(img_drn, space, area_file):
     areas = {}
     if os.path.exists(area_file):
         with open(area_file) as f:
@@ -212,13 +216,6 @@ def _get_space_area_arcminsq(img_drn, space, area_file):
             f.write(f"{space} {areas[space]}\n")
 
     return areas[space]
-
-
-def _split(entries):
-    names = [name for name, _, _ in entries]
-    fits = {name: fit for name, fit, _ in entries}
-    zs = {name: z for name, _, z in entries}
-    return names, fits, zs
 
 
 def _get_mag_ab(phot_table, col_name, ZP=ZP):
@@ -267,7 +264,7 @@ def write_eazy_filters_to_h5(
     tcurves_fn = drn / tcurves_fn
 
     translate = dict(line.split() for line in open(translate_fn))
-    for minerva_filter in PhotFilters._fields:
+    for minerva_filter in MinervaFilters._fields:
         col_name = "f_" + minerva_filter
 
         # get tcurve
@@ -348,7 +345,7 @@ def get_minerva_phot(
     zout = zout[use_phot]
     z_best = z_best[use_phot].data
 
-    minerva_mag_thresh = PhotFilters(
+    minerva_mag_thresh = MinervaFilters(
         f435w=(20.0, 27.5),
         f606w=(20.0, 27.5),
         f814w=(19.0, 27.5),
@@ -378,7 +375,7 @@ def get_minerva_phot(
     f444w_mag_thresh = getattr(minerva_mag_thresh, "f444w")
     f444w_sel &= (f444w_mag > f444w_mag_thresh[0]) & (f444w_mag < f444w_mag_thresh[1])
 
-    (f444w_idx,) = get_filt_indx("F444w", PhotFilters)
+    f444w_idx = MinervaFilters._fields.index("f444w")
 
     tcurves = []
     mag_per_band = []
@@ -386,7 +383,7 @@ def get_minerva_phot(
     mag_labels = []
     sel_per_band = []
     tcurves = []
-    for minerva_filter in PhotFilters._fields:
+    for minerva_filter in MinervaFilters._fields:
         tcurve = load_transmission_curve(
             bn_pat=minerva_filter + "*", drn=MINERVA_FILTERS_PATH
         )
@@ -427,9 +424,9 @@ def get_minerva_phot(
         z_min = z_bins[zbin][0]
         z_max = z_bins[zbin][1]
 
-        md, md_fit, md_z = _split(spaces_at_z[zbin].get("md", []))
-        ccd, ccd_fit, ccd_z = _split(spaces_at_z[zbin].get("ccd", []))
-        cmd, cmd_fit, cmd_z = _split(spaces_at_z[zbin].get("cmd", []))
+        md, md_fit, md_z = split_space_entries(spaces_at_z[zbin].get("md", []))
+        ccd, ccd_fit, ccd_z = split_space_entries(spaces_at_z[zbin].get("ccd", []))
+        cmd, cmd_fit, cmd_z = split_space_entries(spaces_at_z[zbin].get("cmd", []))
 
         mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
@@ -469,134 +466,63 @@ def get_minerva_phot(
             apply_igm=apply_igm,
             igm_drn=IGM_DRN,
             igm_bn=IGM_BN,
-            igm_filters_namedtuple=PhotFilters,
+            igm_filters_namedtuple=MinervaFilters,
             igm_filter_prefix="minerva_",
             logmp_cutoff=lgmp_min,
             cosmo_params=cosmo_params,
         )
 
-        mag_z_tuples = []
-        for space_name, space in mag_namedtuples.items():
-            (mag_idx,) = get_filt_indx(space_name, PhotFilters)
-            zlo, zhi = md_z[space_name]
-            z_sel = (z_best > zlo) & (z_best <= zhi)
+        mag_z_tuples = get_mag_spaces_at_z(
+            mag_namedtuples,
+            MinervaFilters,
+            md_z,
+            md_fit,
+            z_best,
+            sels,
+            mags,
+            f444w_idx,
+            d_mag_1d,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=None,
+            minerva_drn=drn,
+            minerva_area_file=AREA_FILE,
+        )
 
-            space_area_arcminsq = _get_space_area_arcminsq(
-                drn, space_name, drn / AREA_FILE
-            )
-            space_area_degsq = space_area_arcminsq / 3600
-            vol_mpc3_data = zbin_vol(space_area_degsq, zlo, zhi, cosmo_params)
-            vol_mpc3_model = zbin_vol(lc_sky_area_degsq, zlo, zhi, cosmo_params)
+        ccd_z_tuples = get_ccd_spaces_at_z(
+            ccd_namedtuples,
+            MinervaFilters,
+            ccd_z,
+            ccd_fit,
+            z_best,
+            sels,
+            mags,
+            f444w_idx,
+            d_mag_2d,
+            gauss_sig_2d,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=None,
+            minerva_drn=drn,
+            minerva_area_file=AREA_FILE,
+        )
 
-            sel = sels[:, mag_idx] & z_sel
-            mag_selected = mags[sel]
-
-            N_1d, sig, bin_lo, bin_hi = get_N_1d(
-                mag_selected[:, mag_idx], dmag=d_mag_1d
-            )
-
-            mag_z_tuples.append(
-                space(
-                    f444w_idx,
-                    mag_idx,
-                    sig,
-                    bin_lo,
-                    bin_hi,
-                    N_1d,
-                    vol_mpc3_data,
-                    md_fit[space_name],
-                    zlo,
-                    zhi,
-                    vol_mpc3_model,
-                )
-            )
-
-        ccd_z_tuples = []
-        for space_name, space in ccd_namedtuples.items():
-            col_idx = get_filt_indx(space_name, PhotFilters)
-            zlo, zhi = ccd_z[space_name]
-            z_sel = (z_best > zlo) & (z_best <= zhi)
-
-            space_area_arcminsq = _get_space_area_arcminsq(
-                drn, space_name, drn / AREA_FILE
-            )
-            space_area_degsq = space_area_arcminsq / 3600
-            vol_mpc3_data = zbin_vol(space_area_degsq, zlo, zhi, cosmo_params)
-            vol_mpc3_model = zbin_vol(lc_sky_area_degsq, zlo, zhi, cosmo_params)
-
-            a, b, c, d = col_idx
-            sel = sels[:, a] & sels[:, b] & sels[:, c] & sels[:, d] & z_sel
-            mag_selected = mags[sel]
-
-            color1 = mag_selected[:, a] - mag_selected[:, b]
-            color2 = mag_selected[:, c] - mag_selected[:, d]
-
-            N_2d, sig, bin_lo, bin_hi = get_N_2d(
-                color1, color2, dmag=d_mag_2d, gauss_sig=gauss_sig_2d
-            )
-
-            ccd_z_tuples.append(
-                space(
-                    f444w_idx,
-                    col_idx,
-                    sig,
-                    bin_lo,
-                    bin_hi,
-                    N_2d,
-                    vol_mpc3_data,
-                    ccd_fit[space_name],
-                    zlo,
-                    zhi,
-                    vol_mpc3_model,
-                )
-            )
-
-        cmd_z_tuples = []
-        for space_name, space in cmd_namedtuples.items():
-            mag_idx, b, c = get_filt_indx(space_name, PhotFilters)
-            zlo, zhi = cmd_z[space_name]
-            z_sel = (z_best > zlo) & (z_best <= zhi)
-
-            space_area_arcminsq = _get_space_area_arcminsq(
-                drn, space_name, drn / AREA_FILE
-            )
-            space_area_degsq = space_area_arcminsq / 3600
-            vol_mpc3_data = zbin_vol(space_area_degsq, zlo, zhi, cosmo_params)
-            vol_mpc3_model = zbin_vol(lc_sky_area_degsq, zlo, zhi, cosmo_params)
-
-            sel = sels[:, mag_idx] & sels[:, b] & sels[:, c] & z_sel
-            if "m" in space_name:
-                emitter_sel = pick_line_emitters(
-                    mags[:, b], mags[:, mag_idx], mags_err[:, b], mags_err[:, mag_idx]
-                )
-                sel &= emitter_sel
-            mag_selected = mags[sel]
-
-            mag = mag_selected[:, mag_idx]
-            color = mag_selected[:, b] - mag_selected[:, c]
-
-            N_2d, sig, bin_lo, bin_hi = get_N_2d(
-                mag, color, dmag=d_mag_2d, gauss_sig=gauss_sig_2d
-            )
-
-            col_idx = [b, c]
-
-            cmd_z_tuples.append(
-                space(
-                    f444w_idx,
-                    mag_idx,
-                    col_idx,
-                    sig,
-                    bin_lo,
-                    bin_hi,
-                    N_2d,
-                    vol_mpc3_data,
-                    cmd_fit[space_name],
-                    zlo,
-                    zhi,
-                    vol_mpc3_model,
-                )
-            )
+        cmd_z_tuples = get_cmd_spaces_at_z(
+            cmd_namedtuples,
+            MinervaFilters,
+            cmd_z,
+            cmd_fit,
+            z_best,
+            sels,
+            mags,
+            f444w_idx,
+            d_mag_2d,
+            gauss_sig_2d,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=None,
+            minerva_drn=drn,
+            minerva_area_file=AREA_FILE,
+            mags_err=mags_err,
+            ZP=ZP,
+        )
 
         spaces.append(
             Spaces(
@@ -623,21 +549,6 @@ def get_minerva_phot(
     )
 
 
-def get_filt_indx(space_name, filters_namedtuple):
-    """
-    space_name: str
-        e.g. "F105wF125w_F125wF162m"
-    """
-
-    filters = re.findall(r"F\d{3}[a-z]", space_name)
-    filters = [f.lower() for f in filters]
-
-    col_idx = []
-    for filter in filters:
-        col_idx.append(N_utils.filter_name_to_idx(filter, filters_namedtuple))
-    return col_idx
-
-
 def get_minerva_phot_fitting_data(
     drn,
     ran_key,
@@ -661,12 +572,6 @@ def get_minerva_phot_fitting_data(
     fields = [f for f in minerva_phot._fields if f != "mags_labels"]
     MinervaPhotFit = namedtuple("MinervaPhotFit", fields)
     return MinervaPhotFit(*(getattr(minerva_phot, f) for f in fields))
-
-
-def pick_line_emitters(BB, NB, BB_err, NB_err, Sigma_thresh=3.0, ZP=ZP):
-    Sigma = compute_Sigma_excess(BB, NB, BB_err, NB_err, ZP)
-    emitter_sel = Sigma > Sigma_thresh
-    return emitter_sel
 
 
 def get_minerva_halpha(
@@ -754,8 +659,8 @@ HalphaFilters = namedtuple(
 )
 
 
-PhotFilters = namedtuple(
-    "PhotFilters",
+MinervaFilters = namedtuple(
+    "MinervaFilters",
     [
         "f435w",
         "f606w",
