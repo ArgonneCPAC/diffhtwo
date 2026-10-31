@@ -21,7 +21,7 @@ bouwens21_drn: /Users/kumail/diffdir/Bouwens+21_uvlf
 
 plot_sdss: True
 plot_feniks: True
-plot_hizels: True
+plot_hizels: False
 
 plot_minerva: False
 
@@ -41,20 +41,20 @@ defaults:
 
 plots:
   plot_app_mag_funcs: True
-  plot_exsitu_frac_z0: True
-  plot_color_contours: True
-  plot_mag_z: True
+  plot_exsitu_frac_z0: False
+  plot_color_contours: False
+  plot_mag_z: False
 
-  plot_uvlf: True
+  plot_uvlf: False
 
   plot_halpha_lf: False
-  plot_halpha_mstar: True
+  plot_halpha_mstar: False
 
-  plot_fburst_mh_z: True
+  plot_fburst_mh_z: False
   
-  plot_smhm: True
-  plot_sfms: True
-  plot_fq: True
+  plot_smhm: False
+  plot_sfms: False
+  plot_fq: False
 
   plot_color_z: False
 

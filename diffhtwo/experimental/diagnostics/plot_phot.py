@@ -5,7 +5,7 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
-from ..data_loaders.load_minerva import PhotFilters, get_filt_indx
+from ..data_loaders.load_minerva import PhotFilters
 from ..kernels.N_phot import N_colors_mags
 
 blue = "#1E90FF"  # DodgerBlue
@@ -316,7 +316,7 @@ def plot_app_mag_funcs_minerva(
             xs.append(bin_centers[finite])
             ys.append(y_data[finite])
 
-            (mag_idx,) = get_filt_indx(field, PhotFilters)
+            mag_idx = PhotFilters._fields.index(field.lower())
             band_colors_fitted.append(colors[i])
             mags_labels_fitted.append(mags_labels[mag_idx])
 
