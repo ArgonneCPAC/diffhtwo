@@ -109,7 +109,7 @@ def plot_uvlf(
     unmerged = phot_data.p_merge < 0.5
 
     labelsize = 11
-    legendsize = 8
+    legendsize = 7
     alpha = 0.6
     colors = minerva_colors(n_zbins)
     bin_edges = np.arange(-23, -15, bin_width)
@@ -126,7 +126,7 @@ def plot_uvlf(
             bouwens_uvlf[:, 2],
             color=colors[zbin],
             fmt="s",
-            alpha=0.5,
+            alpha=0.8,
             ms=4,
         )
 
@@ -147,13 +147,7 @@ def plot_uvlf(
             * (1 / bin_width),
             bins=bin_edges,
         )
-        ax.plot(
-            bin_centers,
-            dustfree_phi,
-            color=colors[zbin],
-            alpha=alpha,
-            label=z_med,
-        )
+        ax.plot(bin_centers, dustfree_phi, color=colors[zbin], alpha=0.3, ls="--")
 
         phi, _ = np.histogram(
             M_uv[unmerged & z_mask],
@@ -162,26 +156,36 @@ def plot_uvlf(
             * (1 / bin_width),
             bins=bin_edges,
         )
-        ax.plot(bin_centers, phi, color=colors[zbin], alpha=alpha, ls="--")
+        ax.plot(
+            bin_centers,
+            phi,
+            color=colors[zbin],
+            alpha=0.8,
+            label=z_med,
+        )
 
     ax.set_yscale("log")
-    # ax.set_ylim(-5.0, -2.0)
+    ax.set_ylim(1e-6, 5e-2)
     ax.set_xlim(-23, -16)
+    ax.minorticks_on()
     ax.tick_params(
         which="major",
         direction="in",
         top=True,
         right=True,
+        left=True,
+        bottom=True,
         length=6,
         width=1,
         labelsize=labelsize,
     )
-
-    ax.minorticks_on()
     ax.tick_params(
         which="minor",
         direction="in",
         top=True,
+        right=True,
+        left=True,
+        bottom=True,
         length=3,
         width=0.8,
         labelsize=labelsize,
@@ -198,12 +202,13 @@ def plot_uvlf(
         linestyle="none",
         lw=1,
     )
+    handle_dustfree = ax.plot([], [], color="k", ls="--", alpha=alpha)[0]
 
     fig.legend(
-        handles + [handle_bouwens21],
-        labels + ["Bouwens+21"],
+        handles + [handle_bouwens21, handle_dustfree],
+        labels + ["Bouwens+21", "Dust-free"],
         loc="outside upper center",
-        ncol=3,
+        ncol=4,
         fontsize=legendsize,
     )
 
