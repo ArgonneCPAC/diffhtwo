@@ -4,6 +4,7 @@ import jax.numpy as jnp
 from diffsky import diffndhist_lomem
 from jax import jit as jjit
 
+from .cat_weight import bright_end_weight, faint_end_weight
 from .phot_kern import mag_kern
 
 
@@ -35,28 +36,31 @@ def add_N_model_to_spaces(
     mag_weights_pops = (mag_weight_ms, mag_weight_q, mag_weight_bursty)
 
     fields = [f for f in z_data._fields if f not in {"z_min", "z_max", "lc_data"}]
-    for f in range(len(fields)):
-        space = getattr(z_data, fields[f])
-
-        N_model = get_N_model(
-            space,
-            gal_weight,
-            z_obs,
-            obs_mags_pops,
-            weights_pops,
-            mag_weights_pops,
-        )
-
-        NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
-        new = NewTuple(*space, N_model)
-        z_data = z_data._replace(**{fields[f]: new})
+    args = (gal_weight, z_obs, obs_mags_pops, weights_pops, mag_weights_pops)
+    for f in fields:
+        space = getattr(z_data, f)
+        if isinstance(space, list):
+            new = [with_N_model(s, *args) for s in space]
+        else:
+            new = with_N_model(space, *args)
+        z_data = z_data._replace(**{f: new})
 
     return z_data
+
+
+def with_N_model(space, *args):
+    NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
+    return NewTuple(*space, get_N_model(space, *args))
 
 
 @jjit
 def get_obs_coords(space, obs_mags):
     col_idx = space.col_idx if "col_idx" in space._fields else None
+
+    if "cond_idx" in space._fields:
+        # condc space
+        color = obs_mags[:, col_idx[0]] - obs_mags[:, col_idx[1]]
+        return color.reshape(-1, 1)
 
     if "mag_idx" in space._fields:
         obs_mag = obs_mags[:, space.mag_idx]
@@ -81,6 +85,11 @@ def get_obs_coords(space, obs_mags):
 @jjit
 def get_mag_weight_idx(space):
     parent_cut_idx = space.parent_cut_idx
+
+    if "cond_idx" in space._fields:
+        # condc space
+        col_idx = space.col_idx
+        return jnp.array([parent_cut_idx, space.cond_idx, col_idx[0], col_idx[1]])
 
     if "mag_idx" in space._fields:
         mag_idx = space.mag_idx
@@ -124,10 +133,18 @@ def get_N_model(
         obs_coords = get_obs_coords(space, obs_mags_pop)
         mag_weight_space = jnp.prod(mag_weight_pop[:, mag_weight_idx], axis=1)
 
+        w = gal_weight * z_sel * weight_pop * mag_weight_space
+        if "cond_idx" in space._fields:
+            cond_mag = obs_mags_pop[:, space.cond_idx]
+            cond_weight = faint_end_weight(cond_mag, space.cond_hi) * bright_end_weight(
+                cond_mag, space.cond_lo
+            )
+            w = w * cond_weight
+
         N_model_pop = diffndhist_lomem.tw_ndhist_weighted(
             obs_coords,
             space.sig,
-            gal_weight * z_sel * weight_pop * mag_weight_space,
+            w,
             space.bin_lo,
             space.bin_hi,
         )

@@ -63,6 +63,25 @@ AppMagFunc = namedtuple(
     ],
 )
 
+CondColor = namedtuple(
+    "CondColor",
+    [
+        "parent_cut_idx",
+        "cond_idx",
+        "col_idx",
+        "cond_lo",
+        "cond_hi",
+        "sig",
+        "bin_lo",
+        "bin_hi",
+        "N_data",
+        "vol_mpc3_data",
+        "fit",
+        "zlo",
+        "zhi",
+        "vol_mpc3_model",
+    ],
+)
 Lf = namedtuple(
     "Lf",
     ["sig", "bin_lo", "bin_hi", "N_data", "fit"],
@@ -215,6 +234,82 @@ def get_mag_spaces_at_z(
     return mag_z_tuples
 
 
+def get_condc_spaces_at_z(
+    condc_namedtuples,
+    filters_namedtuple,
+    condc_z,
+    condc_fit,
+    redshift,
+    mag_sels,
+    mags,
+    parent_idx,
+    d_mag_1d,
+    lc_sky_area_degsq,
+    data_sky_area_degsq=None,
+    minerva_drn=None,
+    minerva_area_file=None,
+    cosmo_params=DEFAULT_COSMOLOGY,
+):
+    condc_z_tuples = []
+    for space_name, space in condc_namedtuples.items():
+        cond_idx, b, c = get_filt_indx(space_name, filters_namedtuple)
+        col_idx = [b, c]
+
+        zlo, zhi = condc_z[space_name]
+        z_sel = (redshift > zlo) & (redshift <= zhi)
+
+        if data_sky_area_degsq is None:
+            space_area_arcminsq = get_minerva_space_area_arcminsq(
+                minerva_drn, space_name, minerva_drn / minerva_area_file
+            )
+            space_area_degsq = space_area_arcminsq / 3600
+            vol_mpc3_data = zbin_vol(space_area_degsq, zlo, zhi, cosmo_params)
+        else:
+            vol_mpc3_data = zbin_vol(data_sky_area_degsq, zlo, zhi, cosmo_params)
+
+        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, zlo, zhi, cosmo_params)
+
+        # main mag_thresh selection across involved bands before conditioning
+        sel = (
+            mag_sels[:, cond_idx]
+            & mag_sels[:, col_idx[0]]
+            & mag_sels[:, col_idx[1]]
+            & z_sel
+        )
+        mag_selected = mags[sel]
+
+        color = mag_selected[:, col_idx[0]] - mag_selected[:, col_idx[1]]
+        cond_mag = mag_selected[:, cond_idx]
+
+        edges = np.arange(cond_mag.min(), cond_mag.max() + 2, 2)
+        space_tuples = []
+        for lo, hi in zip(edges[:-1], edges[1:]):
+            cond = (cond_mag >= lo) & (cond_mag < hi)
+            if cond.sum() < 10:
+                continue
+            N_1d, sig, bin_lo, bin_hi = get_N_1d(color[cond], dmag=d_mag_1d)
+            space_tuples.append(
+                space(
+                    parent_idx,
+                    cond_idx,
+                    col_idx,
+                    lo,
+                    hi,
+                    sig,
+                    bin_lo,
+                    bin_hi,
+                    N_1d,
+                    vol_mpc3_data,
+                    condc_fit[space_name],
+                    zlo,
+                    zhi,
+                    vol_mpc3_model,
+                )
+            )
+        condc_z_tuples.append(space_tuples)
+    return condc_z_tuples
+
+
 def get_ccd_spaces_at_z(
     ccd_namedtuples,
     filters_namedtuple,
@@ -300,6 +395,8 @@ def get_cmd_spaces_at_z(
     cmd_z_tuples = []
     for space_name, space in cmd_namedtuples.items():
         mag_idx, b, c = get_filt_indx(space_name, filters_namedtuple)
+        col_idx = [b, c]
+
         zlo, zhi = cmd_z[space_name]
         z_sel = (redshift > zlo) & (redshift <= zhi)
 
@@ -314,12 +411,17 @@ def get_cmd_spaces_at_z(
 
         vol_mpc3_model = zbin_vol(lc_sky_area_degsq, zlo, zhi, cosmo_params)
 
-        sel = mag_sels[:, mag_idx] & mag_sels[:, b] & mag_sels[:, c] & z_sel
+        sel = (
+            mag_sels[:, mag_idx]
+            & mag_sels[:, col_idx[0]]
+            & mag_sels[:, col_idx[1]]
+            & z_sel
+        )
         if "m" in space_name:
             emitter_sel = pick_line_emitters(
-                mags[:, b],
+                mags[:, col_idx[0]],
                 mags[:, mag_idx],
-                mags_err[:, b],
+                mags_err[:, col_idx[0]],
                 mags_err[:, mag_idx],
                 ZP=ZP,
             )
@@ -328,13 +430,11 @@ def get_cmd_spaces_at_z(
         mag_selected = mags[sel]
 
         mag = mag_selected[:, mag_idx]
-        color = mag_selected[:, b] - mag_selected[:, c]
+        color = mag_selected[:, col_idx[0]] - mag_selected[:, col_idx[1]]
 
         N_2d, sig, bin_lo, bin_hi = get_N_2d(
             mag, color, dmag=d_mag_2d, gauss_sig=gauss_sig_2d
         )
-
-        col_idx = [b, c]
 
         cmd_z_tuples.append(
             space(

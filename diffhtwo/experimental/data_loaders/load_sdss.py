@@ -13,9 +13,11 @@ from ..lightcone_generators import generate_lc_data
 from .space_utils import (
     AppMagFunc,
     ColorColor,
+    CondColor,
     MagColor,
     get_ccd_spaces_at_z,
     get_cmd_spaces_at_z,
+    get_condc_spaces_at_z,
     get_mag_spaces_at_z,
     split_space_entries,
 )
@@ -58,6 +60,7 @@ SPACES_AT_Z = [
         ],
         "ccd": [("Ur_ri", True, (0.02, 0.1)), ("Gr_ri", True, (0.02, 0.1))],
         "cmd": [("R_ur", True, (0.02, 0.1)), ("R_ri", True, (0.02, 0.1))],
+        "condc": [("R_gr", True, (0.02, 0.1))],
     },
     {
         "z": (0.1, 0.2),
@@ -283,10 +286,14 @@ def get_sdss_data(
         md, md_fit, md_z = split_space_entries(spaces_at_z[zbin].get("md", []))
         ccd, ccd_fit, ccd_z = split_space_entries(spaces_at_z[zbin].get("ccd", []))
         cmd, cmd_fit, cmd_z = split_space_entries(spaces_at_z[zbin].get("cmd", []))
+        condc, condc_fit, condc_z = split_space_entries(
+            spaces_at_z[zbin].get("condc", [])
+        )
 
         mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
         cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
+        condc_namedtuples = {i: namedtuple(i, CondColor._fields) for i in condc}
 
         Spaces = namedtuple(
             "Spaces",
@@ -297,6 +304,7 @@ def get_sdss_data(
                 *mag_namedtuples,
                 *ccd_namedtuples,
                 *cmd_namedtuples,
+                *condc_namedtuples,
             ],
         )
 
@@ -362,6 +370,20 @@ def get_sdss_data(
             data_sky_area_degsq=sdss_area_degsq,
         )
 
+        condc_z_lists = get_condc_spaces_at_z(
+            condc_namedtuples,
+            SdssFilters,
+            condc_z,
+            condc_fit,
+            redshift,
+            mag_sels,
+            mags,
+            r_idx,
+            d_mag_1d,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=sdss_area_degsq,
+        )
+
         spaces.append(
             Spaces(
                 z_min,
@@ -370,6 +392,7 @@ def get_sdss_data(
                 *mag_z_tuples,
                 *ccd_z_tuples,
                 *cmd_z_tuples,
+                *condc_z_lists,
             )
         )
     ##############################################################################
