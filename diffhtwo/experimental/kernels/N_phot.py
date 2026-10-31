@@ -8,7 +8,7 @@ from .phot_kern import mag_kern
 
 
 @jjit
-def N_colors_mags(
+def add_N_model_to_spaces(
     ran_key,
     param_collection,
     z_data,
@@ -22,17 +22,17 @@ def N_colors_mags(
     )
     z_obs = z_data.lc_data.z_obs
 
-    obs_mags = (
+    obs_mags_pops = (
         phot_data.obs_mags_ms,
         phot_data.obs_mags_q,
         phot_data.obs_mags_bursty,
     )
-    weights = (
+    weights_pops = (
         phot_data.weights_ms,
         phot_data.weights_q,
         phot_data.weights_bursty,
     )
-    mag_weights = (mag_weight_ms, mag_weight_q, mag_weight_bursty)
+    mag_weights_pops = (mag_weight_ms, mag_weight_q, mag_weight_bursty)
 
     fields = [f for f in z_data._fields if f not in {"z_min", "z_max", "lc_data"}]
     for f in range(len(fields)):
@@ -42,9 +42,9 @@ def N_colors_mags(
             space,
             gal_weight,
             z_obs,
-            obs_mags,
-            weights,
-            mag_weights,
+            obs_mags_pops,
+            weights_pops,
+            mag_weights_pops,
         )
 
         NewTuple = namedtuple(type(space).__name__, [*space._fields, "N_model"])
@@ -54,6 +54,7 @@ def N_colors_mags(
     return z_data
 
 
+@jjit
 def get_obs_coords(space, obs_mags):
     col_idx = space.col_idx if "col_idx" in space._fields else None
 
@@ -77,6 +78,7 @@ def get_obs_coords(space, obs_mags):
     return obs_coords
 
 
+@jjit
 def get_mag_weight_idx(space):
     parent_cut_idx = space.parent_cut_idx
 
@@ -103,26 +105,29 @@ def get_mag_weight_idx(space):
     return jnp.array(mag_weight_idx)
 
 
+@jjit
 def get_N_model(
     space,
     gal_weight,
     z_obs,
-    obs_mags,
-    weights,
-    mag_weights,
+    obs_mags_pops,
+    weights_pops,
+    mag_weights_pops,
 ):
     z_sel = ((z_obs > space.zlo) & (z_obs <= space.zhi)).astype(gal_weight.dtype)
     mag_weight_idx = get_mag_weight_idx(space)
 
     N_model = 0.0
-    for obs_mags_pop, weight, mag_weight in zip(obs_mags, weights, mag_weights):
+    for obs_mags_pop, weight_pop, mag_weight_pop in zip(
+        obs_mags_pops, weights_pops, mag_weights_pops
+    ):
         obs_coords = get_obs_coords(space, obs_mags_pop)
-        mag_weight_space = jnp.prod(mag_weight[:, mag_weight_idx], axis=1)
+        mag_weight_space = jnp.prod(mag_weight_pop[:, mag_weight_idx], axis=1)
 
         N_model_pop = diffndhist_lomem.tw_ndhist_weighted(
             obs_coords,
             space.sig,
-            gal_weight * z_sel * weight * mag_weight_space,
+            gal_weight * z_sel * weight_pop * mag_weight_space,
             space.bin_lo,
             space.bin_hi,
         )

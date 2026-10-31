@@ -6,7 +6,7 @@ from matplotlib.colors import LinearSegmentedColormap
 from matplotlib.lines import Line2D
 
 from ..data_loaders.load_minerva import MinervaFilters
-from ..kernels.N_phot import N_colors_mags
+from ..kernels.N_phot import add_N_model_to_spaces
 
 blue = "#1E90FF"  # DodgerBlue
 orange = "#FF8C00"  # DarkOrange
@@ -108,7 +108,7 @@ def plot_app_mag_funcs(
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.92))
 
     for col, (survey, data, band_fields, mag_thresh) in enumerate(sources):
-        model = N_colors_mags(ran_key, param_collection, data, mag_thresh)
+        model = add_N_model_to_spaces(ran_key, param_collection, data, mag_thresh)
         a = ax[col]
 
         z_min, z_max = float(model.z_min), float(model.z_max)
@@ -282,7 +282,7 @@ def plot_app_mag_funcs_minerva(
     fig.get_layout_engine().set(rect=(0, 0, 1, 0.85))
 
     for col, (z_data, fields) in enumerate(sources):
-        model = N_colors_mags(ran_key, param_collection, z_data, mag_thresh)
+        model = add_N_model_to_spaces(ran_key, param_collection, z_data, mag_thresh)
         a = ax[col]
 
         z_min, z_max = float(model.z_min), float(model.z_max)
