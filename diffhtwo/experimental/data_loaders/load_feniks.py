@@ -427,7 +427,7 @@ def get_feniks_data(
     hsc_gr = hsc_g_col - hsc_r_col
     hsc_ri = hsc_r_col - hsc_i_col
     hsc_iz = hsc_i_col - hsc_z_col
-    hsc_rz = hsc_r_col - hsc_z_col
+    # hsc_rz = hsc_r_col - hsc_z_col
     hsc_uds_zJ = hsc_z_col - uds_J_col
     uds_JH = uds_J_col - uds_H_col
     uds_HK = uds_H_col - uds_K_col

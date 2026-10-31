@@ -242,7 +242,7 @@ def get_sdss_data(
     # derive colors from mags
     sdss_ug = sdss_u - sdss_g
     sdss_gr = sdss_g - sdss_r
-    sdss_ur = sdss_u - sdss_r
+    # sdss_ur = sdss_u - sdss_r
     sdss_ri = sdss_r - sdss_i
     sdss_iz = sdss_i - sdss_z
 
