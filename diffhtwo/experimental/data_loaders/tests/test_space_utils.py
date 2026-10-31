@@ -6,8 +6,10 @@ from ..load_sdss import SdssFilters
 from ..space_utils import get_filt_indx, get_N_1d, get_N_2d
 
 
-def test_get_N_data(feniks, u_idx=0, g_idx=1, r_idx=2, K_idx=-1):
-    sel = feniks.mag_sels[:, K_idx]
+def test_get_N_1d(feniks, K_idx=-1):
+    mag_sels = feniks.mag_sels
+
+    sel = mag_sels[:, K_idx]
     mag_selected = feniks.mags[sel]
 
     N_1d, sig, bin_lo, bin_hi = get_N_1d(mag_selected[:, K_idx])
@@ -15,6 +17,19 @@ def test_get_N_data(feniks, u_idx=0, g_idx=1, r_idx=2, K_idx=-1):
     assert np.isfinite(sig).all()
     assert np.isfinite(bin_lo).all()
     assert np.isfinite(bin_hi).all()
+
+
+def test_get_N_2d(feniks, u_idx=0, g_idx=1, r_idx=2, K_idx=-1):
+    mag_sels = feniks.mag_sels
+
+    sel = (
+        mag_sels[:, u_idx]
+        & mag_sels[:, g_idx]
+        & mag_sels[:, r_idx]
+        & mag_sels[:, K_idx]
+    )
+
+    mag_selected = feniks.mags[sel]
 
     color1 = mag_selected[:, u_idx] - mag_selected[:, g_idx]
     color2 = mag_selected[:, g_idx] - mag_selected[:, r_idx]
