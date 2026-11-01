@@ -41,12 +41,26 @@ Sdss = namedtuple(
     ],
 )
 
-
+# Latin hypercube defaults (currently unused)
 LH_N_CENTROIDS = 20_000
 LH_SIG = 3.5
 LH_D_Z = 0.025
 
-F_HOLES = 0.003531  # hole fraction with rmax=0.3 degrees
+# hole fraction with rmax=0.3 degrees
+F_HOLES = 0.003531
+
+# space binning defaults
+D_MAG_1d = 0.1
+D_MAG_2d = 0.05
+GAUSS_SIG_2d = 3.0
+D_MAG_COND = 1.0
+
+# Halo lightcone defaults
+NUM_HALOS = 150
+LGMP_MIN = 10.0
+LGMP_MAX = 15.0
+LC_SKY_AREA_DEGSQ = 100
+N_Z_PHOT_TABLE = 30
 
 SPACES_AT_Z = [
     {
@@ -199,15 +213,15 @@ def get_sdss_data(
     ran_key,
     ssp_data,
     spaces_at_z=SPACES_AT_Z,
-    d_mag_1d=0.1,
-    d_mag_2d=0.05,
-    d_mag_cond=1.0,
-    gauss_sig_2d=3.0,
-    num_halos=150,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
-    lc_sky_area_degsq=100,
-    n_z_phot_table=30,
+    d_mag_1d=D_MAG_1d,
+    d_mag_2d=D_MAG_2d,
+    gauss_sig_2d=GAUSS_SIG_2d,
+    d_mag_cond=D_MAG_COND,
+    num_halos=NUM_HALOS,
+    lgmp_min=LGMP_MIN,
+    lgmp_max=LGMP_MAX,
+    lc_sky_area_degsq=LC_SKY_AREA_DEGSQ,
+    n_z_phot_table=N_Z_PHOT_TABLE,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
     sdss_mag_thresh = SdssFilters(
@@ -302,10 +316,10 @@ def get_sdss_data(
                 "z_min",
                 "z_max",
                 "lc_data",
-                *mag_namedtuples,
-                *ccd_namedtuples,
-                *cmd_namedtuples,
-                *condc_namedtuples,
+                *[f"md_{n}" for n in mag_namedtuples],
+                *[f"ccd_{n}" for n in ccd_namedtuples],
+                *[f"cmd_{n}" for n in cmd_namedtuples],
+                *[f"condc_{n}" for n in condc_namedtuples],
             ],
         )
 
@@ -420,12 +434,13 @@ def get_sdss_fitting_data(
     drn,
     ran_key,
     ssp_data,
-    d_mag_1d=0.1,
-    d_mag_2d=0.05,
-    gauss_sig_2d=3.0,
-    num_halos=150,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
+    d_mag_1d=D_MAG_1d,
+    d_mag_2d=D_MAG_2d,
+    gauss_sig_2d=GAUSS_SIG_2d,
+    d_mag_cond=D_MAG_COND,
+    num_halos=NUM_HALOS,
+    lgmp_min=LGMP_MIN,
+    lgmp_max=LGMP_MAX,
 ):
     sdss = get_sdss_data(
         drn,
@@ -434,6 +449,7 @@ def get_sdss_fitting_data(
         d_mag_1d=d_mag_1d,
         d_mag_2d=d_mag_2d,
         gauss_sig_2d=gauss_sig_2d,
+        d_mag_cond=d_mag_cond,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,

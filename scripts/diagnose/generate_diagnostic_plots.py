@@ -590,14 +590,12 @@ if __name__ == "__main__":
             )
 
         if cfg["plots"]["plot_color_contours"]:
-            sdss_fields = [
-                ["gr_ri", "r_ri"],
-            ]
+            sdss_fields = [["ccd_gr_ri", "cmd_r_ri"]]
             feniks_fields = [
-                ["gr_ri", "K_gr"],
-                ["rz_zJ", "K_rz"],
-                ["rz_zJ", "K_rz"],
-                ["zJ_JH", "K_gr"],
+                ["ccd_gr_ri", "cmd_K_gr"],
+                ["ccd_rz_zJ", "cmd_K_rz"],
+                ["ccd_rz_zJ", "cmd_K_rz"],
+                ["ccd_zJ_JH", "cmd_K_gr"],
             ]
             print("Generating SDSS/FENIKS color contour plots...")
             plot_cc_cm_grid(

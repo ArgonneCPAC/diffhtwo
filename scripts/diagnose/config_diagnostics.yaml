@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run362
-model_nickname: run362_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run362/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run363
+model_nickname: run363_diffstarpop+spspop+merging
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run363/diagnostic_plots/diffstarpop+spspop+merging
 
 
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -52,9 +52,9 @@ plots:
 
   plot_fburst_mh_z: False
   
-  plot_smhm: True
-  plot_sfms: True
-  plot_fq: True
+  plot_smhm: False
+  plot_sfms: False
+  plot_fq: False
 
   plot_color_z: False
 

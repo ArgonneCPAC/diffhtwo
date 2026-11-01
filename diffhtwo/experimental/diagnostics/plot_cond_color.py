@@ -24,18 +24,31 @@ def plot_cond_color(
     z_data_model = add_N_model_to_spaces(ran_key, param_collection, z_data, mag_thresh)
     fields = [f for f in z_data_model._fields if f not in {"z_min", "z_max", "lc_data"}]
 
-    labelsize = 10
+    labelsize = 9
+    legendsize = 9
     fontsize = 10
     for f in fields:
-        space = getattr(z_data_model, f)
-        if isinstance(space, list):
+        if f.startswith("condc_"):
+            space = getattr(z_data_model, f)
             fig, ax = plt.subplots(
-                1, len(space), figsize=(7.1, 2.5), constrained_layout=True
+                1,
+                len(space),
+                figsize=(7.1, min(max(7.1 / len(space), 1.8), 3.2)),
+                constrained_layout=True,
+                sharex=True,
+                squeeze=False,
             )
-            fig.get_layout_engine().set(rect=(0, 0, 1, 0.92))
+            fig.get_layout_engine().set(rect=(0, 0, 1, 0.84))
+            ax = ax[0]
 
-            i = 0
-            for cond_space in space:
+            zlo = space[0].zlo
+            zhi = space[0].zhi
+            fig.suptitle(f"{zlo:.1f} < z < {zhi:.1f}", fontsize=fontsize, y=0.99)
+
+            xlo = min(float(s.bin_lo.min()) for s in space)
+            xhi = max(float(s.bin_hi.max()) for s in space)
+
+            for i, cond_space in enumerate(space):
                 cond_band, color = parse_color_labels(type(cond_space).__name__)
                 bin_lo = cond_space.bin_lo.ravel()
                 bin_hi = cond_space.bin_hi.ravel()
@@ -47,15 +60,16 @@ def plot_cond_color(
                 n_model = cond_space.N_model / cond_space.vol_mpc3_model
 
                 ax[i].stairs(pdf(cond_space.N_data, edges), edges, label="data")
-                ax[i].stairs(pdf(cond_space.N_model, edges), edges, label="model")
+                ax[i].stairs(pdf(cond_space.N_model, edges), edges, label="diffsky")
 
                 # ax[i].scatter(bin_centers, np.log10(n_data), s=1)
                 # ax[i].plot(bin_centers, np.log10(n_model))
 
                 ax[i].set_title(
-                    f"{np.round(cond_space.cond_lo, 2)} < {cond_band} < {np.round(cond_space.cond_hi, 2)}"
+                    f"{float(cond_space.cond_lo):.1f} < {cond_band} < {float(cond_space.cond_hi):.1f}",
+                    fontsize=labelsize,
                 )
-                ax[i].set_xlabel(color)
+                ax[i].set_xlabel(color, fontsize=labelsize)
 
                 ax[i].minorticks_on()
                 ax[i].tick_params(
@@ -77,12 +91,21 @@ def plot_cond_color(
                     labelsize=labelsize,
                 )
 
-                ax[i].set_xlim(0, 1.5)
-                i += 1
-            ax[0].set_ylabel("PDF", fontsize=fontsize)
-            ax[0].legend()
+                ax[i].set_xlim(xlo, xhi)
 
-            fig.savefig(savedir + "/" + run_label + "_app_mag_funcs.png", dpi=400)
+            ax[0].set_ylabel("PDF", fontsize=labelsize)
+            handles, labels = ax[0].get_legend_handles_labels()
+            fig.legend(
+                handles,
+                labels,
+                loc="upper center",
+                bbox_to_anchor=(0.5, 0.95),
+                ncol=len(labels),
+                frameon=False,
+                fontsize=legendsize,
+            )
+
+            fig.savefig(f"{savedir}/{run_label}_z{zlo}-{zhi}_{f}.png", dpi=400)
             if plt_show:
                 plt.show()
             plt.close()
