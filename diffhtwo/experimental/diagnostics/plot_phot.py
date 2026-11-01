@@ -82,7 +82,7 @@ def plot_app_mag_funcs(
         "#9B1D20",
     ]
     bands = [r"$u$", r"$g$", r"$r$", r"$i$", r"$z$", r"$J$", r"$H$", r"$K$"]
-    fields = ["u", "g", "r", "i", "z", "J", "H", "K"]
+    fields = ["md_u", "md_g", "md_r", "md_i", "md_z", "md_J", "md_H", "md_K"]
     sdss_fields = fields[:5]
     feniks_fields = fields
 
@@ -267,11 +267,7 @@ def plot_app_mag_funcs_minerva(
 
     sources = []
     for z_data in minerva_phot.spaces:
-        fields = [
-            f
-            for f in z_data._fields
-            if f not in {"z_min", "z_max", "lc_data"} and "_" not in f
-        ]
+        fields = [f for f in z_data._fields if f.startswith("md_")]
         if fields:
             sources.append((z_data, fields))
 
@@ -316,7 +312,7 @@ def plot_app_mag_funcs_minerva(
             xs.append(bin_centers[finite])
             ys.append(y_data[finite])
 
-            mag_idx = MinervaFilters._fields.index(field.lower())
+            mag_idx = MinervaFilters._fields.index(field.removeprefix("md_").lower())
             band_colors_fitted.append(colors[i])
             mags_labels_fitted.append(mags_labels[mag_idx])
 

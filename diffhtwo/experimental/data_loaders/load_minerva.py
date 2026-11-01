@@ -21,10 +21,12 @@ from .minerva_area import get_minerva_area_arcminsq
 from .space_utils import (
     AppMagFunc,
     ColorColor,
+    CondColor,
     Lf,
     MagColor,
     get_ccd_spaces_at_z,
     get_cmd_spaces_at_z,
+    get_condc_spaces_at_z,
     get_mag_spaces_at_z,
     get_N_1d,
     split_space_entries,
@@ -46,9 +48,18 @@ TCURVES = "FILTER.RES.latest"
 
 AREA_FILE = "minerva_space_areas_w_f444w_arcminsq.dat"
 
+# space binning defaults
 D_MAG_1d = 0.2
 D_MAG_2d = 0.2
 GAUSS_SIG_2d = 3.0
+D_MAG_COND = 1.0
+
+# Halo lightcone defaults
+NUM_HALOS = 150
+LGMP_MIN = 10.0
+LGMP_MAX = 15.0
+LC_SKY_AREA_DEGSQ = 100
+N_Z_PHOT_TABLE = 30
 
 ZP = 28.9
 
@@ -68,18 +79,6 @@ MinervaPhot = namedtuple(
     ],
 )
 
-app_mag_funcs = [
-    ("F435w", True),
-    ("F606w", True),
-    ("F814w", True),
-    ("F090w", True),
-    ("F115w", True),
-    ("F150w", True),
-    ("F200w", True),
-    ("F277w", True),
-    ("F356w", True),
-    ("F444w", True),
-]
 SPACES_AT_Z = [
     {
         "z": (1.0, 2.0),
@@ -97,16 +96,17 @@ SPACES_AT_Z = [
         ],
         "ccd": [("F090wF150w_F150wF356w", True, (1.0, 2.0))],
         "cmd": [
-            ("F356w_F150wF356w", True, (1.0, 2.0)),
-            ("F140m_F150wF140m", True, (1.03, 1.25)),
-            ("F162m_F150wF162m", True, (1.36, 1.59)),
-            ("F182m_F200wF182m", True, (1.67, 1.95)),
+            ("F356w_F150wF356w", False, (1.0, 2.0)),
+            ("F140m_F150wF140m", False, (1.03, 1.25)),
+            ("F162m_F150wF162m", False, (1.36, 1.59)),
+            ("F182m_F200wF182m", False, (1.67, 1.95)),
         ],
+        "condc": [("F444w_F090wF150w", True, (1.0, 2.0))],
     },
     {
         "z": (2.0, 3.0),
         "md": [
-            ("F435w", True, (2.0, 3.0)),
+            ("F435w", False, (2.0, 3.0)),
             ("F606w", True, (2.0, 3.0)),
             ("F814w", True, (2.0, 3.0)),
             ("F090w", True, (2.0, 3.0)),
@@ -122,16 +122,17 @@ SPACES_AT_Z = [
             ("F150wF200w_F200wF277w", True, (2.0, 3.0)),
         ],
         "cmd": [
-            ("F356w_F115wF356w", True, (2.0, 3.0)),
-            ("F210m_F200wF210m", True, (2.04, 2.35)),
-            ("F250m_F277wF250m", True, (2.68, 2.95)),
+            ("F356w_F115wF356w", False, (2.0, 3.0)),
+            ("F210m_F200wF210m", False, (2.04, 2.35)),
+            ("F250m_F277wF250m", False, (2.68, 2.95)),
         ],
+        "condc": [("F444w_F115wF200w", True, (2.0, 3.0))],
     },
     {
         "z": (3.0, 4.0),
         "md": [
-            ("F435w", True, (3.0, 4.0)),
-            ("F606w", True, (3.0, 4.0)),
+            ("F435w", False, (3.0, 4.0)),
+            ("F606w", False, (3.0, 4.0)),
             ("F814w", True, (3.0, 4.0)),
             ("F090w", True, (3.0, 4.0)),
             ("F115w", True, (3.0, 4.0)),
@@ -145,13 +146,14 @@ SPACES_AT_Z = [
             ("F150wF277w_F277wF444w", True, (3.0, 4.0)),
             ("F200wF277w_F277wF356w", True, (3.0, 4.0)),
         ],
-        "cmd": [("F356w_F150wF356w", True, (3.0, 4.0))],
+        "cmd": [("F356w_F150wF356w", False, (3.0, 4.0))],
+        "condc": [("F444w_F115wF277w", True, (3.0, 4.0))],
     },
     {
         "z": (4.0, 5.0),
         "md": [
-            ("F435w", True, (4.0, 5.0)),
-            ("F606w", True, (4.0, 5.0)),
+            ("F435w", False, (4.0, 5.0)),
+            ("F606w", False, (4.0, 5.0)),
             ("F814w", True, (4.0, 5.0)),
             ("F090w", True, (4.0, 5.0)),
             ("F115w", True, (4.0, 5.0)),
@@ -167,16 +169,17 @@ SPACES_AT_Z = [
             ("F356wF410m_F410mF444w", True, (4.0, 5.0)),
         ],
         "cmd": [
-            ("F444w_F150wF444w", True, (4.0, 5.0)),
-            ("F360m_F356wF360m", True, (4.22, 4.81)),
+            ("F444w_F150wF444w", False, (4.0, 5.0)),
+            ("F360m_F356wF360m", False, (4.22, 4.81)),
         ],
+        "condc": [("F444w_F115wF356w", True, (4.0, 5.0))],
     },
     {
         "z": (5.0, 6.5),
         "md": [
-            ("F435w", True, (5.0, 6.5)),
-            ("F606w", True, (5.0, 6.5)),
-            ("F814w", True, (5.0, 6.5)),
+            ("F435w", False, (5.0, 6.5)),
+            ("F606w", False, (5.0, 6.5)),
+            ("F814w", False, (5.0, 6.5)),
             ("F090w", True, (5.0, 6.5)),
             ("F115w", True, (5.0, 6.5)),
             ("F150w", True, (5.0, 6.5)),
@@ -190,15 +193,20 @@ SPACES_AT_Z = [
             ("F277wF356w_F356wF444w", True, (5.0, 6.5)),
         ],
         "cmd": [
-            ("F444w_F115wF444w", True, (5.0, 6.5)),
-            ("F410m_F444wF410m", True, (5.0, 5.52)),
-            ("F460m_F444wF460m", True, (5.88, 6.23)),
+            ("F444w_F115wF444w", False, (5.0, 6.5)),
+            ("F410m_F444wF410m", False, (5.0, 5.52)),
+            ("F460m_F444wF460m", False, (5.88, 6.23)),
         ],
+        "condc": [("F444w_F150wF444w", True, (5.0, 6.5))],
     },
 ]
 
+SPACE_TYPE_PREFIX = re.compile(r"^(md|ccd|cmd|condc)_")
+
 
 def get_minerva_space_area_arcminsq(img_drn, space, area_file):
+    space = SPACE_TYPE_PREFIX.sub("", space)
+
     areas = {}
     if os.path.exists(area_file):
         with open(area_file) as f:
@@ -321,12 +329,13 @@ def get_minerva_phot(
     d_mag_1d=D_MAG_1d,
     d_mag_2d=D_MAG_2d,
     gauss_sig_2d=GAUSS_SIG_2d,
-    num_halos=150,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
+    d_mag_cond=D_MAG_COND,
+    num_halos=NUM_HALOS,
+    lgmp_min=LGMP_MIN,
+    lgmp_max=LGMP_MAX,
+    lc_sky_area_degsq=LC_SKY_AREA_DEGSQ,
+    n_z_phot_table=N_Z_PHOT_TABLE,
     apply_igm=True,
-    lc_sky_area_degsq=100,
-    n_z_phot_table=25,
     phot=PHOT,
     zout=ZOUT,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -427,10 +436,14 @@ def get_minerva_phot(
         md, md_fit, md_z = split_space_entries(spaces_at_z[zbin].get("md", []))
         ccd, ccd_fit, ccd_z = split_space_entries(spaces_at_z[zbin].get("ccd", []))
         cmd, cmd_fit, cmd_z = split_space_entries(spaces_at_z[zbin].get("cmd", []))
+        condc, condc_fit, condc_z = split_space_entries(
+            spaces_at_z[zbin].get("condc", [])
+        )
 
         mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
         cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
+        condc_namedtuples = {i: namedtuple(i, CondColor._fields) for i in condc}
 
         Spaces = namedtuple(
             "Spaces",
@@ -438,9 +451,10 @@ def get_minerva_phot(
                 "z_min",
                 "z_max",
                 "lc_data",
-                *mag_namedtuples,
-                *ccd_namedtuples,
-                *cmd_namedtuples,
+                *[f"md_{n}" for n in mag_namedtuples],
+                *[f"ccd_{n}" for n in ccd_namedtuples],
+                *[f"cmd_{n}" for n in cmd_namedtuples],
+                *[f"condc_{n}" for n in condc_namedtuples],
             ],
         )
 
@@ -524,6 +538,23 @@ def get_minerva_phot(
             ZP=ZP,
         )
 
+        condc_z_lists = get_condc_spaces_at_z(
+            condc_namedtuples,
+            MinervaFilters,
+            condc_z,
+            condc_fit,
+            z_best,
+            sels,
+            mags,
+            f444w_idx,
+            d_mag_1d,
+            d_mag_cond,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=None,
+            minerva_drn=drn,
+            minerva_area_file=AREA_FILE,
+        )
+
         spaces.append(
             Spaces(
                 z_min,
@@ -532,6 +563,7 @@ def get_minerva_phot(
                 *mag_z_tuples,
                 *ccd_z_tuples,
                 *cmd_z_tuples,
+                *condc_z_lists,
             )
         )
 
@@ -554,9 +586,13 @@ def get_minerva_phot_fitting_data(
     ran_key,
     ssp_data,
     spaces_at_z=SPACES_AT_Z,
-    num_halos=150,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
+    d_mag_1d=D_MAG_1d,
+    d_mag_2d=D_MAG_2d,
+    gauss_sig_2d=GAUSS_SIG_2d,
+    d_mag_cond=D_MAG_COND,
+    num_halos=NUM_HALOS,
+    lgmp_min=LGMP_MIN,
+    lgmp_max=LGMP_MAX,
     apply_igm=True,
 ):
     minerva_phot = get_minerva_phot(
@@ -564,6 +600,10 @@ def get_minerva_phot_fitting_data(
         ran_key,
         ssp_data,
         spaces_at_z=spaces_at_z,
+        d_mag_1d=d_mag_1d,
+        d_mag_2d=d_mag_2d,
+        gauss_sig_2d=gauss_sig_2d,
+        d_mag_cond=d_mag_cond,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
@@ -578,11 +618,11 @@ def get_minerva_halpha(
     halpha_drn,
     ran_key,
     ssp_data,
-    num_halos=150,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
-    lc_sky_area_degsq=100,
-    n_z_phot_table=15,
+    num_halos=NUM_HALOS,
+    lgmp_min=LGMP_MIN,
+    lgmp_max=LGMP_MAX,
+    lc_sky_area_degsq=LC_SKY_AREA_DEGSQ,
+    n_z_phot_table=N_Z_PHOT_TABLE,
     estimated_area_arcminsq=390,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):

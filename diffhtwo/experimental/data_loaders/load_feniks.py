@@ -23,9 +23,11 @@ from ..utils import add_random_rows, load_feniks_tcurve
 from .space_utils import (
     AppMagFunc,
     ColorColor,
+    CondColor,
     MagColor,
     get_ccd_spaces_at_z,
     get_cmd_spaces_at_z,
+    get_condc_spaces_at_z,
     get_mag_spaces_at_z,
     split_space_entries,
 )
@@ -56,13 +58,24 @@ Feniks = namedtuple(
     ],
 )
 
+# Latin hypercube defaults (currently unused)
 LH_SIG = 3.0
 LH_N_CENTROIDS = 30_000
 LH_D_Z = 0.3
 
-D_MAG_1d = 0.2
+# space binning defaults
+D_MAG_1d = 0.1
 D_MAG_2d = 0.2
 GAUSS_SIG_2d = 3.0
+D_MAG_COND = 1.0
+
+# Halo lightcone defaults
+NUM_HALOS = 150
+LGMP_MIN = 10.0
+LGMP_MAX = 15.0
+LC_SKY_AREA_DEGSQ = 100
+N_Z_PHOT_TABLE = 30
+
 zbins = np.array(
     [
         [0.4, 0.7],
@@ -90,6 +103,11 @@ SPACES_AT_Z = [
             ("K_gr", True, (0.4, 0.7)),
             ("K_JH", True, (0.4, 0.7)),
         ],
+        "condc": [
+            ("K_ur", True, (0.4, 0.7)),
+            ("K_gr", True, (0.4, 0.7)),
+            ("K_ri", True, (0.4, 0.7)),
+        ],
     },
     {
         "z": (0.7, 1.0),
@@ -103,11 +121,16 @@ SPACES_AT_Z = [
             ("H", True, (0.7, 1.0)),
             ("K", True, (0.7, 1.0)),
         ],
-        "ccd": [("rz_zJ", True, (0.7, 1.0))],
+        "ccd": [("Rz_zJ", True, (0.7, 1.0))],
         "cmd": [
             ("K_ug", True, (0.7, 1.0)),
             ("K_rz", True, (0.7, 1.0)),
             ("K_JH", True, (0.7, 1.0)),
+        ],
+        "condc": [
+            ("K_ur", True, (0.7, 1.0)),
+            ("K_gr", True, (0.7, 1.0)),
+            ("K_rz", True, (0.7, 1.0)),
         ],
     },
     {
@@ -122,11 +145,16 @@ SPACES_AT_Z = [
             ("H", True, (1.0, 1.5)),
             ("K", True, (1.0, 1.5)),
         ],
-        "ccd": [("rz_zJ", True, (1.0, 1.5))],
+        "ccd": [("Rz_zJ", True, (1.0, 1.5))],
         "cmd": [
             ("K_ug", True, (1.0, 1.5)),
             ("K_rz", True, (1.0, 1.5)),
             ("K_JH", True, (1.0, 1.5)),
+        ],
+        "condc": [
+            ("K_ur", True, (1.0, 1.5)),
+            ("K_gr", True, (1.0, 1.5)),
+            ("K_rz", True, (1.0, 1.5)),
         ],
     },
     {
@@ -146,6 +174,11 @@ SPACES_AT_Z = [
             ("K_ug", True, (1.5, 2.0)),
             ("K_gr", True, (1.5, 2.0)),
             ("K_JH", True, (1.5, 2.0)),
+        ],
+        "condc": [
+            ("K_ur", True, (1.5, 2.0)),
+            ("K_gr", True, (1.5, 2.0)),
+            ("K_rz", True, (1.5, 2.0)),
         ],
     },
 ]
@@ -264,13 +297,14 @@ def get_feniks_data(
     d_mag_1d=D_MAG_1d,
     d_mag_2d=D_MAG_2d,
     gauss_sig_2d=GAUSS_SIG_2d,
-    num_halos=100,
+    d_mag_cond=D_MAG_COND,
     phot=PHOT,
     zout=ZOUT,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
-    lc_sky_area_degsq=100,
-    n_z_phot_table=30,
+    num_halos=NUM_HALOS,
+    lgmp_min=LGMP_MIN,
+    lgmp_max=LGMP_MAX,
+    lc_sky_area_degsq=LC_SKY_AREA_DEGSQ,
+    n_z_phot_table=N_Z_PHOT_TABLE,
     add_random_rows_for_testing=False,
     testing=False,
     cosmo_params=DEFAULT_COSMOLOGY,
@@ -483,10 +517,14 @@ def get_feniks_data(
         md, md_fit, md_z = split_space_entries(spaces_at_z[zbin].get("md", []))
         ccd, ccd_fit, ccd_z = split_space_entries(spaces_at_z[zbin].get("ccd", []))
         cmd, cmd_fit, cmd_z = split_space_entries(spaces_at_z[zbin].get("cmd", []))
+        condc, condc_fit, condc_z = split_space_entries(
+            spaces_at_z[zbin].get("condc", [])
+        )
 
         mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
         cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
+        condc_namedtuples = {i: namedtuple(i, CondColor._fields) for i in condc}
 
         Spaces = namedtuple(
             "Spaces",
@@ -494,9 +532,10 @@ def get_feniks_data(
                 "z_min",
                 "z_max",
                 "lc_data",
-                *mag_namedtuples,
-                *ccd_namedtuples,
-                *cmd_namedtuples,
+                *[f"md_{n}" for n in mag_namedtuples],
+                *[f"ccd_{n}" for n in ccd_namedtuples],
+                *[f"cmd_{n}" for n in cmd_namedtuples],
+                *[f"condc_{n}" for n in condc_namedtuples],
             ],
         )
 
@@ -562,6 +601,21 @@ def get_feniks_data(
             data_sky_area_degsq=FENIKS_AREA_DEG2,
         )
 
+        condc_z_lists = get_condc_spaces_at_z(
+            condc_namedtuples,
+            FeniksFilters,
+            condc_z,
+            condc_fit,
+            z_best,
+            mag_sels,
+            mags,
+            K_idx,
+            d_mag_1d,
+            d_mag_cond,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=FENIKS_AREA_DEG2,
+        )
+
         spaces.append(
             Spaces(
                 z_min,
@@ -570,6 +624,7 @@ def get_feniks_data(
                 *mag_z_tuples,
                 *ccd_z_tuples,
                 *cmd_z_tuples,
+                *condc_z_lists,
             )
         )
 
@@ -594,11 +649,16 @@ def get_feniks_fitting_data(
     feniks_drn,
     ran_key,
     ssp_data,
-    num_halos=100,
+    spaces_at_z=SPACES_AT_Z,
+    d_mag_1d=D_MAG_1d,
+    d_mag_2d=D_MAG_2d,
+    gauss_sig_2d=GAUSS_SIG_2d,
+    d_mag_cond=D_MAG_COND,
     phot=PHOT,
     zout=ZOUT,
-    lgmp_min=10.0,
-    lgmp_max=15.0,
+    num_halos=NUM_HALOS,
+    lgmp_min=LGMP_MIN,
+    lgmp_max=LGMP_MAX,
     add_random_rows_for_testing=False,
     testing=False,
 ):
@@ -606,9 +666,14 @@ def get_feniks_fitting_data(
         feniks_drn,
         ran_key,
         ssp_data,
-        num_halos=num_halos,
+        spaces_at_z=spaces_at_z,
+        d_mag_1d=d_mag_1d,
+        d_mag_2d=d_mag_2d,
+        gauss_sig_2d=gauss_sig_2d,
+        d_mag_cond=d_mag_cond,
         phot=phot,
         zout=zout,
+        num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
         add_random_rows_for_testing=add_random_rows_for_testing,

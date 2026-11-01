@@ -22,15 +22,18 @@ def get_phot_loss_2d_multiz(ran_key, param_collection, data, mag_thresh):
             f for f in z_data_model._fields if f not in {"z_min", "z_max", "lc_data"}
         ]
         for space_name in space_names:
-            space = getattr(z_data_model, space_name)
-            phot_loss_2d += lax.cond(
-                space.fit,
-                lambda sp=space: poisson_loss(
-                    sp.N_model / sp.vol_mpc3_model,
-                    sp.N_data / sp.vol_mpc3_data,
-                ),
-                lambda: 0.0,
-            )
+            spaces = getattr(z_data_model, space_name)
+            if not isinstance(spaces, list):
+                spaces = [spaces]
+            for space in spaces:
+                phot_loss_2d += lax.cond(
+                    space.fit,
+                    lambda sp=space: poisson_loss(
+                        sp.N_model / sp.vol_mpc3_model,
+                        sp.N_data / sp.vol_mpc3_data,
+                    ),
+                    lambda: 0.0,
+                )
     return phot_loss_2d
 
 
