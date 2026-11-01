@@ -64,7 +64,7 @@ LH_N_CENTROIDS = 30_000
 LH_D_Z = 0.3
 
 # space binning defaults
-D_MAG_1d = 0.2
+D_MAG_1d = 0.1
 D_MAG_2d = 0.2
 GAUSS_SIG_2d = 3.0
 D_MAG_COND = 1.0
@@ -103,7 +103,11 @@ SPACES_AT_Z = [
             ("K_gr", True, (0.4, 0.7)),
             ("K_JH", True, (0.4, 0.7)),
         ],
-        "condc": [("K_gr", False, (0.4, 0.7)), ("K_ri", False, (0.4, 0.7))],
+        "condc": [
+            ("K_ur", True, (0.4, 0.7)),
+            ("K_gr", True, (0.4, 0.7)),
+            ("K_ri", True, (0.4, 0.7)),
+        ],
     },
     {
         "z": (0.7, 1.0),
@@ -117,11 +121,16 @@ SPACES_AT_Z = [
             ("H", True, (0.7, 1.0)),
             ("K", True, (0.7, 1.0)),
         ],
-        "ccd": [("rz_zJ", True, (0.7, 1.0))],
+        "ccd": [("Rz_zJ", True, (0.7, 1.0))],
         "cmd": [
             ("K_ug", True, (0.7, 1.0)),
             ("K_rz", True, (0.7, 1.0)),
             ("K_JH", True, (0.7, 1.0)),
+        ],
+        "condc": [
+            ("K_ur", True, (0.7, 1.0)),
+            ("K_gr", True, (0.7, 1.0)),
+            ("K_rz", True, (0.7, 1.0)),
         ],
     },
     {
@@ -136,11 +145,16 @@ SPACES_AT_Z = [
             ("H", True, (1.0, 1.5)),
             ("K", True, (1.0, 1.5)),
         ],
-        "ccd": [("rz_zJ", True, (1.0, 1.5))],
+        "ccd": [("Rz_zJ", True, (1.0, 1.5))],
         "cmd": [
             ("K_ug", True, (1.0, 1.5)),
             ("K_rz", True, (1.0, 1.5)),
             ("K_JH", True, (1.0, 1.5)),
+        ],
+        "condc": [
+            ("K_ur", True, (1.0, 1.5)),
+            ("K_gr", True, (1.0, 1.5)),
+            ("K_rz", True, (1.0, 1.5)),
         ],
     },
     {
@@ -160,6 +174,11 @@ SPACES_AT_Z = [
             ("K_ug", True, (1.5, 2.0)),
             ("K_gr", True, (1.5, 2.0)),
             ("K_JH", True, (1.5, 2.0)),
+        ],
+        "condc": [
+            ("K_ur", True, (1.5, 2.0)),
+            ("K_gr", True, (1.5, 2.0)),
+            ("K_rz", True, (1.5, 2.0)),
         ],
     },
 ]

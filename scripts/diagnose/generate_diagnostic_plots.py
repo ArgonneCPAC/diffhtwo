@@ -43,6 +43,7 @@ from diffhtwo.experimental.diagnostics.plot_burstpop import (
 )
 from diffhtwo.experimental.diagnostics.plot_cen import plot_massive_cen_colors
 from diffhtwo.experimental.diagnostics.plot_color_redshift import plot_color_z
+from diffhtwo.experimental.diagnostics.plot_cond_color import plot_cond_color
 from diffhtwo.experimental.diagnostics.plot_contour import (
     plot_cc_cm_grid,
     plot_cc_cm_grid_minerva,
@@ -590,12 +591,12 @@ if __name__ == "__main__":
             )
 
         if cfg["plots"]["plot_color_contours"]:
-            sdss_fields = [["ccd_gr_ri", "cmd_r_ri"]]
+            sdss_fields = [["ccd_Gr_ri", "cmd_R_ri"]]
             feniks_fields = [
-                ["ccd_gr_ri", "cmd_K_gr"],
-                ["ccd_rz_zJ", "cmd_K_rz"],
-                ["ccd_rz_zJ", "cmd_K_rz"],
-                ["ccd_zJ_JH", "cmd_K_gr"],
+                ["ccd_Gr_ri", "cmd_K_gr"],
+                ["ccd_Rz_zJ", "cmd_K_rz"],
+                ["ccd_Rz_zJ", "cmd_K_rz"],
+                ["ccd_ZJ_JH", "cmd_K_gr"],
             ]
             print("Generating SDSS/FENIKS color contour plots...")
             plot_cc_cm_grid(
@@ -620,6 +621,26 @@ if __name__ == "__main__":
                 sdss.spaces,
                 sdss_fields,
                 sdss.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+        if cfg["plots"]["plot_cond_colors"]:
+            print("Generating FENIKS conditional color PDFs...")
+            feniks_cond = load_feniks.get_feniks_data(
+                feniks_drn,
+                ran_key,
+                ssp_data,
+                num_halos=num_halos,
+                lgmp_min=lgmp_min,
+                lgmp_max=lgmp_max,
+            )
+
+            plot_cond_color(
+                ran_key,
+                param_collection_fit,
+                feniks_cond,
+                feniks_cond.filter_info.mag_thresh,
                 run_label,
                 fit_diagnostics_save_drn,
                 plt_show=False,
@@ -834,6 +855,26 @@ if __name__ == "__main__":
                 [0.1, 0.2],
             ]
         )
+        if cfg["plots"]["plot_cond_colors"]:
+            print("Generating SDSS conditional color PDFs...")
+            sdss_cond = load_sdss.get_sdss_data(
+                sdss_drn,
+                ran_key,
+                ssp_data,
+                num_halos=num_halos,
+                lgmp_min=lgmp_min,
+                lgmp_max=lgmp_max,
+            )
+
+            plot_cond_color(
+                ran_key,
+                param_collection_fit,
+                sdss_cond,
+                sdss_cond.filter_info.mag_thresh,
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
         if cfg["plots"]["plot_mag_z"]:
             print("Generating mag vs. redshift plot...")
             compare_models_in_mag_z2(
