@@ -244,6 +244,7 @@ def get_condc_spaces_at_z(
     mags,
     parent_idx,
     d_mag_1d,
+    d_mag_cond,
     lc_sky_area_degsq,
     data_sky_area_degsq=None,
     minerva_drn=None,
@@ -281,7 +282,7 @@ def get_condc_spaces_at_z(
         color = mag_selected[:, col_idx[0]] - mag_selected[:, col_idx[1]]
         cond_mag = mag_selected[:, cond_idx]
 
-        edges = np.arange(cond_mag.min(), cond_mag.max() + 2, 2)
+        edges = np.arange(cond_mag.min(), cond_mag.max() + d_mag_cond, d_mag_cond)
         space_tuples = []
         for lo, hi in zip(edges[:-1], edges[1:]):
             cond = (cond_mag >= lo) & (cond_mag < hi)

@@ -201,6 +201,7 @@ def get_sdss_data(
     spaces_at_z=SPACES_AT_Z,
     d_mag_1d=0.1,
     d_mag_2d=0.05,
+    d_mag_cond=1.0,
     gauss_sig_2d=3.0,
     num_halos=150,
     lgmp_min=10.0,
@@ -380,6 +381,7 @@ def get_sdss_data(
             mags,
             r_idx,
             d_mag_1d,
+            d_mag_cond,
             lc_sky_area_degsq,
             data_sky_area_degsq=sdss_area_degsq,
         )
