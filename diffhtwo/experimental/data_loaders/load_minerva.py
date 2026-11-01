@@ -101,7 +101,7 @@ SPACES_AT_Z = [
             ("F162m_F150wF162m", False, (1.36, 1.59)),
             ("F182m_F200wF182m", False, (1.67, 1.95)),
         ],
-        "condc": [("F606wF150w_F444w", True, (1.0, 2.0))],
+        "condc": [("F444w_F090wF150w", True, (1.0, 2.0))],
     },
     {
         "z": (2.0, 3.0),
@@ -126,7 +126,7 @@ SPACES_AT_Z = [
             ("F210m_F200wF210m", False, (2.04, 2.35)),
             ("F250m_F277wF250m", False, (2.68, 2.95)),
         ],
-        "condc": [("F814wF200w_F444w", True, (2.0, 3.0))],
+        "condc": [("F444w_F115wF200w", True, (2.0, 3.0))],
     },
     {
         "z": (3.0, 4.0),
@@ -147,7 +147,7 @@ SPACES_AT_Z = [
             ("F200wF277w_F277wF356w", True, (3.0, 4.0)),
         ],
         "cmd": [("F356w_F150wF356w", False, (3.0, 4.0))],
-        "condc": [("F115wF277w_F444w", True, (3.0, 4.0))],
+        "condc": [("F444w_F115wF277w", True, (3.0, 4.0))],
     },
     {
         "z": (4.0, 5.0),
@@ -172,7 +172,7 @@ SPACES_AT_Z = [
             ("F444w_F150wF444w", False, (4.0, 5.0)),
             ("F360m_F356wF360m", False, (4.22, 4.81)),
         ],
-        "condc": [("F115wF356w_F444w", True, (4.0, 5.0))],
+        "condc": [("F444w_F115wF356w", True, (4.0, 5.0))],
     },
     {
         "z": (5.0, 6.5),
@@ -197,12 +197,16 @@ SPACES_AT_Z = [
             ("F410m_F444wF410m", False, (5.0, 5.52)),
             ("F460m_F444wF460m", False, (5.88, 6.23)),
         ],
-        "condc": [("F150wF444w_F444w", True, (5.0, 6.5))],
+        "condc": [("F444w_F150wF444w", True, (5.0, 6.5))],
     },
 ]
 
+SPACE_TYPE_PREFIX = re.compile(r"^(md|ccd|cmd|condc)_")
+
 
 def get_minerva_space_area_arcminsq(img_drn, space, area_file):
+    space = SPACE_TYPE_PREFIX.sub("", space)
+
     areas = {}
     if os.path.exists(area_file):
         with open(area_file) as f:

@@ -40,13 +40,13 @@ defaults:
   merging: False
 
 plots:
-  plot_app_mag_funcs: True
+  plot_app_mag_funcs: False
   plot_exsitu_frac_z0: False
   plot_color_contours: False
   plot_cond_colors: True
   plot_mag_z: False
 
-  plot_uvlf: True
+  plot_uvlf: False
 
   plot_halpha_lf: False
   plot_halpha_mstar: False

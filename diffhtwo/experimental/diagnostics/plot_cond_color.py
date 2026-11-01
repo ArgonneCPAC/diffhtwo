@@ -50,6 +50,8 @@ def plot_cond_color(
 
                 zlo = space[0].zlo
                 zhi = space[0].zhi
+                cond_band, color = parse_color_labels(type(space[0]).__name__)
+
                 fig.suptitle(
                     f"{float(zlo):.2f} < z < {float(zhi):.2f}",
                     fontsize=fontsize,
@@ -60,27 +62,18 @@ def plot_cond_color(
                 xhi = max(float(s.bin_hi.max()) for s in space)
 
                 for i, cond_space in enumerate(space):
-                    cond_band, color = parse_color_labels(type(cond_space).__name__)
                     bin_lo = cond_space.bin_lo.ravel()
                     bin_hi = cond_space.bin_hi.ravel()
-                    # bin_centers = (bin_lo + bin_hi) / 2
 
                     edges = np.append(bin_lo, bin_hi[-1])
-
-                    # n_data = cond_space.N_data / cond_space.vol_mpc3_data
-                    # n_model = cond_space.N_model / cond_space.vol_mpc3_model
 
                     ax[i].stairs(pdf(cond_space.N_data, edges), edges, label="data")
                     ax[i].stairs(pdf(cond_space.N_model, edges), edges, label="diffsky")
 
-                    # ax[i].scatter(bin_centers, np.log10(n_data), s=1)
-                    # ax[i].plot(bin_centers, np.log10(n_model))
-
                     ax[i].set_title(
-                        f"{float(cond_space.cond_lo):.1f} < {cond_band} < {float(cond_space.cond_hi):.1f}",
+                        f"[{float(cond_space.cond_lo):.1f}, {float(cond_space.cond_hi):.1f})",
                         fontsize=labelsize,
                     )
-                    ax[i].set_xlabel(color, fontsize=labelsize)
 
                     ax[i].minorticks_on()
                     ax[i].tick_params(
@@ -104,7 +97,8 @@ def plot_cond_color(
 
                     ax[i].set_xlim(xlo, xhi)
 
-                ax[0].set_ylabel("PDF", fontsize=labelsize)
+                fig.supylabel("PDF", fontsize=labelsize)
+                fig.supxlabel(f"{color} | {cond_band}", fontsize=labelsize)
                 handles, labels = ax[0].get_legend_handles_labels()
                 fig.legend(
                     handles,

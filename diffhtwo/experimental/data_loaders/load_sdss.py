@@ -50,7 +50,7 @@ LH_D_Z = 0.025
 F_HOLES = 0.003531
 
 # space binning defaults
-D_MAG_1d = 0.1
+D_MAG_1d = 0.05
 D_MAG_2d = 0.05
 GAUSS_SIG_2d = 3.0
 D_MAG_COND = 1.0
