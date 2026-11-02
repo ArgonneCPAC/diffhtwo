@@ -286,33 +286,33 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-        plot_smhm_cen_sat(
-            ran_key,
-            param_collection_fit,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            um_drn,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+        # plot_smhm_cen_sat(
+        #     ran_key,
+        #     param_collection_fit,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     um_drn,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     plt_show=False,
+        # )
 
-        plot_smhm_ratio_cen_sat(
-            ran_key,
-            param_collection_fit,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            um_drn,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+        # plot_smhm_ratio_cen_sat(
+        #     ran_key,
+        #     param_collection_fit,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     um_drn,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     plt_show=False,
+        # )
 
         plot_smhm_hexbin(
             ran_key,
