@@ -109,8 +109,8 @@ if __name__ == "__main__":
 
     initial_pts = []
     start = time.time()
-    ran_key = jran.key(0)
-    for epoch in range(0, cfg["epoch"]["n_it"]):
+    epoch_keys = jran.split(jran.key(0), cfg["epoch"]["n_it"])
+    for epoch, ran_key in enumerate(epoch_keys):
         print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
 
         # load sdss data
