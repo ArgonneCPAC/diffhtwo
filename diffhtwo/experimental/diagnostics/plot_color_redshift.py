@@ -154,6 +154,7 @@ def plot_color_z(
             cmap=cmap,
             mincnt=1,
             norm=colors.LogNorm(),
+            extent=(z_min - 0.05, z_max + 0.05, y_min, y_max),
             edgecolors="none",
             rasterized=True,
         )
@@ -166,6 +167,7 @@ def plot_color_z(
             cmap=cmap,
             mincnt=1,
             norm=colors.LogNorm(),
+            extent=(z_min - 0.05, z_max + 0.05, y_min, y_max),
             edgecolors="none",
             rasterized=True,
         )
@@ -180,6 +182,7 @@ def plot_color_z(
             vmin=9,
             vmax=11.5,
             edgecolors="none",
+            extent=(z_min - 0.05, z_max + 0.05, y_min, y_max),
             rasterized=True,
         )
         hb2 = ax[c][3].hexbin(
@@ -193,6 +196,7 @@ def plot_color_z(
             vmin=11,
             vmax=12.5,
             edgecolors="none",
+            extent=(z_min - 0.05, z_max + 0.05, y_min, y_max),
             rasterized=True,
         )
         hb3 = ax[c][4].hexbin(
@@ -206,6 +210,7 @@ def plot_color_z(
             vmin=-11,
             vmax=-9,
             edgecolors="none",
+            extent=(z_min - 0.05, z_max + 0.05, y_min, y_max),
             rasterized=True,
         )
         hbd_list.append(hbd)
