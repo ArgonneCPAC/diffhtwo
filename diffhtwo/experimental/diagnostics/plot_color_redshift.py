@@ -21,7 +21,7 @@ plt.rc(
 )
 
 
-def _box(fig, ax, c0, c1, label, color, labelsize=12):
+def _box(fig, ax, c0, c1, label, color, labelsize=12, x_offset=0.0):
     p0 = ax[-1][c0].get_position()
     p1 = ax[0][c1].get_position()
     fig.add_artist(
@@ -36,7 +36,7 @@ def _box(fig, ax, c0, c1, label, color, labelsize=12):
         )
     )
     fig.text(
-        (p0.x0 + p1.x1) / 2,
+        (p0.x0 + p1.x1) / 2 + x_offset,
         p1.y1 - 0.01,
         label,
         ha="center",
@@ -62,7 +62,7 @@ def plot_color_z(
     lgmp_min=11.0,
     lgmp_sub_min=11.0,
     mc_merge=1,
-    gridsize=(200, 20),
+    gridsize=(80, 15),
     n_z_phot_table=25,
     plt_show=True,
 ):
@@ -297,7 +297,7 @@ def plot_color_z(
     fig.supxlabel("redshift", fontsize=labelsize)
 
     _box(fig, ax, 0, 0, "FENIKS", "tab:blue", labelsize)
-    _box(fig, ax, 1, 4, "Diffsky", "tab:orange", labelsize)
+    _box(fig, ax, 1, 4, "Diffsky", "tab:orange", labelsize, x_offset=-0.05)
 
     fig.savefig(savedir + "/" + run_label + "_color_redshift.png", dpi=600)
     if plt_show:
