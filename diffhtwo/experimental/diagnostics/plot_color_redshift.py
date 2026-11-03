@@ -4,6 +4,7 @@ from diffsky.lc_generators.lc_data_phot import mc_lc_data_phot
 from diffsky.sed_models.ou26.lc_phot import mc_lc_phot
 from jax import random as jran
 from matplotlib import colors
+from matplotlib.patches import Rectangle
 
 from ..kernels.sfr_tau import get_logsfr_tau
 from ..tab_blue_orange_cmap import make_cmap
@@ -20,6 +21,32 @@ plt.rc(
 )
 
 
+def _box(fig, ax, c0, c1, label, color, labelsize=12):
+    p0 = ax[-1][c0].get_position()
+    p1 = ax[0][c1].get_position()
+    fig.add_artist(
+        Rectangle(
+            (p0.x0, p0.y0),
+            p1.x1 - p0.x0,
+            p1.y1 - p0.y0,
+            transform=fig.transFigure,
+            fill=False,
+            edgecolor=color,
+            lw=2,
+        )
+    )
+    fig.text(
+        (p0.x0 + p1.x1) / 2,
+        p1.y1 - 0.01,
+        label,
+        ha="center",
+        va="top",
+        fontsize=labelsize,
+        color=color,
+        bbox=dict(fc="w", ec="none", pad=1),
+    )
+
+
 def plot_color_z(
     ran_key,
     param_collection,
@@ -34,7 +61,7 @@ def plot_color_z(
     lgmp_min=11.0,
     lgmp_sub_min=11.0,
     mc_merge=1,
-    gridsize=(150, 100),
+    gridsize=(200, 20),
     n_z_phot_table=25,
     plt_show=True,
 ):
@@ -66,7 +93,7 @@ def plot_color_z(
     logssfr_100Myr = logsfr_100Myr - logsm_obs
 
     fig_width = 7.1
-    fig_height = 6.4
+    fig_height = 5.4
     labelsize = 12
     n_gal, n_color = data.color.shape
     fig, ax = plt.subplots(
@@ -96,7 +123,9 @@ def plot_color_z(
             < data.filter_info.mag_thresh[parent_idx][1]
         )
 
-        model_sel = model_sel1 & model_sel2 & model_sel_parent
+        model_sel = (
+            model_sel1 & model_sel2 & model_sel_parent & (phot_info.p_merge < 0.5)
+        )
 
         model_color = phot_info.obs_mags[:, col_idx1] - phot_info.obs_mags[:, col_idx2]
 
@@ -121,6 +150,8 @@ def plot_color_z(
         hbd = ax[c][0].hexbin(
             data.redshift[data_sel],
             data_color[data_sel],
+            C=np.full(data_sel.sum(), 1 / data.data_sky_area_degsq),
+            reduce_C_function=np.sum,
             gridsize=gridsize,
             cmap=cmap,
             mincnt=1,
@@ -131,6 +162,8 @@ def plot_color_z(
         hb0 = ax[c][1].hexbin(
             z_obs[model_sel],
             model_color[model_sel],
+            C=np.full(model_sel.sum(), 1 / sky_area_degsq),
+            reduce_C_function=np.sum,
             gridsize=gridsize,
             cmap=cmap,
             mincnt=1,
@@ -225,7 +258,7 @@ def plot_color_z(
         hbd_list[0],
         ax=ax[:, 0],
         location="top",
-        label=r"N$_{FENIKS}$",
+        label=r"n$_{FENIKS}$ [deg$^{-2}$]",
         shrink=0.85,
         pad=0.01,
     )
@@ -233,7 +266,7 @@ def plot_color_z(
         hb0_list[0],
         ax=ax[:, 1],
         location="top",
-        label=r"N$_{diffsky}$",
+        label=r"n$_{Diffsky}$ [deg$^{-2}$]",
         shrink=0.85,
         pad=0.01,
     )
@@ -263,6 +296,10 @@ def plot_color_z(
     )
 
     fig.supxlabel("redshift", fontsize=labelsize)
+
+    _box(fig, ax, 0, 0, "FENIKS", "tab:blue", labelsize)
+    _box(fig, ax, 1, 4, "Diffsky", "tab:orange", labelsize)
+
     fig.savefig(savedir + "/" + run_label + "_color_redshift.png", dpi=600)
     if plt_show:
         plt.show()
