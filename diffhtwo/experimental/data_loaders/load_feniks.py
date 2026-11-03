@@ -51,10 +51,9 @@ Feniks = namedtuple(
         "filter_info",
         "parent_cut_idx",
         "data_sky_area_degsq",
-        "dataset",
-        "col_idx",
-        "mag_idx",
-        "dataset_dim_labels",
+        "color",
+        "color_idx",
+        "color_label",
     ],
 )
 
@@ -467,7 +466,7 @@ def get_feniks_data(
     uds_HK = uds_H_col - uds_K_col
 
     # stack colors_mag
-    dataset = np.vstack(
+    color = np.vstack(
         (
             megacam_hsc_uSg,
             hsc_gr,
@@ -476,13 +475,10 @@ def get_feniks_data(
             hsc_uds_zJ,
             uds_JH,
             uds_HK,
-            megacam_uS_tot,
-            uds_K_tot,
-            z_best,
         )
     ).T
 
-    col_idx_lh_dim = [
+    color_idx = [
         [0, 1],  # u - g
         [1, 2],  # g - r
         [2, 3],  # r - i
@@ -491,11 +487,8 @@ def get_feniks_data(
         [5, 6],  # J - H
         [6, 7],  # H - K
     ]
-    mag_idx_lh_dim = [
-        0,  # u
-        7,  # K
-    ]
-    dataset_dim_labels = [
+
+    color_label = [
         r"$u - g$",
         r"$g - r$",
         r"$r - i$",
@@ -503,9 +496,6 @@ def get_feniks_data(
         r"$z - J$",
         r"$J - H$",
         r"$H - K$",
-        r"$uS$",
-        r"$K$",
-        r"$redshift$",
     ]
 
     ##############################################################################
@@ -638,10 +628,9 @@ def get_feniks_data(
         filter_info,
         K_idx,
         FENIKS_AREA_DEG2,
-        dataset,
-        col_idx_lh_dim,
-        mag_idx_lh_dim,
-        dataset_dim_labels,
+        color,
+        color_idx,
+        color_label,
     )
 
 

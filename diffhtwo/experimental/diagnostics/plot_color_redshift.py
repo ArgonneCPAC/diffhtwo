@@ -25,28 +25,22 @@ def plot_color_z(
     param_collection,
     z_min,
     z_max,
-    dataset,
+    data,
     ssp_data,
     run_label,
     savedir,
+    parent_idx=-1,
     sky_area_degsq=0.1,
-    lgmp_min=11,
-    lgmp_sub_min=11,
+    lgmp_min=11.0,
+    lgmp_sub_min=11.0,
     mc_merge=1,
-    gridsize=100,
+    gridsize=(150, 100),
+    n_z_phot_table=25,
     plt_show=True,
 ):
-    """
-    TODO:
-        This plot currently does not use the same appropriate mag cuts in model and data:
-            - Use mag_sels to get joint magcut for each panel in data
-            - Do the corresponfing for model using mag_thresh
-    """
     ran_key, lc_halo_key = jran.split(ran_key, 2)
-    z_phot_table = np.linspace(z_min, z_max, 25)
-    tcurves = dataset.filter_info.tcurves
-    mag_thresh = dataset.filter_info.mag_thresh
-    dim_labels = dataset.dataset_dim_labels
+    z_phot_table = np.linspace(z_min, z_max, n_z_phot_table)
+
     args = (
         lc_halo_key,
         z_min,
@@ -55,33 +49,28 @@ def plot_color_z(
         lgmp_sub_min,
         sky_area_degsq,
         ssp_data,
-        tcurves,
+        data.filter_info.tcurves,
         z_phot_table,
     )
+
     lc_data = mc_lc_data_phot(*args)
     ran_key, sed_key = jran.split(ran_key, 2)
     phot_info, __, __ = mc_lc_phot(
         sed_key, lc_data, mc_merge, param_collection=param_collection
     )
+
     z_obs = lc_data.z_obs
     logmp_obs = lc_data.logmp_obs
     logsm_obs = phot_info.logsm_obs
     logsfr_100Myr = get_logsfr_tau(phot_info, lc_data, ssp_data)
     logssfr_100Myr = logsfr_100Myr - logsm_obs
 
-    sel = np.ones(len(phot_info.obs_mags), dtype=bool)
-    for band in range(len(mag_thresh)):
-        thresh = mag_thresh[band]
-        sel &= (phot_info.obs_mags[:, band] > thresh[0]) & (
-            phot_info.obs_mags[:, band] < thresh[1]
-        )
-
     fig_width = 7.1
     fig_height = 6.4
     labelsize = 12
-    n_colors = len(tcurves) - 1
+    n_gal, n_color = data.color.shape
     fig, ax = plt.subplots(
-        n_colors,
+        n_color,
         5,
         figsize=(fig_width, fig_height),
         gridspec_kw={"wspace": 0},
@@ -89,15 +78,49 @@ def plot_color_z(
     fig.subplots_adjust(wspace=0, hspace=0, bottom=0.075, left=0.1, right=0.99, top=1)
 
     hbd_list, hb0_list, hb1_list, hb2_list, hb3_list = [], [], [], [], []
-    for f in range(n_colors):
-        ax[f][0].set_ylabel(dim_labels[f], fontsize=labelsize)
-        color = phot_info.obs_mags[:, f] - phot_info.obs_mags[:, f + 1]
-        data_col = dataset.dataset[:, f]
-        combined = np.concatenate([color[sel], data_col])
+    for c in range(n_color):
+        # model
+        col_idx1, col_idx2 = data.color_idx[c]
+        model_sel1 = (
+            phot_info.obs_mags[:, col_idx1] > data.filter_info.mag_thresh[col_idx1][0]
+        ) & (phot_info.obs_mags[:, col_idx1] < data.filter_info.mag_thresh[col_idx1][1])
+        model_sel2 = (
+            phot_info.obs_mags[:, col_idx2] > data.filter_info.mag_thresh[col_idx2][0]
+        ) & (phot_info.obs_mags[:, col_idx2] < data.filter_info.mag_thresh[col_idx2][1])
+
+        model_sel_parent = (
+            phot_info.obs_mags[:, parent_idx]
+            > data.filter_info.mag_thresh[parent_idx][0]
+        ) & (
+            phot_info.obs_mags[:, parent_idx]
+            < data.filter_info.mag_thresh[parent_idx][1]
+        )
+
+        model_sel = model_sel1 & model_sel2 & model_sel_parent
+
+        model_color = phot_info.obs_mags[:, col_idx1] - phot_info.obs_mags[:, col_idx2]
+
+        # data
+        data_sel1 = (
+            data.mags[:, col_idx1] > data.filter_info.mag_thresh[col_idx1][0]
+        ) & (data.mags[:, col_idx1] < data.filter_info.mag_thresh[col_idx1][1])
+        data_sel2 = (
+            data.mags[:, col_idx2] > data.filter_info.mag_thresh[col_idx2][0]
+        ) & (data.mags[:, col_idx2] < data.filter_info.mag_thresh[col_idx2][1])
+        data_sel_parent = (
+            data.mags[:, parent_idx] > data.filter_info.mag_thresh[parent_idx][0]
+        ) & (data.mags[:, parent_idx] < data.filter_info.mag_thresh[parent_idx][1])
+        data_sel = data_sel1 & data_sel2 & data_sel_parent
+
+        # data_color = data.color[:, c]
+        data_color = data.mags[:, col_idx1] - data.mags[:, col_idx2]
+
+        combined = np.concatenate([model_color, data_color])
         y_min, y_max = np.percentile(combined, [1, 99])
-        hbd = ax[f][0].hexbin(
-            dataset.dataset[:, -1],
-            data_col,
+
+        hbd = ax[c][0].hexbin(
+            data.redshift[data_sel],
+            data_color[data_sel],
             gridsize=gridsize,
             cmap=cmap,
             mincnt=1,
@@ -105,9 +128,9 @@ def plot_color_z(
             edgecolors="none",
             rasterized=True,
         )
-        hb0 = ax[f][1].hexbin(
-            z_obs[sel],
-            color[sel],
+        hb0 = ax[c][1].hexbin(
+            z_obs[model_sel],
+            model_color[model_sel],
             gridsize=gridsize,
             cmap=cmap,
             mincnt=1,
@@ -115,10 +138,10 @@ def plot_color_z(
             edgecolors="none",
             rasterized=True,
         )
-        hb1 = ax[f][2].hexbin(
-            z_obs[sel],
-            color[sel],
-            C=logsm_obs[sel],
+        hb1 = ax[c][2].hexbin(
+            z_obs[model_sel],
+            model_color[model_sel],
+            C=logsm_obs[model_sel],
             reduce_C_function=np.median,
             gridsize=gridsize,
             cmap="YlGnBu",
@@ -128,10 +151,10 @@ def plot_color_z(
             edgecolors="none",
             rasterized=True,
         )
-        hb2 = ax[f][3].hexbin(
-            z_obs[sel],
-            color[sel],
-            C=logmp_obs[sel],
+        hb2 = ax[c][3].hexbin(
+            z_obs[model_sel],
+            model_color[model_sel],
+            C=logmp_obs[model_sel],
             reduce_C_function=np.median,
             gridsize=gridsize,
             cmap="YlGnBu",
@@ -141,10 +164,10 @@ def plot_color_z(
             edgecolors="none",
             rasterized=True,
         )
-        hb3 = ax[f][4].hexbin(
-            z_obs[sel],
-            color[sel],
-            C=logssfr_100Myr[sel],
+        hb3 = ax[c][4].hexbin(
+            z_obs[model_sel],
+            model_color[model_sel],
+            C=logssfr_100Myr[model_sel],
             reduce_C_function=np.median,
             gridsize=gridsize,
             cmap="coolwarm_r",
@@ -159,9 +182,12 @@ def plot_color_z(
         hb1_list.append(hb1)
         hb2_list.append(hb2)
         hb3_list.append(hb3)
+
+        ax[c][0].set_ylabel(data.color_label[c], fontsize=labelsize)
+
         for i in range(0, 5):
-            ax[f][i].minorticks_on()
-            ax[f][i].tick_params(
+            ax[c][i].minorticks_on()
+            ax[c][i].tick_params(
                 which="major",
                 direction="in",
                 top=True,
@@ -170,7 +196,7 @@ def plot_color_z(
                 width=1,
                 labelsize=labelsize,
             )
-            ax[f][i].tick_params(
+            ax[c][i].tick_params(
                 which="minor",
                 direction="in",
                 top=True,
@@ -179,12 +205,12 @@ def plot_color_z(
                 width=0.8,
                 labelsize=labelsize,
             )
-            ax[f][i].set_xlim(0, z_max + 0.2)
-            ax[f][i].set_ylim(y_min, y_max)
+            ax[c][i].set_xlim(z_min - 0.05, z_max + 0.05)
+            ax[c][i].set_ylim(y_min, y_max)
             if i != 0:
-                ax[f][i].tick_params(labelleft=False)
-            if f != n_colors - 1:
-                ax[f][i].tick_params(labelbottom=False)
+                ax[c][i].tick_params(labelleft=False)
+            if c != n_color - 1:
+                ax[c][i].tick_params(labelbottom=False)
 
     countsd = np.concatenate([hb.get_array() for hb in hbd_list])
     normd = colors.LogNorm(vmin=countsd.min(), vmax=countsd.max())
