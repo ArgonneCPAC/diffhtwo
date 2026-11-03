@@ -42,6 +42,7 @@ def _box(fig, ax, c0, c1, label, color, labelsize=12):
         ha="center",
         va="top",
         fontsize=labelsize,
+        fontweight="bold",
         color=color,
         bbox=dict(fc="w", ec="none", pad=1),
     )
@@ -106,7 +107,6 @@ def plot_color_z(
 
     hbd_list, hb0_list, hb1_list, hb2_list, hb3_list = [], [], [], [], []
     for c in range(n_color):
-        # model
         col_idx1, col_idx2 = data.color_idx[c]
         model_sel1 = (
             phot_info.obs_mags[:, col_idx1] > data.filter_info.mag_thresh[col_idx1][0]
@@ -129,7 +129,6 @@ def plot_color_z(
 
         model_color = phot_info.obs_mags[:, col_idx1] - phot_info.obs_mags[:, col_idx2]
 
-        # data
         data_sel1 = (
             data.mags[:, col_idx1] > data.filter_info.mag_thresh[col_idx1][0]
         ) & (data.mags[:, col_idx1] < data.filter_info.mag_thresh[col_idx1][1])
@@ -141,7 +140,6 @@ def plot_color_z(
         ) & (data.mags[:, parent_idx] < data.filter_info.mag_thresh[parent_idx][1])
         data_sel = data_sel1 & data_sel2 & data_sel_parent
 
-        # data_color = data.color[:, c]
         data_color = data.mags[:, col_idx1] - data.mags[:, col_idx2]
 
         combined = np.concatenate([model_color, data_color])
@@ -245,15 +243,11 @@ def plot_color_z(
             if c != n_color - 1:
                 ax[c][i].tick_params(labelbottom=False)
 
-    countsd = np.concatenate([hb.get_array() for hb in hbd_list])
-    normd = colors.LogNorm(vmin=countsd.min(), vmax=countsd.max())
-    for hb in hbd_list:
-        hb.set_norm(normd)
-    counts = np.concatenate([hb.get_array() for hb in hb0_list])
-    vmin0, vmax0 = counts.min(), counts.max()
-    norm0 = colors.LogNorm(vmin=vmin0, vmax=vmax0)
-    for hb in hb0_list:
-        hb.set_norm(norm0)
+    counts = np.concatenate([hb.get_array() for hb in hbd_list + hb0_list])
+    norm = colors.LogNorm(vmin=counts.min(), vmax=counts.max())
+    for hb in hbd_list + hb0_list:
+        hb.set_norm(norm)
+
     fig.colorbar(
         hbd_list[0],
         ax=ax[:, 0],
