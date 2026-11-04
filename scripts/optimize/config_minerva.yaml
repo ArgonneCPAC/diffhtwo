@@ -8,8 +8,6 @@ fit_runid: "runtest"
 fit_type: "diffstarpop+spspop+merging"
 
 phot:
-  lh_d_mag: 0.4
-  N_centroids: 100
   num_halos: 100
 
 halpha:
@@ -22,8 +20,6 @@ lgmp_min: 10.5
 lgmp_max: 15.0
 
 apply_igm: True
-
-space_type: "phot"
 
 epoch:
   n_it: 1

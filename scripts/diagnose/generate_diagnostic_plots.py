@@ -286,33 +286,33 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-        plot_smhm_cen_sat(
-            ran_key,
-            param_collection_fit,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            um_drn,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+        # plot_smhm_cen_sat(
+        #     ran_key,
+        #     param_collection_fit,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     um_drn,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     plt_show=False,
+        # )
 
-        plot_smhm_ratio_cen_sat(
-            ran_key,
-            param_collection_fit,
-            num_halos,
-            ssp_data,
-            feniks.filter_info.tcurves,
-            run_label,
-            fit_diagnostics_save_drn,
-            um_drn,
-            lgmp_min=lgmp_min,
-            lgmp_max=lgmp_max,
-            plt_show=False,
-        )
+        # plot_smhm_ratio_cen_sat(
+        #     ran_key,
+        #     param_collection_fit,
+        #     num_halos,
+        #     ssp_data,
+        #     feniks.filter_info.tcurves,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     um_drn,
+        #     lgmp_min=lgmp_min,
+        #     lgmp_max=lgmp_max,
+        #     plt_show=False,
+        # )
 
         plot_smhm_hexbin(
             ran_key,
@@ -652,13 +652,13 @@ if __name__ == "__main__":
             plot_color_z(
                 ran_key,
                 param_collection_fit,
-                0.02,
+                0.4,
                 2.0,
                 feniks,
                 ssp_data,
                 run_label,
                 fit_diagnostics_save_drn,
-                sky_area_degsq=1.0,
+                sky_area_degsq=sky_area_degsq,
                 lgmp_min=lgmp_min,
                 lgmp_sub_min=lgmp_min,
                 plt_show=False,
