@@ -667,7 +667,7 @@ def get_feniks_fitting_data(
         lgmp_max=lgmp_max,
         add_random_rows_for_testing=add_random_rows_for_testing,
     )
-    remove = {"dataset_dim_labels", "mags_labels"}
+    remove = {"mags_labels", "color_label"}
     FeniksFitting = namedtuple("Feniks", [f for f in feniks._fields if f not in remove])
     feniks_fitting_data = FeniksFitting(
         **{f: getattr(feniks, f) for f in FeniksFitting._fields}
