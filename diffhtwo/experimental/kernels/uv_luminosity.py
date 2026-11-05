@@ -8,6 +8,7 @@ jax.config.update("jax_debug_infs", True)
 from collections import namedtuple
 
 import jax.numpy as jnp
+import numpy as np
 from jax import jit as jjit
 from jax import vmap
 
@@ -21,20 +22,20 @@ C = 299792458.0
 UV_WAVELENGTH_AA = 1600 + 1.713
 UV_FREQUENCY_HZ = C / (UV_WAVELENGTH_AA * 1e-10)
 
-_A = (None, None, 0)
-interp_vmap = jjit(vmap(jnp.interp, in_axes=_A))
-
-_B = (None, None, 1)
-interp_vmap2 = jjit(vmap(interp_vmap, in_axes=_B))
+# copied from astropy import units as u: d = (10 * u.pc).to(u.cm).value
+D_10pc_in_cm = 3.085677581491367e19
 
 
 @jjit
 def precompute_uv_luminosity(ssp_data):
     """get uv_luminosity in units of erg/s/Msun"""
+    wave_lo = UV_WAVELENGTH_AA - 50.0
+    wave_hi = UV_WAVELENGTH_AA + 50.0
 
-    uv_luminosity_per_hz = interp_vmap2(
-        UV_WAVELENGTH_AA, ssp_data.ssp_wave, ssp_data.ssp_flux
-    ).T
+    mask = ((ssp_data.ssp_wave >= wave_lo) & (ssp_data.ssp_wave <= wave_hi)) * 1.0
+    uv_luminosity_per_hz = jnp.trapezoid(
+        ssp_data.ssp_flux * mask, ssp_data.ssp_wave, axis=-1
+    ) / jnp.trapezoid(mask, ssp_data.ssp_wave)
 
     uv_luminosity = UV_FREQUENCY_HZ * uv_luminosity_per_hz * L_SUN_CGS
     return uv_luminosity
@@ -57,3 +58,15 @@ def append_uv_luminosity_to_ssp_data(ssp_data):
         ssp_emline_luminosity=emline_luminosity_with_uv,
     )
     return ssp_data
+
+
+def compute_M_UV_from_L_UV(L_UV, D_10pc_in_cm=D_10pc_in_cm):
+    """
+    Input:
+        L_UV: UV Luminosity in erg/s
+    """
+
+    f_nu = L_UV / UV_FREQUENCY_HZ / (4 * np.pi * D_10pc_in_cm**2)
+    M_UV = -2.5 * np.log10(f_nu) - 48.6
+
+    return M_UV
