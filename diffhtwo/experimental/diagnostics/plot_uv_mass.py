@@ -392,7 +392,7 @@ def plot_uv_scatter_mhalo(
     fig, axes = plt.subplots(
         nrows,
         ncols,
-        figsize=(7.1, 3.6),
+        figsize=(7.1, 3.8),
         constrained_layout=True,
         sharex=True,
         sharey=True,

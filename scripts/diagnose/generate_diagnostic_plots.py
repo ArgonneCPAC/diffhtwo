@@ -317,20 +317,20 @@ if __name__ == "__main__":
         #     plt_show=False,
         # )
 
-        # plot_uv_scatter_mhalo(
-        #     ran_key,
-        #     param_collection_fit,
-        #     zbins_uv_mstar,
-        #     ssp_data_uv,
-        #     sdss.filter_info.tcurves,
-        #     line_wave_table_uv,
-        #     num_halos,
-        #     run_label,
-        #     fit_diagnostics_save_drn,
-        #     lgmp_min=9.75,
-        #     lgmp_max=12.5,
-        #     plt_show=False,
-        # )
+        plot_uv_scatter_mhalo(
+            ran_key,
+            param_collection_fit,
+            zbins_uv_mstar,
+            ssp_data_uv,
+            sdss.filter_info.tcurves,
+            line_wave_table_uv,
+            num_halos,
+            run_label,
+            fit_diagnostics_save_drn,
+            lgmp_min=9.75,
+            lgmp_max=12.5,
+            plt_show=False,
+        )
 
     if cfg["plots"]["plot_exsitu_frac_z0"]:
         print("Generating ex_situ_frac_z0 plot...")
@@ -686,7 +686,7 @@ if __name__ == "__main__":
                 sdss.spaces,
                 sdss_fields,
                 sdss.filter_info.mag_thresh,
-                run_label,
+                run_label + "_lo_z",
                 fit_diagnostics_save_drn,
                 plt_show=False,
             )
@@ -699,7 +699,7 @@ if __name__ == "__main__":
                 sdss.spaces,
                 sdss_fields,
                 sdss.filter_info.mag_thresh,
-                run_label,
+                run_label + "_lo_z",
                 fit_diagnostics_save_drn,
                 plt_show=False,
             )
@@ -1235,7 +1235,7 @@ if __name__ == "__main__":
                 minerva.spaces,
                 fields,
                 minerva.filter_info.mag_thresh,
-                run_label,
+                run_label + "_hi_z",
                 fit_diagnostics_save_drn,
                 plt_show=False,
             )
@@ -1245,7 +1245,7 @@ if __name__ == "__main__":
                 minerva.spaces,
                 fields,
                 minerva.filter_info.mag_thresh,
-                run_label,
+                run_label + "_hi_z",
                 fit_diagnostics_save_drn,
                 plt_show=False,
             )
@@ -1266,7 +1266,7 @@ if __name__ == "__main__":
                 minerva.spaces,
                 emitter_spaces,
                 minerva.filter_info.mag_thresh,
-                run_label,
+                run_label + "_hi_z",
                 fit_diagnostics_save_drn,
                 plt_show=False,
                 ncols=4,
@@ -1278,7 +1278,7 @@ if __name__ == "__main__":
                 minerva.spaces,
                 emitter_spaces,
                 minerva.filter_info.mag_thresh,
-                run_label,
+                run_label + "_hi_z",
                 fit_diagnostics_save_drn,
                 plt_show=False,
                 ncols=4,
