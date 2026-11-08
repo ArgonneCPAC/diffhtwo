@@ -2,6 +2,7 @@ import jax.numpy as jnp
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import to_rgba
 from matplotlib.lines import Line2D
 
 from ..data_loaders import load_hizels
@@ -334,6 +335,161 @@ def plot_halpha(
 
     fig.savefig(
         savedir + "/" + model_nickname + "_halpha_LF" + ".png",
+        dpi=400,
+    )
+    if plt_show:
+        plt.show()
+    plt.close()
+
+
+def plot_halpha_ltd(
+    ran_key,
+    hizels_drn,
+    param_collection,
+    ssp_data,
+    tcurves,
+    halpha_wave_aa,
+    model_nickname,
+    savedir,
+    num_halos=100,
+    lgmp_min=10.5,
+    lgmp_max=15.0,
+    logHa_flux_limit_fit=LOGHA_FLUX_LIMIT_NONE,
+    plt_show=True,
+):
+    hizels = load_hizels.get_hizels_data(
+        hizels_drn,
+        ran_key,
+        ssp_data,
+        tcurves,
+        halpha_wave_aa,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
+        logflux_limit=logHa_flux_limit_fit,
+    )
+    alpha = 0.75
+    lw = 2
+
+    fig, ax = plt.subplots(1, figsize=(4.3, 4), constrained_layout=True)
+
+    xs_all = []
+    ys_all = []
+
+    for i in range(0, 4):
+        _res = get_halpha_LF_q_ms_burst(
+            ran_key,
+            param_collection,
+            halpha_wave_aa,
+            hizels.lg_Lbin_edges[0][i],
+            hizels.z[0][i],
+            hizels.dz[0][i],
+            ssp_data,
+            tcurves,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+        )
+        (
+            lgL_bin_centers,
+            lg_halpha_LF,
+            lg_halpha_LF_q,
+            lg_halpha_LF_ms,
+            lg_halpha_LF_burst,
+            lg_halpha_LF_in_situ,
+            phot_kern_results,
+            spec_kern_results,
+            lg_halpha_Lbin_edges,
+            lc_data,
+        ) = _res
+
+        for b in range(0, len(lgL_bin_centers)):
+            y = hizels.lg_phi_data[0][i][0][b]
+            yerr = hizels.lg_phi_data[0][i][1][b]
+            ax.errorbar(
+                lgL_bin_centers[b],
+                y,
+                yerr,
+                mec=to_rgba(colors_z[i], alpha),
+                mew=1.2,
+                ecolor=to_rgba(colors_z[i], 0.3),
+                elinewidth=2,
+                fmt="s",
+                mfc=to_rgba(colors_z[i], alpha),
+                markersize=5,
+            )
+
+            xs_all.append(lgL_bin_centers[b])
+            ys_all.extend([y - yerr, y + yerr])
+
+        ax.plot(
+            lgL_bin_centers,
+            lg_halpha_LF,
+            color=colors_z[i],
+            alpha=alpha,
+            label=" z = " + str(hizels.z[0][i]),
+            lw=lw,
+        )
+        m = np.isfinite(lg_halpha_LF)
+        xs_all.extend(np.asarray(lgL_bin_centers)[m])
+        ys_all.extend(np.asarray(lg_halpha_LF)[m])
+
+    xs_all = np.asarray(xs_all)
+    ys_all = np.asarray(ys_all)
+    xmin, xmax = np.nanmin(xs_all), np.nanmax(xs_all)
+    ymin, ymax = np.nanmin(ys_all), np.nanmax(ys_all)
+    xpad = 0.05 * (xmax - xmin)
+    ypad = 0.05 * (ymax - ymin)
+    ax.set_xlim(xmin - xpad, xmax + xpad)
+    ax.set_ylim(-5.0, ymax + ypad)
+
+    ax.minorticks_on()
+    ax.tick_params(
+        which="major",
+        direction="in",
+        top=True,
+        right=True,
+        length=6,
+        width=1,
+        labelsize=10,
+    )
+    ax.tick_params(
+        which="minor",
+        direction="in",
+        top=True,
+        right=True,
+        length=3,
+        width=0.8,
+        labelsize=10,
+    )
+
+    handles_z, labels_z = ax.get_legend_handles_labels()
+    handles = [
+        Line2D([], [], color="k", lw=lw, label="diffsky"),
+        ax.errorbar(
+            [],
+            [],
+            yerr=[[0.2], [0.2]],  # vertical error bar
+            fmt="s",
+            color="k",
+            markersize=6,
+            linestyle="none",
+            lw=lw,
+            label="Sobral+13",
+        ),
+    ]
+    handles = handles_z + handles
+    ax.legend(
+        handles=handles,
+        loc="lower left",
+        frameon=False,
+        fontsize=10,
+    )
+
+    ax.set_xlabel("log$_{10}$ (L$_{H\u03b1}$ [erg/s])", fontsize=14)
+    ax.set_ylabel("log$_{10}($\u03d5 [Mpc$^{-3}$])", fontsize=14)
+
+    fig.savefig(
+        savedir + "/" + model_nickname + "_halpha_LF_ltd" + ".png",
         dpi=400,
     )
     if plt_show:

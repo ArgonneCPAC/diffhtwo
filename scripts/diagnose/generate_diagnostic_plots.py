@@ -55,6 +55,7 @@ from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
 from diffhtwo.experimental.diagnostics.plot_halpha import (
     plot_halpha,
     plot_halpha_insitu_exsitu,
+    plot_halpha_ltd,
     plot_halpha_minerva,
     plot_halpha_ms_q_burst,
     plot_halpha_sfr,
@@ -526,6 +527,21 @@ if __name__ == "__main__":
 
         print("Generating h-alpha LF plot...")
         plot_halpha(
+            ran_key,
+            hizels_drn,
+            param_collection_fit,
+            ssp_data,
+            feniks.filter_info.tcurves,
+            halpha_wave_aa,
+            hizels_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            logHa_flux_limit_fit=logHa_flux_limit,
+            plt_show=False,
+        )
+        plot_halpha_ltd(
             ran_key,
             hizels_drn,
             param_collection_fit,
