@@ -8,7 +8,9 @@ from matplotlib.lines import Line2D
 from ..data_loaders import load_hizels
 from ..data_loaders.load_hizels import LOGHA_FLUX_LIMIT_NONE
 from ..data_loaders.load_minerva import get_minerva_halpha
+from ..defaults import COSMO
 from ..kernels.line_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
+from ..kernels.line_utils import luminosity_from_flux_app
 from ..kernels.N_line import N_linelum2
 from ..kernels.sfr_tau import get_logsfr_tau
 
@@ -203,6 +205,7 @@ def plot_halpha(
         logflux_limit=logHa_flux_limit_fit,
         logLHa_halo_limit=logLHa_halo_limit,
     )
+
     alpha = 0.75
     lw = 2
 
@@ -213,6 +216,7 @@ def plot_halpha(
 
     fig, ax = plt.subplots(1, figsize=(4.3, 4), constrained_layout=True)
 
+    cut_x, cut_y = [], []
     for i in range(0, len(hizels.z[0])):
         _res = get_halpha_LF_q_ms_burst(
             ran_key,
@@ -239,6 +243,15 @@ def plot_halpha(
             lg_halpha_Lbin_edges,
             lc_data,
         ) = _res
+
+        logL_lim = np.log10(
+            luminosity_from_flux_app(10**logHa_flux_limit_fit, hizels.z[0][i], COSMO)
+        )
+        cut_x.append(logL_lim)
+        cut_y.append(
+            np.interp(logL_lim, lgL_bin_centers, hizels.lg_phi_data[0][i][0])
+            + offsets_z[i]
+        )
 
         if hizels.z[0][i] in hizels_flux_limited.z[0]:
             i_fl = list(hizels_flux_limited.z[0]).index(hizels.z[0][i])
@@ -280,6 +293,33 @@ def plot_halpha(
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
 
+    ax.plot(
+        cut_x,
+        cut_y,
+        ls="--",
+        c="k",
+        lw=1.5,
+        alpha=0.5,
+        label=rf"$\log_{{10}} flux_{{\mathrm{{H}}\alpha}} [cgs] > {logHa_flux_limit_fit}$",
+    )
+
+    ax.axvline(
+        logLHa_halo_limit,
+        ls=":",
+        c="k",
+        alpha=0.5,
+        label=rf"$\log_{{10}} L_{{\mathrm{{H}}\alpha}} [cgs] > {logLHa_halo_limit}$",
+    )
+    # ax.text(
+    #     logLHa_halo_limit,
+    #     0.98,
+    #     rf"$\log_{{10}} L_{{\mathrm{{H}}\alpha}} = {logLHa_halo_limit}$",
+    #     rotation=90,
+    #     ha="left",
+    #     va="top",
+    #     transform=plt.gca().get_xaxis_transform(),
+    # )
+
     ax.minorticks_on()
     ax.tick_params(
         which="major",
@@ -312,7 +352,7 @@ def plot_halpha(
             markersize=6,
             linestyle="none",
             lw=lw,
-            label="Sobral+13 (fitted)",
+            label=rf"Sobral+13 (fitted)",
         ),
         ax.errorbar(
             [],
@@ -487,7 +527,7 @@ def plot_halpha_ltd(
             markersize=6,
             linestyle="none",
             lw=lw,
-            label="Sobral+13",
+            label=rf"Sobral+13 $\log_{{10}}\,flux_{{\mathrm{{H}}\alpha}}\,[\mathrm{{cgs}}] > {logHa_flux_limit_fit}\ \&\ \log_{{10}}\,L_{{\mathrm{{H}}\alpha}}\,[\mathrm{{cgs}}] > {logLHa_halo_limit}$",
         ),
     ]
     handles = handles_z + handles

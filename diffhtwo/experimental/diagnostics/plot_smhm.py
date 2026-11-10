@@ -559,18 +559,17 @@ def plot_smhm_hexbin(
         logmp_obs = lc_data.logmp_obs
         logsm_obs = phot_data.logsm_obs
         p_merge = phot_data.p_merge
-        merge_weight = gal_weight * (1 - p_merge)
 
         unmerged = p_merge < 0.5
 
         reduce_C_function = make_thresholded_reduce_C_function(
-            merge_weight[unmerged], threshold=1e-8
+            gal_weight[unmerged], threshold=1e-8
         )
 
         hb = ax[zbin].hexbin(
             logmp_obs[unmerged],
             logsm_obs[unmerged],
-            C=merge_weight[unmerged],
+            C=gal_weight[unmerged],
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,
@@ -585,7 +584,7 @@ def plot_smhm_hexbin(
             logmp_bins,
             logmp_obs[unmerged],
             logsm_obs[unmerged],
-            merge_weight[unmerged],
+            gal_weight[unmerged],
         )
         ax[zbin].plot(
             logmp_bin_centers,

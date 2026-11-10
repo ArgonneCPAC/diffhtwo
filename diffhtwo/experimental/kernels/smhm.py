@@ -218,14 +218,13 @@ def median_smhm_and_exsitu_frac(
         lgmp_max=lgmp_max,
         mc_merge=1,
     )
-    merge_weight = gal_weight * (1 - phot_data.p_merge)
 
     logmp_bins = np.arange(lgmp_min, lgmp_max + d_mh, d_mh)
     logmp_bin_centers = (logmp_bins[:-1] + logmp_bins[1:]) / 2
 
     # cen+sat in+ex-situ
     _, logsm_obs_weighted_median, _ = _get_logsm_obs_weighted_median(
-        logmp_bins, lc_data.logmp_obs, phot_data.logsm_obs, merge_weight
+        logmp_bins, lc_data.logmp_obs, phot_data.logsm_obs, gal_weight
     )
 
     # cen in-situ
@@ -245,7 +244,7 @@ def median_smhm_and_exsitu_frac(
         logmp_bins,
         lc_data.logmp_obs[lc_data.is_central == 1],
         phot_data.logsm_obs[lc_data.is_central == 1],
-        merge_weight[lc_data.is_central == 1],
+        gal_weight[lc_data.is_central == 1],
     )
 
     # sat in-situ
@@ -266,7 +265,7 @@ def median_smhm_and_exsitu_frac(
         logmp_bins,
         lc_data.logmp_obs[(lc_data.is_central != 1) & unmerged],
         phot_data.logsm_obs[(lc_data.is_central != 1) & unmerged],
-        merge_weight[(lc_data.is_central != 1) & unmerged],
+        gal_weight[(lc_data.is_central != 1) & unmerged],
     )
 
     ex_situ_frac_median = get_ex_situ_frac_median_v_hm(
