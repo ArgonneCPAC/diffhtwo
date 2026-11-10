@@ -179,6 +179,7 @@ def plot_halpha(
     lgmp_min=10.5,
     lgmp_max=15.0,
     logHa_flux_limit_fit=LOGHA_FLUX_LIMIT_NONE,
+    logLHa_halo_limit=40.0,
     plt_show=True,
 ):
     hizels = load_hizels.get_hizels_data(
@@ -200,6 +201,7 @@ def plot_halpha(
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
         logflux_limit=logHa_flux_limit_fit,
+        logLHa_halo_limit=logLHa_halo_limit,
     )
     alpha = 0.75
     lw = 2
@@ -211,7 +213,7 @@ def plot_halpha(
 
     fig, ax = plt.subplots(1, figsize=(4.3, 4), constrained_layout=True)
 
-    for i in range(0, 4):
+    for i in range(0, len(hizels.z[0])):
         _res = get_halpha_LF_q_ms_burst(
             ran_key,
             param_collection,
@@ -238,10 +240,14 @@ def plot_halpha(
             lc_data,
         ) = _res
 
-        lgL_bin_centers_flux_limited = 0.5 * (
-            hizels_flux_limited.lg_Lbin_edges[0][i][1:]
-            + hizels_flux_limited.lg_Lbin_edges[0][i][:-1]
-        )
+        if hizels.z[0][i] in hizels_flux_limited.z[0]:
+            i_fl = list(hizels_flux_limited.z[0]).index(hizels.z[0][i])
+            lgL_bin_centers_flux_limited = 0.5 * (
+                hizels_flux_limited.lg_Lbin_edges[0][i_fl][1:]
+                + hizels_flux_limited.lg_Lbin_edges[0][i_fl][:-1]
+            )
+        else:
+            lgL_bin_centers_flux_limited = np.array([])
 
         mfc = [
             colors_z[i] if b in lgL_bin_centers_flux_limited else "none"
@@ -355,6 +361,7 @@ def plot_halpha_ltd(
     lgmp_min=10.5,
     lgmp_max=15.0,
     logHa_flux_limit_fit=LOGHA_FLUX_LIMIT_NONE,
+    logLHa_halo_limit=40.0,
     plt_show=True,
 ):
     hizels = load_hizels.get_hizels_data(
@@ -366,6 +373,7 @@ def plot_halpha_ltd(
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
         logflux_limit=logHa_flux_limit_fit,
+        logLHa_halo_limit=logLHa_halo_limit,
     )
     alpha = 0.75
     lw = 2
@@ -375,7 +383,12 @@ def plot_halpha_ltd(
     xs_all = []
     ys_all = []
 
-    for i in range(0, 4):
+    for i in range(0, len(hizels.z[0])):
+        i_c = int(
+            np.argmin(
+                np.abs(np.array([0.40, 0.84, 1.47, 2.23]) - float(hizels.z[0][i]))
+            )
+        )
         _res = get_halpha_LF_q_ms_burst(
             ran_key,
             param_collection,
@@ -409,12 +422,12 @@ def plot_halpha_ltd(
                 lgL_bin_centers[b],
                 y,
                 yerr,
-                mec=to_rgba(colors_z[i], alpha),
+                mec=to_rgba(colors_z[i_c], alpha),
                 mew=1.2,
-                ecolor=to_rgba(colors_z[i], 0.3),
+                ecolor=to_rgba(colors_z[i_c], 0.3),
                 elinewidth=2,
                 fmt="s",
-                mfc=to_rgba(colors_z[i], alpha),
+                mfc=to_rgba(colors_z[i_c], alpha),
                 markersize=5,
             )
 
@@ -424,7 +437,7 @@ def plot_halpha_ltd(
         ax.plot(
             lgL_bin_centers,
             lg_halpha_LF,
-            color=colors_z[i],
+            color=colors_z[i_c],
             alpha=alpha,
             label=" z = " + str(hizels.z[0][i]),
             lw=lw,

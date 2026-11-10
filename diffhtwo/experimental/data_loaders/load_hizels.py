@@ -37,6 +37,7 @@ def get_hizels_data(
     tcurves,
     halpha_wave_aa,
     logflux_limit=LOGHA_FLUX_LIMIT_NONE,
+    logLHa_halo_limit=40.0,
     num_halos=100,
     lgmp_min=10.5,
     lgmp_max=15.0,
@@ -52,7 +53,7 @@ def get_hizels_data(
         hizels_halpha_delta_z_data,
         hizels_halpha_n_bins,
         hizels_halpha_n_gals,
-    ) = get_hizels_halpha(drn, logflux_limit)
+    ) = get_hizels_halpha(drn, logflux_limit, logLHa_halo_limit)
 
     line_wave_aa = [halpha_wave_aa]
     lg_Lbin_edges = [hizels_lg_halpha_Lbin_edges_data]
@@ -105,20 +106,24 @@ def get_hizels_data(
     )
 
 
-def _get_mask_from_flux_limit(redshift, logflux_limit, HiZELS_halpha):
+def _get_mask_from_flux_limit(
+    redshift, logflux_limit, logLHa_halo_limit, HiZELS_halpha
+):
     """luminosity mask based on flux limit at z"""
 
     logLHa_limit = np.log10(
         luminosity_from_flux_app(10**logflux_limit, redshift, COSMO)
     )
 
-    # apply dust correction
+    # apply dust correction as in HiZELS: A_Ha = 1 mag
     logLHa_limit_dust_corr = logLHa_limit + np.abs(DELTA_L_HALPHA)
+    logLHa_halo_limit_dust_corr = logLHa_halo_limit + np.abs(DELTA_L_HALPHA)
 
     lowest_logLHa_per_bin = HiZELS_halpha["logLHa"] - (
         HiZELS_halpha["logLHa_binw_full"] / 2
     )
     logLHa_mask = lowest_logLHa_per_bin > logLHa_limit_dust_corr
+    logLHa_mask &= lowest_logLHa_per_bin > logLHa_halo_limit_dust_corr
 
     return logLHa_mask
 
@@ -126,6 +131,9 @@ def _get_mask_from_flux_limit(redshift, logflux_limit, HiZELS_halpha):
 def _get_lgL_bin_edges(
     table, L_colname, bin_width_full_colname, delta_L_halpha=DELTA_L_HALPHA
 ):
+    if len(table) == 0:
+        return jnp.array([])
+    # fully masked redshift: return empty edges instead of failing on table[-1]
     edges = []
     for i in range(0, len(table)):
         edge = np.round(table[L_colname][i] - table[bin_width_full_colname][i] / 2, 2)
@@ -181,7 +189,7 @@ def _lg_phi_corr_to_N_corr(lg_phi_corr, vol_1e4Mpc3):
     return N_corr
 
 
-def get_hizels_halpha(drn, logflux_limit):
+def get_hizels_halpha(drn, logflux_limit, logLHa_halo_limit):
     hizels_halpha_z_data = [
         jnp.float64(0.40),
         jnp.float64(0.84),
@@ -200,12 +208,13 @@ def get_hizels_halpha(drn, logflux_limit):
     HiZELS_halpha_z0p4 = ascii.read(drn / "halpha_LF_z0p4.dat")
 
     logLHa_mask_z0p4 = _get_mask_from_flux_limit(
-        hizels_halpha_z_data[0], logflux_limit, HiZELS_halpha_z0p4
+        hizels_halpha_z_data[0], logflux_limit, logLHa_halo_limit, HiZELS_halpha_z0p4
     )
 
     lg_halpha_Lbin_edges_z0p4 = _get_lgL_bin_edges(
         HiZELS_halpha_z0p4[logLHa_mask_z0p4], "logLHa", "logLHa_binw_full"
     )
+
     halpha_N_data_z0p4 = _lg_phi_corr_to_N_corr(
         HiZELS_halpha_z0p4["logphi_corr"][logLHa_mask_z0p4],
         HiZELS_halpha_z0p4["vol_1e4Mpc3"][logLHa_mask_z0p4],
@@ -229,12 +238,13 @@ def get_hizels_halpha(drn, logflux_limit):
     HiZELS_halpha_z0p84 = ascii.read(drn / "halpha_LF_z0p84.dat")
 
     logLHa_mask_z0p84 = _get_mask_from_flux_limit(
-        hizels_halpha_z_data[1], logflux_limit, HiZELS_halpha_z0p84
+        hizels_halpha_z_data[1], logflux_limit, logLHa_halo_limit, HiZELS_halpha_z0p84
     )
 
     lg_halpha_Lbin_edges_z0p84 = _get_lgL_bin_edges(
         HiZELS_halpha_z0p84[logLHa_mask_z0p84], "logLHa", "logLHa_binw_full"
     )
+
     halpha_N_data_z0p84 = _lg_phi_corr_to_N_corr(
         HiZELS_halpha_z0p84["logphi_corr"][logLHa_mask_z0p84],
         HiZELS_halpha_z0p84["vol_1e4Mpc3"][logLHa_mask_z0p84],
@@ -258,12 +268,13 @@ def get_hizels_halpha(drn, logflux_limit):
     HiZELS_halpha_z1p47 = ascii.read(drn / "halpha_LF_z1p47.dat")
 
     logLHa_mask_z1p47 = _get_mask_from_flux_limit(
-        hizels_halpha_z_data[2], logflux_limit, HiZELS_halpha_z1p47
+        hizels_halpha_z_data[2], logflux_limit, logLHa_halo_limit, HiZELS_halpha_z1p47
     )
 
     lg_halpha_Lbin_edges_z1p47 = _get_lgL_bin_edges(
         HiZELS_halpha_z1p47[logLHa_mask_z1p47], "logLHa", "logLHa_binw_full"
     )
+
     halpha_N_data_z1p47 = _lg_phi_corr_to_N_corr(
         HiZELS_halpha_z1p47["logphi_corr"][logLHa_mask_z1p47],
         HiZELS_halpha_z1p47["vol_1e4Mpc3"][logLHa_mask_z1p47],
@@ -287,12 +298,13 @@ def get_hizels_halpha(drn, logflux_limit):
     HiZELS_halpha_z2p23 = ascii.read(drn / "halpha_LF_z2p23.dat")
 
     logLHa_mask_z2p23 = _get_mask_from_flux_limit(
-        hizels_halpha_z_data[3], logflux_limit, HiZELS_halpha_z2p23
+        hizels_halpha_z_data[3], logflux_limit, logLHa_halo_limit, HiZELS_halpha_z2p23
     )
 
     lg_halpha_Lbin_edges_z2p23 = _get_lgL_bin_edges(
         HiZELS_halpha_z2p23[logLHa_mask_z2p23], "logLHa", "logLHa_binw_full"
     )
+
     halpha_N_data_z2p23 = _lg_phi_corr_to_N_corr(
         HiZELS_halpha_z2p23["logphi_corr"][logLHa_mask_z2p23],
         HiZELS_halpha_z2p23["vol_1e4Mpc3"][logLHa_mask_z2p23],
@@ -312,13 +324,6 @@ def get_hizels_halpha(drn, logflux_limit):
         )
     )
 
-    hizels_halpha_n_bins = (
-        (lg_halpha_Lbin_edges_z0p4.size - 1)
-        + (lg_halpha_Lbin_edges_z0p84.size - 1)
-        + (lg_halpha_Lbin_edges_z1p47.size - 1)
-        + (lg_halpha_Lbin_edges_z2p23.size - 1)
-    )
-
     hizels_lg_halpha_Lbin_edges_data = [
         lg_halpha_Lbin_edges_z0p4,
         lg_halpha_Lbin_edges_z0p84,
@@ -333,13 +338,6 @@ def get_hizels_halpha(drn, logflux_limit):
         halpha_N_data_z2p23,
     ]
 
-    hizels_halpha_n_gals = (
-        (halpha_N_data_z0p4.sum())
-        + (halpha_N_data_z0p84.sum())
-        + (halpha_N_data_z1p47.sum())
-        + (halpha_N_data_z2p23.sum())
-    )
-
     hizels_halpha_vol_Mpc3 = [
         halpha_vol_Mpc3_z0p4,
         halpha_vol_Mpc3_z0p84,
@@ -353,6 +351,43 @@ def get_hizels_halpha(drn, logflux_limit):
         halpha_lg_phi_data_z1p47,
         halpha_lg_phi_data_z2p23,
     ]
+
+    keep = [
+        bool(logLHa_mask_z0p4.any()),
+        bool(logLHa_mask_z0p84.any()),
+        bool(logLHa_mask_z1p47.any()),
+        bool(logLHa_mask_z2p23.any()),
+    ]
+    # True for each redshift with at least one bin passing the limits
+
+    (
+        hizels_lg_halpha_Lbin_edges_data,
+        hizels_halpha_N_data,
+        hizels_halpha_vol_Mpc3,
+        hizels_halpha_lg_phi_data,
+        hizels_halpha_z_data,
+        hizels_halpha_delta_z_data,
+    ) = (
+        [item for item, k in zip(items, keep) if k]
+        for items in (
+            hizels_lg_halpha_Lbin_edges_data,
+            hizels_halpha_N_data,
+            hizels_halpha_vol_Mpc3,
+            hizels_halpha_lg_phi_data,
+            hizels_halpha_z_data,
+            hizels_halpha_delta_z_data,
+        )
+    )
+    # drop fully masked redshifts from every list, z and dz included,
+    # so get_hizels_data builds no lightcone for them
+
+    hizels_halpha_n_bins = sum(
+        edges.size - 1 for edges in hizels_lg_halpha_Lbin_edges_data
+    )
+    # computed after filtering so dropped redshifts are not counted
+
+    hizels_halpha_n_gals = sum(N.sum() for N in hizels_halpha_N_data)
+    # computed after filtering, replaces the old explicit sum over four redshifts
 
     return (
         hizels_lg_halpha_Lbin_edges_data,

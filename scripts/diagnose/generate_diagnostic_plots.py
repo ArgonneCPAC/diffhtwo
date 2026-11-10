@@ -168,6 +168,7 @@ if __name__ == "__main__":
     lgmp_min = cfg["lgmp_min"]
     lgmp_max = cfg["lgmp_max"]
     logHa_flux_limit = cfg["logHa_flux_limit"]
+    logLHa_halo_limit = cfg["logLHa_halo_limit"]
 
     run_label = cfg["model_nickname"].split("_")[0]
 
@@ -539,6 +540,7 @@ if __name__ == "__main__":
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
             logHa_flux_limit_fit=logHa_flux_limit,
+            logLHa_halo_limit=logLHa_halo_limit,
             plt_show=False,
         )
         plot_halpha_ltd(
@@ -554,6 +556,7 @@ if __name__ == "__main__":
             lgmp_min=lgmp_min,
             lgmp_max=lgmp_max,
             logHa_flux_limit_fit=logHa_flux_limit,
+            logLHa_halo_limit=logLHa_halo_limit,
             plt_show=False,
         )
 

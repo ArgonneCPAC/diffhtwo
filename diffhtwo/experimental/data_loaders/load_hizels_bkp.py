@@ -1,0 +1,366 @@
+from collections import namedtuple
+
+import jax.numpy as jnp
+import numpy as np
+from astropy.io import ascii
+from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
+
+from ..defaults import COSMO
+from ..kernels.line_utils import luminosity_from_flux_app
+from ..lightcone_generators import generate_lc_data
+
+Hizels = namedtuple(
+    "Hizels",
+    [
+        "line_wave_aa",
+        "lg_Lbin_edges",
+        "N_data",
+        "vol_Mpc3_data",
+        "lg_phi_data",
+        "z",
+        "dz",
+        "lc_data",
+        "n_bins",
+        "n_gals",
+    ],
+)
+DELTA_L_HALPHA = -0.4  # uncorrect HiZELS h-alpha L for dust (A_halpha = 1 mag)
+
+# placeholder for no Ha flux limit as hizels data doesn't go as faint as -20.0
+LOGHA_FLUX_LIMIT_NONE = -20.0
+
+
+def get_hizels_data(
+    drn,
+    ran_key,
+    ssp_data,
+    tcurves,
+    halpha_wave_aa,
+    logflux_limit=LOGHA_FLUX_LIMIT_NONE,
+    num_halos=100,
+    lgmp_min=10.5,
+    lgmp_max=15.0,
+    lc_sky_area_degsq=100,
+    n_z_phot_table=15,
+):
+    (
+        hizels_lg_halpha_Lbin_edges_data,
+        hizels_halpha_N_data,
+        hizels_halpha_vol_Mpc3,
+        hizels_halpha_lg_phi_data,
+        hizels_halpha_z_data,
+        hizels_halpha_delta_z_data,
+        hizels_halpha_n_bins,
+        hizels_halpha_n_gals,
+    ) = get_hizels_halpha(drn, logflux_limit)
+
+    line_wave_aa = [halpha_wave_aa]
+    lg_Lbin_edges = [hizels_lg_halpha_Lbin_edges_data]
+    N_data = [hizels_halpha_N_data]
+    vol_Mpc3_data = [hizels_halpha_vol_Mpc3]
+    lg_phi_data = [hizels_halpha_lg_phi_data]
+    z = [hizels_halpha_z_data]
+    dz = [hizels_halpha_delta_z_data]
+
+    lc_data = []
+    for line in range(0, len(z)):
+        line_z = z[line]
+        line_dz = dz[line]
+        line_lc_data = []
+        for z_idx in range(0, len(line_z)):
+            z_min = line_z[z_idx] - (line_dz[z_idx] / 2)
+            z_max = line_z[z_idx] + (line_dz[z_idx] / 2)
+
+            z_phot_table = 10 ** jnp.linspace(
+                np.log10(z_min), np.log10(z_max), n_z_phot_table
+            )
+
+            lc_args = (
+                ran_key,
+                num_halos,
+                z_min,
+                z_max,
+                lgmp_min,
+                lgmp_max,
+                lc_sky_area_degsq,
+                ssp_data,
+                tcurves,
+                z_phot_table,
+            )
+
+            line_lc_data.append(generate_lc_data(*lc_args))
+        lc_data.append(line_lc_data)
+
+    return Hizels(
+        line_wave_aa,
+        lg_Lbin_edges,
+        N_data,
+        vol_Mpc3_data,
+        lg_phi_data,
+        z,
+        dz,
+        lc_data,
+        hizels_halpha_n_bins,
+        hizels_halpha_n_gals,
+    )
+
+
+def _get_mask_from_flux_limit(redshift, logflux_limit, HiZELS_halpha):
+    """luminosity mask based on flux limit at z"""
+
+    logLHa_limit = np.log10(
+        luminosity_from_flux_app(10**logflux_limit, redshift, COSMO)
+    )
+
+    # apply dust correction
+    logLHa_limit_dust_corr = logLHa_limit + np.abs(DELTA_L_HALPHA)
+
+    lowest_logLHa_per_bin = HiZELS_halpha["logLHa"] - (
+        HiZELS_halpha["logLHa_binw_full"] / 2
+    )
+    logLHa_mask = lowest_logLHa_per_bin > logLHa_limit_dust_corr
+
+    return logLHa_mask
+
+
+def _get_lgL_bin_edges(
+    table, L_colname, bin_width_full_colname, delta_L_halpha=DELTA_L_HALPHA
+):
+    edges = []
+    for i in range(0, len(table)):
+        edge = np.round(table[L_colname][i] - table[bin_width_full_colname][i] / 2, 2)
+        edges.append(edge)
+    last_edge = np.round(
+        table[L_colname][-1] + table[bin_width_full_colname][-1] / 2, 2
+    )
+    edges.append(last_edge)
+    edges = jnp.array(edges)
+    edges = edges + delta_L_halpha
+    return edges
+
+
+def pad_dummy_lgL_bin_edges(lg_halpha_Lbin_edges, max_length=20, dummy_Lbin_width=0.2):
+    N_dummy_Lbin_edges = max_length - lg_halpha_Lbin_edges.size
+
+    dummy_Lbin_edges = jnp.linspace(
+        lg_halpha_Lbin_edges[-1],
+        lg_halpha_Lbin_edges[-1] + dummy_Lbin_width * N_dummy_Lbin_edges,
+        endpoint=False,
+        num=N_dummy_Lbin_edges,
+    )
+    return jnp.concatenate((lg_halpha_Lbin_edges, dummy_Lbin_edges[1:]))
+
+
+def pad_dummy_lg_LF_data(lg_halpha_LF_data, lg_halpha_LF_dummy_err, max_length=18):
+    pad_length = max_length - lg_halpha_LF_data.shape[1]
+
+    lg_halpha_LF_data_padded = jnp.pad(
+        lg_halpha_LF_data[0], (0, pad_length), constant_values=lg_halpha_LF_data[0][-1]
+    )
+    lg_halpha_LF_err_padded = jnp.pad(
+        lg_halpha_LF_data[1], (0, pad_length), constant_values=lg_halpha_LF_dummy_err
+    )
+    return jnp.vstack((lg_halpha_LF_data_padded, lg_halpha_LF_err_padded))
+
+
+def _lg_phi_h0p7_to_hdefault(lg_phi_h0p7):
+    phi_h1p0 = (10**lg_phi_h0p7) / (0.7**3)
+    return np.log10(phi_h1p0 * (DEFAULT_COSMOLOGY.h**3))
+
+
+def _vol_h0p7_to_hdefault(vol_1e4Mpc3):
+    vol_Mpc3_h1p0 = 1e4 * vol_1e4Mpc3 * (0.7**3)
+    vol_Mpc3 = vol_Mpc3_h1p0 / (DEFAULT_COSMOLOGY.h**3)
+    return vol_Mpc3
+
+
+def _lg_phi_corr_to_N_corr(lg_phi_corr, vol_1e4Mpc3):
+    phi_corr = 10**lg_phi_corr
+    vol_Mpc3 = 1e4 * vol_1e4Mpc3
+    N_corr = phi_corr * vol_Mpc3
+    return N_corr
+
+
+def get_hizels_halpha(drn, logflux_limit):
+    hizels_halpha_z_data = [
+        jnp.float64(0.40),
+        jnp.float64(0.84),
+        jnp.float64(1.47),
+        jnp.float64(2.23),
+    ]
+
+    hizels_halpha_delta_z_data = [
+        0.02,
+        0.03,
+        0.032,
+        0.046,
+    ]
+
+    """z0p4"""
+    HiZELS_halpha_z0p4 = ascii.read(drn / "halpha_LF_z0p4.dat")
+
+    logLHa_mask_z0p4 = _get_mask_from_flux_limit(
+        hizels_halpha_z_data[0], logflux_limit, HiZELS_halpha_z0p4
+    )
+
+    lg_halpha_Lbin_edges_z0p4 = _get_lgL_bin_edges(
+        HiZELS_halpha_z0p4[logLHa_mask_z0p4], "logLHa", "logLHa_binw_full"
+    )
+    halpha_N_data_z0p4 = _lg_phi_corr_to_N_corr(
+        HiZELS_halpha_z0p4["logphi_corr"][logLHa_mask_z0p4],
+        HiZELS_halpha_z0p4["vol_1e4Mpc3"][logLHa_mask_z0p4],
+    )
+    halpha_vol_Mpc3_z0p4 = _vol_h0p7_to_hdefault(
+        HiZELS_halpha_z0p4["vol_1e4Mpc3"][logLHa_mask_z0p4].data
+    )
+
+    halpha_lg_phi_data_z0p4 = jnp.vstack(
+        (
+            jnp.array(
+                _lg_phi_h0p7_to_hdefault(
+                    HiZELS_halpha_z0p4["logphi_corr"][logLHa_mask_z0p4]
+                )
+            ),
+            jnp.array(HiZELS_halpha_z0p4["logphi_corr_err"][logLHa_mask_z0p4]),
+        )
+    )
+
+    """z0p84"""
+    HiZELS_halpha_z0p84 = ascii.read(drn / "halpha_LF_z0p84.dat")
+
+    logLHa_mask_z0p84 = _get_mask_from_flux_limit(
+        hizels_halpha_z_data[1], logflux_limit, HiZELS_halpha_z0p84
+    )
+
+    lg_halpha_Lbin_edges_z0p84 = _get_lgL_bin_edges(
+        HiZELS_halpha_z0p84[logLHa_mask_z0p84], "logLHa", "logLHa_binw_full"
+    )
+    halpha_N_data_z0p84 = _lg_phi_corr_to_N_corr(
+        HiZELS_halpha_z0p84["logphi_corr"][logLHa_mask_z0p84],
+        HiZELS_halpha_z0p84["vol_1e4Mpc3"][logLHa_mask_z0p84],
+    )
+    halpha_vol_Mpc3_z0p84 = _vol_h0p7_to_hdefault(
+        HiZELS_halpha_z0p84["vol_1e4Mpc3"][logLHa_mask_z0p84].data
+    )
+
+    halpha_lg_phi_data_z0p84 = jnp.vstack(
+        (
+            jnp.array(
+                _lg_phi_h0p7_to_hdefault(
+                    HiZELS_halpha_z0p84["logphi_corr"][logLHa_mask_z0p84]
+                )
+            ),
+            jnp.array(HiZELS_halpha_z0p84["logphi_corr_err"][logLHa_mask_z0p84]),
+        )
+    )
+
+    """z1p47"""
+    HiZELS_halpha_z1p47 = ascii.read(drn / "halpha_LF_z1p47.dat")
+
+    logLHa_mask_z1p47 = _get_mask_from_flux_limit(
+        hizels_halpha_z_data[2], logflux_limit, HiZELS_halpha_z1p47
+    )
+
+    lg_halpha_Lbin_edges_z1p47 = _get_lgL_bin_edges(
+        HiZELS_halpha_z1p47[logLHa_mask_z1p47], "logLHa", "logLHa_binw_full"
+    )
+    halpha_N_data_z1p47 = _lg_phi_corr_to_N_corr(
+        HiZELS_halpha_z1p47["logphi_corr"][logLHa_mask_z1p47],
+        HiZELS_halpha_z1p47["vol_1e4Mpc3"][logLHa_mask_z1p47],
+    )
+    halpha_vol_Mpc3_z1p47 = _vol_h0p7_to_hdefault(
+        HiZELS_halpha_z1p47["vol_1e4Mpc3"][logLHa_mask_z1p47].data
+    )
+
+    halpha_lg_phi_data_z1p47 = jnp.vstack(
+        (
+            jnp.array(
+                _lg_phi_h0p7_to_hdefault(
+                    HiZELS_halpha_z1p47["logphi_corr"][logLHa_mask_z1p47]
+                )
+            ),
+            jnp.array(HiZELS_halpha_z1p47["logphi_corr_err"][logLHa_mask_z1p47]),
+        )
+    )
+
+    """z2p23"""
+    HiZELS_halpha_z2p23 = ascii.read(drn / "halpha_LF_z2p23.dat")
+
+    logLHa_mask_z2p23 = _get_mask_from_flux_limit(
+        hizels_halpha_z_data[3], logflux_limit, HiZELS_halpha_z2p23
+    )
+
+    lg_halpha_Lbin_edges_z2p23 = _get_lgL_bin_edges(
+        HiZELS_halpha_z2p23[logLHa_mask_z2p23], "logLHa", "logLHa_binw_full"
+    )
+    halpha_N_data_z2p23 = _lg_phi_corr_to_N_corr(
+        HiZELS_halpha_z2p23["logphi_corr"][logLHa_mask_z2p23],
+        HiZELS_halpha_z2p23["vol_1e4Mpc3"][logLHa_mask_z2p23],
+    )
+    halpha_vol_Mpc3_z2p23 = _vol_h0p7_to_hdefault(
+        HiZELS_halpha_z2p23["vol_1e4Mpc3"][logLHa_mask_z2p23].data
+    )
+
+    halpha_lg_phi_data_z2p23 = jnp.vstack(
+        (
+            jnp.array(
+                _lg_phi_h0p7_to_hdefault(
+                    HiZELS_halpha_z2p23["logphi_corr"][logLHa_mask_z2p23]
+                )
+            ),
+            jnp.array(HiZELS_halpha_z2p23["logphi_corr_err"][logLHa_mask_z2p23]),
+        )
+    )
+
+    hizels_halpha_n_bins = (
+        (lg_halpha_Lbin_edges_z0p4.size - 1)
+        + (lg_halpha_Lbin_edges_z0p84.size - 1)
+        + (lg_halpha_Lbin_edges_z1p47.size - 1)
+        + (lg_halpha_Lbin_edges_z2p23.size - 1)
+    )
+
+    hizels_lg_halpha_Lbin_edges_data = [
+        lg_halpha_Lbin_edges_z0p4,
+        lg_halpha_Lbin_edges_z0p84,
+        lg_halpha_Lbin_edges_z1p47,
+        lg_halpha_Lbin_edges_z2p23,
+    ]
+
+    hizels_halpha_N_data = [
+        halpha_N_data_z0p4,
+        halpha_N_data_z0p84,
+        halpha_N_data_z1p47,
+        halpha_N_data_z2p23,
+    ]
+
+    hizels_halpha_n_gals = (
+        (halpha_N_data_z0p4.sum())
+        + (halpha_N_data_z0p84.sum())
+        + (halpha_N_data_z1p47.sum())
+        + (halpha_N_data_z2p23.sum())
+    )
+
+    hizels_halpha_vol_Mpc3 = [
+        halpha_vol_Mpc3_z0p4,
+        halpha_vol_Mpc3_z0p84,
+        halpha_vol_Mpc3_z1p47,
+        halpha_vol_Mpc3_z2p23,
+    ]
+
+    hizels_halpha_lg_phi_data = [
+        halpha_lg_phi_data_z0p4,
+        halpha_lg_phi_data_z0p84,
+        halpha_lg_phi_data_z1p47,
+        halpha_lg_phi_data_z2p23,
+    ]
+
+    return (
+        hizels_lg_halpha_Lbin_edges_data,
+        hizels_halpha_N_data,
+        hizels_halpha_vol_Mpc3,
+        hizels_halpha_lg_phi_data,
+        hizels_halpha_z_data,
+        hizels_halpha_delta_z_data,
+        hizels_halpha_n_bins,
+        hizels_halpha_n_gals,
+    )
