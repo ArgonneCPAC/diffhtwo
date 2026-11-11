@@ -75,9 +75,9 @@ SPACES_AT_Z = [
         "ccd": [("Ur_ri", True, (0.02, 0.1)), ("Gr_ri", True, (0.02, 0.1))],
         "cmd": [("R_ur", True, (0.02, 0.1)), ("R_ri", True, (0.02, 0.1))],
         "condc": [
-            ("R_ur", False, (0.02, 0.1)),
-            ("R_gr", False, (0.02, 0.1)),
-            ("R_ri", False, (0.02, 0.1)),
+            ("R_ur", True, (0.02, 0.1)),
+            ("R_gr", True, (0.02, 0.1)),
+            ("R_ri", True, (0.02, 0.1)),
         ],
     },
     {
@@ -92,9 +92,9 @@ SPACES_AT_Z = [
         "ccd": [("Ur_ri", True, (0.1, 0.2)), ("Gr_ri", True, (0.1, 0.2))],
         "cmd": [("R_ur", True, (0.1, 0.2)), ("R_ri", True, (0.1, 0.2))],
         "condc": [
-            ("R_ur", False, (0.1, 0.2)),
-            ("R_gr", False, (0.1, 0.2)),
-            ("R_ri", False, (0.1, 0.2)),
+            ("R_ur", True, (0.1, 0.2)),
+            ("R_gr", True, (0.1, 0.2)),
+            ("R_ri", True, (0.1, 0.2)),
         ],
     },
 ]
