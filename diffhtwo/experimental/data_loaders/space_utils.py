@@ -282,7 +282,8 @@ def get_condc_spaces_at_z(
         color = mag_selected[:, col_idx[0]] - mag_selected[:, col_idx[1]]
         cond_mag = mag_selected[:, cond_idx]
 
-        edges = np.arange(cond_mag.min(), cond_mag.max() + d_mag_cond, d_mag_cond)
+        edges = np.arange(cond_mag.min(), cond_mag.max(), d_mag_cond)
+        edges = np.append(edges, cond_mag.max())
         space_tuples = []
         for lo, hi in zip(edges[:-1], edges[1:]):
             cond = (cond_mag >= lo) & (cond_mag < hi)

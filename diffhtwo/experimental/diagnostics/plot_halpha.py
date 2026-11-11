@@ -527,15 +527,20 @@ def plot_halpha_ltd(
             markersize=6,
             linestyle="none",
             lw=lw,
-            label=rf"Sobral+13 $\log_{{10}}\,flux_{{\mathrm{{H}}\alpha}}\,[\mathrm{{cgs}}] > {logHa_flux_limit_fit}\ \&\ \log_{{10}}\,L_{{\mathrm{{H}}\alpha}}\,[\mathrm{{cgs}}] > {logLHa_halo_limit}$",
+            label=(
+                "Sobral+13\n"
+                rf"$\log_{{10}}\,flux_{{\mathrm{{H}}\alpha}}\,[\mathrm{{cgs}}] > {logHa_flux_limit_fit}$"
+                "\n"
+                rf"& $\log_{{10}}\,L_{{\mathrm{{H}}\alpha}}\,[\mathrm{{cgs}}] > {logLHa_halo_limit}$"
+            ),
         ),
     ]
     handles = handles_z + handles
     ax.legend(
         handles=handles,
-        loc="lower left",
+        loc="upper right",
         frameon=False,
-        fontsize=10,
+        fontsize=9,
     )
 
     ax.set_xlabel("log$_{10}$ (L$_{H\u03b1}$ [erg/s])", fontsize=14)

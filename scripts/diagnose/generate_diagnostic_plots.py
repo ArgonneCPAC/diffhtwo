@@ -37,6 +37,7 @@ from diffhtwo.experimental.diagnostics import plot_sm
 from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
     make_avpop_mono_comparison_plots,
 )
+from diffhtwo.experimental.diagnostics.plot_burst_ratio import plot_burst_ratio
 from diffhtwo.experimental.diagnostics.plot_burstpop import (
     make_fburstpop_comparison_plot,
     plot_lgfburst_smooth,
@@ -189,10 +190,30 @@ if __name__ == "__main__":
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
     )
+    sdss_spaces_at_z = [
+        {
+            "z": (0.02, 0.2),
+            "md": [
+                ("u", True, (0.02, 0.2)),
+                ("g", True, (0.02, 0.2)),
+                ("r", True, (0.02, 0.2)),
+                ("i", True, (0.02, 0.2)),
+                ("z", True, (0.02, 0.2)),
+            ],
+            "ccd": [("Ur_ri", True, (0.02, 0.2)), ("Gr_ri", True, (0.02, 0.2))],
+            "cmd": [("R_ur", True, (0.02, 0.2)), ("R_gr", True, (0.02, 0.2))],
+            "condc": [
+                ("R_ur", False, (0.02, 0.2)),
+                ("R_gr", False, (0.02, 0.2)),
+                ("R_ri", False, (0.02, 0.2)),
+            ],
+        },
+    ]
     sdss = load_sdss.get_sdss_data(
         sdss_drn,
         ran_key,
         ssp_data,
+        spaces_at_z=sdss_spaces_at_z,
         d_mag_1d=d_mag_1d,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
@@ -471,6 +492,30 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
+    if cfg["plots"]["plot_burst_ratio"]:
+        print("Generating burst ratio plot...")
+        zbins_b_ratio = [
+            (0.3, 1.0),
+            (1.0, 2.0),
+            (2.0, 3.0),
+            (3.0, 4.0),
+            (4.0, 5.0),
+            (5.0, 6.0),
+        ]
+        plot_burst_ratio(
+            ran_key,
+            param_collection_fit,
+            zbins_b_ratio,
+            ssp_data,
+            sdss.filter_info.tcurves,
+            run_label,
+            fit_diagnostics_save_drn,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            plt_show=False,
+        )
+
     if cfg["plots"]["plot_halpha_uv_ratio"]:
         print("Generating H-alpha-to-UV ratio plot...")
         ssp_data_ha_uv = load_ssp_templates(fn=ssp_filename)
@@ -688,7 +733,7 @@ if __name__ == "__main__":
             )
 
         if cfg["plots"]["plot_color_contours"]:
-            sdss_fields = [["ccd_Gr_ri", "cmd_R_ri"]]
+            sdss_fields = [["ccd_Gr_ri", "cmd_R_gr"]]
             feniks_fields = [
                 ["ccd_Gr_ri", "cmd_K_gr"],
                 ["ccd_Rz_zJ", "cmd_K_rz"],
@@ -1242,7 +1287,7 @@ if __name__ == "__main__":
         if cfg["plots"]["plot_color_contours"]:
             print("Generating MINERVA color contour plots...")
             fields = [
-                ((1.0, 2.0), ("ccd_F090wF150w_F150wF356w", "cmd_F356w_F150wF356w")),
+                # ((1.0, 2.0), ("ccd_F090wF150w_F150wF356w", "cmd_F356w_F150wF356w")),
                 ((2.0, 3.0), ("ccd_F115wF200w_F200wF356w", "cmd_F356w_F115wF356w")),
                 ((3.0, 4.0), ("ccd_F150wF277w_F277wF444w", "cmd_F356w_F150wF356w")),
                 ((4.0, 5.0), ("ccd_F200wF277w_F277wF444w", "cmd_F444w_F150wF444w")),
@@ -1270,9 +1315,9 @@ if __name__ == "__main__":
             )
 
             emitter_spaces = [
-                ((1.03, 1.25), ["cmd_F140m_F150wF140m"]),
-                ((1.36, 1.59), ["cmd_F162m_F150wF162m"]),
-                ((1.67, 1.95), ["cmd_F182m_F200wF182m"]),
+                # ((1.03, 1.25), ["cmd_F140m_F150wF140m"]),
+                # ((1.36, 1.59), ["cmd_F162m_F150wF162m"]),
+                # ((1.67, 1.95), ["cmd_F182m_F200wF182m"]),
                 ((2.04, 2.35), ["cmd_F210m_F200wF210m"]),
                 ((2.68, 2.95), ["cmd_F250m_F277wF250m"]),
                 ((4.22, 4.81), ["cmd_F360m_F356wF360m"]),

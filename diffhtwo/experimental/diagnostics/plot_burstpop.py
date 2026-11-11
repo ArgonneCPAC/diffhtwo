@@ -5,6 +5,7 @@ import numpy as np
 from diffsky.burstpop import freqburst_mono
 from diffsky.burstpop.fburstpop_mono import get_fburst_from_fburstpop_params
 from diffsky.param_utils.diffsky_param_wrapper_merging import DEFAULT_PARAM_COLLECTION
+from matplotlib.colors import LogNorm
 from scipy.ndimage import gaussian_filter
 
 from ..kernels.lc_phot_kern import multiband_lc_phot_kern
@@ -129,8 +130,8 @@ def plot_lgfburst_smooth(
         tcurves,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
+        mc_merge=1,
     )
-    merge_weight = gal_weight * (1 - phot_data.p_merge)
 
     if plot == "cen":
         sel = lc_data.is_central == 1
@@ -139,21 +140,21 @@ def plot_lgfburst_smooth(
     elif plot == "cen+sat":
         sel = np.isfinite(lc_data.is_central)
 
-    logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
+    logsfr_10Myr = get_logsfr_tau(phot_data, lc_data, ssp_data, tau_gyr=0.01)
     logsm_obs = phot_data.logsm_obs
-    logssfr_100 = logsfr_100Myr - logsm_obs
+    logssfr_10 = logsfr_10Myr - logsm_obs
 
     p_burst = freqburst_mono.get_freqburst_from_freqburst_params(
         param_collection.spspop_params.burstpop_params.freqburst_params,
         phot_data.logsm_obs,
-        logssfr_100,
+        logssfr_10,
     )
     C = np.column_stack(
         [
             logsm_obs[sel],
             phot_data.lgfburst[sel],
             p_burst[sel],
-            merge_weight[sel],
+            gal_weight[sel],
         ]
     )
     fig_width = 7.1
@@ -168,7 +169,8 @@ def plot_lgfburst_smooth(
     labelsize = 10
     fontsize = 10
     labelsize = 9
-    vmin, vmax = -6, -1.5
+    vmin, vmax = 10**-6, 10**-1.5
+    norm = LogNorm(vmin=vmin, vmax=vmax)
     sm_limits = (8, 12)
     hm_limits = (lgmp_min, lgmp_max)
 
@@ -188,12 +190,12 @@ def plot_lgfburst_smooth(
     cnt, _, _ = np.histogram2d(x, y, bins=bins, range=rng)
 
     with np.errstate(invalid="ignore", divide="ignore"):
-        img = np.log10(gaussian_filter(num, sigma) / gaussian_filter(den, sigma))
-    img[(gaussian_filter(cnt, sigma) < mincnt) | ~np.isfinite(img)] = np.nan
+        img = gaussian_filter(num, sigma) / gaussian_filter(den, sigma)
+    img[
+        (gaussian_filter(cnt, sigma) < mincnt) | ~np.isfinite(img) | (img <= 0)
+    ] = np.nan
 
-    ax[0].pcolormesh(
-        xe, ye, img.T, cmap="coolwarm_r", vmin=vmin, vmax=vmax, rasterized=True
-    )
+    ax[0].pcolormesh(xe, ye, img.T, cmap="coolwarm_r", norm=norm, rasterized=True)
 
     ax[0].set_ylabel(r"log$_{10}$ (M$_{h}$ [M${_\odot}$])", fontsize=fontsize)
     ax[0].set_ylim(hm_limits)
@@ -214,15 +216,21 @@ def plot_lgfburst_smooth(
     cnt, _, _ = np.histogram2d(x, y, bins=bins, range=rng)
 
     with np.errstate(invalid="ignore", divide="ignore"):
-        img = np.log10(gaussian_filter(num, sigma) / gaussian_filter(den, sigma))
-    img[(gaussian_filter(cnt, sigma) < mincnt) | ~np.isfinite(img)] = np.nan
+        img = gaussian_filter(num, sigma) / gaussian_filter(den, sigma)
+    img[
+        (gaussian_filter(cnt, sigma) < mincnt) | ~np.isfinite(img) | (img <= 0)
+    ] = np.nan
 
-    ax[1].pcolormesh(
-        xe, ye, img.T, cmap="coolwarm_r", vmin=vmin, vmax=vmax, rasterized=True
+    ax1_c = ax[1].pcolormesh(
+        xe, ye, img.T, cmap="coolwarm_r", norm=norm, rasterized=True
     )
 
-    # cbar = fig.colorbar(hb1, ax=ax[1], label="log$_{10}$ (burst fraction)")
-    # cbar.ax.tick_params(labelsize=labelsize, direction="in")
+    cbar = fig.colorbar(
+        ax1_c,
+        ax=ax[1],
+        label=r"f$_{*,\ recent\ burst}$ $\equiv$ M$_{*,\ recent\ burst}$ / M$_{*,\ total}$",
+    )
+    cbar.ax.tick_params(labelsize=labelsize, direction="in")
 
     ax[1].set_ylabel(r"log$_{10}$ (M$_{*}$ [M${_\odot}$])", fontsize=fontsize)
     ax[1].set_ylim(sm_limits)
@@ -303,8 +311,8 @@ def plot_lgfburst_hexbin(
         tcurves,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
+        mc_merge=1,
     )
-    merge_weight = gal_weight * (1 - phot_data.p_merge)
 
     if plot == "cen":
         sel = lc_data.is_central == 1
@@ -313,21 +321,21 @@ def plot_lgfburst_hexbin(
     elif plot == "cen+sat":
         sel = np.isfinite(lc_data.is_central)
 
-    logsfr_100Myr = get_logsfr_tau(phot_data, lc_data, ssp_data)
+    logsfr_10Myr = get_logsfr_tau(phot_data, lc_data, ssp_data, tau_gyr=0.01)
     logsm_obs = phot_data.logsm_obs
-    logssfr_100 = logsfr_100Myr - logsm_obs
+    logssfr_10 = logsfr_10Myr - logsm_obs
 
     p_burst = freqburst_mono.get_freqburst_from_freqburst_params(
         param_collection.spspop_params.burstpop_params.freqburst_params,
         phot_data.logsm_obs,
-        logssfr_100,
+        logssfr_10,
     )
     C = np.column_stack(
         [
             logsm_obs[sel],
             phot_data.lgfburst[sel],
             p_burst[sel],
-            merge_weight[sel],
+            gal_weight[sel],
         ]
     )
     fig_width = 7.1
@@ -389,7 +397,11 @@ def plot_lgfburst_hexbin(
         rasterized=True,
     )
 
-    cbar = fig.colorbar(hb1, ax=ax[1], label="log$_{10}$ (burst fraction)")
+    cbar = fig.colorbar(
+        hb1,
+        ax=ax[1],
+        label="log$_{10}$ (fraction of stellar mass formed in a recent burst)",
+    )
     cbar.ax.tick_params(labelsize=labelsize, direction="in")
 
     ax[1].set_ylabel(r"log$_{10}$ (M$_{*}$ [M${_\odot}$])", fontsize=fontsize)

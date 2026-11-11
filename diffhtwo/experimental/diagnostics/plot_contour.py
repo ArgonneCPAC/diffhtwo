@@ -202,7 +202,8 @@ def plot_density(
             yc,
             Zm,
             levels=levels_m if model_own_levels else levels,
-            colors=cmap.colors,
+            colors="k",
+            alpha=0.5,
             linewidths=1.5,
             linestyles="dashed",
         )
@@ -286,10 +287,10 @@ def plot_cc_cm_grid(
             mlines.Line2D(
                 [],
                 [],
-                color=dusk(0.7),
+                color="k",
+                alpha=0.5,
                 linewidth=1.5,
                 linestyle="dashed",
-                alpha=0.9,
                 label="diffsky",
             ),
         ],
