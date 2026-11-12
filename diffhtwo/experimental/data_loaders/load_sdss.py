@@ -233,12 +233,19 @@ def get_sdss_data(
     n_z_phot_table=N_Z_PHOT_TABLE,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
+    # sdss_mag_thresh = SdssFilters(
+    #     sdss_u=(15.0, 19.0),
+    #     sdss_g=(13.5, 19.0),
+    #     sdss_r=(13.0, SDSS_MAGR_THRESH),  # SDSS_MAGR_THRESH=17.5
+    #     sdss_i=(12.5, 17.5),
+    #     sdss_z=(12.5, 17.5),
+    # )
     sdss_mag_thresh = SdssFilters(
-        sdss_u=(15.0, 19.0),
-        sdss_g=(13.5, 19.0),
-        sdss_r=(13.0, SDSS_MAGR_THRESH),  # SDSS_MAGR_THRESH=17.5
-        sdss_i=(12.5, 17.5),
-        sdss_z=(12.5, 17.5),
+        sdss_u=(16.0, 18.0),
+        sdss_g=(16.0, 18.0),
+        sdss_r=(15.0, SDSS_MAGR_THRESH),  # SDSS_MAGR_THRESH=17.5
+        sdss_i=(15.0, 17.5),
+        sdss_z=(15.0, 17.5),
     )
     sdss, mag_sels, sdss_area_degsq, r_idx = load_sdss_cuts_applied(
         drn, sdss_mag_thresh
