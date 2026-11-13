@@ -422,8 +422,10 @@ def get_feniks_data(
     ]
 
     feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=(21.4, 25.0),
-        HSC_G=(20.6, 25.3),
+        # MegaCam_uS=(21.4, 25.0),
+        # HSC_G=(20.6, 25.3),
+        MegaCam_uS=(21.4, 24.0),
+        HSC_G=(20.6, 25.0),
         HSC_R=(19.8, 24.8),
         HSC_I=(19.0, 24.5),
         HSC_Z=(18.8, 24.3),

@@ -147,14 +147,14 @@ if __name__ == "__main__":
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
 
-    run_label2 = "run334"
+    run_label2 = "cs261020"
     # run_type2 = "diffstarpop+spspop+merging"
     # drn_pc2 = (
     #     os.path.join(os.path.dirname(cfg["model_drn"].rstrip("/")), run_label2) + "/"
     # )
     # model_nickname2 = run_label2 + "_" + run_type2
     # pf2 = f"{drn_pc2}/diffsky_{model_nickname2}_param_collection.hdf5"
-    pf2 = "/Users/kumail/diffdir/fits/run334/diffsky_run334_diffstarpop+spspop+merging_param_collection.hdf5"
+    pf2 = "/Users/kumail/diffdir/fits/cosmos_fits/cs261020/diffsky_cs261020_param_collection.hdf5"
     param_collection2 = load_param_collection(pf2)
 
     sky_area_degsq = cfg["sky_area_degsq"]
