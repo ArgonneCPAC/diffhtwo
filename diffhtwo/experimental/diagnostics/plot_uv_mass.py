@@ -1,12 +1,15 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from diffsky.lc_generators.lc_data_phot import mc_lc_data_phot
+from diffsky.sed_models.ou26.lc_phot import mc_lc_photline
+from jax import random as jran
 
 from diffhtwo.experimental.kernels.lc_photline_kern import lc_photline_kern
 
 from ..kernels.sfr_tau import get_logsfr_tau
 from ..kernels.uv_luminosity import compute_M_UV_from_L_UV
 from .plot_phot import minerva_colors
-from .plot_utils import make_thresholded_reduce_C_function, percentile_norm
+from .plot_utils import make_thresholded_reduce_C_function
 
 plt.rc("font", family="serif", serif=["Times New Roman"])
 
@@ -362,6 +365,139 @@ def plot_uv_mhalo_density(
     fig.colorbar(hb, ax=axes, label=r"f")
 
     fig.savefig(savedir + "/" + run_label + "_uv_mhalo_density.png", dpi=600)
+
+    if plt_show:
+        plt.show()
+    plt.close()
+
+
+def plot_uv_mhalo_density_mc(
+    ran_key,
+    param_collection,
+    tcurves,
+    ssp_data_uv,
+    run_label,
+    savedir,
+    lgmp_min=10.5,
+    lgmp_sub_min=10.5,
+    lgmp_max=15.0,
+    area_scale_down=1,
+    n_z_phot_table=2,
+    mc_merge=1,
+    xlim=(10, 13),
+    ylim=(-16, -22),
+    plt_show=True,
+    nrows=2,
+    ncols=4,
+):
+    zbins = [
+        (0.3, 0.5),
+        (0.7, 0.9),
+        (1.3, 1.7),
+        (2.0, 2.5),
+        (2.5, 3.5),
+        (3.5, 4.5),
+        (4.5, 5.5),
+        (5.5, 6.5),
+    ]
+    n_z_bins = len(zbins)
+    assert n_z_bins <= nrows * ncols
+
+    sky_areas_degsq = np.array([1.0, 0.40, 0.12, 0.087, 0.045, 0.048, 0.054, 0.060])
+    sky_areas_degsq = sky_areas_degsq * area_scale_down
+
+    fig, axes = plt.subplots(
+        nrows,
+        ncols,
+        figsize=(7.1, 3.6),
+        constrained_layout=True,
+        sharex=True,
+        sharey=True,
+    )
+    ax = axes.ravel()
+    labelsize = 9
+    fontsize = 10
+
+    for z in range(n_z_bins):
+        z_min, z_max = zbins[z]
+        z_label = np.median(zbins[z])
+
+        ran_key, lc_halo_key = jran.split(ran_key, 2)
+        z_phot_table = np.linspace(z_min, z_max, n_z_phot_table)
+
+        args = (
+            lc_halo_key,
+            z_min,
+            z_max,
+            lgmp_min,
+            lgmp_sub_min,
+            sky_areas_degsq[z],
+            ssp_data_uv,
+            tcurves,
+            z_phot_table,
+        )
+        lc_data = mc_lc_data_phot(*args, lgmp_max=lgmp_max)
+
+        ran_key, sed_key = jran.split(ran_key, 2)
+        photline_data, phot_randoms = mc_lc_photline(
+            sed_key, lc_data, mc_merge, param_collection=param_collection
+        )
+
+        lgmp_obs = lc_data.logmp_obs
+        lgsm_obs = photline_data.logsm_obs
+
+        M_uv = compute_M_UV_from_L_UV(photline_data.UV)
+
+        lgsfr100 = get_logsfr_tau(photline_data, lc_data, ssp_data_uv)
+        lgssfr100 = lgsfr100 - lgsm_obs
+
+        unmerged = photline_data.p_merge < 0.5
+
+        sc = ax[z].scatter(
+            lgmp_obs[unmerged],
+            M_uv[unmerged],
+            s=1,
+            c=lgssfr100[unmerged],
+            vmin=-11,
+            vmax=-8,
+            cmap="coolwarm_r",
+        )
+        ax[z].set_title(f"z={z_label}", fontsize=labelsize)
+
+        ax[z].set_xlim(xlim)
+        ax[z].set_ylim(ylim)
+
+        ax[z].minorticks_on()
+        ax[z].tick_params(
+            which="major",
+            direction="in",
+            top=True,
+            right=True,
+            length=6,
+            width=1,
+            labelsize=labelsize,
+        )
+        ax[z].tick_params(
+            which="minor",
+            direction="in",
+            top=True,
+            right=True,
+            length=3,
+            width=0.8,
+            labelsize=labelsize,
+        )
+
+    for a in ax[n_z_bins:]:
+        a.set_visible(False)
+
+    fig.colorbar(
+        sc, ax=axes, extend="both", label=r"log$_{10}$ (sSFR$_{100}$ [yr$^{-1}$])"
+    )
+
+    fig.supxlabel(r"log$_{10}$ (M$_{h}$ [M$_{\odot}$])", fontsize=fontsize)
+    fig.supylabel(r"M$_{UV, 1600\AA}$ [AB]", fontsize=fontsize)
+
+    fig.savefig(savedir + "/" + run_label + "_uv_mhalo_density_mc.png", dpi=600)
 
     if plt_show:
         plt.show()

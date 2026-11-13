@@ -3,17 +3,13 @@ import os
 from pathlib import Path
 
 import jax.numpy as jnp
-import matplotlib.pyplot as plt
 import numpy as np
 import yaml
-from diffsky.diagnostics import plot_cosmos_merging as pcm
-from diffsky.experimental.diagnostics import check_smhm
 from diffsky.merging.merging_model import DEFAULT_MERGE_PARAMS
 from diffsky.param_utils.load_calib_params import load_param_collection
 from diffsky.param_utils.spspop_param_utils import DEFAULT_SPSPOP_PARAMS
 from diffsky.ssp_err_model.defaults import ZERO_SSPERR_PARAMS
 from diffsky.ssp_err_model.diagnostics import plot_ssp_err_model as psspem
-from diffstar.diffstarpop.defaults import DEFAULT_DIFFSTARPOP_PARAMS
 from diffstar.diffstarpop.kernels.params.params_diffstarpopfits_mgash import (
     DiffstarPop_Params_Diffstarpopfits_mgash,
 )
@@ -26,12 +22,6 @@ from diffhtwo.experimental.data_loaders import (
     load_hizels,
     load_minerva,
     load_sdss,
-)
-from diffhtwo.experimental.defaults import (
-    FENIKS_Z_MAX,
-    FENIKS_Z_MIN,
-    SDSS_Z_MAX,
-    SDSS_Z_MIN,
 )
 from diffhtwo.experimental.diagnostics import plot_sm
 from diffhtwo.experimental.diagnostics.plot_avpop_mono import (
@@ -95,6 +85,7 @@ from diffhtwo.experimental.diagnostics.plot_smhm import (
 )
 from diffhtwo.experimental.diagnostics.plot_uv_mass import (
     plot_uv_mhalo_density,
+    plot_uv_mhalo_density_mc,
     plot_uv_mstar,
     plot_uv_mstar_density,
     plot_uv_scatter_mhalo,
@@ -157,12 +148,13 @@ if __name__ == "__main__":
         cfg = yaml.safe_load(f)
 
     run_label2 = "run334"
-    run_type2 = "diffstarpop+spspop+merging"
-    drn_pc2 = (
-        os.path.join(os.path.dirname(cfg["model_drn"].rstrip("/")), run_label2) + "/"
-    )
-    model_nickname2 = run_label2 + "_" + run_type2
-    pf2 = f"{drn_pc2}/diffsky_{model_nickname2}_param_collection.hdf5"
+    # run_type2 = "diffstarpop+spspop+merging"
+    # drn_pc2 = (
+    #     os.path.join(os.path.dirname(cfg["model_drn"].rstrip("/")), run_label2) + "/"
+    # )
+    # model_nickname2 = run_label2 + "_" + run_type2
+    # pf2 = f"{drn_pc2}/diffsky_{model_nickname2}_param_collection.hdf5"
+    pf2 = "/Users/kumail/diffdir/fits/run334/diffsky_run334_diffstarpop+spspop+merging_param_collection.hdf5"
     param_collection2 = load_param_collection(pf2)
 
     sky_area_degsq = cfg["sky_area_degsq"]
@@ -216,7 +208,7 @@ if __name__ == "__main__":
         ran_key,
         ssp_data,
         spaces_at_z=sdss_spaces_at_z,
-        d_mag_1d=d_mag_1d,
+        d_mag_1d=0.2,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
@@ -240,14 +232,6 @@ if __name__ == "__main__":
             plt_show=False,
         )
 
-    if cfg["plots"]["plot_insitu_smhm"]:
-        # Plot in-situ SMHM
-        print("Generating in-situ SMHM plot...")
-        check_smhm.plot_diffstarpop_insitu_smhm(
-            DEFAULT_DIFFSTARPOP_PARAMS,
-            param_collection_fit.diffstarpop_params,
-            fit_diagnostics_save_drn + "/insitu_smhm_w_default.png",
-        )
     # Plot feniks Avpop
     if cfg["plots"]["plot_avpop"]:
         print("Generating Avpop plot...")
@@ -297,6 +281,7 @@ if __name__ == "__main__":
             (4.5, 5.5),
             (5.5, 6.5),
         ]
+
         # plot_uv_mstar(
         #     ran_key,
         #     param_collection_fit,
@@ -342,20 +327,34 @@ if __name__ == "__main__":
         #     plt_show=False,
         # )
 
-        plot_uv_scatter_mhalo(
+        plot_uv_mhalo_density_mc(
             ran_key,
             param_collection_fit,
-            zbins_uv_mstar,
-            ssp_data_uv,
             sdss.filter_info.tcurves,
-            line_wave_table_uv,
-            num_halos,
+            ssp_data_uv,
             run_label,
             fit_diagnostics_save_drn,
-            lgmp_min=9.75,
-            lgmp_max=12.5,
+            lgmp_min=lgmp_min,
+            lgmp_sub_min=lgmp_min,
+            lgmp_max=lgmp_max,
+            area_scale_down=0.1,
             plt_show=False,
         )
+
+        # plot_uv_scatter_mhalo(
+        #     ran_key,
+        #     param_collection_fit,
+        #     zbins_uv_mstar,
+        #     ssp_data_uv,
+        #     sdss.filter_info.tcurves,
+        #     line_wave_table_uv,
+        #     num_halos,
+        #     run_label,
+        #     fit_diagnostics_save_drn,
+        #     lgmp_min=9.75,
+        #     lgmp_max=12.5,
+        #     plt_show=False,
+        # )
 
     if cfg["plots"]["plot_exsitu_frac_z0"]:
         print("Generating ex_situ_frac_z0 plot...")
@@ -859,25 +858,6 @@ if __name__ == "__main__":
                 num_halos=num_halos,
             )
 
-        if cfg["plots"]["plot_exsitu_frac"]:
-            print("Generating FENIKS ex-situ frac plot...")
-            pdata = pcm.get_plotting_data(
-                **param_collection_fit._asdict(),
-                z_min=FENIKS_Z_MIN,
-                z_max=FENIKS_Z_MAX,
-                num_halos=num_halos,
-            )
-            pcm.plot_ex_situ_fraction(
-                pdata=pdata,
-                model_nickname=feniks_label
-                + "_z"
-                + str(FENIKS_Z_MIN)
-                + "-"
-                + str(FENIKS_Z_MAX),
-                drn_out=fit_diagnostics_save_drn,
-            )
-            plt.close()
-
         feniks_zbins = np.array(
             [
                 [0.4, 0.8],
@@ -1139,25 +1119,6 @@ if __name__ == "__main__":
         #         sdss_label,
         #         fit_diagnostics_save_drn,
         #     )
-
-        if cfg["plots"]["plot_exsitu_frac"]:
-            print("Generating SDSS ex-situ frac plot...")
-            pdata = pcm.get_plotting_data(
-                **param_collection_fit._asdict(),
-                z_min=SDSS_Z_MIN,
-                z_max=SDSS_Z_MAX,
-                num_halos=num_halos,
-            )
-            pcm.plot_ex_situ_fraction(
-                pdata=pdata,
-                model_nickname=sdss_label
-                + "_z"
-                + str(SDSS_Z_MIN)
-                + "-"
-                + str(SDSS_Z_MAX),
-                drn_out=fit_diagnostics_save_drn,
-            )
-            plt.close()
 
         for zbin in range(0, len(sdss_zbins)):
             z_min = sdss_zbins[zbin][0]

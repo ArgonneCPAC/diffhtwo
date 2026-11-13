@@ -50,7 +50,7 @@ LH_D_Z = 0.025
 F_HOLES = 0.003531
 
 # space binning defaults
-D_MAG_1d = 0.1
+D_MAG_1d = 0.05
 D_MAG_2d = 0.1
 GAUSS_SIG_2d = 3.0
 D_MAG_COND = 1.0
@@ -75,9 +75,10 @@ SPACES_AT_Z = [
         "ccd": [("Ur_ri", True, (0.02, 0.1)), ("Gr_ri", True, (0.02, 0.1))],
         "cmd": [("R_ur", True, (0.02, 0.1)), ("R_ri", True, (0.02, 0.1))],
         "condc": [
-            ("R_ur", True, (0.02, 0.1)),
-            ("R_gr", True, (0.02, 0.1)),
-            ("R_ri", True, (0.02, 0.1)),
+            ("R_ug", False, (0.02, 0.1)),
+            ("R_ur", False, (0.02, 0.1)),
+            ("R_gr", False, (0.02, 0.1)),
+            ("R_ri", False, (0.02, 0.1)),
         ],
     },
     {
@@ -92,9 +93,10 @@ SPACES_AT_Z = [
         "ccd": [("Ur_ri", True, (0.1, 0.2)), ("Gr_ri", True, (0.1, 0.2))],
         "cmd": [("R_ur", True, (0.1, 0.2)), ("R_ri", True, (0.1, 0.2))],
         "condc": [
-            ("R_ur", True, (0.1, 0.2)),
-            ("R_gr", True, (0.1, 0.2)),
-            ("R_ri", True, (0.1, 0.2)),
+            ("R_ug", False, (0.1, 0.2)),
+            ("R_ur", False, (0.1, 0.2)),
+            ("R_gr", False, (0.1, 0.2)),
+            ("R_ri", False, (0.1, 0.2)),
         ],
     },
 ]
