@@ -50,7 +50,7 @@ LH_D_Z = 0.025
 F_HOLES = 0.003531
 
 # space binning defaults
-D_MAG_1d = 0.1
+D_MAG_1d = 0.05
 D_MAG_2d = 0.1
 GAUSS_SIG_2d = 3.0
 D_MAG_COND = 1.0
@@ -75,6 +75,7 @@ SPACES_AT_Z = [
         "ccd": [("Ur_ri", True, (0.02, 0.1)), ("Gr_ri", True, (0.02, 0.1))],
         "cmd": [("R_ur", True, (0.02, 0.1)), ("R_ri", True, (0.02, 0.1))],
         "condc": [
+            ("R_ug", False, (0.02, 0.1)),
             ("R_ur", False, (0.02, 0.1)),
             ("R_gr", False, (0.02, 0.1)),
             ("R_ri", False, (0.02, 0.1)),
@@ -92,6 +93,7 @@ SPACES_AT_Z = [
         "ccd": [("Ur_ri", True, (0.1, 0.2)), ("Gr_ri", True, (0.1, 0.2))],
         "cmd": [("R_ur", True, (0.1, 0.2)), ("R_ri", True, (0.1, 0.2))],
         "condc": [
+            ("R_ug", False, (0.1, 0.2)),
             ("R_ur", False, (0.1, 0.2)),
             ("R_gr", False, (0.1, 0.2)),
             ("R_ri", False, (0.1, 0.2)),
@@ -233,12 +235,26 @@ def get_sdss_data(
     n_z_phot_table=N_Z_PHOT_TABLE,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
+    # sdss_mag_thresh = SdssFilters(
+    #     sdss_u=(15.0, 19.0),
+    #     sdss_g=(13.5, 19.0),
+    #     sdss_r=(13.0, SDSS_MAGR_THRESH),  # SDSS_MAGR_THRESH=17.5
+    #     sdss_i=(12.5, 17.5),
+    #     sdss_z=(12.5, 17.5),
+    # )
+    # sdss_mag_thresh = SdssFilters(
+    #     sdss_u=(16.0, 18.0),
+    #     sdss_g=(16.0, 18.0),
+    #     sdss_r=(15.0, SDSS_MAGR_THRESH),  # SDSS_MAGR_THRESH=17.5
+    #     sdss_i=(15.0, 17.5),
+    #     sdss_z=(15.0, 17.5),
+    # )
     sdss_mag_thresh = SdssFilters(
-        sdss_u=(15.0, 19.0),
-        sdss_g=(13.5, 19.0),
-        sdss_r=(13.0, SDSS_MAGR_THRESH),
-        sdss_i=(12.5, 17.5),
-        sdss_z=(12.5, 17.5),
+        sdss_u=(16.0, 19.0),
+        sdss_g=(14.5, 18.0),
+        sdss_r=(14.0, SDSS_MAGR_THRESH),  # SDSS_MAGR_THRESH=17.5
+        sdss_i=(13.5, 17.0),
+        sdss_z=(13.5, 16.7),
     )
     sdss, mag_sels, sdss_area_degsq, r_idx = load_sdss_cuts_applied(
         drn, sdss_mag_thresh

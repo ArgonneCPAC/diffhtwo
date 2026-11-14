@@ -2,12 +2,15 @@ import jax.numpy as jnp
 import matplotlib.colors as mcolors
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib.colors import to_rgba
 from matplotlib.lines import Line2D
 
 from ..data_loaders import load_hizels
 from ..data_loaders.load_hizels import LOGHA_FLUX_LIMIT_NONE
 from ..data_loaders.load_minerva import get_minerva_halpha
+from ..defaults import COSMO
 from ..kernels.line_kern import get_halpha_LF_q_ms_burst, get_lf_from_linelum
+from ..kernels.line_utils import luminosity_from_flux_app
 from ..kernels.N_line import N_linelum2
 from ..kernels.sfr_tau import get_logsfr_tau
 
@@ -178,6 +181,7 @@ def plot_halpha(
     lgmp_min=10.5,
     lgmp_max=15.0,
     logHa_flux_limit_fit=LOGHA_FLUX_LIMIT_NONE,
+    logLHa_halo_limit=40.0,
     plt_show=True,
 ):
     hizels = load_hizels.get_hizels_data(
@@ -199,7 +203,9 @@ def plot_halpha(
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
         logflux_limit=logHa_flux_limit_fit,
+        logLHa_halo_limit=logLHa_halo_limit,
     )
+
     alpha = 0.75
     lw = 2
 
@@ -210,7 +216,8 @@ def plot_halpha(
 
     fig, ax = plt.subplots(1, figsize=(4.3, 4), constrained_layout=True)
 
-    for i in range(0, 4):
+    cut_x, cut_y = [], []
+    for i in range(0, len(hizels.z[0])):
         _res = get_halpha_LF_q_ms_burst(
             ran_key,
             param_collection,
@@ -237,10 +244,23 @@ def plot_halpha(
             lc_data,
         ) = _res
 
-        lgL_bin_centers_flux_limited = 0.5 * (
-            hizels_flux_limited.lg_Lbin_edges[0][i][1:]
-            + hizels_flux_limited.lg_Lbin_edges[0][i][:-1]
+        logL_lim = np.log10(
+            luminosity_from_flux_app(10**logHa_flux_limit_fit, hizels.z[0][i], COSMO)
         )
+        cut_x.append(logL_lim)
+        cut_y.append(
+            np.interp(logL_lim, lgL_bin_centers, hizels.lg_phi_data[0][i][0])
+            + offsets_z[i]
+        )
+
+        if hizels.z[0][i] in hizels_flux_limited.z[0]:
+            i_fl = list(hizels_flux_limited.z[0]).index(hizels.z[0][i])
+            lgL_bin_centers_flux_limited = 0.5 * (
+                hizels_flux_limited.lg_Lbin_edges[0][i_fl][1:]
+                + hizels_flux_limited.lg_Lbin_edges[0][i_fl][:-1]
+            )
+        else:
+            lgL_bin_centers_flux_limited = np.array([])
 
         mfc = [
             colors_z[i] if b in lgL_bin_centers_flux_limited else "none"
@@ -272,6 +292,33 @@ def plot_halpha(
 
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
+
+    ax.plot(
+        cut_x,
+        cut_y,
+        ls="--",
+        c="k",
+        lw=1.5,
+        alpha=0.5,
+        label=rf"$\log_{{10}} flux_{{\mathrm{{H}}\alpha}} [cgs] > {logHa_flux_limit_fit}$",
+    )
+
+    ax.axvline(
+        logLHa_halo_limit,
+        ls=":",
+        c="k",
+        alpha=0.5,
+        label=rf"$\log_{{10}} L_{{\mathrm{{H}}\alpha}} [cgs] > {logLHa_halo_limit}$",
+    )
+    # ax.text(
+    #     logLHa_halo_limit,
+    #     0.98,
+    #     rf"$\log_{{10}} L_{{\mathrm{{H}}\alpha}} = {logLHa_halo_limit}$",
+    #     rotation=90,
+    #     ha="left",
+    #     va="top",
+    #     transform=plt.gca().get_xaxis_transform(),
+    # )
 
     ax.minorticks_on()
     ax.tick_params(
@@ -305,7 +352,7 @@ def plot_halpha(
             markersize=6,
             linestyle="none",
             lw=lw,
-            label="Sobral+13 (fitted)",
+            label=rf"Sobral+13 (fitted)",
         ),
         ax.errorbar(
             [],
@@ -334,6 +381,173 @@ def plot_halpha(
 
     fig.savefig(
         savedir + "/" + model_nickname + "_halpha_LF" + ".png",
+        dpi=400,
+    )
+    if plt_show:
+        plt.show()
+    plt.close()
+
+
+def plot_halpha_ltd(
+    ran_key,
+    hizels_drn,
+    param_collection,
+    ssp_data,
+    tcurves,
+    halpha_wave_aa,
+    model_nickname,
+    savedir,
+    num_halos=100,
+    lgmp_min=10.5,
+    lgmp_max=15.0,
+    logHa_flux_limit_fit=LOGHA_FLUX_LIMIT_NONE,
+    logLHa_halo_limit=40.0,
+    plt_show=True,
+):
+    hizels = load_hizels.get_hizels_data(
+        hizels_drn,
+        ran_key,
+        ssp_data,
+        tcurves,
+        halpha_wave_aa,
+        lgmp_min=lgmp_min,
+        lgmp_max=lgmp_max,
+        logflux_limit=logHa_flux_limit_fit,
+        logLHa_halo_limit=logLHa_halo_limit,
+    )
+    alpha = 0.75
+    lw = 2
+
+    fig, ax = plt.subplots(1, figsize=(4.3, 4), constrained_layout=True)
+
+    xs_all = []
+    ys_all = []
+
+    for i in range(0, len(hizels.z[0])):
+        i_c = int(
+            np.argmin(
+                np.abs(np.array([0.40, 0.84, 1.47, 2.23]) - float(hizels.z[0][i]))
+            )
+        )
+        _res = get_halpha_LF_q_ms_burst(
+            ran_key,
+            param_collection,
+            halpha_wave_aa,
+            hizels.lg_Lbin_edges[0][i],
+            hizels.z[0][i],
+            hizels.dz[0][i],
+            ssp_data,
+            tcurves,
+            num_halos=num_halos,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+        )
+        (
+            lgL_bin_centers,
+            lg_halpha_LF,
+            lg_halpha_LF_q,
+            lg_halpha_LF_ms,
+            lg_halpha_LF_burst,
+            lg_halpha_LF_in_situ,
+            phot_kern_results,
+            spec_kern_results,
+            lg_halpha_Lbin_edges,
+            lc_data,
+        ) = _res
+
+        for b in range(0, len(lgL_bin_centers)):
+            y = hizels.lg_phi_data[0][i][0][b]
+            yerr = hizels.lg_phi_data[0][i][1][b]
+            ax.errorbar(
+                lgL_bin_centers[b],
+                y,
+                yerr,
+                mec=to_rgba(colors_z[i_c], alpha),
+                mew=1.2,
+                ecolor=to_rgba(colors_z[i_c], 0.3),
+                elinewidth=2,
+                fmt="s",
+                mfc=to_rgba(colors_z[i_c], alpha),
+                markersize=5,
+            )
+
+            xs_all.append(lgL_bin_centers[b])
+            ys_all.extend([y - yerr, y + yerr])
+
+        ax.plot(
+            lgL_bin_centers,
+            lg_halpha_LF,
+            color=colors_z[i_c],
+            alpha=alpha,
+            label=" z = " + str(hizels.z[0][i]),
+            lw=lw,
+        )
+        m = np.isfinite(lg_halpha_LF)
+        xs_all.extend(np.asarray(lgL_bin_centers)[m])
+        ys_all.extend(np.asarray(lg_halpha_LF)[m])
+
+    xs_all = np.asarray(xs_all)
+    ys_all = np.asarray(ys_all)
+    xmin, xmax = np.nanmin(xs_all), np.nanmax(xs_all)
+    ymin, ymax = np.nanmin(ys_all), np.nanmax(ys_all)
+    xpad = 0.05 * (xmax - xmin)
+    ypad = 0.05 * (ymax - ymin)
+    ax.set_xlim(xmin - xpad, xmax + xpad)
+    ax.set_ylim(-5.0, ymax + ypad)
+
+    ax.minorticks_on()
+    ax.tick_params(
+        which="major",
+        direction="in",
+        top=True,
+        right=True,
+        length=6,
+        width=1,
+        labelsize=10,
+    )
+    ax.tick_params(
+        which="minor",
+        direction="in",
+        top=True,
+        right=True,
+        length=3,
+        width=0.8,
+        labelsize=10,
+    )
+
+    handles_z, labels_z = ax.get_legend_handles_labels()
+    handles = [
+        Line2D([], [], color="k", lw=lw, label="diffsky"),
+        ax.errorbar(
+            [],
+            [],
+            yerr=[[0.2], [0.2]],  # vertical error bar
+            fmt="s",
+            color="k",
+            markersize=6,
+            linestyle="none",
+            lw=lw,
+            label=(
+                "Sobral+13\n"
+                rf"$\log_{{10}}\,flux_{{\mathrm{{H}}\alpha}}\,[\mathrm{{cgs}}] > {logHa_flux_limit_fit}$"
+                "\n"
+                rf"& $\log_{{10}}\,L_{{\mathrm{{H}}\alpha}}\,[\mathrm{{cgs}}] > {logLHa_halo_limit}$"
+            ),
+        ),
+    ]
+    handles = handles_z + handles
+    ax.legend(
+        handles=handles,
+        loc="upper right",
+        frameon=False,
+        fontsize=9,
+    )
+
+    ax.set_xlabel("log$_{10}$ (L$_{H\u03b1}$ [erg/s])", fontsize=14)
+    ax.set_ylabel("log$_{10}($\u03d5 [Mpc$^{-3}$])", fontsize=14)
+
+    fig.savefig(
+        savedir + "/" + model_nickname + "_halpha_LF_ltd" + ".png",
         dpi=400,
     )
     if plt_show:
