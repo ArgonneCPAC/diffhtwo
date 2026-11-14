@@ -42,6 +42,8 @@ from diffhtwo.experimental.diagnostics.plot_contour import (
     plot_cc_cm_grid_minerva,
     plot_cc_cm_grid_raw,
     plot_cc_cm_grid_raw_minerva,
+    plot_condccd_grid,
+    plot_condccd_grid_raw,
 )
 from diffhtwo.experimental.diagnostics.plot_ex_situ_frac import plot_ex_situ_frac_z0
 from diffhtwo.experimental.diagnostics.plot_fq import plot_fq
@@ -200,6 +202,10 @@ if __name__ == "__main__":
                 ("R_ur", False, (0.02, 0.2)),
                 ("R_gr", False, (0.02, 0.2)),
                 ("R_ri", False, (0.02, 0.2)),
+            ],
+            "condccd": [
+                ("R_ug_gr", False, (0.02, 0.2)),
+                ("R_gr_ri", False, (0.02, 0.2)),
             ],
         },
     ]
@@ -807,6 +813,32 @@ if __name__ == "__main__":
                 fit_diagnostics_save_drn,
                 plt_show=False,
             )
+
+        if cfg["plots"]["plot_condccd"]:
+            print("Generating FENIKS condccd...")
+
+            plot_condccd_grid_raw(
+                ran_key,
+                param_collection_fit,
+                feniks.spaces,
+                feniks.filter_info.mag_thresh,
+                "FENIKS",
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
+            plot_condccd_grid(
+                ran_key,
+                param_collection_fit,
+                feniks.spaces,
+                feniks.filter_info.mag_thresh,
+                "FENIKS",
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
         if cfg["plots"]["plot_cond_colors"]:
             print("Generating FENIKS conditional color PDFs...")
             feniks_cond = load_feniks.get_feniks_data(
@@ -1018,6 +1050,29 @@ if __name__ == "__main__":
                 [0.1, 0.2],
             ]
         )
+        if cfg["plots"]["plot_condccd"]:
+            print("Generating SDSS condccd...")
+            plot_condccd_grid_raw(
+                ran_key,
+                param_collection_fit,
+                sdss.spaces,
+                sdss.filter_info.mag_thresh,
+                "SDSS",
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+            plot_condccd_grid(
+                ran_key,
+                param_collection_fit,
+                sdss.spaces,
+                sdss.filter_info.mag_thresh,
+                "SDSS",
+                run_label,
+                fit_diagnostics_save_drn,
+                plt_show=False,
+            )
+
         if cfg["plots"]["plot_cond_colors"]:
             print("Generating SDSS conditional color PDFs...")
             sdss_cond = load_sdss.get_sdss_data(

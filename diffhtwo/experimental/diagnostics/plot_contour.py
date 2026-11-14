@@ -202,8 +202,7 @@ def plot_density(
             yc,
             Zm,
             levels=levels_m if model_own_levels else levels,
-            colors="k",
-            alpha=0.5,
+            colors=cmap.colors,
             linewidths=1.5,
             linestyles="dashed",
         )
@@ -287,10 +286,10 @@ def plot_cc_cm_grid(
             mlines.Line2D(
                 [],
                 [],
-                color="k",
-                alpha=0.5,
+                color=dusk(0.7),
                 linewidth=1.5,
                 linestyle="dashed",
+                alpha=0.9,
                 label="diffsky",
             ),
         ],
@@ -392,6 +391,228 @@ def plot_color_contours(
             if plt_show:
                 plt.show()
             plt.close()
+
+
+def plot_condccd_grid(
+    ran_key,
+    param_collection,
+    spaces,
+    mag_thresh,
+    data_label,
+    run_label,
+    savedir,
+    plt_show=True,
+):
+    labelsize = 9
+    fontsize = 10
+    titlesize = 12
+
+    for z_data in spaces:
+        model = add_N_model_to_spaces(ran_key, param_collection, z_data, mag_thresh)
+        for field in model._fields:
+            condccd_space = getattr(model, field)
+            if not field.startswith("condccd_") or not condccd_space:
+                continue
+            name = type(condccd_space[0]).__name__
+            xlabel, ylabel, cond = parse_cond_label(name)
+
+            fig, ax = plt.subplots(
+                1,
+                len(condccd_space),
+                figsize=(1.8 * len(condccd_space) + 0.6, 2.8),
+                constrained_layout=True,
+                squeeze=False,
+            )
+            fig.get_layout_engine().set(
+                h_pad=0.04, wspace=0.05, hspace=0.05, rect=(0, 0.03, 1, 0.77)
+            )
+
+            for a, space in zip(ax[0], condccd_space):
+                # print(
+                #     space.cond_lo,
+                #     space.cond_hi,
+                #     len(space.N_data),
+                #     (space.N_data > 0).sum(),
+                # )
+                qm = plot_density(
+                    space.bin_lo,
+                    space.bin_hi,
+                    space.N_data / space.vol_mpc3_data,
+                    a,
+                    xlabel,
+                    ylabel,
+                    dusk,
+                    fontsize=fontsize,
+                    n_model=space.N_model / space.vol_mpc3_model,
+                )
+                a.set_title(
+                    f"${space.cond_lo:.1f}<{cond}<{space.cond_hi:.1f}$",
+                    fontsize=fontsize,
+                )
+                a.minorticks_on()
+                for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
+                    a.tick_params(
+                        which=which,
+                        direction="in",
+                        top=True,
+                        right=True,
+                        length=length,
+                        width=width,
+                        labelsize=labelsize,
+                    )
+
+            cbar = fig.colorbar(
+                qm,
+                ax=ax.ravel().tolist(),
+                location="right",
+                shrink=1,
+                aspect=40,
+                pad=0.01,
+            )
+            edges = np.asarray(qm.levels)
+            cbar.set_ticks(0.5 * (edges[:-1] + edges[1:]))
+            cbar.set_ticklabels(
+                [r"$>3\sigma$", r"$3\sigma$", r"$2\sigma$", r"$1\sigma$"]
+            )
+            cbar.ax.tick_params(
+                labelsize=labelsize,
+                labelleft=False,
+                labelright=True,
+                direction="in",
+                length=0,
+            )
+
+            fig.legend(
+                handles=[
+                    mpatches.Patch(color=dusk(0.7), alpha=0.5, label=data_label),
+                    mlines.Line2D(
+                        [],
+                        [],
+                        color=dusk(0.7),
+                        linewidth=1.5,
+                        linestyle="dashed",
+                        alpha=0.9,
+                        label="diffsky",
+                    ),
+                ],
+                loc="upper center",
+                bbox_to_anchor=(0.5, 0.90),
+                ncol=2,
+                frameon=False,
+                fontsize=fontsize,
+                borderaxespad=0.0,
+            )
+            zlo, zhi = condccd_space[0].zlo, condccd_space[0].zhi
+            fig.suptitle(f"{zlo} < z < {zhi}", fontsize=titlesize, y=0.97)
+            fig.savefig(
+                f"{savedir}/{run_label}_{name}_{zlo}-{zhi}_grid.png",
+                dpi=600,
+            )
+            if plt_show:
+                plt.show()
+            plt.close()
+
+
+def plot_condccd_grid_raw(
+    ran_key,
+    param_collection,
+    spaces,
+    mag_thresh,
+    data_label,
+    run_label,
+    savedir,
+    plt_show=True,
+):
+    labelsize = 9
+    fontsize = 10
+    titlesize = 12
+
+    for z_data in spaces:
+        model = add_N_model_to_spaces(ran_key, param_collection, z_data, mag_thresh)
+        for field in model._fields:
+            condccd_space = getattr(model, field)
+            if not field.startswith("condccd_") or not condccd_space:
+                continue
+            name = type(condccd_space[0]).__name__
+            xlabel, ylabel, cond = parse_cond_label(name)
+
+            n_data = [s.N_data / s.vol_mpc3_data for s in condccd_space]
+            n_model = [s.N_model / s.vol_mpc3_model for s in condccd_space]
+            data_vals = np.concatenate([np.ravel(n) for n in n_data])
+            norm = LogNorm(data_vals.min(), data_vals.max())
+            zlo, zhi = condccd_space[0].zlo, condccd_space[0].zhi
+
+            for label, suffix, densities in (
+                (data_label, "data", n_data),
+                ("diffsky", "model", n_model),
+            ):
+                fig, ax = plt.subplots(
+                    1,
+                    len(condccd_space),
+                    figsize=(1.8 * len(condccd_space) + 0.6, 2.7),
+                    constrained_layout=True,
+                    squeeze=False,
+                    sharex=True,
+                    sharey=True,
+                )
+                fig.get_layout_engine().set(
+                    w_pad=0.04,
+                    h_pad=0.04,
+                    wspace=0.05,
+                    hspace=0.05,
+                    rect=(0, 0, 1, 0.86),
+                )
+
+                for a, space, n in zip(ax[0], condccd_space, densities):
+                    qm = plot_density_raw(
+                        space.bin_lo,
+                        space.bin_hi,
+                        n,
+                        a,
+                        xlabel,
+                        ylabel,
+                        dusk,
+                        norm=norm,
+                    )
+                    a.set_title(
+                        f"${space.cond_lo:.1f}<{cond}<{space.cond_hi:.1f}$",
+                        fontsize=fontsize,
+                        y=1.0,
+                        pad=3,
+                    )
+                    a.minorticks_on()
+                    a.label_outer()
+                    for which, length, width in (("major", 6, 1), ("minor", 3, 0.8)):
+                        a.tick_params(
+                            which=which,
+                            direction="in",
+                            top=True,
+                            right=True,
+                            length=length,
+                            width=width,
+                            labelsize=labelsize,
+                        )
+
+                cbar = fig.colorbar(
+                    qm,
+                    ax=ax.ravel().tolist(),
+                    location="right",
+                    shrink=1,
+                    aspect=40,
+                    pad=0.01,
+                    extend="both",
+                )
+                cbar.set_label(r"$n\ [\mathrm{Mpc}^{-3}]$", fontsize=fontsize)
+                cbar.ax.tick_params(labelsize=labelsize)
+
+                fig.suptitle(f"{label}, {zlo} < z < {zhi}", fontsize=titlesize, y=0.98)
+                fig.savefig(
+                    f"{savedir}/{run_label}_{name}_{zlo}-{zhi}_grid_raw_{suffix}.png",
+                    dpi=600,
+                )
+                if plt_show:
+                    plt.show()
+                plt.close()
 
 
 def plot_cc_cm_grid_minerva(
@@ -609,6 +830,12 @@ def parse_axis_label(s):
 def parse_color_labels(name):
     x_str, y_str = name.lower().split("_")
     return parse_axis_label(x_str), parse_axis_label(y_str)
+
+
+def parse_cond_label(name):
+    *_, cond, x_str, y_str = name.lower().split("_")
+    xlabel, ylabel = parse_color_labels(f"{x_str}_{y_str}")
+    return xlabel, ylabel, parse_axis_label(cond).strip("$")
 
 
 # def parse_axis_label(s):

@@ -25,7 +25,7 @@ plot_hizels: False
 
 plot_minerva: False
 
-num_halos : 5000
+num_halos : 500
 sky_area_degsq: 1
 
 lgmp_min: 10.0
@@ -41,10 +41,11 @@ defaults:
   merging: False
 
 plots:
-  plot_app_mag_funcs: True
+  plot_app_mag_funcs: False
   plot_exsitu_frac_z0: False
   plot_color_contours: False
   plot_cond_colors: False
+  plot_condccd: True
 
   plot_uv: False
   plot_halpha_lf: False
@@ -58,7 +59,7 @@ plots:
   plot_sfms: False
   plot_fq: False
 
-  plot_mag_z: True
+  plot_mag_z: False
   plot_color_z: False
 
   plot_halpha_uv_ratio: False

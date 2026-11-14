@@ -57,11 +57,6 @@ def with_N_model(space, *args):
 def get_obs_coords(space, obs_mags):
     col_idx = space.col_idx if "col_idx" in space._fields else None
 
-    if "cond_idx" in space._fields:
-        # condc space
-        color = obs_mags[:, col_idx[0]] - obs_mags[:, col_idx[1]]
-        return color.reshape(-1, 1)
-
     if "mag_idx" in space._fields:
         obs_mag = obs_mags[:, space.mag_idx]
         if col_idx is not None:
@@ -72,7 +67,7 @@ def get_obs_coords(space, obs_mags):
             # md space
             obs_coords = obs_mag.reshape(obs_mag.size, 1)
     else:
-        # ccd space
+        # ccd, condc and condccd spaces
         obs_colors = []
         for c in range(0, len(col_idx) - 1, 2):
             obs_color = obs_mags[:, col_idx[c]] - obs_mags[:, col_idx[c + 1]]
@@ -84,32 +79,21 @@ def get_obs_coords(space, obs_mags):
 
 @jjit
 def get_mag_weight_idx(space):
-    parent_cut_idx = space.parent_cut_idx
-
     if "cond_idx" in space._fields:
-        # condc space
-        col_idx = space.col_idx
-        return jnp.array([parent_cut_idx, space.cond_idx, col_idx[0], col_idx[1]])
+        # condc and condccd spaces
+        return jnp.array([space.parent_cut_idx, space.cond_idx, *space.col_idx])
 
     if "mag_idx" in space._fields:
         mag_idx = space.mag_idx
         if "col_idx" in space._fields:
             # cmd space
-            col_idx = space.col_idx
-            mag_weight_idx = [parent_cut_idx, mag_idx, col_idx[0], col_idx[1]]
+            mag_weight_idx = [space.parent_cut_idx, mag_idx, *space.col_idx]
         else:
             # md space
-            mag_weight_idx = [parent_cut_idx, mag_idx]
+            mag_weight_idx = [space.parent_cut_idx, mag_idx]
     else:
         # ccd space
-        col_idx = space.col_idx
-        mag_weight_idx = [
-            parent_cut_idx,
-            col_idx[0],
-            col_idx[1],
-            col_idx[2],
-            col_idx[3],
-        ]
+        mag_weight_idx = [space.parent_cut_idx, *space.col_idx]
 
     return jnp.array(mag_weight_idx)
 
