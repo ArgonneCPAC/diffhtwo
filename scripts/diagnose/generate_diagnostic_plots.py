@@ -208,7 +208,7 @@ if __name__ == "__main__":
         ran_key,
         ssp_data,
         spaces_at_z=sdss_spaces_at_z,
-        d_mag_1d=0.2,
+        d_mag_1d=d_mag_1d,
         num_halos=num_halos,
         lgmp_min=lgmp_min,
         lgmp_max=lgmp_max,
