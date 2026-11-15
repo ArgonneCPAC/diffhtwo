@@ -66,7 +66,7 @@ LH_D_Z = 0.3
 
 # space binning defaults
 D_MAG_1d = 0.1
-D_MAG_2d = 0.2
+D_MAG_2d = 0.1
 GAUSS_SIG_2d = 3.0
 D_MAG_COND = 1.0
 
@@ -636,7 +636,6 @@ def get_feniks_data(
             data_sky_area_degsq=FENIKS_AREA_DEG2,
         )
 
-        d_mag_2d = 0.1
         condccd_z_lists = get_condccd_spaces_at_z(
             condccd_namedtuples,
             FeniksFilters,
