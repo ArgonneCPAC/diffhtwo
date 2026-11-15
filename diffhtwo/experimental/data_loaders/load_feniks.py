@@ -442,17 +442,25 @@ def get_feniks_data(
         r"$K_{UDS}$",
     ]
 
+    # feniks_mag_thresh = FeniksFilters(
+    #     MegaCam_uS=(21.4, 25.0),
+    #     HSC_G=(20.6, 25.3),
+    #     HSC_R=(19.8, 24.8),
+    #     HSC_I=(19.0, 24.5),
+    #     HSC_Z=(18.8, 24.3),
+    #     UDS_J=(18.0, 24.0),
+    #     UDS_H=(17.5, 24.0),
+    #     UDS_K=(17.0, FENIKS_MAGK_THRESH),
+    # )
     feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=(21.4, 25.0),
-        HSC_G=(20.6, 25.3),
-        # MegaCam_uS=(21.4, 24.0),
-        # HSC_G=(20.6, 25.0),
-        HSC_R=(19.8, 24.8),
-        HSC_I=(19.0, 24.5),
-        HSC_Z=(18.8, 24.3),
-        UDS_J=(18.0, 24.0),
-        UDS_H=(17.5, 24.0),
-        UDS_K=(17.0, FENIKS_MAGK_THRESH),
+        MegaCam_uS=(21.4, 25.7),
+        HSC_G=(20.6, 25.4),
+        HSC_R=(19.8, 25.1),
+        HSC_I=(19.0, 25.0),
+        HSC_Z=(18.8, 24.7),
+        UDS_J=(18.4, 24.3),
+        UDS_H=(18.2, 24.2),
+        UDS_K=(18.0, FENIKS_MAGK_THRESH),
     )
 
     # Transmission curves and filter mag thresholds
