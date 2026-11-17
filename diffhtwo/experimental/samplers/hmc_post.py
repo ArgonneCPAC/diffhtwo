@@ -10,7 +10,7 @@ def flat_logposterior_fn(
     var_uparam_flat,
     diffsky_params,
     sdss_fitting_data,
-    feniks_fitting_data,
+    # feniks_fitting_data,
     var_flat_idx,
     lik_key,
 ):
@@ -33,22 +33,22 @@ def flat_logposterior_fn(
     # Likelihood(\theta)
     u_theta = get_u_theta_from_param_collection(param_coll)
     sdss_loglik = -_loss_phot_kern_2d_multiz(u_theta, lik_key, sdss_fitting_data)
-    feniks_loglik = -_loss_phot_kern_2d_multiz(u_theta, lik_key, feniks_fitting_data)
-    loglik = sdss_loglik + feniks_loglik
+    # feniks_loglik = -_loss_phot_kern_2d_multiz(u_theta, lik_key, feniks_fitting_data)
+    # loglik = sdss_loglik + feniks_loglik
 
-    # -- So far we did the same as flat_loglikelihood_fn. Now we reuse computations to get the prior.
+    # # -- So far we did the same as flat_loglikelihood_fn. Now we reuse computations to get the prior.
 
-    # Prior: 2 terms
-    # first term
-    param_flat, _ = ravel_pytree(param_coll)
-    lg_dist_term = jnp.sum(
-        prior._soft_uniform_log_prior(
-            param_flat[var_flat_idx],
-            prior.DEFAULT_LOW_FLAT[var_flat_idx],
-            prior.DEFAULT_HIGH_FLAT[var_flat_idx],
-        )
-    )
-    # second term
-    log_abs_det = prior._var_jac_logdet(uparam_coll, var_flat_idx)
+    # # Prior: 2 terms
+    # # first term
+    # param_flat, _ = ravel_pytree(param_coll)
+    # lg_dist_term = jnp.sum(
+    #     prior._soft_uniform_log_prior(
+    #         param_flat[var_flat_idx],
+    #         prior.DEFAULT_LOW_FLAT[var_flat_idx],
+    #         prior.DEFAULT_HIGH_FLAT[var_flat_idx],
+    #     )
+    # )
+    # # second term
+    # log_abs_det = prior._var_jac_logdet(uparam_coll, var_flat_idx)
 
-    return loglik + lg_dist_term + log_abs_det
+    return sdss_loglik  # + lg_dist_term + log_abs_det

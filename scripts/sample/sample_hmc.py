@@ -61,14 +61,14 @@ if __name__ == "__main__":
         lgmp_max=cfg["lgmp_max"],
     )
 
-    feniks_fitting_data = load_feniks.get_feniks_fitting_data(
-        feniks_drn,
-        ran_key,
-        ssp_data,
-        num_halos=cfg["feniks"]["num_halos"],
-        lgmp_min=cfg["lgmp_min"],
-        lgmp_max=cfg["lgmp_max"],
-    )
+    # feniks_fitting_data = load_feniks.get_feniks_fitting_data(
+    #     feniks_drn,
+    #     ran_key,
+    #     ssp_data,
+    #     num_halos=cfg["feniks"]["num_halos"],
+    #     lgmp_min=cfg["lgmp_min"],
+    #     lgmp_max=cfg["lgmp_max"],
+    # )
 
     diffsky_param_file = (
         cfg["base_path"]
@@ -127,7 +127,7 @@ if __name__ == "__main__":
         inverse_mass_matrix=imm,
         diffsky_params=uparam_flat,
         sdss_fitting_data=sdss_fitting_data,
-        feniks_fitting_data=feniks_fitting_data,
+        # feniks_fitting_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
         lik_key=lik_key,
     )
@@ -143,7 +143,7 @@ if __name__ == "__main__":
         step_sizes,
         diffsky_params=uparam_flat,
         sdss_fitting_data=sdss_fitting_data,
-        feniks_fitting_data=feniks_fitting_data,
+        # feniks_fitting_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
         lik_key=lik_key,
     )

@@ -30,6 +30,7 @@ alpha = 0.7
 
 def plot_smhm_samples(
     ran_key,
+    param_collection_gd,
     param_collection_samples,
     zbins,
     num_halos,
@@ -42,8 +43,7 @@ def plot_smhm_samples(
     plt_show=True,
 ):
     param_collection_list = utils.unpack_nested_samples(param_collection_samples)
-    param_collection_list = param_collection_list[:100]
-
+    param_collection_list = param_collection_list[:10]
     n_z_bins = len(zbins)
     fig_width = 7.1
     fig_height = 4.2
@@ -53,7 +53,9 @@ def plot_smhm_samples(
         figsize=(fig_width, fig_height),
         constrained_layout=True,
         gridspec_kw={"wspace": 0},
+        squeeze=False,
     )
+    ax = ax[0]
 
     for zbin in range(n_z_bins):
         z_min = zbins[zbin][0]
@@ -62,7 +64,47 @@ def plot_smhm_samples(
         ax[zbin].set_title(r"$z = $" + z_med)
         ax_ex_situ_frac = ax[zbin].twinx()
 
-        for param_collection in param_collection_list:
+        (
+            logmp_bin_centers,
+            logsm_obs_weighted_median,
+            logsm_obs_weighted_median_cen_in_situ,
+            logsm_obs_weighted_median_cen,
+            logsm_obs_weighted_median_sat_in_situ,
+            logsm_obs_weighted_median_sat,
+            ex_situ_frac_median,
+        ) = median_smhm_and_exsitu_frac(
+            ran_key,
+            param_collection_gd,
+            z_min,
+            z_max,
+            num_halos,
+            ssp_data,
+            tcurves,
+            lgmp_min=lgmp_min,
+            lgmp_max=lgmp_max,
+        )
+
+        # cen+sat
+        ax[zbin].plot(
+            logmp_bin_centers,
+            logsm_obs_weighted_median,
+            # label="cen+sat post-merging",
+            color="#000000",
+            lw=1.5,
+            alpha=0.75,
+        )
+
+        # ex-situ frac
+        ax_ex_situ_frac.plot(
+            logmp_bin_centers,
+            ex_situ_frac_median,
+            color=ex_situ_frac_color,  # C8102E",
+            lw=1.5,
+            alpha=0.75,
+            # ls=":",
+        )
+
+        for pc in param_collection_list:
             (
                 logmp_bin_centers,
                 logsm_obs_weighted_median,
@@ -73,7 +115,7 @@ def plot_smhm_samples(
                 ex_situ_frac_median,
             ) = median_smhm_and_exsitu_frac(
                 ran_key,
-                param_collection,
+                pc,
                 z_min,
                 z_max,
                 num_halos,
@@ -106,8 +148,6 @@ def plot_smhm_samples(
 
         ax[zbin].set_xlim(lgmp_min, lgmp_max)
         ax[zbin].set_ylim(LOGSM_OBS_MIN, LOGSM_OBS_MAX)
-        ax[zbin].set_xticks([11, 12, 13, 14])
-        ax[zbin].set_yticks([7, 8, 9, 10, 11, 12])
 
         ax[zbin].tick_params(
             which="major",

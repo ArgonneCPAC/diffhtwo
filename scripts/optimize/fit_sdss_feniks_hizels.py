@@ -29,6 +29,26 @@ from diffhtwo.experimental.optimizers import Np_photline_opt
 
 DIFFSTARPOP_PARAMS = DiffstarPop_Params_Diffstarpopfits_mgash["smdpl_dr1"]
 
+
+def plot_loss(steps, loss, loss_sdss, loss_feniks, loss_hizels, initial_pts, path):
+    fig, ax = plt.subplots(1, 4, figsize=(7.1, 3), constrained_layout=True)
+    ax[0].scatter(*zip(*initial_pts), s=50, c="k")
+    ax[0].plot(steps, loss, c="k", label="total")
+    for a, y, c, lab in zip(
+        ax[1:],
+        (loss_sdss, loss_feniks, loss_hizels),
+        ("#0a7a80", "#c87820", "#DA291C"),
+        ("sdss", "feniks", "hizels"),
+    ):
+        a.plot(steps, y, c=c, linestyle="--", alpha=0.7, label=lab)
+    for a in ax:
+        a.legend()
+    fig.supylabel("Poisson Negative Log-Likelihood")
+    fig.supxlabel("steps")
+    fig.savefig(path)
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
     p.add_argument("--config", default="config_sdss_feniks_hizels.yaml")
@@ -84,6 +104,11 @@ if __name__ == "__main__":
         + cfg["fit_runid"]
         + "/diagnostic_plots/"
         + cfg["fit_type"]
+    )
+    lc_mock.write_diffsky_param_collection_merging(
+        fit_save_drn,
+        f'{cfg["fit_runid"]}_{cfg["fit_type"]}_ep{0}',
+        param_collection_fit,
     )
     os.makedirs(fit_diagnostics_save_drn + "/loss", exist_ok=True)
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
@@ -173,7 +198,7 @@ if __name__ == "__main__":
         assert check_param_collection_is_ok(param_collection_fit)
         lc_mock.write_diffsky_param_collection_merging(
             fit_save_drn,
-            cfg["fit_runid"] + "_" + cfg["fit_type"],
+            f'{cfg["fit_runid"]}_{cfg["fit_type"]}_ep{epoch+1}',
             param_collection_fit,
         )
         if epoch == 0:
@@ -191,59 +216,23 @@ if __name__ == "__main__":
             LOSS_SDSS_HIST = np.concatenate((LOSS_SDSS_HIST, loss_sdss_hist))
             LOSS_FENIKS_HIST = np.concatenate((LOSS_FENIKS_HIST, loss_feniks_hist))
             LOSS_HIZELS_HIST = np.concatenate((LOSS_HIZELS_HIST, loss_hizels_hist))
+
+        ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
+        plot_loss(
+            STEPS,
+            LOSS_HIST,
+            LOSS_SDSS_HIST,
+            LOSS_FENIKS_HIST,
+            LOSS_HIZELS_HIST,
+            initial_pts,
+            f"{fit_diagnostics_save_drn}/loss/loss_epoch{epoch+1}_{ts}.png",
+        )
     end = time.time()
     elapsed = end - start
     print(
         f'Gradient descent took {elapsed/60:.3f} minutes for {cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]} steps.'
     )
     print(f'speed: {elapsed/(cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]):.3f} s/it')
-
-    # gradient descent figure
-    fig, ax = plt.subplots(1, 4, figsize=(7.1, 3), constrained_layout=True)
-    start_step = [s[0] for s in initial_pts]
-    start_loss = [s[1] for s in initial_pts]
-
-    ax[0].scatter(start_step, start_loss, s=50, c="k")
-    ax[0].plot(STEPS, LOSS_HIST, c="k", label="total")
-    ax[0].legend()
-
-    ax[1].plot(
-        STEPS,
-        LOSS_SDSS_HIST,
-        c="#0a7a80",
-        linestyle="--",
-        alpha=0.7,
-        label="sdss",
-    )
-    ax[1].legend()
-
-    ax[2].plot(
-        STEPS,
-        LOSS_FENIKS_HIST,
-        c="#c87820",
-        linestyle="--",
-        alpha=0.7,
-        label="feniks",
-    )
-    ax[2].legend()
-
-    ax[3].plot(
-        STEPS,
-        LOSS_HIZELS_HIST,
-        c="#DA291C",
-        linestyle="--",
-        alpha=0.7,
-        label="hizels",
-    )
-    ax[3].legend()
-
-    fig.supylabel("Poisson Negative Log-Likelihood")
-    fig.supxlabel("steps")
-
-    ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
-    fig.savefig(fit_diagnostics_save_drn + "/loss/loss_" + ts + ".png")
-
-    plt.close()
 
     os.system(
         f"python ../diagnose/generate_diagnostic_plots.py --config {new_config_diag_path}"

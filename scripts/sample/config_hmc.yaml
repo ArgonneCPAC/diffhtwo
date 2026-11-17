@@ -1,6 +1,6 @@
 base_path: /Users/kumail/diffdir
-run_label: "run263"
-run_type: "ssperrpop" 
+run_label: "run392"
+run_type: "diffstarpop+spspop+merging" 
 
 num_samples: 2
 warmup_num_steps: 1
