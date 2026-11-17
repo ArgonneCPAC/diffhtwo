@@ -83,7 +83,7 @@ SPACES_AT_Z = [
             ("R_ri", False, (0.02, 0.1)),
         ],
         "condccd": [
-            ("R_ug_gr", True, (0.02, 0.1)),
+            ("R_ug_gr", False, (0.02, 0.1)),
             ("R_gr_ri", True, (0.02, 0.1)),
         ],
     },
@@ -105,7 +105,7 @@ SPACES_AT_Z = [
             ("R_ri", False, (0.1, 0.2)),
         ],
         "condccd": [
-            ("R_ug_gr", True, (0.1, 0.2)),
+            ("R_ug_gr", False, (0.1, 0.2)),
             ("R_gr_ri", True, (0.1, 0.2)),
         ],
     },

@@ -9,7 +9,7 @@ import jax
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
-from diffsky.experimental.inference import hmc, utils
+from diffsky.experimental.inference import fisher, hmc, utils
 from diffsky.param_utils import diffsky_param_wrapper_merging as dpwm
 from diffsky.param_utils.load_calib_params import load_param_collection
 from dsps import load_ssp_templates
@@ -37,17 +37,16 @@ if __name__ == "__main__":
         cfg["base_path"]
         + "/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5"
     )
-    out_drn = cfg["base_path"] + "/inference"
+    out_drn = cfg["base_path"] + "/inference/" + cfg["run_label"] + "/"
 
-    imm_path = f"{out_drn}/covariance_matrix.npy"
-    if os.path.exists(imm_path):
-        imm = np.load(imm_path)
-        print(f"loaded precomputed IMM from {imm_path}")
-    else:
-        # will compute IMM with warmup
-        imm = None
+    os.makedirs(out_drn, exist_ok=True)
 
-    ran_key = jran.key(0)
+    # keys
+    ran_key = jran.key(cfg["ran_key"])
+    warmup_key, sampler_key, init_key, lik_key = jax.random.split(ran_key, 4)
+    warmup_keys = jran.split(warmup_key, cfg["num_chains"])
+    sampler_keys = jran.split(sampler_key, cfg["num_chains"])
+
     ssp_data = load_ssp_templates(fn=ssp_filename)
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
     halpha_wave_aa = ssp_data.ssp_emline_wave[0]
@@ -60,15 +59,6 @@ if __name__ == "__main__":
         lgmp_min=cfg["lgmp_min"],
         lgmp_max=cfg["lgmp_max"],
     )
-
-    # feniks_fitting_data = load_feniks.get_feniks_fitting_data(
-    #     feniks_drn,
-    #     ran_key,
-    #     ssp_data,
-    #     num_halos=cfg["feniks"]["num_halos"],
-    #     lgmp_min=cfg["lgmp_min"],
-    #     lgmp_max=cfg["lgmp_max"],
-    # )
 
     diffsky_param_file = (
         cfg["base_path"]
@@ -96,18 +86,33 @@ if __name__ == "__main__":
     # List of indices of varied parameters in the flatten namedtuple
     var_flat_idx = utils.compute_varied_params_indices(var_uparam_flat, uparam_flat)
 
+    imm_path = f"{out_drn}/covariance_matrix.npy"
+    if os.path.exists(imm_path):
+        imm = np.load(imm_path)
+        print(f"loaded precomputed IMM from {imm_path}")
+    else:
+        print(f"computing IMM {imm_path}")
+        res = fisher.compute_fisher_matrix(
+            var_uparam_flat,
+            hmc_post.flat_logposterior_fn,
+            # flat_logprior,
+            include_prior=False,
+            verbose=True,
+            diffsky_params=uparam_flat,
+            # feniks_fitting_data=feniks_fitting_data,
+            sdss_fitting_data=sdss_fitting_data,
+            var_flat_idx=var_flat_idx,
+            lik_key=lik_key,
+        )
+        imm = res.covariance_matrix
+        np.save(imm_path, imm)
+
     hmc_settings = {
         "warmup_num_steps": cfg["warmup_num_steps"],
         "max_num_doublings": cfg["max_num_doublings"],
         "target_accept": cfg["target_accept"],
         "initial_step_size": cfg["initial_step_size"],
     }
-
-    # keys
-    ran_key = jran.key(cfg["ran_key"])
-    warmup_key, sampler_key, init_key, lik_key = jax.random.split(ran_key, 4)
-    warmup_keys = jran.split(warmup_key, cfg["num_chains"])
-    sampler_keys = jran.split(sampler_key, cfg["num_chains"])
 
     # Run chain initialization
     chain_inits = hmc.make_chain_inits(
@@ -119,6 +124,7 @@ if __name__ == "__main__":
     )
 
     # warmup
+    print("Warming up ...")
     warmup_states, step_sizes, warmup_info, imm_out = hmc.run_warmup(
         hmc_post.flat_logposterior_fn,
         warmup_keys,
@@ -133,6 +139,7 @@ if __name__ == "__main__":
     )
 
     # sampling
+    print("Sampling ...")
     positions, sample_info = hmc.run_sampling(
         hmc_post.flat_logposterior_fn,
         imm_out,

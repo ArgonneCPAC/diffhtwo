@@ -110,7 +110,7 @@ SPACES_AT_Z = [
             ("K_ri", False, (0.4, 0.7)),
         ],
         "condccd": [
-            ("K_ug_gr", True, (0.4, 0.7)),
+            ("K_ug_gr", False, (0.4, 0.7)),
             ("K_gr_ri", True, (0.4, 0.7)),
         ],
     },
@@ -138,8 +138,8 @@ SPACES_AT_Z = [
             ("K_rz", False, (0.7, 1.0)),
         ],
         "condccd": [
-            ("K_ug_gr", True, (0.7, 1.0)),
-            ("K_ur_ri", True, (0.7, 1.0)),
+            ("K_ug_gr", False, (0.7, 1.0)),
+            ("K_ur_ri", False, (0.7, 1.0)),
             ("K_gr_ri", True, (0.7, 1.0)),
         ],
     },
@@ -167,8 +167,8 @@ SPACES_AT_Z = [
             ("K_rz", False, (1.0, 1.5)),
         ],
         "condccd": [
-            ("K_ug_gr", True, (1.0, 1.5)),
-            ("K_ur_ri", True, (1.0, 1.5)),
+            ("K_ug_gr", False, (1.0, 1.5)),
+            ("K_ur_ri", False, (1.0, 1.5)),
             ("K_gr_rz", True, (1.0, 1.5)),
         ],
     },
@@ -196,8 +196,8 @@ SPACES_AT_Z = [
             ("K_rz", False, (1.5, 2.0)),
         ],
         "condccd": [
-            ("K_ug_gr", True, (1.5, 2.0)),
-            ("K_ur_ri", True, (1.5, 2.0)),
+            ("K_ug_gr", False, (1.5, 2.0)),
+            ("K_ur_ri", False, (1.5, 2.0)),
             ("K_gr_rz", True, (1.5, 2.0)),
         ],
     },

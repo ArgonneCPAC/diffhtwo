@@ -653,101 +653,101 @@ if __name__ == "__main__":
                 logLHa_halo_limit=logLHa_halo_limit,
                 plt_show=False,
             )
-            plot_halpha_ltd(
-                ran_key,
-                hizels_drn,
-                param_collection_fit,
-                ssp_data,
-                feniks.filter_info.tcurves,
-                halpha_wave_aa,
-                hizels_label,
-                fit_diagnostics_save_drn,
-                num_halos=num_halos,
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                logHa_flux_limit_fit=logHa_flux_limit,
-                logLHa_halo_limit=logLHa_halo_limit,
-                plt_show=False,
-            )
+            # plot_halpha_ltd(
+            #     ran_key,
+            #     hizels_drn,
+            #     param_collection_fit,
+            #     ssp_data,
+            #     feniks.filter_info.tcurves,
+            #     halpha_wave_aa,
+            #     hizels_label,
+            #     fit_diagnostics_save_drn,
+            #     num_halos=num_halos,
+            #     lgmp_min=lgmp_min,
+            #     lgmp_max=lgmp_max,
+            #     logHa_flux_limit_fit=logHa_flux_limit,
+            #     logLHa_halo_limit=logLHa_halo_limit,
+            #     plt_show=False,
+            # )
 
-            print("Generating h-alpha LF ms/q/burst plot...")
-            plot_halpha_ms_q_burst(
-                ran_key,
-                hizels,
-                param_collection_fit,
-                ssp_data,
-                feniks.filter_info.tcurves,
-                halpha_wave_aa,
-                hizels_label,
-                fit_diagnostics_save_drn,
-                num_halos=num_halos,
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                plt_show=False,
-            )
+            # print("Generating h-alpha LF ms/q/burst plot...")
+            # plot_halpha_ms_q_burst(
+            #     ran_key,
+            #     hizels,
+            #     param_collection_fit,
+            #     ssp_data,
+            #     feniks.filter_info.tcurves,
+            #     halpha_wave_aa,
+            #     hizels_label,
+            #     fit_diagnostics_save_drn,
+            #     num_halos=num_halos,
+            #     lgmp_min=lgmp_min,
+            #     lgmp_max=lgmp_max,
+            #     plt_show=False,
+            # )
 
-            print("Generating h-alpha LF ssfr plot...")
-            plot_halpha_ssfr(
-                ran_key,
-                hizels,
-                param_collection_fit,
-                ssp_data,
-                feniks.filter_info.tcurves,
-                halpha_wave_aa,
-                hizels_label,
-                fit_diagnostics_save_drn,
-                num_halos=num_halos,
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                plt_show=False,
-            )
+            # print("Generating h-alpha LF ssfr plot...")
+            # plot_halpha_ssfr(
+            #     ran_key,
+            #     hizels,
+            #     param_collection_fit,
+            #     ssp_data,
+            #     feniks.filter_info.tcurves,
+            #     halpha_wave_aa,
+            #     hizels_label,
+            #     fit_diagnostics_save_drn,
+            #     num_halos=num_halos,
+            #     lgmp_min=lgmp_min,
+            #     lgmp_max=lgmp_max,
+            #     plt_show=False,
+            # )
 
-            print("Generating h-alpha LF sfr plot...")
-            plot_halpha_sfr_single_z(
-                ran_key,
-                hizels,
-                param_collection_fit,
-                ssp_data,
-                feniks.filter_info.tcurves,
-                halpha_wave_aa,
-                hizels_label,
-                fit_diagnostics_save_drn,
-                num_halos=num_halos,
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                plt_show=False,
-            )
+            # print("Generating h-alpha LF sfr plot...")
+            # plot_halpha_sfr_single_z(
+            #     ran_key,
+            #     hizels,
+            #     param_collection_fit,
+            #     ssp_data,
+            #     feniks.filter_info.tcurves,
+            #     halpha_wave_aa,
+            #     hizels_label,
+            #     fit_diagnostics_save_drn,
+            #     num_halos=num_halos,
+            #     lgmp_min=lgmp_min,
+            #     lgmp_max=lgmp_max,
+            #     plt_show=False,
+            # )
 
-            plot_halpha_sfr(
-                ran_key,
-                hizels,
-                param_collection_fit,
-                ssp_data,
-                feniks.filter_info.tcurves,
-                halpha_wave_aa,
-                hizels_label,
-                fit_diagnostics_save_drn,
-                num_halos=num_halos,
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                plt_show=False,
-            )
+            # plot_halpha_sfr(
+            #     ran_key,
+            #     hizels,
+            #     param_collection_fit,
+            #     ssp_data,
+            #     feniks.filter_info.tcurves,
+            #     halpha_wave_aa,
+            #     hizels_label,
+            #     fit_diagnostics_save_drn,
+            #     num_halos=num_halos,
+            #     lgmp_min=lgmp_min,
+            #     lgmp_max=lgmp_max,
+            #     plt_show=False,
+            # )
 
-            print("Generating h-alpha LF in-situ/ex-situ plot...")
-            plot_halpha_insitu_exsitu(
-                ran_key,
-                hizels,
-                param_collection_fit,
-                ssp_data,
-                feniks.filter_info.tcurves,
-                halpha_wave_aa,
-                hizels_label,
-                fit_diagnostics_save_drn,
-                num_halos=num_halos,
-                lgmp_min=lgmp_min,
-                lgmp_max=lgmp_max,
-                plt_show=False,
-            )
+            # print("Generating h-alpha LF in-situ/ex-situ plot...")
+            # plot_halpha_insitu_exsitu(
+            #     ran_key,
+            #     hizels,
+            #     param_collection_fit,
+            #     ssp_data,
+            #     feniks.filter_info.tcurves,
+            #     halpha_wave_aa,
+            #     hizels_label,
+            #     fit_diagnostics_save_drn,
+            #     num_halos=num_halos,
+            #     lgmp_min=lgmp_min,
+            #     lgmp_max=lgmp_max,
+            #     plt_show=False,
+            # )
 
             if cfg["plots"]["plot_halpha_mstar"]:
                 print("Generating H-alpha Mstar plot...")
