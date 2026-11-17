@@ -14,10 +14,12 @@ from .space_utils import (
     AppMagFunc,
     ColorColor,
     CondColor,
+    CondColorColor,
     MagColor,
     get_ccd_spaces_at_z,
     get_cmd_spaces_at_z,
     get_condc_spaces_at_z,
+    get_condccd_spaces_at_z,
     get_mag_spaces_at_z,
     split_space_entries,
 )
@@ -50,8 +52,8 @@ LH_D_Z = 0.025
 F_HOLES = 0.003531
 
 # space binning defaults
-D_MAG_1d = 0.1
-D_MAG_2d = 0.1
+D_MAG_1d = 0.05
+D_MAG_2d = 0.05
 GAUSS_SIG_2d = 3.0
 D_MAG_COND = 1.0
 
@@ -75,9 +77,14 @@ SPACES_AT_Z = [
         "ccd": [("Ur_ri", True, (0.02, 0.1)), ("Gr_ri", True, (0.02, 0.1))],
         "cmd": [("R_ur", True, (0.02, 0.1)), ("R_ri", True, (0.02, 0.1))],
         "condc": [
+            ("R_ug", False, (0.02, 0.1)),
             ("R_ur", False, (0.02, 0.1)),
             ("R_gr", False, (0.02, 0.1)),
             ("R_ri", False, (0.02, 0.1)),
+        ],
+        "condccd": [
+            ("R_ug_gr", True, (0.02, 0.1)),
+            ("R_gr_ri", True, (0.02, 0.1)),
         ],
     },
     {
@@ -92,9 +99,14 @@ SPACES_AT_Z = [
         "ccd": [("Ur_ri", True, (0.1, 0.2)), ("Gr_ri", True, (0.1, 0.2))],
         "cmd": [("R_ur", True, (0.1, 0.2)), ("R_ri", True, (0.1, 0.2))],
         "condc": [
+            ("R_ug", False, (0.1, 0.2)),
             ("R_ur", False, (0.1, 0.2)),
             ("R_gr", False, (0.1, 0.2)),
             ("R_ri", False, (0.1, 0.2)),
+        ],
+        "condccd": [
+            ("R_ug_gr", True, (0.1, 0.2)),
+            ("R_gr_ri", True, (0.1, 0.2)),
         ],
     },
 ]
@@ -233,12 +245,26 @@ def get_sdss_data(
     n_z_phot_table=N_Z_PHOT_TABLE,
     cosmo_params=DEFAULT_COSMOLOGY,
 ):
+    # sdss_mag_thresh = SdssFilters(
+    #     sdss_u=(15.0, 19.0),
+    #     sdss_g=(13.5, 19.0),
+    #     sdss_r=(13.0, SDSS_MAGR_THRESH),  # SDSS_MAGR_THRESH=17.5
+    #     sdss_i=(12.5, 17.5),
+    #     sdss_z=(12.5, 17.5),
+    # )
+    # sdss_mag_thresh = SdssFilters(
+    #     sdss_u=(16.0, 18.0),
+    #     sdss_g=(16.0, 18.0),
+    #     sdss_r=(15.0, SDSS_MAGR_THRESH),  # SDSS_MAGR_THRESH=17.5
+    #     sdss_i=(15.0, 17.5),
+    #     sdss_z=(15.0, 17.5),
+    # )
     sdss_mag_thresh = SdssFilters(
-        sdss_u=(15.0, 19.0),
-        sdss_g=(13.5, 19.0),
-        sdss_r=(13.0, SDSS_MAGR_THRESH),
-        sdss_i=(12.5, 17.5),
-        sdss_z=(12.5, 17.5),
+        sdss_u=(15.2, 19.0),
+        sdss_g=(13.5, 18.0),
+        sdss_r=(13.0, SDSS_MAGR_THRESH),  # SDSS_MAGR_THRESH=17.5
+        sdss_i=(12.5, 17.0),
+        sdss_z=(12.5, 16.7),
     )
     sdss, mag_sels, sdss_area_degsq, r_idx = load_sdss_cuts_applied(
         drn, sdss_mag_thresh
@@ -313,11 +339,17 @@ def get_sdss_data(
         condc, condc_fit, condc_z = split_space_entries(
             spaces_at_z[zbin].get("condc", [])
         )
+        condccd, condccd_fit, condccd_z = split_space_entries(
+            spaces_at_z[zbin].get("condccd", [])
+        )
 
         mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
         cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
         condc_namedtuples = {i: namedtuple(i, CondColor._fields) for i in condc}
+        condccd_namedtuples = {
+            i: namedtuple(i, CondColorColor._fields) for i in condccd
+        }
 
         Spaces = namedtuple(
             "Spaces",
@@ -329,6 +361,7 @@ def get_sdss_data(
                 *[f"ccd_{n}" for n in ccd_namedtuples],
                 *[f"cmd_{n}" for n in cmd_namedtuples],
                 *[f"condc_{n}" for n in condc_namedtuples],
+                *[f"condccd_{n}" for n in condccd_namedtuples],
             ],
         )
 
@@ -409,6 +442,22 @@ def get_sdss_data(
             data_sky_area_degsq=sdss_area_degsq,
         )
 
+        condccd_z_lists = get_condccd_spaces_at_z(
+            condccd_namedtuples,
+            SdssFilters,
+            condccd_z,
+            condccd_fit,
+            redshift,
+            mag_sels,
+            mags,
+            r_idx,
+            d_mag_2d,
+            gauss_sig_2d,
+            d_mag_cond,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=sdss_area_degsq,
+        )
+
         spaces.append(
             Spaces(
                 z_min,
@@ -418,6 +467,7 @@ def get_sdss_data(
                 *ccd_z_tuples,
                 *cmd_z_tuples,
                 *condc_z_lists,
+                *condccd_z_lists,
             )
         )
     ##############################################################################

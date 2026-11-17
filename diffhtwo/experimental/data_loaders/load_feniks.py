@@ -24,10 +24,12 @@ from .space_utils import (
     AppMagFunc,
     ColorColor,
     CondColor,
+    CondColorColor,
     MagColor,
     get_ccd_spaces_at_z,
     get_cmd_spaces_at_z,
     get_condc_spaces_at_z,
+    get_condccd_spaces_at_z,
     get_mag_spaces_at_z,
     split_space_entries,
 )
@@ -64,7 +66,7 @@ LH_D_Z = 0.3
 
 # space binning defaults
 D_MAG_1d = 0.1
-D_MAG_2d = 0.2
+D_MAG_2d = 0.1
 GAUSS_SIG_2d = 3.0
 D_MAG_COND = 1.0
 
@@ -107,6 +109,10 @@ SPACES_AT_Z = [
             ("K_gr", False, (0.4, 0.7)),
             ("K_ri", False, (0.4, 0.7)),
         ],
+        "condccd": [
+            ("K_ug_gr", True, (0.4, 0.7)),
+            ("K_gr_ri", True, (0.4, 0.7)),
+        ],
     },
     {
         "z": (0.7, 1.0),
@@ -130,6 +136,11 @@ SPACES_AT_Z = [
             ("K_ur", False, (0.7, 1.0)),
             ("K_gr", False, (0.7, 1.0)),
             ("K_rz", False, (0.7, 1.0)),
+        ],
+        "condccd": [
+            ("K_ug_gr", True, (0.7, 1.0)),
+            ("K_ur_ri", True, (0.7, 1.0)),
+            ("K_gr_ri", True, (0.7, 1.0)),
         ],
     },
     {
@@ -155,6 +166,11 @@ SPACES_AT_Z = [
             ("K_gr", False, (1.0, 1.5)),
             ("K_rz", False, (1.0, 1.5)),
         ],
+        "condccd": [
+            ("K_ug_gr", True, (1.0, 1.5)),
+            ("K_ur_ri", True, (1.0, 1.5)),
+            ("K_gr_rz", True, (1.0, 1.5)),
+        ],
     },
     {
         "z": (1.5, 2.0),
@@ -178,6 +194,11 @@ SPACES_AT_Z = [
             ("K_ur", False, (1.5, 2.0)),
             ("K_gr", False, (1.5, 2.0)),
             ("K_rz", False, (1.5, 2.0)),
+        ],
+        "condccd": [
+            ("K_ug_gr", True, (1.5, 2.0)),
+            ("K_ur_ri", True, (1.5, 2.0)),
+            ("K_gr_rz", True, (1.5, 2.0)),
         ],
     },
 ]
@@ -421,15 +442,25 @@ def get_feniks_data(
         r"$K_{UDS}$",
     ]
 
+    # feniks_mag_thresh = FeniksFilters(
+    #     MegaCam_uS=(21.4, 25.0),
+    #     HSC_G=(20.6, 25.3),
+    #     HSC_R=(19.8, 24.8),
+    #     HSC_I=(19.0, 24.5),
+    #     HSC_Z=(18.8, 24.3),
+    #     UDS_J=(18.0, 24.0),
+    #     UDS_H=(17.5, 24.0),
+    #     UDS_K=(17.0, FENIKS_MAGK_THRESH),
+    # )
     feniks_mag_thresh = FeniksFilters(
-        MegaCam_uS=(21.4, 25.0),
-        HSC_G=(20.6, 25.3),
-        HSC_R=(19.8, 24.8),
-        HSC_I=(19.0, 24.5),
-        HSC_Z=(18.8, 24.3),
-        UDS_J=(18.0, 24.0),
-        UDS_H=(17.5, 24.0),
-        UDS_K=(17.0, FENIKS_MAGK_THRESH),
+        MegaCam_uS=(21.4, 25.7),
+        HSC_G=(20.6, 25.4),
+        HSC_R=(19.8, 25.1),
+        HSC_I=(19.0, 25.0),
+        HSC_Z=(18.8, 24.7),
+        UDS_J=(18.4, 24.3),
+        UDS_H=(18.2, 24.2),
+        UDS_K=(18.0, FENIKS_MAGK_THRESH),
     )
 
     # Transmission curves and filter mag thresholds
@@ -510,11 +541,17 @@ def get_feniks_data(
         condc, condc_fit, condc_z = split_space_entries(
             spaces_at_z[zbin].get("condc", [])
         )
+        condccd, condccd_fit, condccd_z = split_space_entries(
+            spaces_at_z[zbin].get("condccd", [])
+        )
 
         mag_namedtuples = {i: namedtuple(i, AppMagFunc._fields) for i in md}
         ccd_namedtuples = {i: namedtuple(i, ColorColor._fields) for i in ccd}
         cmd_namedtuples = {i: namedtuple(i, MagColor._fields) for i in cmd}
         condc_namedtuples = {i: namedtuple(i, CondColor._fields) for i in condc}
+        condccd_namedtuples = {
+            i: namedtuple(i, CondColorColor._fields) for i in condccd
+        }
 
         Spaces = namedtuple(
             "Spaces",
@@ -526,6 +563,7 @@ def get_feniks_data(
                 *[f"ccd_{n}" for n in ccd_namedtuples],
                 *[f"cmd_{n}" for n in cmd_namedtuples],
                 *[f"condc_{n}" for n in condc_namedtuples],
+                *[f"condccd_{n}" for n in condccd_namedtuples],
             ],
         )
 
@@ -606,6 +644,22 @@ def get_feniks_data(
             data_sky_area_degsq=FENIKS_AREA_DEG2,
         )
 
+        condccd_z_lists = get_condccd_spaces_at_z(
+            condccd_namedtuples,
+            FeniksFilters,
+            condccd_z,
+            condccd_fit,
+            z_best,
+            mag_sels,
+            mags,
+            K_idx,
+            d_mag_2d,
+            gauss_sig_2d,
+            d_mag_cond,
+            lc_sky_area_degsq,
+            data_sky_area_degsq=FENIKS_AREA_DEG2,
+        )
+
         spaces.append(
             Spaces(
                 z_min,
@@ -615,6 +669,7 @@ def get_feniks_data(
                 *ccd_z_tuples,
                 *cmd_z_tuples,
                 *condc_z_lists,
+                *condccd_z_lists,
             )
         )
 

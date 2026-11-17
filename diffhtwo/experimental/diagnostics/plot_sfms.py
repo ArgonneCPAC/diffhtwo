@@ -131,12 +131,11 @@ def plot_sfms_hexbin(
         logsm_obs = phot_data.logsm_obs
         logmp_obs = lc_data.logmp_obs
         p_merge = phot_data.p_merge
-        merge_weight = gal_weight * (1 - p_merge)
 
         unmerged = p_merge < 0.5
 
         reduce_C_function = make_thresholded_reduce_C_function(
-            merge_weight[unmerged], threshold=1e-6
+            gal_weight[unmerged], threshold=1e-6
         )
 
         z_med = np.median(zbins[zbin])
@@ -147,7 +146,7 @@ def plot_sfms_hexbin(
         hb_sm = ax[0, zbin].hexbin(
             logsm_obs[unmerged],
             logsfr_100Myr[unmerged],
-            C=merge_weight[unmerged],
+            C=gal_weight[unmerged],
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,
@@ -183,7 +182,7 @@ def plot_sfms_hexbin(
         hb_halo = ax[1, zbin].hexbin(
             logmp_obs[unmerged],
             logsfr_100Myr[unmerged],
-            C=merge_weight[unmerged],
+            C=gal_weight[unmerged],
             reduce_C_function=reduce_C_function,
             cmap=cmap,
             gridsize=gridsize,

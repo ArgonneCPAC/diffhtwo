@@ -141,6 +141,7 @@ if __name__ == "__main__":
             feniks_fitting_data.filter_info.tcurves,
             halpha_wave_aa,
             logflux_limit=cfg["hizels"]["logHa_flux_limit"],
+            logLHa_halo_limit=cfg["hizels"]["logLHa_halo_limit"],
             num_halos=cfg["hizels"]["num_halos"],
             lgmp_min=cfg["lgmp_min"],
             lgmp_max=cfg["lgmp_max"],

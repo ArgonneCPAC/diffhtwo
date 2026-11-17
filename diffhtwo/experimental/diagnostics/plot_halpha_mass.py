@@ -2,8 +2,7 @@ import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
 
-from diffhtwo.experimental.kernels.lc_photline_kern import lc_photline_kern
-
+from ..kernels.lc_photline_kern import lc_photline_kern
 from ..kernels.sfr_tau import get_logsfr_tau
 
 plt.rc("font", family="serif", serif=["Times New Roman"])

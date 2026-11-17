@@ -82,6 +82,27 @@ CondColor = namedtuple(
         "vol_mpc3_model",
     ],
 )
+
+CondColorColor = namedtuple(
+    "CondColorColor",
+    [
+        "parent_cut_idx",
+        "cond_idx",
+        "col_idx",
+        "cond_lo",
+        "cond_hi",
+        "sig",
+        "bin_lo",
+        "bin_hi",
+        "N_data",
+        "vol_mpc3_data",
+        "fit",
+        "zlo",
+        "zhi",
+        "vol_mpc3_model",
+    ],
+)
+
 Lf = namedtuple(
     "Lf",
     ["sig", "bin_lo", "bin_hi", "N_data", "fit"],
@@ -282,7 +303,8 @@ def get_condc_spaces_at_z(
         color = mag_selected[:, col_idx[0]] - mag_selected[:, col_idx[1]]
         cond_mag = mag_selected[:, cond_idx]
 
-        edges = np.arange(cond_mag.min(), cond_mag.max() + d_mag_cond, d_mag_cond)
+        edges = np.arange(cond_mag.min(), cond_mag.max(), d_mag_cond)
+        edges = np.append(edges, cond_mag.max())
         space_tuples = []
         for lo, hi in zip(edges[:-1], edges[1:]):
             cond = (cond_mag >= lo) & (cond_mag < hi)
@@ -309,6 +331,91 @@ def get_condc_spaces_at_z(
             )
         condc_z_tuples.append(space_tuples)
     return condc_z_tuples
+
+
+def get_condccd_spaces_at_z(
+    condccd_namedtuples,
+    filters_namedtuple,
+    condccd_z,
+    condccd_fit,
+    redshift,
+    mag_sels,
+    mags,
+    parent_idx,
+    d_mag_2d,
+    gauss_sig_2d,
+    d_mag_cond,
+    lc_sky_area_degsq,
+    data_sky_area_degsq=None,
+    minerva_drn=None,
+    minerva_area_file=None,
+    cosmo_params=DEFAULT_COSMOLOGY,
+):
+    condccd_z_tuples = []
+    for space_name, space in condccd_namedtuples.items():
+        cond_idx, a, b, c, d = get_filt_indx(space_name, filters_namedtuple)
+        col_idx = [a, b, c, d]
+
+        zlo, zhi = condccd_z[space_name]
+        z_sel = (redshift > zlo) & (redshift <= zhi)
+
+        if data_sky_area_degsq is None:
+            space_area_arcminsq = get_minerva_space_area_arcminsq(
+                minerva_drn, space_name, minerva_drn / minerva_area_file
+            )
+            space_area_degsq = space_area_arcminsq / 3600
+            vol_mpc3_data = zbin_vol(space_area_degsq, zlo, zhi, cosmo_params)
+        else:
+            vol_mpc3_data = zbin_vol(data_sky_area_degsq, zlo, zhi, cosmo_params)
+
+        vol_mpc3_model = zbin_vol(lc_sky_area_degsq, zlo, zhi, cosmo_params)
+
+        # main mag_thresh selection across involved bands before conditioning
+        sel = (
+            mag_sels[:, cond_idx]
+            & mag_sels[:, a]
+            & mag_sels[:, b]
+            & mag_sels[:, c]
+            & mag_sels[:, d]
+            & z_sel
+        )
+        mag_selected = mags[sel]
+
+        color1 = mag_selected[:, a] - mag_selected[:, b]
+        color2 = mag_selected[:, c] - mag_selected[:, d]
+        cond_mag = mag_selected[:, cond_idx]
+
+        edges = np.arange(cond_mag.min(), cond_mag.max(), d_mag_cond)
+        edges = np.append(edges, cond_mag.max())
+        space_tuples = []
+        for lo, hi in zip(edges[:-1], edges[1:]):
+            cond = (cond_mag >= lo) & (cond_mag < hi)
+            if cond.sum() < 100:
+                continue
+            N_2d, sig, bin_lo, bin_hi = get_N_2d(
+                color1[cond], color2[cond], dmag=d_mag_2d, gauss_sig=gauss_sig_2d
+            )
+
+            space_tuples.append(
+                space(
+                    parent_idx,
+                    cond_idx,
+                    col_idx,
+                    lo,
+                    hi,
+                    sig,
+                    bin_lo,
+                    bin_hi,
+                    N_2d,
+                    vol_mpc3_data,
+                    condccd_fit[space_name],
+                    zlo,
+                    zhi,
+                    vol_mpc3_model,
+                )
+            )
+        condccd_z_tuples.append(space_tuples)
+    return condccd_z_tuples
 
 
 def get_ccd_spaces_at_z(

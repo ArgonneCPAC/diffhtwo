@@ -5,10 +5,10 @@ from dsps.cosmology.defaults import DEFAULT_COSMOLOGY
 
 from ..kernels.lc_photline_kern import mc_photline_kern_merging_wrapper
 from ..kernels.line_dustfree import linelum_gal_dustfree
+from ..kernels.uv_luminosity import compute_M_UV_from_L_UV
 from ..lc_utils import zbin_vol
 from ..lightcone_generators import generate_lc_data
 from ..tab_blue_orange_cmap import make_cmap
-from ..uv_luminosity import UV_FREQUENCY_HZ
 from .plot_phot import minerva_colors
 
 cmap = make_cmap()
@@ -23,18 +23,6 @@ LOGSM_OBS_MIN, LOGSM_OBS_MAX = 7.0, 12.5
 
 # copied from astropy import units as u: d = (10 * u.pc).to(u.cm).value
 D_10pc_in_cm = 3.085677581491367e19
-
-
-def _compute_M_UV_from_L_UV(L_UV, D_10pc_in_cm=D_10pc_in_cm):
-    """
-    Input:
-        L_UV: UV Luminosity in erg/s
-    """
-
-    f_nu = L_UV / UV_FREQUENCY_HZ / (4 * np.pi * D_10pc_in_cm**2)
-    M_UV = -2.5 * np.log10(f_nu) - 48.6
-
-    return M_UV
 
 
 def plot_uvlf(
@@ -95,7 +83,7 @@ def plot_uvlf(
         mc_merge=mc_merge,
     )
     dustfree_unmerged = dustfree_phot_data.p_merge < 0.5
-    dustfree_M_uv = _compute_M_UV_from_L_UV(dustfree_linelum_gal[:, 0])
+    dustfree_M_uv = compute_M_UV_from_L_UV(dustfree_linelum_gal[:, 0])
 
     # Dust-obscured
     phot_data, phot_randoms, photline_data = mc_photline_kern_merging_wrapper(
@@ -105,7 +93,7 @@ def plot_uvlf(
         line_wave_table_uv,
         mc_merge=mc_merge,
     )
-    M_uv = _compute_M_UV_from_L_UV(photline_data.linelum_gal[:, 0])
+    M_uv = compute_M_UV_from_L_UV(photline_data.linelum_gal[:, 0])
     unmerged = phot_data.p_merge < 0.5
 
     labelsize = 11
