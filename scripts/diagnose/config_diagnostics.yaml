@@ -18,7 +18,7 @@ fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 bouwens21_drn: /Users/kumail/diffdir/Bouwens+21_uvlf
 
-skip_epochs_lt: -1
+skip_epochs_lt: 3
 skip_epochs_gt: 100
 
 plot_sdss: True

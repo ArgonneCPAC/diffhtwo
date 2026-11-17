@@ -6,6 +6,7 @@ import os
 from pathlib import Path
 
 import jax
+import jax.numpy as jnp
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
@@ -16,7 +17,7 @@ from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
-from diffhtwo.experimental.data_loaders import load_feniks, load_sdss
+from diffhtwo.experimental.data_loaders import load_sdss
 from diffhtwo.experimental.samplers import hmc_post
 
 if __name__ == "__main__":
@@ -43,9 +44,11 @@ if __name__ == "__main__":
 
     # keys
     ran_key = jran.key(cfg["ran_key"])
-    warmup_key, sampler_key, init_key, lik_key = jax.random.split(ran_key, 4)
-    warmup_keys = jran.split(warmup_key, cfg["num_chains"])
-    sampler_keys = jran.split(sampler_key, cfg["num_chains"])
+    sdss_key, fisher_key, warmup_key, sampler_key, init_key, lik_key = jax.random.split(
+        ran_key, 6
+    )
+    warmup_keys = jran.split(warmup_key, cfg["hmc_num_chains"])
+    sampler_keys = jran.split(sampler_key, cfg["hmc_num_chains"])
 
     ssp_data = load_ssp_templates(fn=ssp_filename)
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
@@ -53,7 +56,7 @@ if __name__ == "__main__":
 
     sdss_fitting_data = load_sdss.get_sdss_fitting_data(
         sdss_drn,
-        ran_key,
+        sdss_key,
         ssp_data,
         num_halos=cfg["sdss"]["num_halos"],
         lgmp_min=cfg["lgmp_min"],
@@ -95,36 +98,62 @@ if __name__ == "__main__":
         res = fisher.compute_fisher_matrix(
             var_uparam_flat,
             hmc_post.flat_logposterior_fn,
-            # flat_logprior,
             include_prior=False,
             verbose=True,
             diffsky_params=uparam_flat,
-            # feniks_fitting_data=feniks_fitting_data,
             sdss_fitting_data=sdss_fitting_data,
             var_flat_idx=var_flat_idx,
             lik_key=lik_key,
         )
         imm = res.covariance_matrix
         np.save(imm_path, imm)
+    assert imm.shape == (len(var_uparam_flat),) * 2
+
+    print("Fisher Sampling ...")
+    fisher_samples = jax.random.multivariate_normal(
+        fisher_key,
+        mean=jnp.asarray(var_uparam_flat),
+        cov=imm,
+        shape=(int(cfg["fisher_num_samples"]),),
+    )
+    # build dictionary with flat samples from the Laplace approximation
+    samples_dict = dict(zip(var_uparams_list, fisher_samples.T))
+
+    # build flat namedtuple with samples
+    uparam_flat_samples = uparam_flat._replace(**samples_dict)
+    # get uniform depth pytree
+    uparam_flat_samples = utils.get_flat_params_all_same_shape(uparam_flat_samples)
+    # convert into collection
+    uparam_coll_samples = dpwm.get_u_param_collection_from_u_param_array(
+        uparam_flat_samples
+    )
+    # convert into bounded
+    param_coll_samples = dpwm.get_param_collection_from_u_param_collection(
+        *uparam_coll_samples
+    )
+
+    lc_mock.write_diffsky_param_collection_merging(
+        out_drn, f'{cfg["run_label"]}_{cfg["run_type"]}_fisher', param_coll_samples
+    )
 
     hmc_settings = {
-        "warmup_num_steps": cfg["warmup_num_steps"],
-        "max_num_doublings": cfg["max_num_doublings"],
-        "target_accept": cfg["target_accept"],
-        "initial_step_size": cfg["initial_step_size"],
+        "warmup_num_steps": cfg["hmc_warmup_num_steps"],
+        "max_num_doublings": cfg["hmc_max_num_doublings"],
+        "target_accept": cfg["hmc_target_accept"],
+        "initial_step_size": cfg["hmc_initial_step_size"],
     }
 
     # Run chain initialization
     chain_inits = hmc.make_chain_inits(
         var_uparam_flat,
-        cfg["num_chains"],
-        cfg["init_jitter"],
+        cfg["hmc_num_chains"],
+        cfg["hmc_init_jitter"],
         imm,
         init_key,
     )
 
     # warmup
-    print("Warming up ...")
+    print("HMC Warming up ...")
     warmup_states, step_sizes, warmup_info, imm_out = hmc.run_warmup(
         hmc_post.flat_logposterior_fn,
         warmup_keys,
@@ -133,24 +162,22 @@ if __name__ == "__main__":
         inverse_mass_matrix=imm,
         diffsky_params=uparam_flat,
         sdss_fitting_data=sdss_fitting_data,
-        # feniks_fitting_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
         lik_key=lik_key,
     )
 
     # sampling
-    print("Sampling ...")
+    print("HMC Sampling ...")
     positions, sample_info = hmc.run_sampling(
         hmc_post.flat_logposterior_fn,
         imm_out,
-        cfg["max_num_doublings"],
-        cfg["num_samples"],
+        cfg["hmc_max_num_doublings"],
+        cfg["hmc_num_samples"],
         sampler_keys,
         warmup_states,
         step_sizes,
         diffsky_params=uparam_flat,
         sdss_fitting_data=sdss_fitting_data,
-        # feniks_fitting_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
         lik_key=lik_key,
     )
@@ -172,6 +199,6 @@ if __name__ == "__main__":
     )
     lc_mock.write_diffsky_param_collection_merging(
         out_drn,
-        cfg["run_label"] + "_" + cfg["run_type"],
+        f'{cfg["run_label"]}_{cfg["run_type"]}_hmc',
         param_collection_samples,
     )
