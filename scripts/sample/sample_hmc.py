@@ -6,11 +6,15 @@ import os
 from pathlib import Path
 
 import jax
+import jax.numpy as jnp
 import numpy as np
 import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
-from diffsky.experimental.inference import hmc, utils
+from diffsky.experimental.inference import fisher, hmc, utils
 from diffsky.param_utils import diffsky_param_wrapper_merging as dpwm
+from diffsky.param_utils.diffsky_param_wrapper_merging import (
+    check_param_collection_is_ok,
+)
 from diffsky.param_utils.load_calib_params import load_param_collection
 from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
@@ -25,7 +29,7 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     n_devices = jax.local_device_count()
-    print(n_devices)
+    print(f"n_devices: {n_devices}")
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
@@ -37,24 +41,31 @@ if __name__ == "__main__":
         cfg["base_path"]
         + "/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5"
     )
-    out_drn = cfg["base_path"] + "/inference"
+    out_drn = cfg["base_path"] + "/inference/" + cfg["run_label"] + "/"
 
-    imm_path = f"{out_drn}/covariance_matrix.npy"
-    if os.path.exists(imm_path):
-        imm = np.load(imm_path)
-        print(f"loaded precomputed IMM from {imm_path}")
-    else:
-        # will compute IMM with warmup
-        imm = None
+    os.makedirs(out_drn, exist_ok=True)
 
-    ran_key = jran.key(0)
+    # keys
+    ran_key = jran.key(cfg["ran_key"])
+    (
+        sdss_key,
+        feniks_key,
+        fisher_key,
+        warmup_key,
+        sampler_key,
+        init_key,
+        lik_key,
+    ) = jax.random.split(ran_key, 7)
+    warmup_keys = jran.split(warmup_key, cfg["hmc_num_chains"])
+    sampler_keys = jran.split(sampler_key, cfg["hmc_num_chains"])
+
     ssp_data = load_ssp_templates(fn=ssp_filename)
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
     halpha_wave_aa = ssp_data.ssp_emline_wave[0]
 
     sdss_fitting_data = load_sdss.get_sdss_fitting_data(
         sdss_drn,
-        ran_key,
+        sdss_key,
         ssp_data,
         num_halos=cfg["sdss"]["num_halos"],
         lgmp_min=cfg["lgmp_min"],
@@ -63,7 +74,7 @@ if __name__ == "__main__":
 
     feniks_fitting_data = load_feniks.get_feniks_fitting_data(
         feniks_drn,
-        ran_key,
+        feniks_key,
         ssp_data,
         num_halos=cfg["feniks"]["num_halos"],
         lgmp_min=cfg["lgmp_min"],
@@ -96,29 +107,73 @@ if __name__ == "__main__":
     # List of indices of varied parameters in the flatten namedtuple
     var_flat_idx = utils.compute_varied_params_indices(var_uparam_flat, uparam_flat)
 
-    hmc_settings = {
-        "warmup_num_steps": cfg["warmup_num_steps"],
-        "max_num_doublings": cfg["max_num_doublings"],
-        "target_accept": cfg["target_accept"],
-        "initial_step_size": cfg["initial_step_size"],
-    }
+    imm_path = f"{out_drn}/covariance_matrix.npy"
+    if os.path.exists(imm_path):
+        imm = np.load(imm_path)
+        print(f"loaded precomputed IMM from {imm_path}")
+    else:
+        print(f"computing IMM {imm_path}")
+        res = fisher.compute_fisher_matrix(
+            var_uparam_flat,
+            hmc_post.flat_logposterior_fn,
+            include_prior=False,
+            verbose=True,
+            diffsky_params=uparam_flat,
+            sdss_fitting_data=sdss_fitting_data,
+            feniks_fitting_data=feniks_fitting_data,
+            var_flat_idx=var_flat_idx,
+            lik_key=lik_key,
+        )
+        imm = res.covariance_matrix
+        np.save(imm_path, imm)
+    assert imm.shape == (len(var_uparam_flat),) * 2
 
-    # keys
-    ran_key = jran.key(cfg["ran_key"])
-    warmup_key, sampler_key, init_key, lik_key = jax.random.split(ran_key, 4)
-    warmup_keys = jran.split(warmup_key, cfg["num_chains"])
-    sampler_keys = jran.split(sampler_key, cfg["num_chains"])
+    print("Fisher Sampling ...")
+    fisher_samples = jax.random.multivariate_normal(
+        fisher_key,
+        mean=jnp.asarray(var_uparam_flat),
+        cov=imm,
+        shape=(int(cfg["fisher_num_samples"]),),
+    )
+    # build dictionary with flat samples from the Laplace approximation
+    samples_dict = dict(zip(var_uparams_list, fisher_samples.T))
+
+    # build flat namedtuple with samples
+    uparam_flat_samples = uparam_flat._replace(**samples_dict)
+    # get uniform depth pytree
+    uparam_flat_samples = utils.get_flat_params_all_same_shape(uparam_flat_samples)
+    # convert into collection
+    uparam_coll_samples = dpwm.get_u_param_collection_from_u_param_array(
+        uparam_flat_samples
+    )
+    # convert into bounded
+    param_coll_samples = dpwm.get_param_collection_from_u_param_collection(
+        *uparam_coll_samples
+    )
+
+    lc_mock.write_diffsky_param_collection_merging(
+        out_drn, f'{cfg["run_label"]}_{cfg["run_type"]}_fisher', param_coll_samples
+    )
+    assert check_param_collection_is_ok(param_coll_samples)
+
+    hmc_settings = {
+        "warmup_num_steps": cfg["hmc_warmup_num_steps"],
+        "max_num_doublings": cfg["hmc_max_num_doublings"],
+        "target_accept": cfg["hmc_target_accept"],
+        "initial_step_size": cfg["hmc_initial_step_size"],
+    }
 
     # Run chain initialization
     chain_inits = hmc.make_chain_inits(
         var_uparam_flat,
-        cfg["num_chains"],
-        cfg["init_jitter"],
+        cfg["hmc_num_chains"],
+        cfg["hmc_init_jitter"],
         imm,
         init_key,
     )
 
     # warmup
+    print("HMC Warming up ...")
     warmup_states, step_sizes, warmup_info, imm_out = hmc.run_warmup(
         hmc_post.flat_logposterior_fn,
         warmup_keys,
@@ -133,11 +188,12 @@ if __name__ == "__main__":
     )
 
     # sampling
+    print("HMC Sampling ...")
     positions, sample_info = hmc.run_sampling(
         hmc_post.flat_logposterior_fn,
         imm_out,
-        cfg["max_num_doublings"],
-        cfg["num_samples"],
+        cfg["hmc_max_num_doublings"],
+        cfg["hmc_num_samples"],
         sampler_keys,
         warmup_states,
         step_sizes,
@@ -163,8 +219,10 @@ if __name__ == "__main__":
     param_collection_samples = dpwm.get_param_collection_from_u_param_collection(
         *uparam_collection_samples
     )
+
     lc_mock.write_diffsky_param_collection_merging(
         out_drn,
-        cfg["run_label"] + "_" + cfg["run_type"],
+        f'{cfg["run_label"]}_{cfg["run_type"]}_hmc',
         param_collection_samples,
     )
+    assert check_param_collection_is_ok(param_collection_samples)

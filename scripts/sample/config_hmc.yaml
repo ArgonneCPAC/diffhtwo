@@ -1,15 +1,19 @@
 base_path: /Users/kumail/diffdir
-run_label: "run263"
-run_type: "ssperrpop" 
+run_label: "run392"
+run_type: "diffstarpop+spspop+merging" 
 
-num_samples: 2
-warmup_num_steps: 1
-max_num_doublings: 10
-target_accept: 0.8
-initial_step_size: 1.0
 ran_key: 0
-num_chains: 2 #n_devices
-init_jitter: 2
+
+fisher_num_samples: 2
+
+hmc_num_samples: 2
+hmc_warmup_num_steps: 1
+hmc_max_num_doublings: 10
+hmc_target_accept: 0.8
+hmc_initial_step_size: 1.0
+
+hmc_num_chains: 2 #n_devices
+hmc_init_jitter: 2
 
 var_uparams_list: [
     "u_mean_ulgm_mseq_ytp",

@@ -1,6 +1,6 @@
-model_drn: /Users/kumail/diffdir/fits/run392
-model_nickname: run392_diffstarpop+spspop+merging
-fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run392/diagnostic_plots/diffstarpop+spspop+merging
+model_drn: /Users/kumail/diffdir/fits/run399
+model_nickname: run399_diffstarpop+spspop+merging_ep
+fit_diagnostics_save_drn: /Users/kumail/diffdir/fits/run399/diagnostic_plots/diffstarpop+spspop+merging
 
 
 sdss_drn: /Users/kumail/diffdir/sdss
@@ -18,6 +18,8 @@ fq_drn: /Users/kumail/diffdir/fq_lit
 um_fq_drn: /Users/kumail/umachine-dr1/data/qfs
 bouwens21_drn: /Users/kumail/diffdir/Bouwens+21_uvlf
 
+skip_epochs_lt: 11
+skip_epochs_gt: 38
 
 plot_sdss: True
 plot_feniks: True
@@ -41,11 +43,11 @@ defaults:
   merging: False
 
 plots:
-  plot_app_mag_funcs: False
-  plot_exsitu_frac_z0: True
-  plot_color_contours: True
-  plot_cond_colors: True
-  plot_condccd: True
+  plot_app_mag_funcs: True
+  plot_exsitu_frac_z0: False
+  plot_color_contours: False
+  plot_cond_colors: False
+  plot_condccd: False
 
   plot_uv: False
   plot_halpha_lf: False
@@ -59,7 +61,7 @@ plots:
   plot_sfms: False
   plot_fq: False
 
-  plot_mag_z: False
+  plot_mag_z: True
   plot_color_z: False
 
   plot_halpha_uv_ratio: False
