@@ -65,38 +65,10 @@ if __name__ == "__main__":
         + "/ssp_data/ssp_w_emlines/fsps_v0.4.7_mist_c3k_a_kroupa_wNE_logGasU-2.0_logGasZ0.0.h5"
     )
 
-    # get ssp data
     ssp_data = load_ssp_templates(fn=ssp_filename)
     ssp_data = lemi.get_subset_emline_data(ssp_data, ["Ba_alpha_6563"])
     halpha_wave_aa = jnp.array(ssp_data.ssp_emline_wave[0])
 
-    # start fit dirs
-    fit_start_drn = cfg["base_path"] + "/fits/" + cfg["start_runid"] + "/"
-    param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
-        fit_start_drn,
-        cfg["start_runid"] + "_" + cfg["start_fit_type"],
-    )
-    if cfg["defaults"]["diffstarpop"]:
-        param_collection_fit = param_collection_fit._replace(
-            diffstarpop_params=DIFFSTARPOP_PARAMS
-        )
-    if cfg["defaults"]["spspop"]:
-        param_collection_fit = param_collection_fit._replace(
-            spspop_params=DEFAULT_SPSPOP_PARAMS
-        )
-    if cfg["defaults"]["ssperr"]:
-        param_collection_fit = param_collection_fit._replace(
-            ssperr_params=ZERO_SSPERR_PARAMS
-        )
-    if cfg["defaults"]["merging"]:
-        param_collection_fit = param_collection_fit._replace(
-            merging_params=DEFAULT_MERGE_PARAMS
-        )
-
-    u_theta_fit = pu.get_u_theta_from_param_collection(param_collection_fit)
-
-    # fit dirs
-    trainable_params = pu.get_trainable_params(fit_type=cfg["fit_type"])
     fit_save_drn = cfg["base_path"] + "/fits/" + cfg["fit_runid"] + "/"
     fit_diagnostics_save_drn = (
         cfg["base_path"]
@@ -105,22 +77,65 @@ if __name__ == "__main__":
         + "/diagnostic_plots/"
         + cfg["fit_type"]
     )
-    lc_mock.write_diffsky_param_collection_merging(
-        fit_save_drn,
-        f'{cfg["fit_runid"]}_{cfg["fit_type"]}_ep{0}',
-        param_collection_fit,
-    )
+    fit_name = f'{cfg["fit_runid"]}_{cfg["fit_type"]}'
+    loss_file = f"{fit_diagnostics_save_drn}/loss/loss_history.npz"
+    os.makedirs(fit_save_drn, exist_ok=True)
     os.makedirs(fit_diagnostics_save_drn + "/loss", exist_ok=True)
+
+    if os.path.exists(loss_file):
+        d = np.load(loss_file)
+        start_epoch = int(d["epoch"])
+        STEPS = d["steps"]
+        LOSS_HIST = d["loss"]
+        LOSS_SDSS_HIST = d["loss_sdss"]
+        LOSS_FENIKS_HIST = d["loss_feniks"]
+        LOSS_HIZELS_HIST = d["loss_hizels"]
+        initial_pts = [tuple(x) for x in d["initial_pts"]]
+        param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
+            fit_save_drn, f"{fit_name}_ep{start_epoch}"
+        )
+        print(f"Resuming from epoch {start_epoch}")
+    else:
+        start_epoch = 0
+        STEPS = np.array([], dtype=int)
+        LOSS_HIST = LOSS_SDSS_HIST = LOSS_FENIKS_HIST = LOSS_HIZELS_HIST = np.array([])
+        initial_pts = []
+        fit_start_drn = cfg["base_path"] + "/fits/" + cfg["start_runid"] + "/"
+        param_collection_fit = lc_mock.load_diffsky_param_collection_merging(
+            fit_start_drn,
+            cfg["start_runid"] + "_" + cfg["start_fit_type"],
+        )
+        if cfg["defaults"]["diffstarpop"]:
+            param_collection_fit = param_collection_fit._replace(
+                diffstarpop_params=DIFFSTARPOP_PARAMS
+            )
+        if cfg["defaults"]["spspop"]:
+            param_collection_fit = param_collection_fit._replace(
+                spspop_params=DEFAULT_SPSPOP_PARAMS
+            )
+        if cfg["defaults"]["ssperr"]:
+            param_collection_fit = param_collection_fit._replace(
+                ssperr_params=ZERO_SSPERR_PARAMS
+            )
+        if cfg["defaults"]["merging"]:
+            param_collection_fit = param_collection_fit._replace(
+                merging_params=DEFAULT_MERGE_PARAMS
+            )
+        lc_mock.write_diffsky_param_collection_merging(
+            fit_save_drn, f"{fit_name}_ep0", param_collection_fit
+        )
+
+    u_theta_fit = pu.get_u_theta_from_param_collection(param_collection_fit)
+    trainable_params = pu.get_trainable_params(fit_type=cfg["fit_type"])
     os.system(f"cp {args.config} {fit_diagnostics_save_drn}")
 
     with open(fit_diagnostics_save_drn + "/" + args.config) as f:
         cfg = yaml.safe_load(f)
 
-    # open, modify and save config_diagnostics in a new location: fit_diagnostics_save_drn
     with open("../diagnose/config_diagnostics.yaml") as df:
         cfg_d = yaml.safe_load(df)
     cfg_d["model_drn"] = fit_save_drn
-    cfg_d["model_nickname"] = cfg["fit_runid"] + "_" + cfg["fit_type"]
+    cfg_d["model_nickname"] = fit_name
     cfg_d["fit_diagnostics_save_drn"] = fit_diagnostics_save_drn
     cfg_d["lgmp_min"] = cfg["lgmp_min"]
     cfg_d["lgmp_max"] = cfg["lgmp_max"]
@@ -132,36 +147,37 @@ if __name__ == "__main__":
     with open(new_config_diag_path, "w") as df:
         yaml.dump(cfg_d, df, default_flow_style=False, sort_keys=False)
 
-    initial_pts = []
-    start = time.time()
-    epoch_keys = jran.split(jran.key(0), cfg["epoch"]["n_it"])
-    for epoch, ran_key in enumerate(epoch_keys):
-        print(f'Running Epoch {epoch+1}/{cfg["epoch"]["n_it"]}...')
+    n_it = cfg["epoch"]["n_it"]
+    n_steps = cfg["epoch"]["n_steps"]
+    end_epoch = start_epoch + n_it
 
-        # load sdss data
+    start = time.time()
+    for epoch in range(start_epoch, end_epoch):
+        ran_key = jran.fold_in(jran.key(0), epoch)
+        sdss_key, feniks_key, hizels_key, fit_key = jran.split(ran_key, 4)
+        print(f"Running Epoch {epoch+1}/{end_epoch}...")
+
         sdss_fitting_data = load_sdss.get_sdss_fitting_data(
             sdss_drn,
-            ran_key,
+            sdss_key,
             ssp_data,
             num_halos=cfg["sdss"]["num_halos"],
             lgmp_min=cfg["lgmp_min"],
             lgmp_max=cfg["lgmp_max"],
         )
 
-        # load feniks data
         feniks_fitting_data = load_feniks.get_feniks_fitting_data(
             feniks_drn,
-            ran_key,
+            feniks_key,
             ssp_data,
             num_halos=cfg["feniks"]["num_halos"],
             lgmp_min=cfg["lgmp_min"],
             lgmp_max=cfg["lgmp_max"],
         )
 
-        # load hizels data
         hizels_fitting_data = load_hizels.get_hizels_data(
             hizels_drn,
-            ran_key,
+            hizels_key,
             ssp_data,
             feniks_fitting_data.filter_info.tcurves,
             halpha_wave_aa,
@@ -181,11 +197,11 @@ if __name__ == "__main__":
         ) = Np_photline_opt.fit_sdss_feniks_hizels(
             u_theta_fit,
             trainable_params,
-            ran_key,
+            fit_key,
             sdss_fitting_data,
             feniks_fitting_data,
             hizels_fitting_data,
-            n_steps=cfg["epoch"]["n_steps"],
+            n_steps=n_steps,
             step_size=cfg["epoch"]["step_size"],
             w_sdss=cfg["w_sdss"],
             w_feniks=cfg["w_feniks"],
@@ -197,25 +213,30 @@ if __name__ == "__main__":
         param_collection_fit = pu.get_param_collection_from_u_theta(u_theta_fit)
         assert check_param_collection_is_ok(param_collection_fit)
         lc_mock.write_diffsky_param_collection_merging(
-            fit_save_drn,
-            f'{cfg["fit_runid"]}_{cfg["fit_type"]}_ep{epoch+1}',
-            param_collection_fit,
+            fit_save_drn, f"{fit_name}_ep{epoch+1}", param_collection_fit
         )
-        if epoch == 0:
-            STEPS = np.arange(1, cfg["epoch"]["n_steps"] + 1, 1)
-            LOSS_HIST = loss_hist
-            LOSS_SDSS_HIST = loss_sdss_hist
-            LOSS_FENIKS_HIST = loss_feniks_hist
-            LOSS_HIZELS_HIST = loss_hizels_hist
-            initial_pts.append((STEPS[0], LOSS_HIST[0]))
-        else:
-            steps = np.arange(STEPS[-1] + 1, STEPS[-1] + cfg["epoch"]["n_steps"] + 1, 1)
-            initial_pts.append((steps[0], loss_hist[0]))
-            STEPS = np.concatenate((STEPS, steps))
-            LOSS_HIST = np.concatenate((LOSS_HIST, loss_hist))
-            LOSS_SDSS_HIST = np.concatenate((LOSS_SDSS_HIST, loss_sdss_hist))
-            LOSS_FENIKS_HIST = np.concatenate((LOSS_FENIKS_HIST, loss_feniks_hist))
-            LOSS_HIZELS_HIST = np.concatenate((LOSS_HIZELS_HIST, loss_hizels_hist))
+        lc_mock.write_diffsky_param_collection_merging(
+            fit_save_drn, fit_name, param_collection_fit
+        )
+
+        steps = np.arange(len(STEPS) + 1, len(STEPS) + n_steps + 1)
+        initial_pts.append((steps[0], loss_hist[0]))
+        STEPS = np.concatenate((STEPS, steps))
+        LOSS_HIST = np.concatenate((LOSS_HIST, loss_hist))
+        LOSS_SDSS_HIST = np.concatenate((LOSS_SDSS_HIST, loss_sdss_hist))
+        LOSS_FENIKS_HIST = np.concatenate((LOSS_FENIKS_HIST, loss_feniks_hist))
+        LOSS_HIZELS_HIST = np.concatenate((LOSS_HIZELS_HIST, loss_hizels_hist))
+
+        np.savez(
+            loss_file,
+            epoch=epoch + 1,
+            steps=STEPS,
+            loss=LOSS_HIST,
+            loss_sdss=LOSS_SDSS_HIST,
+            loss_feniks=LOSS_FENIKS_HIST,
+            loss_hizels=LOSS_HIZELS_HIST,
+            initial_pts=np.array(initial_pts),
+        )
 
         ts = datetime.now().strftime("%Y-%m-%d_%H:%M:%S")
         plot_loss(
@@ -227,12 +248,9 @@ if __name__ == "__main__":
             initial_pts,
             f"{fit_diagnostics_save_drn}/loss/loss_epoch{epoch+1}_{ts}.png",
         )
-    end = time.time()
-    elapsed = end - start
-    print(
-        f'Gradient descent took {elapsed/60:.3f} minutes for {cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]} steps.'
-    )
-    print(f'speed: {elapsed/(cfg["epoch"]["n_steps"]*cfg["epoch"]["n_it"]):.3f} s/it')
+    elapsed = time.time() - start
+    print(f"Gradient descent took {elapsed/60:.3f} minutes for {n_steps*n_it} steps.")
+    print(f"speed: {elapsed/(n_steps*n_it):.3f} s/it")
 
     os.system(
         f"python ../diagnose/generate_diagnostic_plots.py --config {new_config_diag_path}"

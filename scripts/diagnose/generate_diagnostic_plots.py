@@ -135,17 +135,15 @@ if __name__ == "__main__":
             ),
             key=lambda n: int(n.rsplit("ep", 1)[1]),
         )
+        skip_epochs_lt = cfg["skip_epochs_lt"]
+        skip_epochs_gt = cfg["skip_epochs_gt"]
+        model_nicknames = [
+            nickname
+            for nickname in model_nicknames
+            if skip_epochs_lt < int(nickname.rsplit("ep", 1)[1]) < skip_epochs_gt
+        ]
     else:
         model_nicknames = [model_nickname_cfg]
-
-    skip_epochs_lt = cfg["skip_epochs_lt"]
-    skip_epochs_gt = cfg["skip_epochs_gt"]
-
-    model_nicknames = [
-        nickname
-        for nickname in model_nicknames
-        if skip_epochs_lt < int(nickname.rsplit("ep", 1)[1]) < skip_epochs_gt
-    ]
 
     for model_nickname in model_nicknames:
         pf = f"{cfg['model_drn']}/diffsky_{model_nickname}_param_collection.hdf5"

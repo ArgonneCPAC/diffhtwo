@@ -12,6 +12,9 @@ import yaml
 from diffsky.data_loaders.hacc_utils import lc_mock
 from diffsky.experimental.inference import fisher, hmc, utils
 from diffsky.param_utils import diffsky_param_wrapper_merging as dpwm
+from diffsky.param_utils.diffsky_param_wrapper_merging import (
+    check_param_collection_is_ok,
+)
 from diffsky.param_utils.load_calib_params import load_param_collection
 from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
@@ -26,7 +29,7 @@ if __name__ == "__main__":
     args = p.parse_args()
 
     n_devices = jax.local_device_count()
-    print(n_devices)
+    print(f"n_devices: {n_devices}")
 
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
@@ -135,6 +138,7 @@ if __name__ == "__main__":
     lc_mock.write_diffsky_param_collection_merging(
         out_drn, f'{cfg["run_label"]}_{cfg["run_type"]}_fisher', param_coll_samples
     )
+    assert check_param_collection_is_ok(param_coll_samples)
 
     hmc_settings = {
         "warmup_num_steps": cfg["hmc_warmup_num_steps"],
@@ -197,8 +201,10 @@ if __name__ == "__main__":
     param_collection_samples = dpwm.get_param_collection_from_u_param_collection(
         *uparam_collection_samples
     )
+
     lc_mock.write_diffsky_param_collection_merging(
         out_drn,
         f'{cfg["run_label"]}_{cfg["run_type"]}_hmc',
         param_collection_samples,
     )
+    assert check_param_collection_is_ok(param_collection_samples)
