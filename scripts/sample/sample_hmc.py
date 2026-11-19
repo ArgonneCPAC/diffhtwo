@@ -20,7 +20,7 @@ from dsps import load_ssp_templates
 from dsps.data_loaders import load_emline_info as lemi
 from jax import random as jran
 
-from diffhtwo.experimental.data_loaders import load_sdss
+from diffhtwo.experimental.data_loaders import load_feniks, load_sdss
 from diffhtwo.experimental.samplers import hmc_post
 
 if __name__ == "__main__":
@@ -47,9 +47,15 @@ if __name__ == "__main__":
 
     # keys
     ran_key = jran.key(cfg["ran_key"])
-    sdss_key, fisher_key, warmup_key, sampler_key, init_key, lik_key = jax.random.split(
-        ran_key, 6
-    )
+    (
+        sdss_key,
+        feniks_key,
+        fisher_key,
+        warmup_key,
+        sampler_key,
+        init_key,
+        lik_key,
+    ) = jax.random.split(ran_key, 7)
     warmup_keys = jran.split(warmup_key, cfg["hmc_num_chains"])
     sampler_keys = jran.split(sampler_key, cfg["hmc_num_chains"])
 
@@ -62,6 +68,15 @@ if __name__ == "__main__":
         sdss_key,
         ssp_data,
         num_halos=cfg["sdss"]["num_halos"],
+        lgmp_min=cfg["lgmp_min"],
+        lgmp_max=cfg["lgmp_max"],
+    )
+
+    feniks_fitting_data = load_feniks.get_feniks_fitting_data(
+        feniks_drn,
+        feniks_key,
+        ssp_data,
+        num_halos=cfg["feniks"]["num_halos"],
         lgmp_min=cfg["lgmp_min"],
         lgmp_max=cfg["lgmp_max"],
     )
@@ -105,6 +120,7 @@ if __name__ == "__main__":
             verbose=True,
             diffsky_params=uparam_flat,
             sdss_fitting_data=sdss_fitting_data,
+            feniks_fitting_data=feniks_fitting_data,
             var_flat_idx=var_flat_idx,
             lik_key=lik_key,
         )
@@ -166,6 +182,7 @@ if __name__ == "__main__":
         inverse_mass_matrix=imm,
         diffsky_params=uparam_flat,
         sdss_fitting_data=sdss_fitting_data,
+        feniks_fitting_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
         lik_key=lik_key,
     )
