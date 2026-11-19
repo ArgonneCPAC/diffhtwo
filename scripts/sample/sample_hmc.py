@@ -199,6 +199,7 @@ if __name__ == "__main__":
         step_sizes,
         diffsky_params=uparam_flat,
         sdss_fitting_data=sdss_fitting_data,
+        feniks_fitting_data=feniks_fitting_data,
         var_flat_idx=var_flat_idx,
         lik_key=lik_key,
     )
